@@ -31,4 +31,5 @@ in the repository root). ADRs derive from the specification in [`docs/SPECIFICAT
 |-----|-------|--------|
 | [0001](0001-agent-governance-model.md) | Specification + ADRs governed through a single `AGENTS.md` | 🟢 accepted |
 | [0002](0002-dev-container-runtime.md) | Debian Dev Container without host Docker access | 🟢 accepted |
+| [0003](0003-architecture-style.md) | Hexagonal architecture (Ports & Adapters) as the default style | 🟡 proposed |
 
