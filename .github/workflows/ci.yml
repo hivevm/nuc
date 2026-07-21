@@ -12,7 +12,8 @@ name: CI
 #   3. Delete the `placeholder` job once real jobs run.
 #
 # Adding a language toolchain or a hard CI dependency is architecture-relevant — record it as an ADR
-# first (AGENTS.md §3).
+# first (AGENTS.md §3). Pin every action to a full commit SHA with a version comment (AGENTS.md §7,
+# ADR-0004) — scripts/check-workflow-pins.sh enforces this once the job is uncommented.
 
 on:
   workflow_dispatch:
@@ -37,7 +38,7 @@ jobs:
   #       os: [ubuntu-latest]
   #       # version: [ ... ]   # e.g. language/runtime versions to test against
   #   steps:
-  #     - uses: actions/checkout@v7
+  #     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
   #     # - name: Set up toolchain
   #     #   run: ...            # install the language/runtime — the base image ships none
   #     - name: Build

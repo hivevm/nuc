@@ -21,6 +21,10 @@ behind every structural choice stay explicit and reviewable.
 >    structural decisions as ADRs in [`docs/adr/`](docs/adr/).
 > 3. Fill in the **Overview**, **Build, Test & Run**, and **Usage** sections below.
 > 4. Add your language toolchain (the base image ships none).
+> 5. Configure the GitHub repository settings that repository files cannot enforce: a **ruleset on
+>    `main`** that requires pull requests, requires the **Docs & ADR checks** and **Convention
+>    checks** status checks, and blocks force pushes and branch deletion; enable **secret scanning
+>    with push protection** and **private vulnerability reporting** (see [`SECURITY.md`](SECURITY.md)).
 >
 > Project-specific conventions belong in the specification and ADRs — [`AGENTS.md`](AGENTS.md)
 > stays constant and is not edited per project. Leave the **Dev Container**, **Coding Agents**, and

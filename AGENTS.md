@@ -94,6 +94,9 @@ The exact build, test, and lint commands live in the **Build, Test & Run** secti
 - **Keep the diff releasable.** No commented-out dead code, stray debug output, or `TODO` left as a
   substitute for a decision; unfinished work is tracked as an issue or a `proposed` ADR, not hidden in
   the tree.
+- **A user-visible change updates the `[Unreleased]` section of [`CHANGELOG.md`](CHANGELOG.md)**
+  in the same change ([ADR-0005](docs/adr/0005-versioning-and-releases.md)); internal-only changes
+  (refactorings, tests, CI) do not.
 
 ## 6. Project rules
 
@@ -108,5 +111,38 @@ The exact build, test, and lint commands live in the **Build, Test & Run** secti
 - **Authenticate `gh` through its web flow.** Run `gh auth login` and choose *Login with a web
   browser*; a human then enters the displayed one-time code at <https://github.com/login/device> to
   authorize. Never request, store, or hard-code personal access tokens.
+- **Branches and commits follow fixed conventions**
+  ([ADR-0003](docs/adr/0003-git-conventions.md)). Work branches are named `type/short-topic`
+  (kebab-case); commit subjects are [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
+  — `type(scope)?: description` with types `feat fix docs refactor perf test build ci chore revert`,
+  at most 72 characters, no trailing period. Enforced on pull requests by
+  [`scripts/check-git-conventions.sh`](scripts/check-git-conventions.sh); run it locally before pushing.
+- **Pull requests are squash-merged into `main`**, and the PR title must itself be a valid
+  Conventional Commit subject — squash merge makes it the permanent history line on `main`.
+- **Never force-push or rewrite history on `main` or any shared branch.** Force-pushing your own,
+  not-yet-shared PR branch is fine. On `main` this is enforced by a GitHub ruleset configured in the
+  repository settings (see the setup checklist in [`README.md`](README.md)) — repository files
+  cannot enforce it.
+- **Releases are human-only.** Versions follow SemVer with annotated `vX.Y.Z` tags
+  ([ADR-0005](docs/adr/0005-versioning-and-releases.md)); the release steps live in
+  [`CONTRIBUTING.md`](CONTRIBUTING.md). Agents never tag or publish a release.
 - Build, test, and run commands live in the **Build, Test & Run** section of
   [`README.md`](README.md) — the single source for both humans and agents.
+
+## 7. Secrets & supply chain
+
+Decided in [ADR-0004](docs/adr/0004-secrets-and-supply-chain.md); see also [`SECURITY.md`](SECURITY.md).
+
+- **Never write secrets into tracked files, commit messages, ADRs, logs, or CI output** — no
+  tokens, API keys, passwords, or `.env` contents. Secrets live in environment variables,
+  gitignored `.env*` files, or GitHub Actions secrets.
+- **A leaked secret is compromised the moment it lands in git.** Rotate it first; deleting it from
+  the tip of the branch is not remediation.
+- **When the toolchain has a lockfile, it is committed** and CI installs from it (frozen install);
+  manifest and lockfile change together in the same commit.
+- **Pin every GitHub Action to a full commit SHA with a trailing version comment**
+  (`uses: owner/action@<40-hex-sha> # vX.Y.Z`) — tags are mutable and therefore not a pin.
+  Enforced in CI by [`scripts/check-workflow-pins.sh`](scripts/check-workflow-pins.sh);
+  Dependabot keeps the pins current.
+- **New dependencies and toolchains remain ADR-gated** (§3) — this section governs how
+  dependencies are referenced, not whether they are added.

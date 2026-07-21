@@ -31,4 +31,7 @@ in the repository root). ADRs derive from the specification in [`docs/SPECIFICAT
 |-----|-------|--------|
 | [0001](0001-agent-governance-model.md) | Specification + ADRs governed through a single `AGENTS.md` | 🟢 accepted |
 | [0002](0002-dev-container-runtime.md) | Debian Dev Container without host Docker access | 🟢 accepted |
+| [0003](0003-git-conventions.md) | Git conventions: branches, Conventional Commits, squash merge | 🟡 proposed |
+| [0004](0004-secrets-and-supply-chain.md) | Secrets handling and supply-chain pinning | 🟡 proposed |
+| [0005](0005-versioning-and-releases.md) | Versioning and release process | 🟡 proposed |
 

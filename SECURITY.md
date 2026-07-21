@@ -28,7 +28,18 @@ security posture:
   not just documented: [`.claude/settings.json`](.claude/settings.json) prompts on `git add`,
   `git commit`, `git push`, and `gh`. Authentication uses `gh`'s web flow with no stored tokens.
 
+## Secrets & supply chain
+
+The binding rules — no secrets in tracked files, commits, or CI output; rotate anything that
+leaks; lockfiles committed; every GitHub Action pinned to a full commit SHA (CI-enforced by
+[`scripts/check-workflow-pins.sh`](scripts/check-workflow-pins.sh)) — live in
+[`AGENTS.md`](AGENTS.md) §7 (decided in [ADR-0004](docs/adr/0004-secrets-and-supply-chain.md)).
+GitHub's **secret scanning with push protection** complements them; it is a repository setting,
+listed in the setup checklist in [`README.md`](README.md).
+
 ## Supported versions
 
-<!-- TODO: document which versions/branches receive security fixes once the project has releases. -->
-This is a template; define a support policy when the project reaches its first release.
+Only the **latest release** (the highest `vX.Y.Z` tag — see [`CHANGELOG.md`](CHANGELOG.md) and
+[ADR-0005](docs/adr/0005-versioning-and-releases.md)) receives security fixes, delivered as a new
+release. Before 1.0.0 there are no support guarantees beyond that. Older releases are not patched —
+upgrade to the latest release.
