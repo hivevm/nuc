@@ -12,8 +12,11 @@ name: CI
 #   3. Delete the `placeholder` job once real jobs run.
 #
 # Adding a language toolchain or a hard CI dependency is architecture-relevant — record it as an ADR
-# first (AGENTS.md §3). Pin every action to a full commit SHA with a version comment (AGENTS.md §7,
-# ADR-0004) — scripts/check-workflow-pins.sh enforces this once the job is uncommented.
+# first (AGENTS.md §3).
+# module:supply-chain begin
+# Pin every action to a full commit SHA with a version comment (AGENTS.md §7, ADR-0005) —
+# scripts/check-workflow-pins.sh enforces this once the job is uncommented.
+# module:supply-chain end
 
 on:
   workflow_dispatch:

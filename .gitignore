@@ -1,16 +1,14 @@
 # Dev Container
 .devcontainer/devcontainer-lock.json
 
-# Build artifacts
-/dist/
-/build/
-/target/
-
-# Environment files
-/.env
-/.env.local
-/.env.*.local
+# Environment files — never tracked, in any directory (they may hold secrets);
+# a secrets-free .env.example stays tracked
+.env*
+!.env.example
 
 # OS / editor
 .DS_Store
 Thumbs.db
+
+# Per-user agent settings
+.claude/settings.local.json

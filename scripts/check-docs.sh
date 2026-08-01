@@ -8,12 +8,14 @@
 #   1. ADR index integrity: every docs/adr/NNNN-*.md file is listed in the index table in
 #      docs/adr/README.md, every index row points to an existing file, and the status shown
 #      in the index matches the **Status:** line inside each ADR.
-#   2. Relative-link integrity: every relative Markdown link in every tracked .md file resolves
+#   2. ADR numbering integrity: the ADR files run 0001..N without gaps, and every file's
+#      '# ADR-NNNN' heading matches its filename (docs/adr/README.md, process rule 6).
+#   3. Relative-link integrity: every relative Markdown link in every tracked .md file resolves
 #      to a file or directory that exists.
-#   3. Section-reference integrity: every section reference (the section sign followed by a
+#   4. Section-reference integrity: every section reference (the section sign followed by a
 #      number, e.g. in "AGENTS.md, section 6") matches a numbered '## N.' heading in AGENTS.md —
 #      the only numbered document in this repository; extend the check if another one appears.
-#   4. ADR-reference integrity: every 'ADR-NNNN' reference (with actual digits) names an ADR
+#   5. ADR-reference integrity: every 'ADR-NNNN' reference (with actual digits) names an ADR
 #      file that exists in docs/adr/ — anticipated follow-ups are described by topic, never by
 #      a number that does not exist yet (docs/adr/README.md, process rule 7).
 #
@@ -98,6 +100,26 @@ check_adr_index() {
       add_error "ADR index: status for '$f' is ${status:-<none>} in the index but $file_status in the file"
     fi
   done
+}
+
+# ADR numbers run 0001..N without gaps, and each file's heading carries its own number.
+# Superseded ADRs stay on disk, so a gap can only ever mean a deleted ADR or a botched rename.
+check_adr_numbering() {
+  local f base number expected heading n=0
+  while IFS= read -r f; do
+    base="$(basename "$f")"
+    number="${base%%-*}"
+    n=$((n + 1))
+    expected="$(printf '%04d' "$n")"
+    if [[ "$number" != "$expected" ]]; then
+      add_error "ADR numbering: expected '$expected-*.md' at position $n, found '$base' — numbers must run 0001..N without gaps"
+      return
+    fi
+    heading="$(grep -m1 -oE '^# ADR-[0-9]{4}' "$f")"
+    if [[ "$heading" != "# ADR-$number" ]]; then
+      add_error "$base: heading says '${heading:-<none>}', but the filename says ADR-$number"
+    fi
+  done < <(find "$ADR_DIR" -maxdepth 1 -type f -name '[0-9][0-9][0-9][0-9]-*.md' | sort)
 }
 
 # Print the GitHub-style slug of every ATX heading in a Markdown file.
@@ -238,6 +260,7 @@ check_adr_refs() {
 }
 
 check_adr_index
+check_adr_numbering
 check_relative_links
 check_section_refs
 check_adr_refs

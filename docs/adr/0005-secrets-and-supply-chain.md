@@ -1,8 +1,8 @@
-# ADR-0004: Secrets handling and supply-chain pinning
+# ADR-0005: Secrets handling and supply-chain pinning
 
 - **Status:** 🟡 proposed
 - **Date:** 2026-07-21
-- **Deciders:** Markus Brigl (maintainer)
+- **Deciders:** Maintainer
 
 ## Context
 

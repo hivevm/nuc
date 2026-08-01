@@ -27,19 +27,23 @@ security posture:
   each commit, push, or `gh` action ([`AGENTS.md`](AGENTS.md) §6). For Claude Code this is enforced,
   not just documented: [`.claude/settings.json`](.claude/settings.json) prompts on `git add`,
   `git commit`, `git push`, and `gh`. Authentication uses `gh`'s web flow with no stored tokens.
+<!-- module:supply-chain begin -->
 
 ## Secrets & supply chain
 
 The binding rules — no secrets in tracked files, commits, or CI output; rotate anything that
 leaks; lockfiles committed; every GitHub Action pinned to a full commit SHA (CI-enforced by
 [`scripts/check-workflow-pins.sh`](scripts/check-workflow-pins.sh)) — live in
-[`AGENTS.md`](AGENTS.md) §7 (decided in [ADR-0004](docs/adr/0004-secrets-and-supply-chain.md)).
+[`AGENTS.md`](AGENTS.md) §7 (decided in [ADR-0005](docs/adr/0005-secrets-and-supply-chain.md)).
 GitHub's **secret scanning with push protection** complements them; it is a repository setting,
 listed in the setup checklist in [`README.md`](README.md).
+<!-- module:supply-chain end -->
 
 ## Supported versions
 
+Security fixes are delivered on the current development line only — older states are not patched.
+<!-- module:release begin -->
 Only the **latest release** (the highest `vX.Y.Z` tag — see [`CHANGELOG.md`](CHANGELOG.md) and
-[ADR-0005](docs/adr/0005-versioning-and-releases.md)) receives security fixes, delivered as a new
-release. Before 1.0.0 there are no support guarantees beyond that. Older releases are not patched —
-upgrade to the latest release.
+[ADR-0006](docs/adr/0006-versioning-and-releases.md)) receives security fixes, delivered as a new
+release; before 1.0.0 there are no support guarantees beyond that.
+<!-- module:release end -->

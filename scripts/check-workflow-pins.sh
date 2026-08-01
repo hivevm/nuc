@@ -2,7 +2,7 @@
 #
 # GitHub Actions pinning checks for this template.
 #
-# Enforces — as CI, not just convention — the supply-chain rule from AGENTS.md §7 and ADR-0004:
+# Enforces — as CI, not just convention — the supply-chain rule from AGENTS.md §7 and ADR-0005:
 # every action used in .github/workflows/ is pinned to an immutable reference, because tags are
 # mutable and a repointed tag executes attacker code with the repository's CI permissions.
 #

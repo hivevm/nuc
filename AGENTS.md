@@ -25,12 +25,32 @@ These three principles govern every rule below. When they tension with speed or 
   evidence warrants and say why, and flag what you could not confirm.
 
 ## 2. Start here
+<!-- module:init begin -->
+
+> [!IMPORTANT]
+> **This template is not initialized.** While [`scripts/init-template.sh`](scripts/init-template.sh)
+> exists, STOP — do no other work first. Run `bash scripts/init-template.sh --list` and ask the
+> human which of the listed optional policy modules the project adopts, presenting each module's
+> name and description exactly as printed — the script's manifest is the single source of the
+> module list.
+> Then run `bash scripts/init-template.sh --modules <comma-separated choices|all|none>` with exactly
+> the modules the human chose — when the repository has no `origin` remote yet, also ask the human
+> for the repository slug and pass it as `--repo <owner/name>`, since without either the README's
+> CI badge is removed — report the summary it prints, and ask for approval to commit the result.
+> The script's absence means the template is already initialized.
+<!-- module:init end -->
 
 Before any non-trivial work, read:
 
 1. [`docs/SPECIFICATION.md`](docs/SPECIFICATION.md) — the **specification** (problem, goals, core
    concepts, vocabulary, success criteria).
 2. [`docs/adr/`](docs/adr/) — the Architecture Decision Records. **Accepted ADRs are binding**.
+<!-- module:conformance begin -->
+3. [`docs/CONFORMANCE.md`](docs/CONFORMANCE.md) — what this project owes the **external source** it
+   derives from: the pinned upstream revision, the per-unit conformance inventory, and the
+   deliberate deviations. A difference from the source that is listed there is a decision, not a
+   defect — never "fix" one without an ADR that reverses it.
+<!-- module:conformance end -->
 
 ## 3. ADR rules
 
@@ -94,9 +114,17 @@ The exact build, test, and lint commands live in the **Build, Test & Run** secti
 - **Keep the diff releasable.** No commented-out dead code, stray debug output, or `TODO` left as a
   substitute for a decision; unfinished work is tracked as an issue or a `proposed` ADR, not hidden in
   the tree.
+<!-- module:release begin -->
 - **A user-visible change updates the `[Unreleased]` section of [`CHANGELOG.md`](CHANGELOG.md)**
-  in the same change ([ADR-0005](docs/adr/0005-versioning-and-releases.md)); internal-only changes
+  in the same change ([ADR-0006](docs/adr/0006-versioning-and-releases.md)); internal-only changes
   (refactorings, tests, CI) do not.
+<!-- module:release end -->
+<!-- module:conformance begin -->
+- **A change to a derived unit updates its row in [`docs/CONFORMANCE.md`](docs/CONFORMANCE.md)**
+  in the same change ([ADR-0007](docs/adr/0007-external-conformance-tracking.md)); a departure from
+  the external source is either entered under *Deviations* with its reason or it is a bug. Never
+  move the pinned upstream revision without reconciling the inventory against it.
+<!-- module:conformance end -->
 
 ## 6. Project rules
 
@@ -111,8 +139,9 @@ The exact build, test, and lint commands live in the **Build, Test & Run** secti
 - **Authenticate `gh` through its web flow.** Run `gh auth login` and choose *Login with a web
   browser*; a human then enters the displayed one-time code at <https://github.com/login/device> to
   authorize. Never request, store, or hard-code personal access tokens.
+<!-- module:git-conventions begin -->
 - **Branches and commits follow fixed conventions**
-  ([ADR-0003](docs/adr/0003-git-conventions.md)). Work branches are named `type/short-topic`
+  ([ADR-0004](docs/adr/0004-git-conventions.md)). Work branches are named `type/short-topic`
   (kebab-case); commit subjects are [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
   — `type(scope)?: description` with types `feat fix docs refactor perf test build ci chore revert`,
   at most 72 characters, no trailing period. Enforced on pull requests by
@@ -123,15 +152,19 @@ The exact build, test, and lint commands live in the **Build, Test & Run** secti
   not-yet-shared PR branch is fine. On `main` this is enforced by a GitHub ruleset configured in the
   repository settings (see the setup checklist in [`README.md`](README.md)) — repository files
   cannot enforce it.
+<!-- module:git-conventions end -->
+<!-- module:release begin -->
 - **Releases are human-only.** Versions follow SemVer with annotated `vX.Y.Z` tags
-  ([ADR-0005](docs/adr/0005-versioning-and-releases.md)); the release steps live in
+  ([ADR-0006](docs/adr/0006-versioning-and-releases.md)); the release steps live in
   [`CONTRIBUTING.md`](CONTRIBUTING.md). Agents never tag or publish a release.
+<!-- module:release end -->
 - Build, test, and run commands live in the **Build, Test & Run** section of
   [`README.md`](README.md) — the single source for both humans and agents.
+<!-- module:supply-chain begin -->
 
 ## 7. Secrets & supply chain
 
-Decided in [ADR-0004](docs/adr/0004-secrets-and-supply-chain.md); see also [`SECURITY.md`](SECURITY.md).
+Decided in [ADR-0005](docs/adr/0005-secrets-and-supply-chain.md); see also [`SECURITY.md`](SECURITY.md).
 
 - **Never write secrets into tracked files, commit messages, ADRs, logs, or CI output** — no
   tokens, API keys, passwords, or `.env` contents. Secrets live in environment variables,
@@ -146,3 +179,4 @@ Decided in [ADR-0004](docs/adr/0004-secrets-and-supply-chain.md); see also [`SEC
   Dependabot keeps the pins current.
 - **New dependencies and toolchains remain ADR-gated** (§3) — this section governs how
   dependencies are referenced, not whether they are added.
+<!-- module:supply-chain end -->

@@ -2,7 +2,7 @@
 #
 # Git convention checks for this template.
 #
-# Enforces — as CI, not just convention — the git rules from AGENTS.md §6 and ADR-0003:
+# Enforces — as CI, not just convention — the git rules from AGENTS.md §6 and ADR-0004:
 #
 #   1. Branch name: work branches match 'type/short-topic' (kebab-case). 'main' and bot
 #      branches (dependabot/*, renovate/*) are exempt.

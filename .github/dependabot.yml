@@ -1,6 +1,9 @@
-# Keeps the SHA-pinned GitHub Actions in .github/workflows/ current (ADR-0004): Dependabot
-# updates the commit SHA and its trailing version comment together. The commit-message prefix
-# yields Conventional-Commit-valid subjects ("build(deps): …") per ADR-0003.
+# Keeps the SHA-pinned GitHub Actions in .github/workflows/ current (ADR-0005): Dependabot
+# updates the commit SHA and its trailing version comment together.
+# module:git-conventions begin
+# The commit-message prefix yields Conventional-Commit-valid subjects ("build(deps): …")
+# per ADR-0004.
+# module:git-conventions end
 version: 2
 updates:
   - package-ecosystem: github-actions

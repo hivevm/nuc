@@ -1,7 +1,7 @@
 # NUC — an Agentic, Specification-Oriented Starter Template
 
-<!-- Replace hivevm/nuc with your own repository, or remove this badge. -->
-[![Docs & ADR checks](https://github.com/hivevm/nuc/actions/workflows/docs-check.yml/badge.svg)](https://github.com/hivevm/nuc/actions/workflows/docs-check.yml)
+<!-- The bootstrap script repoints this badge to your repository (--repo or the origin remote), or removes it. -->
+[![Checks](https://github.com/hivevm/nuc/actions/workflows/checks.yml/badge.svg)](https://github.com/hivevm/nuc/actions/workflows/checks.yml)
 
 **NUC** — in beekeeping, the small *nucleus colony* a full hive grows from — is a starting point for
 building software **with coding agents** inside a ready-to-use
@@ -13,18 +13,41 @@ behind every structural choice stay explicit and reviewable.
 
 > [!NOTE]
 > **Using this template.** This repository is a scaffold — turn it into your own project:
+> <!-- module:init begin -->
+>
+> **First — initialize.** While [`scripts/init-template.sh`](scripts/init-template.sh) exists, this
+> template is uninitialized: ask your coding agent to bootstrap, or run
+> `bash scripts/init-template.sh --modules <choices|all|none>` yourself (`--list` shows the
+> optional policy modules). The script prunes everything you did not choose, repoints the CI badge
+> above to your repository (`--repo <owner/name>`, derived from the `origin` remote when omitted;
+> without either, the badge is removed), and deletes itself — the full mechanism is decided in
+> [ADR-0003](docs/adr/0003-template-bootstrap-and-module-selection.md). Then:
+> <!-- module:init end -->
 >
 > 1. Replace the project name **NUC** everywhere it appears — the title and the intro sentence above,
->    and `"name"` in [`.devcontainer/devcontainer.json`](.devcontainer/devcontainer.json) — and repoint
->    the CI badge (currently `hivevm/nuc`) to your own repository, or remove it.
+>    and `"name"` in [`.devcontainer/devcontainer.json`](.devcontainer/devcontainer.json).
 > 2. Write your specification in [`docs/SPECIFICATION.md`](docs/SPECIFICATION.md) and record
 >    structural decisions as ADRs in [`docs/adr/`](docs/adr/).
-> 3. Fill in the **Overview**, **Build, Test & Run**, and **Usage** sections below.
+>    <!-- module:conformance begin -->
+>    Pin the external source you derive from in [`docs/CONFORMANCE.md`](docs/CONFORMANCE.md).
+>    <!-- module:conformance end -->
+> 3. Fill in the **Overview**, **Build, Test & Run**, and **Usage** sections below, and set the
+>    security contact address in [`SECURITY.md`](SECURITY.md).
 > 4. Add your language toolchain (the base image ships none).
-> 5. Configure the GitHub repository settings that repository files cannot enforce: a **ruleset on
->    `main`** that requires pull requests, requires the **Docs & ADR checks** and **Convention
->    checks** status checks, and blocks force pushes and branch deletion; enable **secret scanning
->    with push protection** and **private vulnerability reporting** (see [`SECURITY.md`](SECURITY.md)).
+> 5. Configure the GitHub repository settings that repository files cannot enforce:
+>    - a **ruleset on `main`** that requires pull requests, requires the `docs` and `shell` jobs
+>      of the **Checks** workflow as required status checks (rulesets list checks by their
+>      job name), and blocks force pushes and branch deletion;
+>    <!-- module:supply-chain begin -->
+>    - add the `pins` job to that ruleset's required checks;
+>    <!-- module:supply-chain end -->
+>    <!-- module:git-conventions begin -->
+>    - add the `git-conventions` job to that ruleset's required checks;
+>    <!-- module:git-conventions end -->
+>    <!-- module:supply-chain begin -->
+>    - enable **secret scanning with push protection**;
+>    <!-- module:supply-chain end -->
+>    - enable **private vulnerability reporting** (see [`SECURITY.md`](SECURITY.md)).
 >
 > Project-specific conventions belong in the specification and ADRs — [`AGENTS.md`](AGENTS.md)
 > stays constant and is not edited per project. Leave the **Dev Container**, **Coding Agents**, and
@@ -76,6 +99,8 @@ README.md             # overview & setup for humans
 AGENTS.md             # single source of truth for coding agents
 docs/SPECIFICATION.md # the specification: problem, goals, vocabulary
 docs/adr/             # Architecture Decision Records (+ template)
+scripts/              # repository consistency checks, enforced in CI
+.github/              # CI workflows, issue & pull request templates
 .devcontainer/        # Dev Container definition (base image + Features)
 .vscode/              # shared editor settings
 .claude/CLAUDE.md     # pointer for Claude Code to read AGENTS.md

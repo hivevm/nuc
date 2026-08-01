@@ -1,18 +1,18 @@
-# ADR-0005: Versioning and release process
+# ADR-0006: Versioning and release process
 
 - **Status:** 🟡 proposed
 - **Date:** 2026-07-21
-- **Deciders:** Markus Brigl (maintainer)
+- **Deciders:** Maintainer
 
 ## Context
 
 The template has no versioning or release policy: [`SECURITY.md`](../../SECURITY.md) deferred its
 "Supported versions" section to the first release, there is no changelog, and no tag convention.
 Agents need a mechanical rule for what to update when they change something user-visible, and the
-security policy needs a support statement it can point to. [ADR-0003](0003-git-conventions.md)
-already fixed Conventional Commit types, which map naturally onto semantic versions; the pinning
-and secrets rules from [ADR-0004](0004-secrets-and-supply-chain.md) are unaffected. There are no
-releases yet, so the process must stay minimal (YAGNI).
+security policy needs a support statement it can point to. The template's commit-convention seed
+decision (the `git-conventions` module, where adopted) fixes Conventional Commit types, which map
+naturally onto semantic versions; the pinning and secrets rules of the supply-chain module are
+unaffected. There are no releases yet, so the process must stay minimal (YAGNI).
 
 ## Decision
 
@@ -27,8 +27,9 @@ shipped as a new release.
 
 ## Alternatives considered
 
-- **CalVer** — carries no compatibility signal; the Conventional Commit types from ADR-0003
-  (feat → minor, fix → patch, `!` → major) map onto SemVer, not onto dates.
+- **CalVer** — carries no compatibility signal; Conventional Commit types (where the
+  git-conventions module is adopted: feat → minor, fix → patch, `!` → major) map onto SemVer,
+  not onto dates.
 - **Automated release tooling (semantic-release, release-please)** — a new dependency and CI
   surface for a project with zero releases. The Conventional Commit history keeps this door open;
   adopting such a tool later is its own ADR.

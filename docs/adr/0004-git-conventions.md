@@ -1,8 +1,8 @@
-# ADR-0003: Git conventions: branches, Conventional Commits, squash merge
+# ADR-0004: Git conventions: branches, Conventional Commits, squash merge
 
 - **Status:** 🟡 proposed
 - **Date:** 2026-07-21
-- **Deciders:** Markus Brigl (maintainer)
+- **Deciders:** Maintainer
 
 ## Context
 
