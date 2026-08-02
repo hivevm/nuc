@@ -32,11 +32,15 @@ These three principles govern every rule below. When they tension with speed or 
 > exists, STOP — do no other work first. Run `bash scripts/init-template.sh --list` and ask the
 > human which of the listed optional policy modules the project adopts, presenting each module's
 > name and description exactly as printed — the script's manifest is the single source of the
-> module list.
-> Then run `bash scripts/init-template.sh --modules <comma-separated choices|all|none>` with exactly
-> the modules the human chose — when the repository has no `origin` remote yet, also ask the human
-> for the repository slug and pass it as `--repo <owner/name>`, since without either the README's
-> CI badge is removed — report the summary it prints, and ask for approval to commit the result.
+> module list. Also ask the human for the project identity:
+> which of the listed GitHub Actions badges the README keeps (`--badges <choices|all|none>`),
+> the license (`--license mit|apache-2.0|none`), and the copyright holder for the LICENSE
+> (`--maintainer <holder>`).
+> Then run `bash scripts/init-template.sh --modules <comma-separated choices|all|none>` with
+> exactly the modules and identity values the human chose — when the repository has no `origin`
+> remote yet, also ask the human for the repository slug and pass it as `--repo <owner/name>`,
+> since without either the README's badges are removed — report the summary it prints, and ask
+> for approval to commit the result.
 > The script's absence means the template is already initialized.
 <!-- module:init end -->
 

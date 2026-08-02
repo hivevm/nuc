@@ -1,7 +1,8 @@
 # NUC — an Agentic, Specification-Oriented Starter Template
 
-<!-- The bootstrap script repoints this badge to your repository (--repo or the origin remote), or removes it. -->
+<!-- The bootstrap script keeps the badges you choose, repointed to your repository (--repo or the origin remote), and removes the rest. -->
 [![Checks](https://github.com/hivevm/nuc/actions/workflows/checks.yml/badge.svg)](https://github.com/hivevm/nuc/actions/workflows/checks.yml)
+[![CI](https://github.com/hivevm/nuc/actions/workflows/ci.yml/badge.svg)](https://github.com/hivevm/nuc/actions/workflows/ci.yml)
 
 **NUC** — in beekeeping, the small *nucleus colony* a full hive grows from — is a starting point for
 building software **with coding agents** inside a ready-to-use
@@ -18,9 +19,13 @@ behind every structural choice stay explicit and reviewable.
 > **First — initialize.** While [`scripts/init-template.sh`](scripts/init-template.sh) exists, this
 > template is uninitialized: ask your coding agent to bootstrap, or run
 > `bash scripts/init-template.sh --modules <choices|all|none>` yourself (`--list` shows the
-> optional policy modules). The script prunes everything you did not choose, repoints the CI badge
-> above to your repository (`--repo <owner/name>`, derived from the `origin` remote when omitted;
-> without either, the badge is removed), and deletes itself — the full mechanism is decided in
+> optional policy modules, badges, and licenses). The script prunes everything you did not choose
+> and sets the project identity: the license and copyright holder in [`LICENSE`](LICENSE)
+> (`--license mit|apache-2.0|none`, `--maintainer <holder>`), and the GitHub Actions badges above
+> (`--badges <choices|all|none>`) repointed to your repository (`--repo <owner/name>`, derived
+> from the `origin` remote when omitted; without either, the badges are removed). On a terminal,
+> anything not passed as a flag is asked interactively. The script then deletes itself — the full
+> mechanism is decided in
 > [ADR-0003](docs/adr/0003-template-bootstrap-and-module-selection.md). Then:
 > <!-- module:init end -->
 >

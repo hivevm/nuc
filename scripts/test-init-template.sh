@@ -7,8 +7,10 @@
 # right files and ADRs exist (accepted) or are gone (with their index rows), the surviving ADRs
 # are renumbered to a gapless 0001..N in the expected order, no module markers or references to
 # removed artifacts remain, spacing stays clean, and a second bootstrap run is refused. The
-# repository-identity paths (badge repointed via --repo, derived from a GitHub origin remote,
-# removed when neither exists, malformed --repo refused) are checked separately.
+# repository-identity paths (badges repointed via --repo, derived from a GitHub origin remote,
+# removed when neither exists, badge selection via --badges, malformed values refused) and the
+# project-identity paths (--maintainer fills the LICENSE copyright line; --license switches
+# between MIT, Apache-2.0, and no license) are checked separately.
 # Template-repo tooling only — the bootstrap removes this script in real projects.
 #
 # Pure bash + coreutils — present in the Dev Container base image.
@@ -192,6 +194,16 @@ check_combo() {
   assert_file "$combo" .github/workflows/checks.yml 1
   assert_file "$combo" scripts/init-template.sh 0
   assert_file "$combo" scripts/test-init-template.sh 0
+  assert_file "$combo" scripts/licenses/Apache-2.0.txt 0
+  [[ -d "$tmp/scripts/licenses" ]] && add_error "[$combo] scripts/licenses/ still present"
+
+  # Project-identity defaults: no --license/--maintainer means the shipped MIT LICENSE survives
+  # with its placeholder copyright holder, and the README License section still says MIT.
+  assert_file "$combo" LICENSE 1
+  grep -Eq '^Copyright \(c\) [0-9]{4} Maintainer$' "$tmp/LICENSE" \
+    || add_error "[$combo] LICENSE lost its placeholder copyright line although no holder was given"
+  grep -q 'Released under the MIT License' "$tmp/README.md" \
+    || add_error "[$combo] README License section no longer says MIT although mit is the default"
 
   # No leftover markers, no references to removed artifacts, no bootstrap mentions anywhere —
   # the ADR that documented the mechanism is removed with it.
@@ -244,6 +256,8 @@ check_repo_slug() {
   else
     grep -q 'github\.com/acme/widget/actions/workflows/checks\.yml/badge\.svg' "$tmp/README.md" \
       || add_error "[repo:flag] badge not repointed to acme/widget"
+    grep -q 'workflows/ci\.yml/badge\.svg' "$tmp/README.md" \
+      && add_error "[repo:flag] ci badge survived although the default selection is checks only"
     grep_clean "repo:flag" "$tmp" "badge placeholder" -F 'hivevm/nuc'
     grep -q '<!-- The bootstrap script' "$tmp/README.md" \
       && add_error "[repo:flag] badge instruction comment survived"
@@ -271,6 +285,96 @@ check_repo_slug() {
   [[ -f "$tmp/scripts/init-template.sh" ]] \
     || add_error "[repo:invalid] refused run still mutated the tree"
   rm -rf "$tmp"
+
+  # --badges all keeps every badge line; --badges none removes them all even with a known slug.
+  tmp="$(mktemp -d)"; copy_tree "$tmp"
+  if ! out="$(bash "$tmp/scripts/init-template.sh" --modules none --repo acme/widget --badges all </dev/null 2>&1)"; then
+    add_error "[badges:all] bootstrap failed:"$'\n'"$out"
+  else
+    grep -q 'github\.com/acme/widget/actions/workflows/checks\.yml/badge\.svg' "$tmp/README.md" \
+      || add_error "[badges:all] checks badge missing"
+    grep -q 'github\.com/acme/widget/actions/workflows/ci\.yml/badge\.svg' "$tmp/README.md" \
+      || add_error "[badges:all] ci badge missing"
+  fi
+  rm -rf "$tmp"
+
+  tmp="$(mktemp -d)"; copy_tree "$tmp"
+  if ! out="$(bash "$tmp/scripts/init-template.sh" --modules none --repo acme/widget --badges none </dev/null 2>&1)"; then
+    add_error "[badges:none] bootstrap failed:"$'\n'"$out"
+  else
+    grep -q 'badge\.svg' "$tmp/README.md" \
+      && add_error "[badges:none] a badge survived although none was selected"
+    grep_clean "badges:none" "$tmp" "badge placeholder" -F 'hivevm/nuc'
+  fi
+  rm -rf "$tmp"
+
+  # An unknown badge name is a usage error (2) and mutates nothing.
+  tmp="$(mktemp -d)"; copy_tree "$tmp"
+  out="$(bash "$tmp/scripts/init-template.sh" --modules none --badges nightly </dev/null 2>&1)"
+  rc=$?
+  ((rc == 2)) || add_error "[badges:invalid] expected usage error (exit 2) for an unknown badge, got $rc:"$'\n'"$out"
+  [[ -f "$tmp/scripts/init-template.sh" ]] \
+    || add_error "[badges:invalid] refused run still mutated the tree"
+  rm -rf "$tmp"
+}
+
+# The project-identity paths: --maintainer fills the LICENSE copyright line, --license switches
+# the license text (MIT stays, Apache-2.0 replaces, none removes LICENSE and every link to it).
+check_project_identity() {
+  local tmp out rc
+
+  # --maintainer fills the MIT copyright line; the placeholder holder is gone.
+  tmp="$(mktemp -d)"; copy_tree "$tmp"
+  if ! out="$(bash "$tmp/scripts/init-template.sh" --modules none --maintainer 'Acme Corp' </dev/null 2>&1)"; then
+    add_error "[license:mit] bootstrap failed:"$'\n'"$out"
+  else
+    grep -Eq '^Copyright \(c\) [0-9]{4} Acme Corp$' "$tmp/LICENSE" \
+      || add_error "[license:mit] LICENSE copyright line not filled with the maintainer"
+    grep -Eq '^Copyright \(c\) [0-9]{4} Maintainer$' "$tmp/LICENSE" \
+      && add_error "[license:mit] LICENSE still carries the placeholder holder"
+  fi
+  rm -rf "$tmp"
+
+  # --license apache-2.0 replaces the LICENSE text, fills the appendix fields, updates the README.
+  tmp="$(mktemp -d)"; copy_tree "$tmp"
+  if ! out="$(bash "$tmp/scripts/init-template.sh" --modules all --license apache-2.0 --maintainer 'Acme Corp' </dev/null 2>&1)"; then
+    add_error "[license:apache] bootstrap failed:"$'\n'"$out"
+  else
+    grep -q 'Apache License' "$tmp/LICENSE" \
+      || add_error "[license:apache] LICENSE does not carry the Apache text"
+    grep -Eq 'Copyright [0-9]{4} Acme Corp' "$tmp/LICENSE" \
+      || add_error "[license:apache] Apache appendix fields not filled with year and maintainer"
+    grep -q 'Released under the Apache License 2.0' "$tmp/README.md" \
+      || add_error "[license:apache] README License section not switched to Apache"
+    grep -q 'MIT' "$tmp/README.md" \
+      && add_error "[license:apache] README still mentions MIT"
+    out="$(bash "$tmp/scripts/check-docs.sh" 2>&1)" \
+      || add_error "[license:apache] check-docs failed:"$'\n'"$out"
+  fi
+  rm -rf "$tmp"
+
+  # --license none removes LICENSE; no link to it survives, and the docs checks still pass.
+  tmp="$(mktemp -d)"; copy_tree "$tmp"
+  if ! out="$(bash "$tmp/scripts/init-template.sh" --modules none --license none </dev/null 2>&1)"; then
+    add_error "[license:none] bootstrap failed:"$'\n'"$out"
+  else
+    [[ -f "$tmp/LICENSE" ]] && add_error "[license:none] LICENSE still present"
+    grep_clean "license:none" "$tmp" "links to the removed LICENSE" -F '](LICENSE)'
+    grep -q 'All rights reserved' "$tmp/README.md" \
+      || add_error "[license:none] README License section not rewritten to all-rights-reserved"
+    out="$(bash "$tmp/scripts/check-docs.sh" 2>&1)" \
+      || add_error "[license:none] check-docs failed:"$'\n'"$out"
+  fi
+  rm -rf "$tmp"
+
+  # An unknown license is a usage error (2) and mutates nothing.
+  tmp="$(mktemp -d)"; copy_tree "$tmp"
+  out="$(bash "$tmp/scripts/init-template.sh" --modules none --license wtfpl </dev/null 2>&1)"
+  rc=$?
+  ((rc == 2)) || add_error "[license:invalid] expected usage error (exit 2) for an unknown license, got $rc:"$'\n'"$out"
+  [[ -f "$tmp/scripts/init-template.sh" ]] \
+    || add_error "[license:invalid] refused run still mutated the tree"
+  rm -rf "$tmp"
 }
 
 for combo in "${COMBOS[@]}"; do
@@ -279,6 +383,8 @@ for combo in "${COMBOS[@]}"; do
 done
 check_repo_slug
 echo "checked: repository-identity paths"
+check_project_identity
+echo "checked: project-identity paths"
 
 if ((${#errors[@]} > 0)); then
   echo "Bootstrap combination tests FAILED:"
@@ -289,5 +395,5 @@ if ((${#errors[@]} > 0)); then
   exit 1
 fi
 
-echo "Bootstrap tests passed (${#COMBOS[@]} combinations + repository-identity paths)."
+echo "Bootstrap tests passed (${#COMBOS[@]} combinations + repository- and project-identity paths)."
 exit 0

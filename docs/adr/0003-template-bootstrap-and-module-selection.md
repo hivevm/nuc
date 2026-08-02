@@ -15,10 +15,12 @@ judgment is non-deterministic and unverifiable. The mechanism must be determinis
 coding agent and for humans without one, and stay pure bash + coreutils — a templating toolchain
 would itself be a new dependency.
 
-The template also carries repository-specific identity: the README's CI badge points at the
-template's own repository (`hivevm/nuc`) until it is repointed. Leaving that replacement to a
-manual checklist step is exactly the by-hand pruning this decision rejects — easy to overlook,
-and a wrong badge silently reports another repository's CI status.
+The template also carries project-specific identity: the README's GitHub Actions badges point at
+the template's own repository (`hivevm/nuc`) until they are repointed, and the shipped `LICENSE`
+is MIT with the generic copyright holder `Maintainer`. Leaving those replacements to a manual
+checklist step is exactly the by-hand pruning this decision rejects — easy to overlook, a wrong
+badge silently reports another repository's CI status, and a generic license line misstates who
+holds the copyright and under which terms the project is actually offered.
 
 ## Decision
 
@@ -43,13 +45,24 @@ template, via `scripts/init-template.sh`:
 - The presence of `scripts/init-template.sh` signals "not initialized"; marked hook instructions in
   `AGENTS.md` §2 and `README.md` tell the first agent to stop, ask, and run the script. The script
   removes the hooks and itself, then verifies the result with the remaining check scripts.
-- The repository slug `hivevm/nuc` is the sanctioned **identity placeholder**; it appears only in
-  the README's CI badge line and the instruction comment above it. The script resolves the real
-  slug as a chain — explicit `--repo <owner/name>`, else derived from a `github.com` `origin`
-  remote (only GitHub qualifies: the badge is a GitHub Actions badge) — and rewrites the badge.
-  When neither source exists, badge and comment are removed entirely: no badge is better than one
-  reporting another repository's CI. Interactive runs with no derivable slug ask, mirroring the
-  module prompts; the instruction comment never survives initialization either way.
+- The repository slug `hivevm/nuc` is the sanctioned **repository-identity placeholder**; it
+  appears only in the README's badge lines and the instruction comment above them. The script
+  resolves the real slug as a chain — explicit `--repo <owner/name>`, else derived from a
+  `github.com` `origin` remote (only GitHub qualifies: the badges are GitHub Actions badges).
+  The **badges themselves are selectable** like the modules (`--badges <name>[,<name>...] | all |
+  none`, one badge per shipped workflow; default: the Checks badge): a badge line survives only
+  when its badge was chosen *and* a slug is known — no badge is better than one reporting another
+  repository's CI. Interactive runs ask per badge; the instruction comment never survives
+  initialization either way.
+- The **license and copyright holder** are chosen the same way: `--license mit|apache-2.0|none`
+  (default `mit`) and `--maintainer <holder>`. The LICENSE copyright line with the generic holder
+  `Maintainer` is the sanctioned **license placeholder**. `mit` keeps the shipped MIT text and
+  fills the copyright line with the current year and the holder; `apache-2.0` replaces `LICENSE`
+  with the Apache-2.0 text shipped under `scripts/licenses/` (removed with the bootstrap tooling)
+  and fills its appendix fields; `none` deletes `LICENSE` and rewrites the README's License
+  section to all-rights-reserved, leaving no dead link. With no holder given non-interactively,
+  the placeholder stays and the summary says so — a visible TODO beats a silently wrong holder.
+  Interactive runs ask for holder and license, mirroring the module prompts.
 - Writing constraints, so post-initialization consistency greps stay clean by construction:
   files that survive a combination never cite a removable ADR — neither a seed ADR nor this one — in
   `ADR`-prefixed or link form, and show marker syntax only with the `<name>` placeholder;
@@ -58,9 +71,10 @@ template, via `scripts/init-template.sh`:
   that [`scripts/check-docs.sh`](../../scripts/check-docs.sh) verifies. An ADR is referenced only
   as `ADR-NNNN` or as the link target `NNNN-<slug>.md` — **never as a bare number in prose**, which
   is what makes the renumbering rewrite total instead of a guess about which four digits mean an
-  ADR. The identity placeholder follows the same discipline: `hivevm/nuc` appears nowhere outside
-  the badge line and its instruction comment, which is what makes the repointing a total rewrite
-  instead of a search through prose.
+  ADR. The identity placeholders follow the same discipline: `hivevm/nuc` appears nowhere outside
+  the badge lines and their instruction comment, and the copyright holder `Maintainer` appears in
+  no copyright line outside `LICENSE` — which is what makes the rewrites total instead of a
+  search through prose.
 
 ## Alternatives considered
 
@@ -72,9 +86,13 @@ template, via `scripts/init-template.sh`:
   unverifiable, and drifts; exactly the failure mode this decision removes.
 - **Inverse markers ("keep this only when the module is NOT selected")** — adds a second semantic
   for one use case; a generic fallback sentence outside the block covers it.
-- **Marking the badge as a strippable module block** — trivial to implement, but removes the badge
-  even for projects that want it, and configures nothing: the actual slug would still need manual
+- **Marking the badges as strippable module blocks** — trivial to implement, but removes the badges
+  even for projects that want them, and configures nothing: the actual slug would still need manual
   replacement, which is the failure mode being removed.
+- **Shipping a full license catalogue (or fetching texts from an API)** — a catalogue bloats the
+  template for choices almost never taken; fetching adds a network dependency to a deliberately
+  offline bootstrap. Two shipped texts (MIT, Apache-2.0) plus `none` cover the realistic cases;
+  any other license is a deliberate manual replacement afterwards.
 
 ## Sources / Prior art
 
@@ -87,15 +105,16 @@ template, via `scripts/init-template.sh`:
 ## Consequences
 
 - Positive: projects start with only the policy they adopted, numbered `0001..N` without holes,
-  and with a CI badge that is correct — or absent — from the first commit instead of pointing at
-  the template; the initialized tree is verified by the existing consistency checks; the flow
-  works for humans and any coding agent; adding a future module is a manifest entry, markers, and
-  a test combination.
+  with badges that are correct — or absent — from the first commit instead of pointing at the
+  template, and with a license and copyright holder that state the project's actual terms; the
+  initialized tree is verified by the existing consistency checks; the flow works for humans and
+  any coding agent; adding a future module is a manifest entry, markers, and a test combination.
 - Negative / trade-offs: markers add pre-initialization noise to shared files; shared prose must be
   authored in module-separable line units; the slug derivation understands GitHub remotes only —
-  consistent with the badge being a GitHub Actions badge, but one more GitHub coupling; the
-  bootstrap machinery itself must be tested (covered by `scripts/test-init-template.sh` across all
-  sixteen module combinations plus the repository-slug paths in CI).
+  consistent with the badges being GitHub Actions badges, but one more GitHub coupling; the
+  license choice is limited to the two shipped texts plus `none`; the bootstrap machinery itself
+  must be tested (covered by `scripts/test-init-template.sh` across all sixteen module
+  combinations plus the repository-identity and license paths in CI).
 - Constraint: the bootstrap must run **before** any commit, code comment, or issue cites an ADR
   number — afterwards the renumbering would invalidate those references. Running it at the first
   interaction satisfies this; the script's refusal to run twice keeps it that way.

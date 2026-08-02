@@ -3,15 +3,20 @@
 # Template bootstrap (ADR-0003): run once, at the first interaction in a project created from
 # this template. Keeps the policy modules chosen for this project, removes every file and every
 # marked text block belonging to the modules that were not chosen, marks the chosen seed ADRs
-# accepted (the human's selection is the acceptance), repoints the README CI badge to this
-# project's repository (or removes it when none is known), renumbers the surviving ADRs to a
+# accepted (the human's selection is the acceptance), sets the project identity — license and
+# copyright holder in LICENSE, the chosen GitHub Actions badges in the README repointed to this
+# project's repository (or removed when none is known) — renumbers the surviving ADRs to a
 # gapless 0001..N, deletes itself, and verifies the result with the remaining check scripts.
 #
 # Usage:
-#     scripts/init-template.sh --modules <name>[,<name>...] | all | none  [--repo <owner/name>]
+#     scripts/init-template.sh --modules <name>[,<name>...] | all | none
+#                              [--repo <owner/name>] [--maintainer <holder>]
+#                              [--license mit|apache-2.0|none] [--badges <name>[,<name>...] | all | none]
 #     scripts/init-template.sh --list
-# Without --modules on a terminal, each module is asked interactively. Without --repo, the badge
-# slug is derived from a github.com 'origin' remote; without either, the badge is removed.
+# Without --modules on a terminal, each module is asked interactively — and so are the identity
+# values (repository slug, badges, copyright holder, license). Without --repo, the badge slug is
+# derived from a github.com 'origin' remote; without either, all badges are removed. Defaults when
+# not on a terminal: --license mit, --badges checks, copyright holder left as 'Maintainer'.
 #
 # Recovery from a partial run: `git reset --hard` (the template state is committed).
 # Exit code 0 on success, 1 on failure, 2 on usage errors.
@@ -43,7 +48,9 @@ declare -A MODULE_FILES=(          # deleted when the module is deselected
   [release]="CHANGELOG.md"
   [conformance]="docs/CONFORMANCE.md"
 )
-INIT_FILES=(scripts/test-init-template.sh)   # bootstrap tooling, always removed (self is last)
+INIT_FILES=(scripts/test-init-template.sh)   # bootstrap tooling, always removed (self is last);
+                                   # the license texts under scripts/licenses/ go in step 4,
+                                   # after apply_license has read the chosen one
 INIT_ADR=0003                      # the ADR describing this mechanism — removed with the mechanism
 MARKED_FILES=(
   AGENTS.md README.md CONTRIBUTING.md SECURITY.md CHANGELOG.md
@@ -54,13 +61,34 @@ MARKED_FILES=(
 )
 ADR_INDEX="docs/adr/README.md"
 
-# Repository identity (ADR-0003): the placeholder appears only in the README badge line and the
-# instruction comment above it — that restriction is what makes the rewrite below total.
+# Repository identity (ADR-0003): the placeholder appears only in the README badge lines and the
+# instruction comment above them — that restriction is what makes the rewrite below total.
 REPO_PLACEHOLDER='hivevm/nuc'
 REPO_SLUG_RE='^[A-Za-z0-9-]+/[A-Za-z0-9._-]+$'
 REPO_SLUG=''                       # resolved chain: --repo, else origin remote, else empty
 BADGE_COMMENT_RE='^<!-- The bootstrap script'
 badge_result=''
+
+# GitHub Actions badges (ADR-0003): one per workflow, selectable like the modules. A badge line
+# in the README survives only when its workflow is selected AND a repository slug is known.
+BADGE_KEYS=(checks ci)
+declare -A BADGE_DESC=(
+  [checks]="Checks workflow (repository consistency checks; runs from the first commit)"
+  [ci]="CI workflow (build/test/lint; inert until you activate it — badge shows 'no status' until then)"
+)
+declare -A BADGE_DEFAULT=([checks]=y [ci]=n)
+SELECTED_BADGES=(checks)           # default when --badges is not given and no terminal asks
+
+# Project identity (ADR-0003): copyright holder and license. The LICENSE copyright line with the
+# holder 'Maintainer' is the sanctioned license placeholder; it appears nowhere else.
+LICENSE_HOLDER_RE='^Copyright \(c\) [0-9]{4} Maintainer$'
+LICENSES=(mit apache-2.0 none)
+APACHE_TEXT='scripts/licenses/Apache-2.0.txt'
+MAINTAINER=''                      # resolved chain: --maintainer, else asked, else left as-is
+LICENSE_CHOICE=mit
+license_result=''
+BADGES_GIVEN=0                     # 1 when --badges was passed (skips the interactive question)
+LICENSE_GIVEN=0                    # 1 when --license was passed (skips the interactive question)
 
 MARKER_RE='^[[:space:]>]*(<!--|#)[[:space:]]*module:([a-z][a-z,-]*)[[:space:]]+(begin|end)([[:space:]]*-->)?[[:space:]]*$'
 
@@ -76,10 +104,14 @@ declare -A NEW_NR=()               # old ADR number -> number after renumbering
 usage() {
   cat <<'EOF'
 Usage:
-    scripts/init-template.sh --modules <name>[,<name>...] | all | none  [--repo <owner/name>]
+    scripts/init-template.sh --modules <name>[,<name>...] | all | none
+                             [--repo <owner/name>] [--maintainer <holder>]
+                             [--license mit|apache-2.0|none] [--badges <name>[,<name>...] | all | none]
     scripts/init-template.sh --list
-Without --modules on a terminal, each module is asked interactively. Without --repo, the badge
-slug is derived from a github.com 'origin' remote; without either, the badge is removed.
+Without --modules on a terminal, each module is asked interactively — and so are the identity
+values (repository slug, badges, copyright holder, license). Without --repo, the badge slug is
+derived from a github.com 'origin' remote; without either, all badges are removed. Defaults when
+not on a terminal: --license mit, --badges checks, copyright holder left as 'Maintainer'.
 
 Recovery from a partial run: `git reset --hard` (the template state is committed).
 Exit code 0 on success, 1 on failure, 2 on usage errors.
@@ -91,6 +123,31 @@ list_modules() {
   for m in "${MODULES[@]}"; do
     printf '  %-16s %s\n' "$m" "${MODULE_DESC[$m]}"
   done
+}
+
+list_badges() {
+  local b
+  for b in "${BADGE_KEYS[@]}"; do
+    printf '  %-16s %s\n' "$b" "${BADGE_DESC[$b]}"
+  done
+}
+
+is_badge() {
+  local b
+  for b in "${BADGE_KEYS[@]}"; do [[ "$b" == "$1" ]] && return 0; done
+  return 1
+}
+
+badge_selected() {
+  local b
+  for b in "${SELECTED_BADGES[@]:-}"; do [[ "$b" == "$1" ]] && return 0; done
+  return 1
+}
+
+is_license() {
+  local l
+  for l in "${LICENSES[@]}"; do [[ "$l" == "$1" ]] && return 0; done
+  return 1
 }
 
 is_selected() {
@@ -144,25 +201,71 @@ derive_repo_slug() {
   return 0
 }
 
-# apply_repo_slug — repoint the README CI badge to REPO_SLUG, or remove it when no slug is
-# known. The instruction comment above the badge goes in both cases; when the badge itself is
-# removed, the blank line that followed it goes too, so no double blank is left behind.
-apply_repo_slug() {
-  local readme="$ROOT/README.md" tmp
+# apply_badges — keep each README badge line only when its workflow badge was selected and a
+# repository slug is known, repointed to REPO_SLUG; remove the rest. The instruction comment
+# above the badges goes in every case; when no badge survives, the blank line that followed the
+# badge block goes too, so no double blank is left behind.
+apply_badges() {
+  local readme="$ROOT/README.md" tmp keep="," b kept=()
   if [[ -n "$REPO_SLUG" ]]; then
-    sed -i -e "s|$REPO_PLACEHOLDER|$REPO_SLUG|g" -e "/$BADGE_COMMENT_RE/d" "$readme"
-    badge_result="repointed to $REPO_SLUG"
+    for b in "${SELECTED_BADGES[@]:-}"; do [[ -n "$b" ]] && { keep="$keep$b,"; kept+=("$b"); }; done
+  fi
+  tmp="$(mktemp)"
+  # A badge line carries 'workflows/<name>.yml/badge.svg'; <name> decides its fate.
+  awk -v comment_re="$BADGE_COMMENT_RE" -v keep="$keep" '
+    $0 ~ comment_re { next }
+    /badge\.svg/ {
+      match($0, /workflows\/[A-Za-z0-9_-]+\.yml\/badge\.svg/)
+      wf = substr($0, RSTART + 10, RLENGTH - 24)   # strip "workflows/" and ".yml/badge.svg"
+      if (index(keep, "," wf ",")) { anykept = 1; skipblank = 0; print; next }
+      skipblank = 1; next
+    }
+    skipblank && !anykept && /^[[:space:]]*$/ { skipblank = 0; next }
+    { skipblank = 0; print }
+  ' "$readme" >"$tmp"
+  mv "$tmp" "$readme"
+  if ((${#kept[@]} > 0)); then
+    sed -i "s|$REPO_PLACEHOLDER|$REPO_SLUG|g" "$readme"
+    badge_result="$(IFS=,; echo "${kept[*]}") -> $REPO_SLUG"
+  elif [[ -n "$REPO_SLUG" ]]; then
+    badge_result="removed (none selected)"
   else
-    tmp="$(mktemp)"
-    awk -v comment_re="$BADGE_COMMENT_RE" '
-      $0 ~ comment_re                { next }
-      /badge\.svg/                   { skipblank = 1; next }
-      skipblank && /^[[:space:]]*$/  { skipblank = 0; next }
-      { skipblank = 0; print }
-    ' "$readme" >"$tmp"
-    mv "$tmp" "$readme"
     badge_result="removed (no --repo and no github.com origin remote)"
   fi
+}
+
+# apply_license — set the chosen license and copyright holder. 'mit' keeps the shipped LICENSE
+# and fills the copyright line; 'apache-2.0' replaces it with the Apache text and fills the
+# appendix fields; 'none' removes LICENSE and rewrites the README section to all-rights-reserved.
+# With no holder known, the placeholder fields stay for the human to edit — reported in the summary.
+apply_license() {
+  local license="$ROOT/LICENSE" readme="$ROOT/README.md" line content year holder_note=''
+  year="$(date +%Y)"
+  [[ -n "$MAINTAINER" ]] || holder_note=" (no copyright holder given — edit LICENSE)"
+  case "$LICENSE_CHOICE" in
+    mit)
+      if [[ -n "$MAINTAINER" ]]; then
+        # Bash replacement, not sed: the holder is free text and must not be a pattern.
+        line="$(grep -E -m1 "$LICENSE_HOLDER_RE" "$license")"
+        content="$(<"$license")"
+        printf '%s\n' "${content/"$line"/Copyright (c) $year $MAINTAINER}" >"$license"
+      fi
+      license_result="MIT$holder_note"
+      ;;
+    apache-2.0)
+      content="$(<"$ROOT/$APACHE_TEXT")"
+      content="${content//"[yyyy]"/$year}"
+      [[ -n "$MAINTAINER" ]] && content="${content//"[name of copyright owner]"/$MAINTAINER}"
+      printf '%s\n' "$content" >"$license"
+      sed -i 's/Released under the MIT License/Released under the Apache License 2.0/' "$readme"
+      license_result="Apache-2.0$holder_note"
+      ;;
+    none)
+      rm -f "$license"
+      sed -i '/^Released under the MIT License/c\All rights reserved — this project is not offered under an open-source license.' "$readme"
+      license_result="none (LICENSE removed, all rights reserved)"
+      ;;
+  esac
 }
 
 # accept_adr <number> — flip the seed ADR and its index row from proposed to accepted.
@@ -221,10 +324,14 @@ renumber_adrs() {
 
 # ---------------------------------------------------------------------------------- selection --
 parse_selection() {
-  local m answer modules_arg="" modules_given=0
+  local m b answer modules_arg="" modules_given=0 badges_arg=""
   while (($# > 0)); do
     case "$1" in
-      --list) echo "Available policy modules:"; list_modules; exit 0 ;;
+      --list)
+        echo "Available policy modules:"; list_modules
+        echo "Available GitHub Actions badges:"; list_badges
+        echo "Available licenses: ${LICENSES[*]}"
+        exit 0 ;;
       --modules)
         modules_arg="${2:-}"
         [[ -n "$modules_arg" ]] || { echo "ERROR: --modules needs a value." >&2; usage >&2; exit 2; }
@@ -234,9 +341,36 @@ parse_selection() {
         [[ "$REPO_SLUG" =~ $REPO_SLUG_RE ]] \
           || { echo "ERROR: --repo needs a value of the form 'owner/name'." >&2; usage >&2; exit 2; }
         shift 2 ;;
+      --maintainer)
+        MAINTAINER="${2:-}"
+        [[ -n "$MAINTAINER" ]] || { echo "ERROR: --maintainer needs a value." >&2; usage >&2; exit 2; }
+        shift 2 ;;
+      --license)
+        LICENSE_CHOICE="${2:-}"
+        is_license "$LICENSE_CHOICE" \
+          || { echo "ERROR: --license must be one of: ${LICENSES[*]}." >&2; usage >&2; exit 2; }
+        LICENSE_GIVEN=1; shift 2 ;;
+      --badges)
+        badges_arg="${2:-}"
+        [[ -n "$badges_arg" ]] || { echo "ERROR: --badges needs a value." >&2; usage >&2; exit 2; }
+        BADGES_GIVEN=1; shift 2 ;;
       *) echo "ERROR: unknown argument '${1}'." >&2; usage >&2; exit 2 ;;
     esac
   done
+
+  if ((BADGES_GIVEN)); then
+    case "$badges_arg" in
+      all)  SELECTED_BADGES=("${BADGE_KEYS[@]}") ;;
+      none) SELECTED_BADGES=() ;;
+      *)
+        SELECTED_BADGES=()
+        local IFS=,
+        for b in $badges_arg; do
+          is_badge "$b" || { echo "ERROR: unknown badge '$b'. Valid:" >&2; list_badges >&2; exit 2; }
+          badge_selected "$b" || SELECTED_BADGES+=("$b")
+        done ;;
+    esac
+  fi
 
   if ((modules_given)); then
     case "$modules_arg" in
@@ -265,17 +399,54 @@ parse_selection() {
 
 # resolve_repo_slug — settle the badge slug before anything is mutated: --repo wins (already in
 # REPO_SLUG), else a github.com origin remote, else — interactively — ask, mirroring the module
-# prompts. Still empty afterwards means: remove the badge.
+# prompts. Still empty afterwards means: remove all badges.
 resolve_repo_slug() {
   local answer
   [[ -n "$REPO_SLUG" ]] && return 0
   derive_repo_slug
   if [[ -z "$REPO_SLUG" && -t 0 ]]; then
-    read -rp "Repository 'owner/name' for the CI badge (empty removes the badge): " answer
+    read -rp "Repository 'owner/name' for the GitHub Actions badges (empty removes them): " answer
     if [[ -n "$answer" ]]; then
       [[ "$answer" =~ $REPO_SLUG_RE ]] \
         || { echo "ERROR: '$answer' is not of the form 'owner/name'." >&2; exit 2; }
       REPO_SLUG="$answer"
+    fi
+  fi
+  return 0
+}
+
+# resolve_badges — with a slug known and a terminal (and no --badges), ask per badge, mirroring
+# the module prompts; each badge carries its own default. Slug-less runs skip the questions:
+# every badge is removed regardless of selection.
+resolve_badges() {
+  local b answer suffix
+  ((BADGES_GIVEN)) && return 0       # --badges given — nothing to ask
+  [[ -n "$REPO_SLUG" && -t 0 ]] || return 0
+  echo "Choose the GitHub Actions badges for the README:"
+  SELECTED_BADGES=()
+  for b in "${BADGE_KEYS[@]}"; do
+    [[ "${BADGE_DEFAULT[$b]}" == y ]] && suffix="[Y/n]" || suffix="[y/N]"
+    read -rp "  keep badge '$b' — ${BADGE_DESC[$b]}? $suffix " answer
+    [[ -z "$answer" ]] && answer="${BADGE_DEFAULT[$b]}"
+    [[ "$answer" =~ ^[Yy] ]] && SELECTED_BADGES+=("$b")
+  done
+  return 0
+}
+
+# resolve_project_identity — copyright holder and license: flags win (already set), else — on a
+# terminal — ask; else the defaults stand (MIT, holder left for the human to edit).
+resolve_project_identity() {
+  local answer
+  [[ -t 0 ]] || return 0
+  if [[ -z "$MAINTAINER" ]]; then
+    read -rp "Copyright holder / maintainer for the LICENSE (empty keeps the placeholder): " answer
+    [[ -n "$answer" ]] && MAINTAINER="$answer"
+  fi
+  if ((!LICENSE_GIVEN)); then
+    read -rp "License [${LICENSES[*]}] (default: mit): " answer
+    if [[ -n "$answer" ]]; then
+      is_license "$answer" || { echo "ERROR: license must be one of: ${LICENSES[*]}." >&2; exit 2; }
+      LICENSE_CHOICE="$answer"
     fi
   fi
   return 0
@@ -299,8 +470,19 @@ main() {
   done
   grep -qF "$REPO_PLACEHOLDER" "$ROOT/README.md" \
     || { echo "ERROR: README.md does not carry the badge placeholder '$REPO_PLACEHOLDER' — template drift." >&2; exit 1; }
+  local b
+  for b in "${BADGE_KEYS[@]}"; do
+    grep -qF "workflows/$b.yml/badge.svg" "$ROOT/README.md" \
+      || { echo "ERROR: README.md carries no badge line for workflow '$b' — template drift." >&2; exit 1; }
+  done
+  grep -qE "$LICENSE_HOLDER_RE" "$ROOT/LICENSE" \
+    || { echo "ERROR: LICENSE does not carry the copyright placeholder line — template drift." >&2; exit 1; }
+  [[ -f "$ROOT/$APACHE_TEXT" ]] \
+    || { echo "ERROR: manifest file missing: $APACHE_TEXT" >&2; exit 1; }
 
   resolve_repo_slug
+  resolve_badges
+  resolve_project_identity
 
   # 1. Delete files owned by deselected modules, and their seed ADRs.
   for m in "${MODULES[@]}"; do
@@ -325,8 +507,13 @@ main() {
     [[ -f "$ROOT/$f" ]] && filter_file "$ROOT/$f"
   done
 
-  # 4. Repoint the CI badge to the resolved slug, or remove it when none is known (ADR-0003).
-  apply_repo_slug
+  # 4. Project identity: keep the chosen badges repointed to the resolved slug (or remove them
+  #    when none is known), and set license and copyright holder (ADR-0003). The shipped license
+  #    texts are bootstrap tooling and go once the chosen one has been applied.
+  apply_badges
+  apply_license
+  rm -rf "$ROOT/scripts/licenses"
+  removed+=("$APACHE_TEXT")
 
   # 5. Accept the chosen seed ADRs — the human's selection is the acceptance (ADR-0003).
   for m in "${SELECTED[@]:-}"; do
@@ -358,6 +545,11 @@ main() {
     grep -rInF "$REPO_PLACEHOLDER" "$ROOT" --exclude-dir=.git >&2
     exit 1
   fi
+  if [[ "$LICENSE_CHOICE" == none ]] && grep -rInF '](LICENSE)' "$ROOT" --exclude-dir=.git >/dev/null 2>&1; then
+    echo "ERROR: leftover links to the removed LICENSE file:" >&2
+    grep -rInF '](LICENSE)' "$ROOT" --exclude-dir=.git >&2
+    exit 1
+  fi
 
   # 9. Summary.
   echo
@@ -371,7 +563,8 @@ main() {
   else
     echo "  kept:    no optional modules"
   fi
-  echo "  badge:   $badge_result"
+  echo "  badges:  $badge_result"
+  echo "  license: $license_result"
   for f in "${removed[@]}"; do echo "  removed: $f"; done
   for f in "${renumbered[@]}"; do echo "  renumbered: docs/adr/$f"; done
   echo
