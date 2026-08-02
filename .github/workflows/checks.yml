@@ -15,7 +15,8 @@ name: Checks
 #   subject on main).
 # module:git-conventions end
 # module:supply-chain begin
-# - Supply-chain pinning (AGENTS.md §7, ADR-0005): every action pinned to a full commit SHA.
+# - Action version policy (AGENTS.md §7, ADR-0005): every action referenced by its major
+#   version tag, so workflows always run the newest release of that major.
 # module:supply-chain end
 
 on:
@@ -30,14 +31,14 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@v7
       - name: Check documentation consistency
         run: bash scripts/check-docs.sh
 
   shell:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@v7
       - name: Lint shell scripts with ShellCheck
         run: bash scripts/check-shell.sh
   # module:init begin
@@ -45,18 +46,18 @@ jobs:
   init-combinations:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@v7
       - name: Test template bootstrap across all module combinations
         run: bash scripts/test-init-template.sh
   # module:init end
   # module:supply-chain begin
 
-  pins:
+  action-refs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Check that all actions are SHA-pinned
-        run: bash scripts/check-workflow-pins.sh
+      - uses: actions/checkout@v7
+      - name: Check that all actions use major version tags
+        run: bash scripts/check-action-refs.sh
   # module:supply-chain end
   # module:git-conventions begin
 
@@ -64,7 +65,7 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       # Branch name, SHAs, and PR title are attacker-controlled strings — pass them via env,

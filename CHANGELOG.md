@@ -17,8 +17,8 @@ Update the **Unreleased** section in the same change as any user-visible modific
 - Git conventions: branch naming, Conventional Commit subjects, and squash merge, enforced in CI.
 <!-- module:git-conventions end -->
 <!-- module:supply-chain begin -->
-- Supply-chain pinning: GitHub Actions pinned to full commit SHAs, secrets handling rules, and
-  Dependabot pin updates, enforced in CI.
+- Supply-chain policy: GitHub Actions referenced by floating major version tags, secrets handling
+  rules, and Dependabot major-version updates, enforced in CI.
 <!-- module:supply-chain end -->
 <!-- module:conformance begin -->
 - Conformance tracking: projects that derive from an external specification or project anchor

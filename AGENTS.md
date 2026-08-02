@@ -177,10 +177,12 @@ Decided in [ADR-0005](docs/adr/0005-secrets-and-supply-chain.md); see also [`SEC
   the tip of the branch is not remediation.
 - **When the toolchain has a lockfile, it is committed** and CI installs from it (frozen install);
   manifest and lockfile change together in the same commit.
-- **Pin every GitHub Action to a full commit SHA with a trailing version comment**
-  (`uses: owner/action@<40-hex-sha> # vX.Y.Z`) — tags are mutable and therefore not a pin.
-  Enforced in CI by [`scripts/check-workflow-pins.sh`](scripts/check-workflow-pins.sh);
-  Dependabot keeps the pins current.
+- **Reference every GitHub Action by its major version tag** (`uses: owner/action@vN`), so
+  workflows always run the newest release of that major — never a commit SHA (frozen, receives
+  no updates) and never a branch (not a release). The mutability of tags is an accepted
+  trade-off, decided in ADR-0005.
+  Enforced in CI by [`scripts/check-action-refs.sh`](scripts/check-action-refs.sh);
+  Dependabot raises a PR when a new major version appears.
 - **New dependencies and toolchains remain ADR-gated** (§3) — this section governs how
   dependencies are referenced, not whether they are added.
 <!-- module:supply-chain end -->

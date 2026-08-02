@@ -112,8 +112,8 @@ check_combo() {
   # Consistency checks pass on the initialized tree (independently of the bootstrap's own run).
   out="$(bash "$tmp/scripts/check-docs.sh" 2>&1)" || add_error "[$combo] check-docs failed:"$'\n'"$out"
   if has "$sel" supply-chain; then
-    out="$(bash "$tmp/scripts/check-workflow-pins.sh" 2>&1)" \
-      || add_error "[$combo] check-workflow-pins failed:"$'\n'"$out"
+    out="$(bash "$tmp/scripts/check-action-refs.sh" 2>&1)" \
+      || add_error "[$combo] check-action-refs failed:"$'\n'"$out"
   fi
 
   # Remaining scripts at least parse.
@@ -185,7 +185,7 @@ check_combo() {
   has "$sel" git-conventions && want=1 || want=0
   assert_file "$combo" scripts/check-git-conventions.sh "$want"
   has "$sel" supply-chain && want=1 || want=0
-  assert_file "$combo" scripts/check-workflow-pins.sh "$want"
+  assert_file "$combo" scripts/check-action-refs.sh "$want"
   assert_file "$combo" .github/dependabot.yml "$want"
   has "$sel" release && want=1 || want=0
   assert_file "$combo" CHANGELOG.md "$want"
@@ -210,7 +210,7 @@ check_combo() {
   grep_clean "$combo" "$tmp" "module markers" -E "$MARKER_RE"
   has "$sel" git-conventions || grep_clean "$combo" "$tmp" "git-conventions artifacts" -F "check-git-conventions"
   if ! has "$sel" supply-chain; then
-    grep_clean "$combo" "$tmp" "supply-chain artifacts" -F "check-workflow-pins"
+    grep_clean "$combo" "$tmp" "supply-chain artifacts" -F "check-action-refs"
     # dependabot.yml, not the bare word: branch-name exemptions for bot branches legitimately
     # mention dependabot regardless of this module.
     grep_clean "$combo" "$tmp" "supply-chain artifacts" -F "dependabot.yml"

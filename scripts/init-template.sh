@@ -32,7 +32,7 @@ SELF="$(basename "${BASH_SOURCE[0]}")"
 MODULES=(git-conventions supply-chain release conformance)
 declare -A MODULE_DESC=(
   [git-conventions]="Branch naming, Conventional Commit subjects, squash merge (CI-checked)"
-  [supply-chain]="SHA-pinned GitHub Actions, secrets rules, Dependabot pin updates (CI-checked)"
+  [supply-chain]="Actions on floating major version tags, secrets rules, Dependabot major updates (CI-checked)"
   [release]="SemVer + keep-a-changelog CHANGELOG.md, human-only release process"
   [conformance]="docs/CONFORMANCE.md anchoring the project to an external spec or project it derives from — choose only if such a source exists"
 )
@@ -44,7 +44,7 @@ declare -A MODULE_ADR=(
 )
 declare -A MODULE_FILES=(          # deleted when the module is deselected
   [git-conventions]="scripts/check-git-conventions.sh"
-  [supply-chain]="scripts/check-workflow-pins.sh .github/dependabot.yml"
+  [supply-chain]="scripts/check-action-refs.sh .github/dependabot.yml"
   [release]="CHANGELOG.md"
   [conformance]="docs/CONFORMANCE.md"
 )
@@ -531,7 +531,7 @@ main() {
   # 8. Verify the initialized tree.
   echo "Verifying the initialized tree..."
   bash "$ROOT/scripts/check-docs.sh" || exit 1
-  if is_selected supply-chain; then bash "$ROOT/scripts/check-workflow-pins.sh" || exit 1; fi
+  if is_selected supply-chain; then bash "$ROOT/scripts/check-action-refs.sh" || exit 1; fi
   if is_selected git-conventions && git -C "$ROOT" rev-parse --git-dir >/dev/null 2>&1; then
     bash "$ROOT/scripts/check-git-conventions.sh" || exit 1
   fi

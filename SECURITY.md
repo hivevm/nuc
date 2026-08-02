@@ -32,8 +32,9 @@ security posture:
 ## Secrets & supply chain
 
 The binding rules — no secrets in tracked files, commits, or CI output; rotate anything that
-leaks; lockfiles committed; every GitHub Action pinned to a full commit SHA (CI-enforced by
-[`scripts/check-workflow-pins.sh`](scripts/check-workflow-pins.sh)) — live in
+leaks; lockfiles committed; every GitHub Action referenced by its major version tag so the newest
+release is picked up automatically (CI-enforced by
+[`scripts/check-action-refs.sh`](scripts/check-action-refs.sh)) — live in
 [`AGENTS.md`](AGENTS.md) §7 (decided in [ADR-0005](docs/adr/0005-secrets-and-supply-chain.md)).
 GitHub's **secret scanning with push protection** complements them; it is a repository setting,
 listed in the setup checklist in [`README.md`](README.md).

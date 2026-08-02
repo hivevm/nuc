@@ -44,7 +44,7 @@ behind every structural choice stay explicit and reviewable.
 >      of the **Checks** workflow as required status checks (rulesets list checks by their
 >      job name), and blocks force pushes and branch deletion;
 >    <!-- module:supply-chain begin -->
->    - add the `pins` job to that ruleset's required checks;
+>    - add the `action-refs` job to that ruleset's required checks;
 >    <!-- module:supply-chain end -->
 >    <!-- module:git-conventions begin -->
 >    - add the `git-conventions` job to that ruleset's required checks;

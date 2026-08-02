@@ -48,7 +48,7 @@ in the repository root). ADRs derive from the specification in [`docs/SPECIFICAT
 | [0002](0002-dev-container-runtime.md) | Debian Dev Container without host Docker access | 🟢 accepted |
 | [0003](0003-template-bootstrap-and-module-selection.md) | Template bootstrap with selectable policy modules and repository identity | 🟡 proposed |
 | [0004](0004-git-conventions.md) | Git conventions: branches, Conventional Commits, squash merge | 🟡 proposed |
-| [0005](0005-secrets-and-supply-chain.md) | Secrets handling and supply-chain pinning | 🟡 proposed |
+| [0005](0005-secrets-and-supply-chain.md) | Secrets handling and action version policy | 🟡 proposed |
 | [0006](0006-versioning-and-releases.md) | Versioning and release process | 🟡 proposed |
 | [0007](0007-external-conformance-tracking.md) | Conformance to an external source is tracked in `docs/CONFORMANCE.md` | 🟡 proposed |
 
