@@ -13,6 +13,14 @@ Update the **Unreleased** section in the same change as any user-visible modific
   host Docker access, documentation CI checks, and this changelog.
 - Shell lint: every shell script passes ShellCheck, enforced in CI (the check scripts are the
   template's enforcement layer, so they are linted themselves).
+- ADR-reference checks read every text file of the repository instead of a fixed list of
+  documentation extensions, so references in source comments are checked too; the file list comes
+  from git, which keeps ignored build output out without guessing a toolchain's directory names.
+  Section references (`§N`) stay restricted to Markdown, YAML and shell files: unlike `ADR-NNNN`,
+  the section sign is an ordinary character in source code, where it carries meanings that are no
+  claim about AGENTS.md. A Markdown link citing `ADR-NNNN` must additionally point at that ADR's
+  own file — a number and a link target that name different decisions no longer pass because each
+  half resolves on its own.
 <!-- module:git-conventions begin -->
 - Git conventions: branch naming, Conventional Commit subjects, and squash merge, enforced in CI.
 <!-- module:git-conventions end -->

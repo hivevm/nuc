@@ -26,6 +26,12 @@ in the repository root). ADRs derive from the specification in [`docs/SPECIFICAT
    to a file that is already present in this directory. Anticipated follow-up decisions are
    described by topic (e.g., "a follow-up ADR on session storage") in the Consequences section —
    the concrete number is cited only once that ADR file exists.
+   [`scripts/check-docs.sh`](../../scripts/check-docs.sh) verifies this in every text file of the
+   repository, source comments included — rule 6 makes code a legitimate place to cite a number,
+   and a stale reference there is the one no reviewer reads next to the index. In Markdown, cite
+   an ADR as a link to its own file: the check compares the number in the link text with the file
+   the link points at, so a reference whose number and target name different decisions cannot pass
+   on the strength of each half existing.
 <!-- module:init begin -->
 8. **Seed ADRs are selected at bootstrap.** Projects created from this template choose their
    policy modules at first interaction (see [0003](0003-template-bootstrap-and-module-selection.md)):

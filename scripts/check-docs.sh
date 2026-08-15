@@ -12,15 +12,28 @@
 #      '# ADR-NNNN' heading matches its filename (docs/adr/README.md, process rule 6).
 #   3. Relative-link integrity: every relative Markdown link in every tracked .md file resolves
 #      to a file or directory that exists.
-#   4. Section-reference integrity: every section reference (the section sign followed by a
-#      number, e.g. in "AGENTS.md, section 6") matches a numbered '## N.' heading in AGENTS.md —
-#      the only numbered document in this repository; extend the check if another one appears.
+#   4. Section-reference integrity: in Markdown, YAML and shell files, every section reference
+#      (the section sign followed by a number, e.g. in "AGENTS.md, section 6") matches a numbered
+#      '## N.' heading in AGENTS.md — the only numbered document in this repository; extend the
+#      check if another one appears.
 #   5. ADR-reference integrity: every 'ADR-NNNN' reference (with actual digits) names an ADR
 #      file that exists in docs/adr/ — anticipated follow-ups are described by topic, never by
 #      a number that does not exist yet (docs/adr/README.md, process rule 7).
+#   6. ADR link agreement: a Markdown link whose text cites 'ADR-NNNN' points at that ADR's own
+#      file — the number and the file it links to must name the same decision
+#      (docs/adr/README.md, process rule 7).
 #
-# Pure bash + coreutils/grep/sed only — present in the Dev Container base image, so running it
-# adds no toolchain and no dependency that would require an ADR.
+# Checks 5 and 6 read every text file of the repository, not a list of documentation extensions:
+# process rule 6 states that code may reference an ADR number, so a verifier restricted to
+# documentation file types would leave the references most likely to go stale — those in source
+# comments, which no reviewer reads alongside the ADR index — unchecked. Check 4 stays on
+# documentation file types on purpose: 'ADR-NNNN' means one thing wherever it appears, but '§' in
+# source code is an ordinary character (see is_doc_file), and flagging it there would make a
+# project's own string literals fail this template's CI.
+#
+# Pure bash + coreutils/grep/sed, plus git to enumerate the repository's files — all present in
+# the Dev Container base image, so running it adds no toolchain and no dependency that would
+# require an ADR.
 #
 # Usage:
 #     scripts/check-docs.sh        (or: bash scripts/check-docs.sh)
@@ -44,6 +57,52 @@ _contains() {
   local item
   for item in "$@"; do [[ "$item" == "$needle" ]] && return 0; done
   return 1
+}
+
+# TEXT_FILES — every text file the repository consists of, absolute paths, sorted. Collected once
+# by collect_text_files below and then iterated by each check: building the list costs a grep per
+# file, so rebuilding it inside every check would multiply that cost by the number of checks, and
+# a repository of a few thousand files makes that difference visible in CI.
+#
+# The list comes from git: tracked files plus new, not-yet-added ones, minus everything
+# .gitignore excludes. That keeps generated trees (node_modules/, target/, dist/) out without
+# this script having to guess the directory names of a toolchain the template does not yet know.
+# Binary files are dropped by grep -I, which never matches inside one.
+# Outside a work tree (an exported tarball) git cannot answer, so fall back to a plain walk.
+TEXT_FILES=()
+collect_text_files() {
+  local f
+  while IFS= read -r f; do
+    [[ -f "$f" ]] || continue
+    grep -Iq . "$f" 2>/dev/null || continue
+    TEXT_FILES+=("$f")
+  done < <(
+    if git -C "$ROOT" rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+      git -C "$ROOT" ls-files --cached --others --exclude-standard \
+        | sed "s|^|$ROOT/|"
+    else
+      find "$ROOT" -type f -not -path '*/.git/*'
+    fi | sort
+  )
+  if ((${#TEXT_FILES[@]} == 0)); then
+    add_error "no text files found under $ROOT — the file list is empty, so nothing was checked"
+  fi
+}
+
+# is_doc_file <file> — true for the file types in which the section sign is a reference into
+# AGENTS.md by convention: Markdown, YAML, and shell scripts. In source code the section sign is
+# an ordinary character with its own meanings — a statute cited in a German string literal, a
+# translated message, a test fixture — none of which are claims about a section of AGENTS.md.
+# The ADR checks scan every text file because 'ADR-NNNN' is unambiguous; this notation is not.
+is_doc_file() {
+  case "$1" in *.md | *.yml | *.yaml | *.sh) return 0 ;; *) return 1 ;; esac
+}
+
+# is_superseded_adr <file> — true for an ADR whose status is ⚪. Superseded ADRs are immutable
+# historical record (see AGENTS.md and docs/adr/README.md): they intentionally reference a past
+# state that may since have been removed, so their references are frozen with the decision.
+is_superseded_adr() {
+  [[ "$1" == "$ADR_DIR"/* ]] && grep -m1 -F '**Status:**' "$1" | grep -q '⚪'
 }
 
 check_adr_index() {
@@ -161,14 +220,10 @@ anchor_resolves() {
 
 check_relative_links() {
   local md rel linkexpr target path_part frag dir target_file
-  while IFS= read -r md; do
+  for md in "${TEXT_FILES[@]}"; do
+    case "$md" in *.md) ;; *) continue ;; esac
     rel="${md#"$ROOT"/}"
-    # Superseded ADRs are immutable historical record (see AGENTS.md and docs/adr/README.md):
-    # they intentionally reference files from a past state that may since have been removed.
-    # Their links are frozen with the decision, so they are not checked for live resolution.
-    if [[ "$md" == "$ADR_DIR"/* ]] && grep -m1 -F '**Status:**' "$md" | grep -q '⚪'; then
-      continue
-    fi
+    is_superseded_adr "$md" && continue
     dir="$(dirname "$md")"
     while IFS= read -r linkexpr; do
       # linkexpr is the whole [text](target); extract the target.
@@ -197,7 +252,7 @@ check_relative_links() {
           || add_error "$rel: link '$target' has no matching anchor '#$frag' in ${target_file#"$ROOT"/}"
       fi
     done < <(grep -oE '\[[^]]*\]\([^)]+\)' "$md")
-  done < <(find "$ROOT" -type f -name '*.md' -not -path '*/.git/*' | sort)
+  done
 }
 
 # Section references point into AGENTS.md, whose sections are numbered '## N.' headings.
@@ -223,19 +278,17 @@ check_section_refs() {
   fi
 
   local f rel lineno match
-  while IFS= read -r f; do
+  for f in "${TEXT_FILES[@]}"; do
+    is_doc_file "$f" || continue
     rel="${f#"$ROOT"/}"
-    # Superseded ADRs are immutable historical record — skip, as in check_relative_links.
-    if [[ "$f" == "$ADR_DIR"/* ]] && grep -m1 -F '**Status:**' "$f" | grep -q '⚪'; then
-      continue
-    fi
+    is_superseded_adr "$f" && continue
     while IFS=: read -r lineno match; do
       n="${match#§}"
       if ! _contains "$n" "${valid_sections[@]}"; then
         add_error "$rel:$lineno: reference '$match' matches no numbered section in AGENTS.md"
       fi
     done < <(grep -noE '§[0-9]+' "$f")
-  done < <(find "$ROOT" -type f \( -name '*.md' -o -name '*.yml' -o -name '*.yaml' -o -name '*.sh' \) -not -path '*/.git/*' | sort)
+  done
 }
 
 # Every 'ADR-NNNN' reference (with digits — the literal 'ADR-NNNN' placeholder never matches)
@@ -243,27 +296,54 @@ check_section_refs() {
 # topic, not by a reserved number (docs/adr/README.md, process rule 7).
 check_adr_refs() {
   local f rel lineno match number
-  while IFS= read -r f; do
+  for f in "${TEXT_FILES[@]}"; do
     rel="${f#"$ROOT"/}"
     [[ "$f" == "$ADR_DIR/template.md" ]] && continue
-    # Superseded ADRs are immutable historical record — skip, as in check_relative_links.
-    if [[ "$f" == "$ADR_DIR"/* ]] && grep -m1 -F '**Status:**' "$f" | grep -q '⚪'; then
-      continue
-    fi
+    is_superseded_adr "$f" && continue
     while IFS=: read -r lineno match; do
       number="${match#ADR-}"
       if ! compgen -G "$ADR_DIR/$number-*.md" > /dev/null; then
         add_error "$rel:$lineno: reference '$match' matches no ADR file in docs/adr/"
       fi
     done < <(grep -noE 'ADR-[0-9]{4}' "$f")
-  done < <(find "$ROOT" -type f \( -name '*.md' -o -name '*.yml' -o -name '*.yaml' -o -name '*.sh' \) -not -path '*/.git/*' | sort)
+  done
 }
 
+# A Markdown link that cites 'ADR-NNNN' in its text must point at that ADR's own file. Both
+# halves resolve on their own — the number names a file that exists, the target is a file that
+# exists — so a renumbering, a copied line, or a consolidated decision set leaves the two naming
+# different ADRs without any single check noticing. Only links into docs/adr/ are compared; a
+# reference that deliberately points elsewhere (an index, a section about the decision) is left
+# alone.
+check_adr_link_targets() {
+  local f rel linkexpr text target base number
+  for f in "${TEXT_FILES[@]}"; do
+    case "$f" in *.md) ;; *) continue ;; esac
+    rel="${f#"$ROOT"/}"
+    [[ "$f" == "$ADR_DIR/template.md" ]] && continue
+    is_superseded_adr "$f" && continue
+    while IFS= read -r linkexpr; do
+      text="$(printf '%s' "$linkexpr" | sed -E 's/^\[([^]]*)\].*$/\1/')"
+      [[ "$text" =~ ADR-([0-9]{4}) ]] || continue
+      number="${BASH_REMATCH[1]}"
+      target="$(printf '%s' "$linkexpr" | sed -E 's/^\[[^]]*\]\(([^)]+)\)$/\1/')"
+      base="$(basename "${target%%#*}")"
+      # Compare only against ADR filenames; anything else is not a claim about which ADR it is.
+      case "$base" in [0-9][0-9][0-9][0-9]-*.md) ;; *) continue ;; esac
+      if [[ "$base" != "$number"-* ]]; then
+        add_error "$rel: link '$linkexpr' cites ADR-$number but points at '$base'"
+      fi
+    done < <(grep -oE '\[[^]]*\]\([^)]+\)' "$f")
+  done
+}
+
+collect_text_files
 check_adr_index
 check_adr_numbering
 check_relative_links
 check_section_refs
 check_adr_refs
+check_adr_link_targets
 
 if ((${#errors[@]} > 0)); then
   echo "Documentation checks FAILED:"
