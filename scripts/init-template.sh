@@ -8,15 +8,7 @@
 # project's repository (or removed when none is known) — renumbers the surviving ADRs to a
 # gapless 0001..N, deletes itself, and verifies the result with the remaining check scripts.
 #
-# Usage:
-#     scripts/init-template.sh --modules <name>[,<name>...] | all | none
-#                              [--repo <owner/name>] [--maintainer <holder>]
-#                              [--license mit|apache-2.0|none] [--badges <name>[,<name>...] | all | none]
-#     scripts/init-template.sh --list
-# Without --modules on a terminal, each module is asked interactively — and so are the identity
-# values (repository slug, badges, copyright holder, license). Without --repo, the badge slug is
-# derived from a github.com 'origin' remote; without either, all badges are removed. Defaults when
-# not on a terminal: --license mit, --badges checks, copyright holder left as 'Maintainer'.
+# Usage: scripts/init-template.sh --help   (usage() below is the single source).
 #
 # Recovery from a partial run: `git reset --hard` (the template state is committed).
 # Exit code 0 on success, 1 on failure, 2 on usage errors.
@@ -89,13 +81,16 @@ LICENSE_CHOICE=mit
 license_result=''
 BADGES_GIVEN=0                     # 1 when --badges was passed (skips the interactive question)
 LICENSE_GIVEN=0                    # 1 when --license was passed (skips the interactive question)
+INTERACTIVE=0                      # 1 only when no --modules was given on a terminal: a flag-driven
+                                   # run never prompts — missing values fall back to the defaults
 
+# scripts/test-init-template.sh re-states this regex — deliberately, as an independent oracle
+# against leftover markers. When changing it, update both.
 MARKER_RE='^[[:space:]>]*(<!--|#)[[:space:]]*module:([a-z][a-z,-]*)[[:space:]]+(begin|end)([[:space:]]*-->)?[[:space:]]*$'
 
 SELECTED=()
-errors=()
-add_error() { errors+=("$1"); }
 removed=()
+dropped_adrs=()                    # "NNNN-slug" of every deleted seed/bootstrap ADR
 kept=()
 renumbered=()
 declare -A NEW_NR=()               # old ADR number -> number after renumbering
@@ -107,11 +102,12 @@ Usage:
     scripts/init-template.sh --modules <name>[,<name>...] | all | none
                              [--repo <owner/name>] [--maintainer <holder>]
                              [--license mit|apache-2.0|none] [--badges <name>[,<name>...] | all | none]
-    scripts/init-template.sh --list
-Without --modules on a terminal, each module is asked interactively — and so are the identity
-values (repository slug, badges, copyright holder, license). Without --repo, the badge slug is
-derived from a github.com 'origin' remote; without either, all badges are removed. Defaults when
-not on a terminal: --license mit, --badges checks, copyright holder left as 'Maintainer'.
+    scripts/init-template.sh --list | --help
+Without --modules on a terminal, everything is asked interactively: modules, repository slug,
+badges, copyright holder, license. With --modules the run is fully scripted and never prompts —
+values not passed as flags fall back to the defaults: --license mit, --badges checks, the badge
+slug derived from a github.com 'origin' remote (all badges removed without one), and the
+copyright holder left as 'Maintainer'.
 
 Recovery from a partial run: `git reset --hard` (the template state is committed).
 Exit code 0 on success, 1 on failure, 2 on usage errors.
@@ -186,7 +182,8 @@ filter_file() {
     ((skip)) && continue
     printf '%s\n' "$line" >>"$tmp"
   done <"$file"
-  mv "$tmp" "$file"
+  # Write through the existing inode (mktemp files are 0600 — a mv would lose the file's mode).
+  cat "$tmp" >"$file" && rm -f "$tmp"
 }
 
 # derive_repo_slug — fill REPO_SLUG from a github.com 'origin' remote, if one exists. Only
@@ -206,27 +203,32 @@ derive_repo_slug() {
 # above the badges goes in every case; when no badge survives, the blank line that followed the
 # badge block goes too, so no double blank is left behind.
 apply_badges() {
-  local readme="$ROOT/README.md" tmp keep="," b kept=()
+  local readme="$ROOT/README.md" tmp keep="," b kept_badges=()
   if [[ -n "$REPO_SLUG" ]]; then
-    for b in "${SELECTED_BADGES[@]:-}"; do [[ -n "$b" ]] && { keep="$keep$b,"; kept+=("$b"); }; done
+    for b in "${SELECTED_BADGES[@]:-}"; do [[ -n "$b" ]] && { keep="$keep$b,"; kept_badges+=("$b"); }; done
   fi
   tmp="$(mktemp)"
-  # A badge line carries 'workflows/<name>.yml/badge.svg'; <name> decides its fate.
+  # A badge line carries 'workflows/<name>.yml/badge.svg'; <name> decides its fate. A line with
+  # 'badge.svg' but not that pattern is not a badge line and passes through unchanged.
   awk -v comment_re="$BADGE_COMMENT_RE" -v keep="$keep" '
     $0 ~ comment_re { next }
     /badge\.svg/ {
-      match($0, /workflows\/[A-Za-z0-9_-]+\.yml\/badge\.svg/)
-      wf = substr($0, RSTART + 10, RLENGTH - 24)   # strip "workflows/" and ".yml/badge.svg"
-      if (index(keep, "," wf ",")) { anykept = 1; skipblank = 0; print; next }
-      skipblank = 1; next
+      if (match($0, /workflows\/[A-Za-z0-9_-]+\.yml\/badge\.svg/)) {
+        wf = substr($0, RSTART, RLENGTH)
+        sub(/^workflows\//, "", wf)
+        sub(/\.yml\/badge\.svg$/, "", wf)
+        if (index(keep, "," wf ",")) { anykept = 1; skipblank = 0; print; next }
+        skipblank = 1; next
+      }
     }
     skipblank && !anykept && /^[[:space:]]*$/ { skipblank = 0; next }
     { skipblank = 0; print }
   ' "$readme" >"$tmp"
-  mv "$tmp" "$readme"
-  if ((${#kept[@]} > 0)); then
+  # Write through the existing inode (mktemp files are 0600 — a mv would lose the file's mode).
+  cat "$tmp" >"$readme" && rm -f "$tmp"
+  if ((${#kept_badges[@]} > 0)); then
     sed -i "s|$REPO_PLACEHOLDER|$REPO_SLUG|g" "$readme"
-    badge_result="$(IFS=,; echo "${kept[*]}") -> $REPO_SLUG"
+    badge_result="$(IFS=,; echo "${kept_badges[*]}") -> $REPO_SLUG"
   elif [[ -n "$REPO_SLUG" ]]; then
     badge_result="removed (none selected)"
   else
@@ -281,11 +283,37 @@ accept_adr() {
     || { echo "ERROR: could not mark ADR $nr accepted in the index." >&2; exit 1; }
 }
 
-# drop_adr <number> — delete the seed ADR file and its index row.
+# drop_adr <number> — delete the seed ADR file and its index row, recording what was deleted
+# (check_dropped_refs verifies no surviving file still references it).
 drop_adr() {
-  local nr="$1"
-  rm -f "$ROOT/docs/adr/$nr"-*.md
+  local nr="$1" f
+  for f in "$ROOT/docs/adr/$nr"-*.md; do
+    [[ -e "$f" ]] || continue
+    dropped_adrs+=("$(basename "$f" .md)")
+    rm -f "$f"
+  done
   sed -i "/^| \\[$nr\\]/d" "$ROOT/$ADR_INDEX"
+}
+
+# check_dropped_refs — refuse to renumber while any surviving file still references a deleted
+# ADR: after renumbering the dangling number would name a different decision and pass every
+# check (the number resolves). Runs after filtering, so marker blocks that legitimately cited a
+# deselected ADR are already gone — a hit is a genuine violation of the writing constraint.
+check_dropped_refs() {
+  local entry nr slug hits
+  for entry in "${dropped_adrs[@]:-}"; do
+    [[ -n "$entry" ]] || continue
+    nr="${entry%%-*}"; slug="${entry#*-}"
+    # --exclude=$SELF: this script cites its own ADR and is deleted only in a later step.
+    if hits="$(grep -rInF --exclude-dir=.git --exclude="$SELF" \
+                 -e "ADR-$nr" -e "$nr-$slug.md" "$ROOT" 2>/dev/null)"; then
+      echo "ERROR: the tree references a deleted ADR ($entry):" >&2
+      printf '%s\n' "$hits" >&2
+      echo "A file surviving this selection must not cite a removable ADR (writing constraint)." >&2
+      echo "Recover with 'git reset --hard', fix the reference, and rerun." >&2
+      exit 1
+    fi
+  done
 }
 
 # renumber_adrs — compact the surviving ADRs to a gapless 0001..N, preserving their order, and
@@ -331,6 +359,9 @@ parse_selection() {
         echo "Available policy modules:"; list_modules
         echo "Available GitHub Actions badges:"; list_badges
         echo "Available licenses: ${LICENSES[*]}"
+        exit 0 ;;
+      -h|--help)
+        usage
         exit 0 ;;
       --modules)
         modules_arg="${2:-}"
@@ -387,6 +418,7 @@ parse_selection() {
   fi
 
   if [[ -t 0 ]]; then
+    INTERACTIVE=1
     echo "Choose the policy modules for this project:"
     for m in "${MODULES[@]}"; do
       read -rp "  adopt '$m' — ${MODULE_DESC[$m]}? [y/N] " answer
@@ -398,13 +430,13 @@ parse_selection() {
 }
 
 # resolve_repo_slug — settle the badge slug before anything is mutated: --repo wins (already in
-# REPO_SLUG), else a github.com origin remote, else — interactively — ask, mirroring the module
-# prompts. Still empty afterwards means: remove all badges.
+# REPO_SLUG), else a github.com origin remote, else — on interactive runs — ask, mirroring the
+# module prompts. Still empty afterwards means: remove all badges.
 resolve_repo_slug() {
   local answer
   [[ -n "$REPO_SLUG" ]] && return 0
   derive_repo_slug
-  if [[ -z "$REPO_SLUG" && -t 0 ]]; then
+  if [[ -z "$REPO_SLUG" ]] && ((INTERACTIVE)); then
     read -rp "Repository 'owner/name' for the GitHub Actions badges (empty removes them): " answer
     if [[ -n "$answer" ]]; then
       [[ "$answer" =~ $REPO_SLUG_RE ]] \
@@ -415,13 +447,14 @@ resolve_repo_slug() {
   return 0
 }
 
-# resolve_badges — with a slug known and a terminal (and no --badges), ask per badge, mirroring
-# the module prompts; each badge carries its own default. Slug-less runs skip the questions:
-# every badge is removed regardless of selection.
+# resolve_badges — on an interactive run with a slug known (and no --badges), ask per badge,
+# mirroring the module prompts; each badge carries its own default. Slug-less runs skip the
+# questions: every badge is removed regardless of selection.
 resolve_badges() {
   local b answer suffix
   ((BADGES_GIVEN)) && return 0       # --badges given — nothing to ask
-  [[ -n "$REPO_SLUG" && -t 0 ]] || return 0
+  ((INTERACTIVE)) || return 0
+  [[ -n "$REPO_SLUG" ]] || return 0
   echo "Choose the GitHub Actions badges for the README:"
   SELECTED_BADGES=()
   for b in "${BADGE_KEYS[@]}"; do
@@ -433,11 +466,11 @@ resolve_badges() {
   return 0
 }
 
-# resolve_project_identity — copyright holder and license: flags win (already set), else — on a
-# terminal — ask; else the defaults stand (MIT, holder left for the human to edit).
+# resolve_project_identity — copyright holder and license: flags win (already set), else — on
+# interactive runs — ask; else the defaults stand (MIT, holder left for the human to edit).
 resolve_project_identity() {
   local answer
-  [[ -t 0 ]] || return 0
+  ((INTERACTIVE)) || return 0
   if [[ -z "$MAINTAINER" ]]; then
     read -rp "Copyright holder / maintainer for the LICENSE (empty keeps the placeholder): " answer
     [[ -n "$answer" ]] && MAINTAINER="$answer"
@@ -450,6 +483,26 @@ resolve_project_identity() {
     fi
   fi
   return 0
+}
+
+# confirm_plan — interactive runs only: state what will be kept and deleted and require an
+# explicit yes before the tree is mutated. Flag-driven runs (the agent path) never see this —
+# their caller already made the selection deliberately. Declining exits 1: nothing was changed.
+confirm_plan() {
+  ((INTERACTIVE)) || return 0
+  local m answer
+  echo
+  echo "About to initialize:"
+  echo "  modules: ${SELECTED[*]:-none}"
+  for m in "${MODULES[@]}"; do
+    is_selected "$m" || echo "  delete:  ${MODULE_FILES[$m]} + seed ADR ${MODULE_ADR[$m]}"
+  done
+  echo "  badges:  ${SELECTED_BADGES[*]:-none}${REPO_SLUG:+ -> $REPO_SLUG}"
+  echo "  license: $LICENSE_CHOICE${MAINTAINER:+, holder: $MAINTAINER}"
+  echo "Also deleted: the bootstrap tooling (this script, its tests, its ADR, scripts/licenses/);"
+  echo "the surviving ADRs are renumbered to a gapless 0001..N."
+  read -rp "Proceed? [y/N] " answer
+  [[ "$answer" =~ ^[Yy] ]] || { echo "Aborted — nothing was changed."; exit 1; }
 }
 
 # --------------------------------------------------------------------------------------- main --
@@ -477,12 +530,15 @@ main() {
   done
   grep -qE "$LICENSE_HOLDER_RE" "$ROOT/LICENSE" \
     || { echo "ERROR: LICENSE does not carry the copyright placeholder line — template drift." >&2; exit 1; }
+  grep -q '^Released under the MIT License' "$ROOT/README.md" \
+    || { echo "ERROR: README.md does not carry the 'Released under the MIT License' line — template drift." >&2; exit 1; }
   [[ -f "$ROOT/$APACHE_TEXT" ]] \
     || { echo "ERROR: manifest file missing: $APACHE_TEXT" >&2; exit 1; }
 
   resolve_repo_slug
   resolve_badges
   resolve_project_identity
+  confirm_plan
 
   # 1. Delete files owned by deselected modules, and their seed ADRs.
   for m in "${MODULES[@]}"; do
@@ -520,17 +576,22 @@ main() {
     [[ -n "$m" ]] && accept_adr "${MODULE_ADR[$m]}"
   done
 
-  # 6. Close the gaps the deletions left: the surviving ADRs become a gapless 0001..N. From here
+  # 6. No surviving file may still reference a deleted ADR — renumbering would silently repoint
+  #    such a reference at a different decision.
+  check_dropped_refs
+
+  # 7. Close the gaps the deletions left: the surviving ADRs become a gapless 0001..N. From here
   #    on their numbers are permanent — this is the last moment at which nothing references them.
   renumber_adrs
 
-  # 7. Remove this script itself (its absence signals "initialized").
+  # 8. Remove this script itself (its absence signals "initialized").
   rm -- "$ROOT/scripts/init-template.sh"
   removed+=("scripts/init-template.sh")
 
-  # 8. Verify the initialized tree.
+  # 9. Verify the initialized tree.
   echo "Verifying the initialized tree..."
   bash "$ROOT/scripts/check-docs.sh" || exit 1
+  bash "$ROOT/scripts/check-shell.sh" || exit 1
   if is_selected supply-chain; then bash "$ROOT/scripts/check-action-refs.sh" || exit 1; fi
   if is_selected git-conventions && git -C "$ROOT" rev-parse --git-dir >/dev/null 2>&1; then
     bash "$ROOT/scripts/check-git-conventions.sh" || exit 1
@@ -551,7 +612,7 @@ main() {
     exit 1
   fi
 
-  # 9. Summary.
+  # 10. Summary.
   echo
   echo "Template initialized."
   if ((${#kept[@]} > 0)); then

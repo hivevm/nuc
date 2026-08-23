@@ -62,6 +62,8 @@ COMBOS=()
 build_combos
 ALL="$(IFS=,; echo "${MODULES[*]}")"
 
+# Re-states the regex from scripts/init-template.sh — deliberately, as an independent oracle
+# against leftover markers. When changing it, update both.
 MARKER_RE='^[[:space:]>]*(<!--|#)[[:space:]]*module:([a-z][a-z,-]*)[[:space:]]+(begin|end)([[:space:]]*-->)?[[:space:]]*$'
 
 errors=()
@@ -103,6 +105,13 @@ check_combo() {
   tmp="$(mktemp -d)"
   copy_tree "$tmp"
 
+  # File modes before the bootstrap: rewrites must preserve them (copy_tree's cp -a keeps the
+  # repository's real modes, so this catches a tmp-file rewrite leaking its 0600 onto a file).
+  local -A mode_before=()
+  local mode path
+  while read -r mode path; do mode_before["$path"]="$mode"; done \
+    < <(find "$tmp" -type f -printf '%m %P\n')
+
   if ! out="$(bash "$tmp/scripts/init-template.sh" --modules "$combo" </dev/null 2>&1)"; then
     add_error "[$combo] bootstrap failed:"$'\n'"$out"
     rm -rf "$tmp"
@@ -121,6 +130,12 @@ check_combo() {
   while IFS= read -r f; do
     bash -n "$f" || add_error "[$combo] $f does not parse"
   done < <(find "$tmp/scripts" -name '*.sh')
+
+  # No surviving file changed its mode.
+  while read -r mode path; do
+    [[ -n "${mode_before[$path]:-}" && "${mode_before[$path]}" != "$mode" ]] \
+      && add_error "[$combo] $path changed mode ${mode_before[$path]} -> $mode"
+  done < <(find "$tmp" -type f -printf '%m %P\n')
 
   # Expected ADRs after the bootstrap: the two core ADRs, then the selected seeds in manifest
   # order, renumbered to a gapless 0001..N. The ADR describing the bootstrap is always gone.
@@ -192,6 +207,14 @@ check_combo() {
   has "$sel" conformance && want=1 || want=0
   assert_file "$combo" docs/CONFORMANCE.md "$want"
   assert_file "$combo" .github/workflows/checks.yml 1
+  # PR-title re-validation trigger: present exactly when git-conventions is selected — a
+  # deselected module must leave the default pull_request types (no useless 'edited' re-runs).
+  if has "$sel" git-conventions; then
+    grep -qF 'types: [opened, synchronize, reopened, edited]' "$tmp/.github/workflows/checks.yml" \
+      || add_error "[$combo] checks.yml lost the pull_request types for PR-title re-validation"
+  elif grep -q 'types:' "$tmp/.github/workflows/checks.yml"; then
+    add_error "[$combo] checks.yml restricts pull_request types although git-conventions was deselected"
+  fi
   assert_file "$combo" scripts/init-template.sh 0
   assert_file "$combo" scripts/test-init-template.sh 0
   assert_file "$combo" scripts/licenses/Apache-2.0.txt 0
@@ -375,6 +398,32 @@ check_project_identity() {
   [[ -f "$tmp/scripts/init-template.sh" ]] \
     || add_error "[license:invalid] refused run still mutated the tree"
   rm -rf "$tmp"
+
+  # A reworded README License line is template drift: refused (1) before anything is mutated.
+  tmp="$(mktemp -d)"; copy_tree "$tmp"
+  sed -i 's/^Released under the MIT License/Released under MIT/' "$tmp/README.md"
+  out="$(bash "$tmp/scripts/init-template.sh" --modules none --license none </dev/null 2>&1)"
+  rc=$?
+  ((rc == 1)) || add_error "[license:drift] expected drift failure (exit 1), got $rc:"$'\n'"$out"
+  [[ "$out" == *"template drift"* ]] \
+    || add_error "[license:drift] drift failure message missing:"$'\n'"$out"
+  [[ -f "$tmp/scripts/init-template.sh" ]] \
+    || add_error "[license:drift] refused run still mutated the tree"
+  rm -rf "$tmp"
+}
+
+# A surviving file citing a deleted ADR must abort the bootstrap before renumbering silently
+# repoints the reference at a different decision.
+check_deleted_adr_refs() {
+  local tmp out rc
+  tmp="$(mktemp -d)"; copy_tree "$tmp"
+  printf '\nSee ADR-0006 for the release policy.\n' >>"$tmp/docs/SPECIFICATION.md"
+  out="$(bash "$tmp/scripts/init-template.sh" --modules git-conventions </dev/null 2>&1)"
+  rc=$?
+  ((rc == 1)) || add_error "[deleted-ref] expected exit 1, got $rc:"$'\n'"$out"
+  [[ "$out" == *"references a deleted ADR"* && "$out" == *0006* ]] \
+    || add_error "[deleted-ref] missing deleted-ADR failure message:"$'\n'"$out"
+  rm -rf "$tmp"
 }
 
 for combo in "${COMBOS[@]}"; do
@@ -385,6 +434,8 @@ check_repo_slug
 echo "checked: repository-identity paths"
 check_project_identity
 echo "checked: project-identity paths"
+check_deleted_adr_refs
+echo "checked: deleted-ADR reference guard"
 
 if ((${#errors[@]} > 0)); then
   echo "Bootstrap combination tests FAILED:"

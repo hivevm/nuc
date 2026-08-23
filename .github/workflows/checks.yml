@@ -21,6 +21,11 @@ name: Checks
 
 on:
   pull_request:
+    # module:git-conventions begin
+    # The PR title becomes the squash-merge commit subject — re-validate when it is edited, not
+    # only when commits are pushed. The other jobs re-run on title/body edits too; accepted.
+    types: [opened, synchronize, reopened, edited]
+    # module:git-conventions end
   push:
     branches: [main]
 

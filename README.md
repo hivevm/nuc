@@ -23,8 +23,10 @@ behind every structural choice stay explicit and reviewable.
 > and sets the project identity: the license and copyright holder in [`LICENSE`](LICENSE)
 > (`--license mit|apache-2.0|none`, `--maintainer <holder>`), and the GitHub Actions badges above
 > (`--badges <choices|all|none>`) repointed to your repository (`--repo <owner/name>`, derived
-> from the `origin` remote when omitted; without either, the badges are removed). On a terminal,
-> anything not passed as a flag is asked interactively. The script then deletes itself — the full
+> from the `origin` remote when omitted; without either, the badges are removed). Run it without
+> `--modules` on a terminal to be asked everything interactively; with `--modules` it never
+> prompts — anything not passed as a flag falls back to the documented defaults (`--help` lists
+> them). The script then deletes itself — the full
 > mechanism is decided in
 > [ADR-0003](docs/adr/0003-template-bootstrap-and-module-selection.md). Then:
 > <!-- module:init end -->

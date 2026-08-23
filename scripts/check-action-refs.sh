@@ -8,7 +8,9 @@
 # Commit SHAs and branches are rejected: a SHA never receives updates, and a branch is not a
 # release at all.
 #
-# For every non-comment 'uses:' line in .github/workflows/*.yml|*.yaml:
+# For every 'uses:' line in .github/workflows/*.yml|*.yaml — commented or not: a commented-out
+# 'uses:' (e.g. the inert ci.yml skeleton) is draft workflow content and is held to the same
+# format, so it is already correct the day it is activated:
 #   - './…' (local actions): exempt — they ship with the repository itself.
 #   - 'docker://IMAGE': must carry an explicit ':<tag>'.
 #   - anything else: the ref must be a major version tag, e.g.  uses: actions/checkout@v7
@@ -32,10 +34,9 @@ check_action_refs() {
   while IFS= read -r f; do
     rel="${f#"$ROOT"/}"
     while IFS=: read -r lineno line; do
-      # Skip commented lines (first non-blank character is '#') — e.g. the inert ci.yml skeleton.
-      [[ "$line" =~ ^[[:space:]]*# ]] && continue
-      # Extract the value after 'uses:', stripping quotes and any trailing comment.
-      uses="$(printf '%s' "$line" | sed -E "s/^[[:space:]-]*uses:[[:space:]]*//; s/[[:space:]]+#.*$//; s/^[\"']//; s/[\"'][[:space:]]*$//")"
+      # Extract the value after 'uses:', stripping any leading comment markers and list dashes,
+      # quotes, and a trailing comment.
+      uses="$(printf '%s' "$line" | sed -E "s/^[[:space:]#-]*uses:[[:space:]]*//; s/[[:space:]]+#.*$//; s/^[\"']//; s/[\"'][[:space:]]*$//")"
       case "$uses" in
         ./*)
           continue ;;

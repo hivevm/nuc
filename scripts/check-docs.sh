@@ -11,7 +11,10 @@
 #   2. ADR numbering integrity: the ADR files run 0001..N without gaps, and every file's
 #      '# ADR-NNNN' heading matches its filename (docs/adr/README.md, process rule 6).
 #   3. Relative-link integrity: every relative Markdown link in every tracked .md file resolves
-#      to a file or directory that exists.
+#      to a file or directory that exists. Links inside fenced code blocks are illustrations,
+#      not claims about files on disk, and are skipped (here and in check 6); an optional link
+#      title ('[text](file "title")') is not part of the path. Reference-style links
+#      ('[text][label]') are not resolved — this repository uses inline links only.
 #   4. Section-reference integrity: in Markdown, YAML and shell files, every section reference
 #      (the section sign followed by a number, e.g. in "AGENTS.md, section 6") matches a numbered
 #      '## N.' heading in AGENTS.md — the only numbered document in this repository; extend the
@@ -218,6 +221,28 @@ anchor_resolves() {
   esac
 }
 
+# strip_code_fences <file> — the file with fenced code blocks (``` / ~~~, also inside
+# blockquotes) blanked out: links in fences are illustrations, not claims about files on disk.
+# Fenced lines become empty lines, so the output keeps the original line count.
+strip_code_fences() {
+  awk '
+    /^[[:space:]>]*(```|~~~)/ { in_fence = !in_fence; print ""; next }
+    in_fence                  { print ""; next }
+    { print }
+  ' "$1"
+}
+
+# link_target <linkexpr> — the target of one '[text](target)' expression: trimmed, with an
+# optional trailing '"title"' or "'title'" removed (a link title is not part of the path).
+LINK_TITLE_RE="^([^[:space:]]+)[[:space:]]+(\"[^\"]*\"|'[^']*')\$"
+link_target() {
+  local target
+  target="$(printf '%s' "$1" | sed -E 's/^\[[^]]*\]\(([^)]+)\)$/\1/')"
+  target="$(printf '%s' "$target" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
+  [[ "$target" =~ $LINK_TITLE_RE ]] && target="${BASH_REMATCH[1]}"
+  printf '%s' "$target"
+}
+
 check_relative_links() {
   local md rel linkexpr target path_part frag dir target_file
   for md in "${TEXT_FILES[@]}"; do
@@ -226,10 +251,7 @@ check_relative_links() {
     is_superseded_adr "$md" && continue
     dir="$(dirname "$md")"
     while IFS= read -r linkexpr; do
-      # linkexpr is the whole [text](target); extract the target.
-      target="$(printf '%s' "$linkexpr" | sed -E 's/^\[[^]]*\]\(([^)]+)\)$/\1/')"
-      # Trim surrounding whitespace.
-      target="$(printf '%s' "$target" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
+      target="$(link_target "$linkexpr")"
       case "$target" in
         http://*|https://*|mailto:*) continue ;;
       esac
@@ -251,7 +273,7 @@ check_relative_links() {
         anchor_resolves "$target_file" "$frag" \
           || add_error "$rel: link '$target' has no matching anchor '#$frag' in ${target_file#"$ROOT"/}"
       fi
-    done < <(grep -oE '\[[^]]*\]\([^)]+\)' "$md")
+    done < <(strip_code_fences "$md" | grep -oE '\[[^]]*\]\([^)]+\)')
   done
 }
 
@@ -326,14 +348,14 @@ check_adr_link_targets() {
       text="$(printf '%s' "$linkexpr" | sed -E 's/^\[([^]]*)\].*$/\1/')"
       [[ "$text" =~ ADR-([0-9]{4}) ]] || continue
       number="${BASH_REMATCH[1]}"
-      target="$(printf '%s' "$linkexpr" | sed -E 's/^\[[^]]*\]\(([^)]+)\)$/\1/')"
+      target="$(link_target "$linkexpr")"
       base="$(basename "${target%%#*}")"
       # Compare only against ADR filenames; anything else is not a claim about which ADR it is.
       case "$base" in [0-9][0-9][0-9][0-9]-*.md) ;; *) continue ;; esac
       if [[ "$base" != "$number"-* ]]; then
         add_error "$rel: link '$linkexpr' cites ADR-$number but points at '$base'"
       fi
-    done < <(grep -oE '\[[^]]*\]\([^)]+\)' "$f")
+    done < <(strip_code_fences "$f" | grep -oE '\[[^]]*\]\([^)]+\)')
   done
 }
 

@@ -45,6 +45,12 @@ template, via `scripts/init-template.sh`:
 - The presence of `scripts/init-template.sh` signals "not initialized"; marked hook instructions in
   `AGENTS.md` §2 and `README.md` tell the first agent to stop, ask, and run the script. The script
   removes the hooks and itself, then verifies the result with the remaining check scripts.
+- The script runs in one of two modes. **Interactive** — no `--modules` given and stdin is a
+  terminal: modules, repository slug, badges, copyright holder, and license are asked one by one.
+  **Scripted** — `--modules` given: nothing is ever asked, and every value not passed as a flag
+  falls back to its documented default, so a flag-driven run (the agent path) can never block on
+  a prompt. Interactive runs end with an explicit confirmation summarizing what will be kept and
+  deleted before anything is mutated; scripted runs skip it, their caller already decided.
 - The repository slug `hivevm/nuc` is the sanctioned **repository-identity placeholder**; it
   appears only in the README's badge lines and the instruction comment above them. The script
   resolves the real slug as a chain — explicit `--repo <owner/name>`, else derived from a
@@ -65,7 +71,8 @@ template, via `scripts/init-template.sh`:
   Interactive runs ask for holder and license, mirroring the module prompts.
 - Writing constraints, so post-initialization consistency greps stay clean by construction:
   files that survive a combination never cite a removable ADR — neither a seed ADR nor this one — in
-  `ADR`-prefixed or link form, and show marker syntax only with the `<name>` placeholder;
+  `ADR`-prefixed or link form, and show marker syntax only with the `<name>` placeholder — the
+  bootstrap enforces this, refusing to renumber while any reference to a deleted ADR remains;
   module-owned content in `AGENTS.md` is
   restricted to trailing sections or whole bullets, so removal never renumbers the `§N` headings
   that [`scripts/check-docs.sh`](../../scripts/check-docs.sh) verifies. An ADR is referenced only
