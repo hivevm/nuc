@@ -1,60 +1,60 @@
 # Architecture Decision Records
 
-This directory contains all Architecture Decision Records (ADRs) for this project.
-Accepted ADRs are **binding** for humans and coding agents alike (see [`AGENTS.md`](../../AGENTS.md)
-in the repository root). ADRs derive from the specification in [`docs/SPECIFICATION.md`](../SPECIFICATION.md).
+This directory contains all Architecture Decision Records (ADRs) for this project. Accepted ADRs are
+**binding** for humans and coding agents alike (see [`AGENTS.md`](../../AGENTS.md) in the repository
+root). ADRs derive from the specification in [`docs/SPECIFICATION.md`](../SPECIFICATION.md).
 
 ## Process
 
-1. Copy [`template.md`](template.md) to `NNNN-short-title.md` (next free number).
-2. Fill in context, decision, alternatives, and consequences. Set status `proposed`.
-3. A human reviewer accepts or rejects the ADR. **Only humans change the status.**
-4. Add the ADR to the index below, with its status shown via the colored bullet from the legend.
-5. A decision is changed by a *new* ADR that supersedes the old one — never by editing an
-   accepted ADR.
-6. **Once this template is in use, ADRs are immutable and their numbers are permanent.** Never
+The rules below are cited by number elsewhere — the header and comments of
+[`scripts/check-docs.sh`](../../scripts/check-docs.sh) name the rule each check enforces.
+Renumbering this list means rewriting those citations in the same change.
+
+1. Copy [`template.md`](template.md) to `NNNN-short-title.md` (next free number), **scoped to one
+   specific decision** as required by [`AGENTS.md` §3](../../AGENTS.md#3-adr-rules) — the rule that
+   governs when an ADR is written and how narrowly it is cut.
+2. Fill in context, decision, alternatives, consequences, and how the decision is enforced. Develop
+   the proposal interactively and critically in dialogue with the human
+   ([`AGENTS.md` §3](../../AGENTS.md#3-adr-rules)), instead of delivering a finished document.
+3. **Submit the `proposed` ADR in its own pull request**
+   ([`AGENTS.md` §3](../../AGENTS.md#3-adr-rules)). The index below changes in the same PR as the
+   ADR it describes — for additions, supersessions, and status flips alike — with the status shown
+   via the colored bullet from the legend and the ADR's `Applies to` header mirrored verbatim in its
+   own column. The index is what routes a reader from a change to the decisions that bind it
+   ([`AGENTS.md` §2](../../AGENTS.md#2-start-here)), so a row has to say what its ADR governs
+   without the file being opened; [`scripts/check-docs.sh`](../../scripts/check-docs.sh) verifies
+   that both columns agree with the file.
+4. A human reviewer accepts or rejects the ADR — **only humans change the status**. Implementation
+   proceeds while the ADR is still `proposed` and its findings flow back as revisions, each in its
+   own ADR-only PR (rule 3); only the acceptance itself may land together with implementation
+   ([`AGENTS.md` §3](../../AGENTS.md#3-adr-rules)).
+5. **A decision is changed by a *new* ADR that supersedes the old one**, never by editing an
+   accepted one ([`AGENTS.md` §3](../../AGENTS.md#3-adr-rules)). ADR numbers are permanent: never
    renumber, delete, or merge ADRs — other ADRs, commits (`Implements ADR-NNNN`), and code may
    reference a number. Superseded ADRs stay as historical record (status `superseded by ADR-NNNN`);
-   filter active ones via the Status column. To curb sprawl, supersede — do not consolidate.
-   The numbers therefore run `0001..N` without gaps, which
+   filter active ones via the Status column. **That status flip is the one edit an accepted ADR ever
+   receives** — made by a human (rule 4), in the pull request that lands the superseding ADR,
+   together with both index rows; the body of the superseded ADR stays untouched. To curb sprawl,
+   supersede — do not consolidate. The numbers therefore run `0001..N` without gaps, which
    [`scripts/check-docs.sh`](../../scripts/check-docs.sh) verifies.
-   <!-- module:init begin -->
-   Before that point the template may still consolidate or renumber its own seed ADRs, since
-   nothing external references those numbers yet — see rule 8.
-   <!-- module:init end -->
-7. **Never reference an ADR number that does not exist yet.** Every `ADR-NNNN` reference must point
+6. **Never reference an ADR number that does not exist yet.** Every `ADR-NNNN` reference must point
    to a file that is already present in this directory. Anticipated follow-up decisions are
    described by topic (e.g., "a follow-up ADR on session storage") in the Consequences section —
    the concrete number is cited only once that ADR file exists.
    [`scripts/check-docs.sh`](../../scripts/check-docs.sh) verifies this in every text file of the
-   repository, source comments included — rule 6 makes code a legitimate place to cite a number,
+   repository, source comments included — rule 5 makes code a legitimate place to cite a number,
    and a stale reference there is the one no reviewer reads next to the index. In Markdown, cite
    an ADR as a link to its own file: the check compares the number in the link text with the file
    the link points at, so a reference whose number and target name different decisions cannot pass
    on the strength of each half existing.
-<!-- module:init begin -->
-8. **Seed ADRs are selected at bootstrap.** Projects created from this template choose their
-   policy modules at first interaction (see [0003](0003-template-bootstrap-and-module-selection.md)):
-   the chosen seed ADRs are switched to accepted — the human's selection *is* the acceptance,
-   executed by the bootstrap script — and deselected seed ADRs are deleted before anything
-   references them, together with the ADR describing the bootstrap itself. The bootstrap then
-   renumbers the survivors to a gapless `0001..N`, rewriting every reference in the same pass, so
-   the initialized project starts with a numbering that has no holes and no history it never had.
-   That renumbering is the single exception to rule 6, and it is possible exactly once: from the
-   first commit that cites an ADR number onwards, the numbers are permanent.
-<!-- module:init end -->
 
 ## Index
 
 **Status legend:** 🟢 accepted · 🟡 proposed · 🔴 rejected · ⚪ superseded
 
-| ADR | Title | Status |
-|-----|-------|--------|
-| [0001](0001-agent-governance-model.md) | Specification + ADRs governed through a single `AGENTS.md` | 🟢 accepted |
-| [0002](0002-dev-container-runtime.md) | Debian Dev Container without host Docker access | 🟢 accepted |
-| [0003](0003-template-bootstrap-and-module-selection.md) | Template bootstrap with selectable policy modules and repository identity | 🟡 proposed |
-| [0004](0004-git-conventions.md) | Git conventions: branches, Conventional Commits, squash merge | 🟡 proposed |
-| [0005](0005-secrets-and-supply-chain.md) | Secrets handling and action version policy | 🟡 proposed |
-| [0006](0006-versioning-and-releases.md) | Versioning and release process | 🟡 proposed |
-| [0007](0007-external-conformance-tracking.md) | Conformance to an external source is tracked in `docs/CONFORMANCE.md` | 🟡 proposed |
-
+| ADR | Title | Applies to | Status |
+|-----|-------|------------|--------|
+| [0001](0001-agent-governance-model.md) | The document set: one specification, one ADR record, one `AGENTS.md`, one overview | every document that carries rules for humans or agents, and the architecture overview | 🟡 proposed |
+| [0002](0002-specification-change-process.md) | The specification changes only by human decision, naming the ADRs it moves | `docs/SPECIFICATION.md` and every accepted ADR derived from it | 🟡 proposed |
+| [0003](0003-dev-container-runtime.md) | The Dev Container: mandatory, base free, no host daemon, Features pinned | `.devcontainer/`, `.vscode/settings.json`, and everything the container pulls in | 🟡 proposed |
+| [0004](0004-secrets-handling.md) | Secrets never enter the repository; a leak is remediated by rotation | anything that could hold a secret — tracked files, commit messages, ADRs, logs, CI output | 🟡 proposed |

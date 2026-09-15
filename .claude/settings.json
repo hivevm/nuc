@@ -1,9 +1,30 @@
 {
   "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./**/.env)",
+      "Read(./**/.env.*)"
+    ],
     "ask": [
+      "Edit(/docs/SPECIFICATION.md)",
+      "Edit(/docs/adr/**)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
+      "Bash(git merge:*)",
+      "Bash(git rebase:*)",
+      "Bash(git cherry-pick:*)",
+      "Bash(git revert:*)",
+      "Bash(git tag:*)",
+      "Bash(git reset:*)",
+      "Bash(git restore:*)",
+      "Bash(git checkout:*)",
+      "Bash(git switch:*)",
+      "Bash(git branch:*)",
+      "Bash(git clean:*)",
+      "Bash(git stash:*)",
+      "Bash(git submodule:*)",
       "Bash(gh:*)"
     ]
   }

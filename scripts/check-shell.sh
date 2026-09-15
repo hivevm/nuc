@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 #
-# Shell lint for this template.
+# Shell lint for this repository.
 #
 # Runs ShellCheck over every shell script in the repository. The scripts under scripts/ are the
-# template's entire enforcement layer, so they are held to a lint gate themselves.
+# repository's entire enforcement layer, so they are held to a lint gate themselves.
 #
-# ShellCheck is the one check dependency beyond bash + coreutils. CI does not install it — the
+# ShellCheck is the one check dependency beyond bash + coreutils/find. CI does not install it — the
 # GitHub-hosted runner image ships it preinstalled. Locally, when shellcheck is not on PATH, the
 # check skips itself with a notice instead of failing (CI remains the enforcing gate); in a CI
 # run (CI=true) a missing shellcheck is an error, never a silent skip.

@@ -17,7 +17,8 @@ labels: enhancement
 
 <!-- Does this touch docs/SPECIFICATION.md or require an Architecture Decision Record?
      Architecture-relevant changes (new dependency, public interface, protocol/data format,
-     persistence strategy, …) need an ADR before implementation. -->
+     persistence strategy, …) need a `proposed` ADR, reviewed by a human, before
+     implementation starts (AGENTS.md [§3](../../AGENTS.md#3-adr-rules)). -->
 
 ## Alternatives considered
 

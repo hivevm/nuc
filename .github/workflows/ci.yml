@@ -13,10 +13,11 @@ name: CI
 #
 # Adding a language toolchain or a hard CI dependency is architecture-relevant — record it as an ADR
 # first (AGENTS.md §3).
-# module:supply-chain begin
-# Reference every action by its major version tag (AGENTS.md §7, ADR-0005) —
-# scripts/check-action-refs.sh enforces this once the job is uncommented.
-# module:supply-chain end
+#
+# Every job carries a timeout so a hung step cannot occupy a runner until the platform's own
+# six-hour limit, and every checkout runs with 'persist-credentials: false': the workflow token is
+# needed to fetch the code, not afterwards, and leaving it in .git/config makes it readable to
+# every later step — including a build that runs third-party code.
 
 on:
   workflow_dispatch:
@@ -27,14 +28,23 @@ on:
 permissions:
   contents: read
 
+# Cancel a pull request's superseded runs: a new push makes the previous run's verdict irrelevant,
+# while a queued run keeps a required check pending. Runs on 'main' are never cancelled — every
+# commit there keeps a result of its own.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   placeholder:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - run: echo "CI skeleton is wired up. Fill in build/test/lint — see this file's header."
 
   # build-test-lint:
   #   runs-on: ${{ matrix.os }}
+  #   timeout-minutes: 30   # raise it to fit the real build; never leave a job unbounded
   #   strategy:
   #     fail-fast: false
   #     matrix:
@@ -42,6 +52,10 @@ jobs:
   #       # version: [ ... ]   # e.g. language/runtime versions to test against
   #   steps:
   #     - uses: actions/checkout@v7
+  #       with:
+  #         persist-credentials: false
+  #         # If the project uses git submodules, add `submodules: recursive` — checkout
+  #         # leaves them empty by default, and a build against empty directories fails obscurely.
   #     # - name: Set up toolchain
   #     #   run: ...            # install the language/runtime — the base image ships none
   #     - name: Build
