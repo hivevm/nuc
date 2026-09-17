@@ -5,11 +5,12 @@ name: CI
 # ships no language toolchain (see README) — this file is the place to add build/test/lint once you do.
 #
 # To activate for your project:
-#   1. Switch the trigger to pull_request + push (uncomment the block in `on:` below).
-#   2. Uncomment the `build-test-lint` job, add a setup step for your toolchain, and fill in the
-#      build/test/lint commands. These MUST match README.md → "Build, Test & Run", the single source
+#   1. Add `pull_request:` and `push: { branches: [main] }` to `on:`.
+#   2. Replace the `placeholder` job with a job that sets up the toolchain and runs build, test, and
+#      lint/format check. The commands MUST match README.md → "Build, Test & Run", the single source
 #      of truth for those commands (AGENTS.md §6), and enforce the Definition of Done (AGENTS.md §5).
-#   3. Delete the `placeholder` job once real jobs run.
+#      Give it a `timeout-minutes` that fits the real build, and add `submodules: recursive` to the
+#      checkout if the project uses git submodules.
 #
 # Adding a language toolchain or a hard CI dependency is architecture-relevant — record it as an ADR
 # first (AGENTS.md §3).
@@ -21,9 +22,6 @@ name: CI
 
 on:
   workflow_dispatch:
-  # pull_request:
-  # push:
-  #   branches: [main]
 
 permissions:
   contents: read
@@ -41,26 +39,3 @@ jobs:
     timeout-minutes: 5
     steps:
       - run: echo "CI skeleton is wired up. Fill in build/test/lint — see this file's header."
-
-  # build-test-lint:
-  #   runs-on: ${{ matrix.os }}
-  #   timeout-minutes: 30   # raise it to fit the real build; never leave a job unbounded
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       os: [ubuntu-latest]
-  #       # version: [ ... ]   # e.g. language/runtime versions to test against
-  #   steps:
-  #     - uses: actions/checkout@v7
-  #       with:
-  #         persist-credentials: false
-  #         # If the project uses git submodules, add `submodules: recursive` — checkout
-  #         # leaves them empty by default, and a build against empty directories fails obscurely.
-  #     # - name: Set up toolchain
-  #     #   run: ...            # install the language/runtime — the base image ships none
-  #     - name: Build
-  #       run: ...              # README → Build
-  #     - name: Test
-  #       run: ...              # README → Test (must pass — Definition of Done, AGENTS.md §5)
-  #     - name: Lint & format check
-  #       run: ...              # linter + formatter in check mode

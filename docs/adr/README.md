@@ -58,3 +58,4 @@ Renumbering this list means rewriting those citations in the same change.
 | [0002](0002-specification-change-process.md) | The specification changes only by human decision, naming the ADRs it moves | `docs/SPECIFICATION.md` and every accepted ADR derived from it | 🟡 proposed |
 | [0003](0003-dev-container-runtime.md) | The Dev Container: mandatory, base free, no host daemon, Features pinned | `.devcontainer/`, `.vscode/settings.json`, and everything the container pulls in | 🟡 proposed |
 | [0004](0004-secrets-handling.md) | Secrets never enter the repository; a leak is remediated by rotation | anything that could hold a secret — tracked files, commit messages, ADRs, logs, CI output | 🟡 proposed |
+| [0005](0005-decisions-verified-by-tests.md) | Every accepted decision and every success criterion is verified by a test that cites it | every accepted ADR, the Goals and Quality Goals of `docs/SPECIFICATION.md`, and the tests that verify them | 🟡 proposed |
