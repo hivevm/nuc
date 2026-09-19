@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 #
-# Shell lint for this template.
+# Shell lint for this repository.
 #
-# Runs ShellCheck over every shell script in the repository. The scripts under scripts/ are the
-# template's entire enforcement layer, so they are held to a lint gate themselves.
+# Runs ShellCheck over every shell script in the repository: every '*.sh' file, and the git hooks
+# under .githooks/, which git requires to be named without an extension. The scripts under
+# scripts/ and the hooks are the repository's entire enforcement layer, so they are held to a
+# lint gate themselves.
 #
-# ShellCheck is the one check dependency beyond bash + coreutils. CI does not install it — the
+# ShellCheck is the one check dependency beyond bash + coreutils/find. CI does not install it — the
 # GitHub-hosted runner image ships it preinstalled. Locally, when shellcheck is not on PATH, the
 # check skips itself with a notice instead of failing (CI remains the enforcing gate); in a CI
 # run (CI=true) a missing shellcheck is an error, never a silent skip.
@@ -30,7 +32,7 @@ fi
 
 scripts=()
 while IFS= read -r f; do scripts+=("$f"); done \
-  < <(find "$ROOT" -type f -name '*.sh' -not -path '*/.git/*' | sort)
+  < <(find "$ROOT" -type f \( -name '*.sh' -o -path "$ROOT/.githooks/*" \) -not -path '*/.git/*' | sort)
 
 if ((${#scripts[@]} == 0)); then
   echo "No shell scripts found."

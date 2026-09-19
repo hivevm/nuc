@@ -9,23 +9,35 @@
   "containerEnv": {
     "CLAUDE_CONFIG_DIR": "/home/vscode/.claude"
   },
+  // The host's agent config directory. HOME is set on Linux and macOS, USERPROFILE on Windows;
+  // exactly one of the two is non-empty, so concatenating both yields the home directory on every
+  // host (the pattern the Dev Containers documentation recommends).
   "mounts": [
-    "source=${localEnv:HOME}/.claude,target=/home/vscode/.claude,type=bind"
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.claude,target=/home/vscode/.claude,type=bind"
   ],
 
   "shutdownAction": "stopContainer",
 
   // Runs on the host before the container is created. Ensures the bind-mount source for the agent
   // config exists, so Docker does not auto-create it as a root-owned directory (which breaks
-  // credential writes inside the container).
-  "initializeCommand": "mkdir -p ${localEnv:HOME}/.claude",
+  // credential writes inside the container). Written to work in both a POSIX shell and cmd.exe:
+  // plain `mkdir` (cmd.exe knows no `-p`; the parent is the home directory and always exists) and
+  // `|| exit 0` so an already existing directory — an error for both shells — does not abort the
+  // container build.
+  "initializeCommand": "mkdir \"${localEnv:HOME}${localEnv:USERPROFILE}/.claude\" || exit 0",
+
+  // Runs inside the container once it is created. Git does not version its hooks, so the
+  // repository keeps them under .githooks/ and this points git at them: pre-commit refuses a
+  // commit on main, pre-push runs the checks first (AGENTS.md §5 and §6). Outside the container,
+  // run the same command once per clone (README → "Getting Started").
+  "postCreateCommand": "git config core.hooksPath .githooks",
 
   // DevContainer Features layered on top of the base image. The container intentionally has NO
   // access to the host Docker daemon (no socket mount) — see ADR-0002. Manage the host's containers
   // from a host-side VS Code extension instead (README → "Host container management").
   "features": {
     // GitHub CLI (`gh`) — used by the coding agent for GitHub operations and as the git
-    // credential helper. Git writes still require explicit human approval (see AGENTS.md).
+    // credential helper. Git writes still require explicit human approval (see AGENTS.md §6).
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
 

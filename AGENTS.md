@@ -1,188 +1,176 @@
 # Agent Guide
 
-> **Single source of truth for all coding agents.** Most agents read this file natively; the
-> concrete agent set and how each is wired to read these rules is recorded in
-> [ADR-0001](docs/adr/0001-agent-governance-model.md) — not here. Where an agent needs a pointer
-> (e.g. Claude Code's `.claude/CLAUDE.md`), never duplicate rules into it — add them here.
-
-Human-facing setup — prerequisites, the Dev Container, and the project description —
-lives in [`README.md`](README.md). Do not duplicate that information here.
+> **The single rule file of this project** ([ADR-0001](docs/adr/0001-agent-governance-model.md)).
+> Every working rule lives here; where another document repeats one, this wording governs. The
+> file belongs to the template and is not edited per project: project conventions go into
+> [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md), into checks, and into ADRs. A procedure is a skill
+> under [`.agents/skills/`](.agents/skills/) that cites a rule here and states none of its own
+> ([ADR-0005](docs/adr/0005-procedures-as-skills.md)). Setup for humans is in
+> [`README.md`](README.md).
 
 ## 1. Principles
 
-These three principles govern every rule below. When they tension with speed or cleverness, they win.
+The human decides *why* and *what*; the agent works out *how*. A how that binds future choices is
+the human's too, recorded with its why in an ADR ([§3](#3-adr-rules)). Four principles win over
+speed and cleverness:
 
-- **Simplicity first.** Build the simplest thing that satisfies the specification. Prefer fewer moving
-  parts; add a dependency, an abstraction, or a layer of indirection only for a concrete, present need,
-  never a speculative future one (YAGNI). Removing code is progress. When complexity is genuinely
-  warranted it is architecture-relevant — justify it in an ADR (§3).
-- **Reflection.** Think before and after acting. Before: is this the simplest path that actually serves
-  the specification's goals? After: did it, and at what cost? Weigh alternatives and consequences
-  instead of committing to the first solution, and make your reasoning explicit rather than silent.
-- **Critical stance.** Take nothing at face value — not the human's framing, not your own prior output,
-  not the existing code. Verify claims against the specification, the ADRs, the code, and authoritative
-  sources; surface conflicts, risks, and uncertainty instead of smoothing them over. Disagree when the
-  evidence warrants and say why, and flag what you could not confirm.
+- **Simplicity.** Build the simplest thing that satisfies the specification. Add a dependency or
+  an abstraction only for a present need. Removing code is progress. Justify warranted complexity
+  in an ADR.
+- **Proportionality.** Ceremony scales with how hard a change is to reverse. Skipping ceremony a
+  reader would expect is said out loud.
+- **Reflection.** Weigh alternatives and consequences, and write the reasoning down.
+- **Critical stance.** Take nothing at face value: not the human's framing, not your own earlier
+  output, not the existing code. Verify against the specification, the ADRs, the code, and
+  authoritative sources. State disagreement with its evidence, and flag what you could not
+  confirm. Both go into the pull request, where "none" is a claim the reviewer checks.
 
 ## 2. Start here
-<!-- module:init begin -->
-
-> [!IMPORTANT]
-> **This template is not initialized.** While [`scripts/init-template.sh`](scripts/init-template.sh)
-> exists, STOP — do no other work first. Run `bash scripts/init-template.sh --list` and ask the
-> human which of the listed optional policy modules the project adopts, presenting each module's
-> name and description exactly as printed — the script's manifest is the single source of the
-> module list. Also ask the human for the project identity:
-> which of the listed GitHub Actions badges the README keeps (`--badges <choices|all|none>`),
-> the license (`--license mit|apache-2.0|none`), and the copyright holder for the LICENSE
-> (`--maintainer <holder>`).
-> Then run `bash scripts/init-template.sh --modules <comma-separated choices|all|none>` with
-> exactly the modules and identity values the human chose — when the repository has no `origin`
-> remote yet, also ask the human for the repository slug and pass it as `--repo <owner/name>`,
-> since without either the README's badges are removed — report the summary it prints, and ask
-> for approval to commit the result.
-> The script's absence means the template is already initialized.
-<!-- module:init end -->
 
 Before any non-trivial work, read:
 
-1. [`docs/SPECIFICATION.md`](docs/SPECIFICATION.md) — the **specification** (problem, goals, core
-   concepts, vocabulary, success criteria).
-2. [`docs/adr/`](docs/adr/) — the Architecture Decision Records. **Accepted ADRs are binding**.
-<!-- module:conformance begin -->
-3. [`docs/CONFORMANCE.md`](docs/CONFORMANCE.md) — what this project owes the **external source** it
-   derives from: the pinned upstream revision, the per-unit conformance inventory, and the
-   deliberate deviations. A difference from the source that is listed there is a decision, not a
-   defect — never "fix" one without an ADR that reverses it.
-<!-- module:conformance end -->
+1. [`docs/SPECIFICATION.md`](docs/SPECIFICATION.md): problem, goals, success criteria, written in
+   the vocabulary of [`docs/GLOSSARY.md`](docs/GLOSSARY.md).
+2. [`docs/adr/README.md`](docs/adr/README.md): the ADR index. **Accepted ADRs are binding.** Read
+   every one whose *Applies to* names what your change touches. A `proposed` ADR binds the work
+   that implements it. Rejected and superseded ADRs explain *why*; they are not rules.
+3. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): the system as it stands today. Where it and an
+   accepted ADR disagree, the ADR is right.
+
+Scaffold text in those documents, such as a placeholder title, an empty section, or a `TODO`, is
+the first work: say so and elaborate it with the human before implementing.
 
 ## 3. ADR rules
 
-Authority runs **specification → accepted ADRs → task**: the specification in
-[`docs/SPECIFICATION.md`](docs/SPECIFICATION.md) is the constitution, accepted ADRs derive from it,
-and every task respects both. The full ADR mechanics — numbering, template, lifecycle, and the
-index — live in [`docs/adr/README.md`](docs/adr/README.md).
+Authority runs **specification → accepted ADRs → task**. The mechanics of the record are in
+[`docs/adr/README.md`](docs/adr/README.md): numbering, template, lifecycle, index. Working
+rules originate here and nowhere else. Another document cites a section here by its anchor
+(`[AGENTS.md §3](AGENTS.md#3-adr-rules)`) and restates nothing. A rule this file does not state
+is not a rule of this project.
 
-1. **Create an ADR before any architecture-relevant decision** — adding a dependency or framework,
-   designing or changing a public interface, choosing a persistence/synchronization strategy or a
-   protocol/data format, or anything that constrains future technology choices (non-exhaustive). Copy
-   [`docs/adr/template.md`](docs/adr/template.md), set status `proposed`, then **stop and ask for
-   human review** before implementing.
-2. **Never violate an accepted ADR.** If a task conflicts with one, do not silently work around it —
-   propose a new ADR (status `proposed`) that supersedes it.
-3. **You may set status `proposed` only; only a human reviewer changes it.** Never edit an accepted
-   ADR — change a decision with a *new* ADR that supersedes it. **ADR numbers are permanent — never
-   renumber, delete, or merge ADRs;** superseded ones remain as historical record.
-4. **The specification wins.** If the specification and an ADR conflict, raise the conflict — do not
-   choose silently.
-5. **Use the project vocabulary** from the specification consistently in code, comments, and documentation.
-6. **Calibrate — not everything needs an ADR.** ADRs are for decisions that are *costly to reverse* or
-   *constrain future choices*. Routine, local, easily reversible work does **not** need one: implementing
-   within an accepted ADR, bug fixes, refactorings that preserve public interfaces, tests, docs,
-   formatting, or a dev-only tool that no shipped code depends on. Rule of thumb: if a change locks in
-   nothing and could be undone in a single follow-up commit, skip the ADR. When genuinely unsure, prefer
-   a short `proposed` ADR over a silent decision.
-7. **Keep the ADR index current.** When you add, supersede, or change the status of an ADR, update the
-   index in [`docs/adr/README.md`](docs/adr/README.md) **in the same change** — never as a separate
-   afterthought.
+1. **Create an ADR before any architecture-relevant decision:** a dependency or framework, a
+   public interface, a persistence or synchronization strategy, a protocol or data format,
+   anything that constrains future technology choices. One decision per ADR. A cross-cutting ADR
+   only for an integration, where the decision *is* the interplay.
+2. **Calibrate.** An ADR is for a decision that is *costly to reverse*, that *constrains future
+   choices*, or that **a reader without this conversation would take for a mistake**; record the
+   last however cheap it is to reverse. No ADR for implementing within an accepted ADR, bug
+   fixes, interface-preserving refactorings, tests, docs, formatting, and dev-only tooling. When
+   genuinely unsure, prefer a short `proposed` ADR over a silent decision.
+3. **Develop the ADR with the human, critically.** Submit it with status `proposed` **in its own
+   pull request**, never mixed with implementation. Skill: `propose-adr`.
+4. **After human review, implement while the ADR is still `proposed`.** Findings return as
+   revisions, each in its own ADR-only pull request. **Only a human changes the status;** the
+   flip to `accepted` may land with the implementation. The gate that routes such an edit to a
+   human is [`.github/CODEOWNERS`](.github/CODEOWNERS), with the review requirement listed under
+   **Repository settings** in the README.
+5. **Accepted ADRs are binding and immutable.** Never violate, edit, or silently work around one.
+   Change the decision with a superseding ADR. The only permitted edit is the `Status` line,
+   flipped by a human. ADR numbers are permanent. If the specification and an ADR conflict, the
+   specification wins: raise the conflict, never choose silently.
+6. **Use the vocabulary of [`docs/GLOSSARY.md`](docs/GLOSSARY.md)** in code, comments, and
+   documentation. Add a term in the same change that settles it. A missing entry is a gap to close
+   there, not a word to invent.
+7. **A change to the specification is a decision, not an edit.** Only a human lands one, and it
+   names every accepted ADR whose basis it moves. An agent drafts specification text; it never
+   lands the change and never judges alone that no ADR is affected.
 
 ## 4. Working style
 
-- **Reply to the human in their own language.** The human may write in *any* language; always answer
-  in that same language. Everything else stays English: write **all artifacts** (code, comments,
-  commits, docs, ADRs, PRs) in **English**, without exception.
-- Prefer **small, reviewable changes**; for larger ones, plan and explore the codebase before
-  editing. Reference the relevant ADR(s) in commit messages and pull request descriptions
-  (e.g., `Implements ADR-NNNN`).
-- **Work interactively and iteratively**: proceed in small steps, surface your reasoning, and seek
-  feedback early rather than delivering large changes at once.
-- **Research before any conceptual design.** For every conceptual or design decision, first research
-  the state of the art and established solutions — including external/web sources — instead of relying
-  on assumptions or memory alone. Capture the relevant findings and cite them (in the ADR when one
-  applies).
-- When in doubt about scope or intent, ask the human before implementing.
+- **Reply to the human in their own language.** Everything else is English: code, comments,
+  commits, docs, ADRs, pull requests.
+- **Prefer small, reviewable changes.** Plan and explore before a larger one. Commits and pull
+  requests name the ADR they implement (`Implements ADR-NNNN`).
+- **Cut work into vertical slices:** each a thin, tested path through every layer it touches. The
+  first through new ground is the tracer bullet. The one exception is a wide mechanical
+  refactor: expand, migrate in batches, contract, every step green.
+- **Write to [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md).** Settle a new judgement call there in
+  the same change that raised it. One a check can decide becomes the check
+  ([§5](#5-quality-bar--definition-of-done)); one that constrains future choices becomes an ADR.
+- **Plan work larger than one session on the issue tracker:** a feature spec cut into
+  tracer-bullet tickets ([ADR-0004](docs/adr/0004-feature-layer.md)). Skill: `plan-feature`.
+- **Work with the human:** small steps, reasoning surfaced, feedback sought early. A task runs
+  unattended only when all of the following hold:
+  1. its acceptance criteria are written and a test decides them;
+  2. its scope is isolated and a wrong result costs one revert;
+  3. it touches none of the parts the harness ADR keeps with the human, and the cap that ADR puts
+     on open agent work leaves room;
+  4. its ticket says how soon a wrong result would be noticed, how cleanly it can be undone, what
+     would prove it right, and when the session stops: the point past which it leaves its state
+     on the ticket and hands off instead of trying on or widening the scope.
+- **Keep the context lean.** Subagents return conclusions, not file dumps. Alignment,
+  implementation, and review each start in a fresh session with only what they need, never by
+  compacting the old one. The implementing session loads what its ticket's *Read first* names. A
+  degraded session hands off.
+- **Session artifacts are not tracked.** Plans, handoff notes, and scratch files live under
+  `.scratch/` (gitignored) or outside the tree. What has to outlive the session becomes an issue,
+  a `proposed` ADR, or a change to one of the six documents of ADR-0001.
+- **Research before a decision that is costly to reverse,** external sources included, cited in
+  the ADR. Below that bar, research what you are actually unsure of. Never pass off recalled
+  interfaces, versions, or defaults as verified.
+- **Open an issue first when scope or intent is still open.** The trigger is disagreement about
+  *why* and *what*, not size. **When in doubt, ask the human before implementing.**
 
 ## 5. Quality bar & Definition of Done
 
-The exact build, test, and lint commands live in the **Build, Test & Run** section of
-[`README.md`](README.md); this section defines *when* a change is done, not *how* to run the tools.
+The build, test, and lint commands live in the **Build, Test & Run** section of
+[`README.md`](README.md), and they run as part of
+[`scripts/check-all.sh`](scripts/check-all.sh).
 
-- **A change is done only when it builds, its tests pass, and linters/formatters are clean** —
+- **A change is done only when it builds, its tests pass, and linters and formatters are clean,**
   locally and in CI. Never hand off or propose merging red.
-- **New behaviour ships with tests; bug fixes ship with a regression test** that fails before the fix
-  and passes after. If a change is genuinely untestable, say so and explain why.
-- **Never weaken the suite to make it pass.** Do not delete, skip, or loosen assertions to go green;
-  fix the code or, if a test is genuinely wrong, correct it and explain the reasoning.
-- **Treat a flaky test as a defect, not noise.** Do not paper over it with retries or by re-running
-  until green — surface it and fix the root cause.
-- **Keep the diff releasable.** No commented-out dead code, stray debug output, or `TODO` left as a
-  substitute for a decision; unfinished work is tracked as an issue or a `proposed` ADR, not hidden in
-  the tree.
-<!-- module:release begin -->
-- **A user-visible change updates the `[Unreleased]` section of [`CHANGELOG.md`](CHANGELOG.md)**
-  in the same change ([ADR-0006](docs/adr/0006-versioning-and-releases.md)); internal-only changes
-  (refactorings, tests, CI) do not.
-<!-- module:release end -->
-<!-- module:conformance begin -->
-- **A change to a derived unit updates its row in [`docs/CONFORMANCE.md`](docs/CONFORMANCE.md)**
-  in the same change ([ADR-0007](docs/adr/0007-external-conformance-tracking.md)); a departure from
-  the external source is either entered under *Deviations* with its reason or it is a bug. Never
-  move the pinned upstream revision without reconciling the inventory against it.
-<!-- module:conformance end -->
+- **Run [`scripts/check-all.sh`](scripts/check-all.sh) before pushing.** CI runs the same checks
+  on every pull request.
+- **New behaviour ships with tests; a bug fix ships with a regression test** that fails before the
+  fix and passes after. Genuinely untestable: say so and why.
+- **The suite is the contract an implementation is held to,** so it tests through interfaces the
+  implementation can change behind. Before changing what exists, pin the behaviour that must
+  stay, tests first where none exist. A rewrite or migration is done when the old suite passes
+  against the new implementation.
+- **Every accepted ADR and every specification criterion (`G-n`, `Q-n`) is cited by a test** with
+  a `Verifies: <id>` marker. An ADR no test can decide says so in its *Enforcement* section.
+  [`scripts/check-traceability.sh`](scripts/check-traceability.sh) enforces it
+  ([ADR-0003](docs/adr/0003-decisions-verified-by-tests.md)).
+- **Never weaken the suite to make it pass. A flaky test is a defect, not noise:** no retries, no
+  re-running until green.
+- **Review in a fresh context before handing off.** The session that wrote a change does not
+  review it. A second session gets only the diff, the task, the doubts recorded for the pull
+  request, and the standards the `review` skill names, never the implementer's reasoning. It
+  reports on two axes kept apart: does it do what was asked; does it meet this bar and the
+  principles of [§1](#1-principles), simplicity first. Its findings are fixed before the pull
+  request opens. Every existing test the diff changes or removes needs a reason the behaviour
+  changed. Skill: `review`.
+- **A feature spec closes only after a design revision** in a fresh session over the modules its
+  tickets touched, the accepted ADRs that bind them, and the specification criteria they serve.
+  It files what it finds as tickets, checks, a `proposed` ADR, or a drafted specification change
+  for the human ([ADR-0004](docs/adr/0004-feature-layer.md)). Skill: `design-revision`.
+- **A mistake a check could have caught becomes a check,** shipped with the fix. A rule in prose
+  is the fallback for what no check can decide. The design revision drops what prevented nothing.
+- **Keep the diff releasable.** No commented-out code, stray debug output, or `TODO` standing in
+  for a decision. Unfinished work is an issue or a `proposed` ADR, not hidden in the tree.
+- **A change to the structure updates [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** in the same
+  change.
 
 ## 6. Project rules
 
-- **Git writes need explicit human approval, every time.** The agent may run git write operations
-  (`add`, `commit`, `push`) and use the GitHub CLI (`gh`) to perform them, but must obtain the human's
-  explicit go-ahead immediately before each commit or push. Never commit or push autonomously, and treat
-  each approval as single-use — it does not carry over to the next commit or push.
-- **GitHub interaction happens on explicit instruction only.** The Dev Container provides the GitHub
-  CLI (`gh`); the agent may use it to interact with GitHub (e.g. pull requests, issues, releases) only
-  when a human explicitly asks, and — as with git writes — each instruction is single-use and never
-  implies the next.
-- **Authenticate `gh` through its web flow.** Run `gh auth login` and choose *Login with a web
-  browser*; a human then enters the displayed one-time code at <https://github.com/login/device> to
-  authorize. Never request, store, or hard-code personal access tokens.
-<!-- module:git-conventions begin -->
-- **Branches and commits follow fixed conventions**
-  ([ADR-0004](docs/adr/0004-git-conventions.md)). Work branches are named `type/short-topic`
-  (kebab-case); commit subjects are [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
-  — `type(scope)?: description` with types `feat fix docs refactor perf test build ci chore revert`,
-  at most 72 characters, no trailing period. Enforced on pull requests by
-  [`scripts/check-git-conventions.sh`](scripts/check-git-conventions.sh); run it locally before pushing.
-- **Pull requests are squash-merged into `main`**, and the PR title must itself be a valid
-  Conventional Commit subject — squash merge makes it the permanent history line on `main`.
-- **Never force-push or rewrite history on `main` or any shared branch.** Force-pushing your own,
-  not-yet-shared PR branch is fine. On `main` this is enforced by a GitHub ruleset configured in the
-  repository settings (see the setup checklist in [`README.md`](README.md)) — repository files
-  cannot enforce it.
-<!-- module:git-conventions end -->
-<!-- module:release begin -->
-- **Releases are human-only.** Versions follow SemVer with annotated `vX.Y.Z` tags
-  ([ADR-0006](docs/adr/0006-versioning-and-releases.md)); the release steps live in
-  [`CONTRIBUTING.md`](CONTRIBUTING.md). Agents never tag or publish a release.
-<!-- module:release end -->
-- Build, test, and run commands live in the **Build, Test & Run** section of
-  [`README.md`](README.md) — the single source for both humans and agents.
-<!-- module:supply-chain begin -->
+- **Commit freely on a branch, never on `main`. A human decides what leaves the machine.**
+  Pushing, `gh`, and anything that rewrites or discards history (`reset`, `rebase`, `merge`,
+  `restore`, `clean`) wait for an instruction that names it. An instruction covers what it named
+  and never implies the next. The git hooks under [`.githooks/`](.githooks/) refuse a commit on
+  `main` and a push while the checks of [§5](#5-quality-bar--definition-of-done) are red.
+- **Authenticate `gh` through its web flow;** a human enters the one-time code. Never request,
+  store, or hard-code personal access tokens.
+- **The Dev Container mounts no host Docker socket** and adds no Feature that would;
+  `devcontainer-lock.json` is committed ([ADR-0002](docs/adr/0002-dev-container-runtime.md)).
+- **Changes reach `main` through a pull request.** What no file can enforce is listed under
+  [Repository settings](README.md#repository-settings).
 
-## 7. Secrets & supply chain
+## 7. Secrets
 
-Decided in [ADR-0005](docs/adr/0005-secrets-and-supply-chain.md); see also [`SECURITY.md`](SECURITY.md).
-
-- **Never write secrets into tracked files, commit messages, ADRs, logs, or CI output** — no
-  tokens, API keys, passwords, or `.env` contents. Secrets live in environment variables,
-  gitignored `.env*` files, or GitHub Actions secrets.
-- **A leaked secret is compromised the moment it lands in git.** Rotate it first; deleting it from
-  the tip of the branch is not remediation.
-- **When the toolchain has a lockfile, it is committed** and CI installs from it (frozen install);
-  manifest and lockfile change together in the same commit.
-- **Reference every GitHub Action by its major version tag** (`uses: owner/action@vN`), so
-  workflows always run the newest release of that major — never a commit SHA (frozen, receives
-  no updates) and never a branch (not a release). The mutability of tags is an accepted
-  trade-off, decided in ADR-0005.
-  Enforced in CI by [`scripts/check-action-refs.sh`](scripts/check-action-refs.sh);
-  Dependabot raises a PR when a new major version appears.
-- **New dependencies and toolchains remain ADR-gated** (§3) — this section governs how
-  dependencies are referenced, not whether they are added.
-<!-- module:supply-chain end -->
+- **Never write a secret into a tracked file, commit message, ADR, log, or CI output.** Secrets live
+  in environment variables, gitignored `.env*` files, or GitHub Actions secrets. A placeholder in a
+  tracked `.env.example` is not a secret.
+- **A secret that reaches git is compromised.** Rotation comes first and is the human's to perform;
+  removing it from the branch tip is cleanup, not remediation. Tell the human immediately.
+- No check enforces either rule. What the repository's configuration does about secrets, and where
+  it stops, is in [`SECURITY.md`](SECURITY.md).
