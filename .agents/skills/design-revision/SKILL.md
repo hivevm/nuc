@@ -6,14 +6,19 @@ description: Revisit the design of what a feature spec touched before the spec c
 # Revise the design
 
 The rule is [`AGENTS.md` §5](../../../AGENTS.md#5-quality-bar--definition-of-done); that a spec
-closes only after this has run is decided in
-[ADR-0004](../../../docs/adr/0004-feature-layer.md). This skill runs in a fresh session and states
-no rule of its own ([ADR-0005](../../../docs/adr/0005-procedures-as-skills.md)).
+closes only after this has run, and that it is due after a number of changes without a spec, is
+decided in [ADR-0004](../../../docs/adr/0004-feature-layer.md). This skill runs in a fresh
+session and states no rule of its own
+([ADR-0005](../../../docs/adr/0005-procedures-as-skills.md)).
 
 ## 1. Scope
 
 Take the feature spec and its merged tickets. The modules those pull requests touched are the
 scope; the rest of the tree is context, not a target. One session, one spec.
+
+Without a spec, when [`scripts/sensor-revision-due.sh`](../../../scripts/sensor-revision-due.sh)
+says the revision is due, the scope is the directories it lists: the changes since the last
+revision. One session, one count.
 
 ## 2. Survey the modules
 
@@ -64,4 +69,5 @@ The conventions and the overview are corrected inline, as their documents ask. E
 is filed before the spec closes rather than implemented here: a ticket per candidate the survey
 found, a ticket per check to write, a `proposed` ADR through `propose-adr` where a finding is a
 decision, a consolidating one included, and a drafted specification change handed to the human
-as an issue. Then the spec closes.
+as an issue. Move the `Last design revision` line of
+[`docs/ARCHITECTURE.md`](../../../docs/ARCHITECTURE.md) to today's date. Then the spec closes.

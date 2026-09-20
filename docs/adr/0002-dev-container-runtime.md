@@ -1,6 +1,6 @@
 # ADR-0002: The Dev Container keeps the host daemon out of reach and its Features locked
 
-- **Status:** 🟡 proposed
+- **Status:** 🟢 accepted
 - **Date:** 2026-09-05
 - **Deciders:** NUC maintainer
 - **Applies to:** `.devcontainer/`, `.vscode/settings.json`, and everything the container pulls in

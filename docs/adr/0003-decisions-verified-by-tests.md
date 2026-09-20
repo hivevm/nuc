@@ -1,6 +1,6 @@
 # ADR-0003: Every accepted decision and every success criterion is verified by a test that cites it
 
-- **Status:** 🟡 proposed
+- **Status:** 🟢 accepted
 - **Date:** 2026-09-16
 - **Deciders:** NUC maintainer
 - **Applies to:** every accepted ADR, the Goals and Quality Goals of `docs/SPECIFICATION.md`, and the tests that verify them

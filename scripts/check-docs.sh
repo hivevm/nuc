@@ -10,6 +10,10 @@
 #      'Applies to' cell shown in the index match the **Status:** and **Applies to:** lines
 #      inside each ADR — the index routes a reader from a change to the ADRs that bind it
 #      (AGENTS.md, section 2), so a row that misstates what its ADR governs misroutes them.
+#      A superseded or rejected row sits below the 'Superseded and rejected' heading and an
+#      accepted or proposed one above it: the first table is what a session reads, and a
+#      row in the wrong one is either a dead decision read as binding or a binding one
+#      never read (docs/adr/README.md).
 #   2. ADR numbering integrity: the ADR files run 0001..N without gaps, and every file's
 #      '# ADR-NNNN' heading matches its filename (docs/adr/README.md).
 #   3. Relative-link integrity: every relative Markdown link in every tracked .md file resolves
@@ -76,6 +80,10 @@
 #      security contact in SECURITY.md, and a CODEOWNERS with no active rule. Step 1 of the setup
 #      replaces each; a placeholder that survives it describes the template, not the project. A
 #      file that does not exist has nothing to check.
+#  14. Template release named: README.md carries a '**Template release:**' line naming a
+#      'vX.Y.Z' tag or 'unreleased' (ADR-0008). Tags do not travel with GitHub's template
+#      mechanism, so the line is the one thing that tells a derived project which release of the
+#      template it carries; a release moves it, and a project that takes a release up moves it.
 #
 # Checks 5 and 6 read every text file of the repository, not a list of documentation extensions:
 # docs/adr/README.md states that code may reference an ADR number, so a verifier restricted to
@@ -193,8 +201,9 @@ check_adr_index() {
   # Parse the index into parallel arrays: filename, 'Applies to' cell, and status emoji per row.
   # Columns are '| ADR | Title | Applies to | Status |'; the cell is compared verbatim.
   local indexed_files=() indexed_applies=() indexed_status=()
-  local line number target filename applies status
+  local line number target filename applies status archive=0
   while IFS= read -r line; do
+    [[ "$line" =~ ^#+[[:space:]]+Superseded\ and\ rejected[[:space:]]*$ ]] && { archive=1; continue; }
     [[ "$line" =~ ^\|[[:space:]]*\[([0-9]{4})\]\(([^\)]+)\) ]] || continue
     number="${BASH_REMATCH[1]}"
     target="${BASH_REMATCH[2]}"
@@ -207,6 +216,16 @@ check_adr_index() {
     if [[ "$filename" != "$number"-* ]]; then
       add_error "ADR index: row for $number links to '$filename', which does not start with '$number-'"
     fi
+    case "$status" in
+      ⚪|🔴)
+        ((archive)) \
+          || add_error "ADR index: row for $number is $status but sits above the 'Superseded and rejected' heading — move it there, a session reads the first table as binding"
+        ;;
+      🟢|🟡)
+        ((archive)) \
+          && add_error "ADR index: row for $number is $status but sits below the 'Superseded and rejected' heading — move it up, a binding decision there is never read"
+        ;;
+    esac
   done < "$ADR_INDEX"
 
   # Every file on disk must be listed.
@@ -818,13 +837,38 @@ check_template_identity() {
     grep -qE "$2" "$ROOT/$1" && add_error "$1: $3"
   }
   placeholder README.md '^# NUC — an Agentic' "the title is still the template's; give the project its name"
-  placeholder README.md 'github\.com/hivevm/nuc/' "the badge still points at the template's repository; repoint or delete it"
+  # Anchored to the workflow path of the badge: the Template section links the template's
+  # repository on purpose, and that link stays.
+  placeholder README.md 'github\.com/hivevm/nuc/actions/workflows/' "the badge still points at the template's repository; repoint or delete it"
   placeholder .devcontainer/devcontainer.json '"name": "NUC DevContainer"' "the Dev Container still carries the template's name"
   placeholder LICENSE '^Copyright\b.*\bMaintainer\b' "the copyright holder is still the placeholder; name the maintainer"
   placeholder SECURITY.md 'TODO: add a security contact' "the security contact is still the placeholder"
   if [[ -f "$ROOT/.github/CODEOWNERS" ]] && ! grep -qE '^[^#[:space:]]' "$ROOT/.github/CODEOWNERS"; then
     add_error ".github/CODEOWNERS: no active rule; name the code owner and uncomment the two rules"
   fi
+}
+
+# Check 14 (see the header). The first matching line is read; a Markdown list marker before the
+# bold label is allowed, the version may be written as a link or in backticks, and what follows
+# it — a sentence, a link target — is not read. After the version only a space, a punctuation
+# mark, or the end of the line may follow: a pre-release suffix, build metadata, and a fourth
+# number are not a tag ADR-0008 cuts, and SemVer allows no leading zero.
+check_template_release() {
+  local readme="$ROOT/README.md"
+  [[ -f "$readme" ]] || return   # check 10 reports the missing README
+  local line value
+  line="$(grep -m1 -E '^[[:space:]]*([-*] )?\*\*Template release:\*\*' "$readme")"
+  if [[ -z "$line" ]]; then
+    add_error "README.md: no '**Template release:**' line — the Template section names the release of the template this repository carries, or 'unreleased' (ADR-0008)"
+    return
+  fi
+  value="${line#*\*\*Template release:\*\*}"
+  value="${value#"${value%%[![:space:]]*}"}"
+  local num='(0|[1-9][0-9]*)'
+  # shellcheck disable=SC2016  # the backticks are Markdown to match, not a command substitution
+  local re='^[[`]?(v'"$num"'\.'"$num"'\.'"$num"'|unreleased)($|[][:space:],;:)`]|\.([[:space:]]|$))'
+  [[ "$value" =~ $re ]] \
+    || add_error "README.md: the Template release line names neither a 'vX.Y.Z' tag nor 'unreleased' — a release moves it to the tag it cuts (ADR-0008)"
 }
 
 collect_text_files
@@ -841,6 +885,7 @@ check_project_layout
 check_skill_pointers
 check_inherited_adrs
 check_template_identity
+check_template_release
 
 if ((${#errors[@]} > 0)); then
   echo "Documentation checks FAILED:"

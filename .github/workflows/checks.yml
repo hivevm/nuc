@@ -13,6 +13,16 @@ name: Checks
 # - Dev Container: no host Docker socket, Features pinned and locked, the container-management
 #   extension on the host side (ADR-0002), checked by scripts/check-devcontainer.sh after its own
 #   self-test has passed.
+# - Action references: every action a workflow uses is referenced by its major version tag and
+#   Dependabot is configured to raise the major bump (ADR-0007), checked by
+#   scripts/check-action-refs.sh after its own self-test has passed.
+# - Sensors: what weakens the test suite and no toolchain's tools notice — test files deleted
+#   and skip markers added since the pull request's base — reported by
+#   scripts/sensor-tests-kept.sh for the reviewer (AGENTS.md, section 5), and the changes since
+#   the last design revision, reported by scripts/sensor-revision-due.sh (ADR-0004), each after
+#   its self-test has passed. The job reports and never fails on what it counts; the reason for
+#   a finding is in the pull request, and a due revision is the human's to schedule. It checks
+#   out the full history because both sensors read it.
 # - Shell lint: every shell script passes ShellCheck — the scripts are this repository's
 #   enforcement layer, so they are linted themselves. The job first runs the self-test of the
 #   git hooks under .githooks/, which refuse a commit on main and a push while the checks are
@@ -90,6 +100,40 @@ jobs:
         run: bash scripts/test-check-devcontainer.sh
       - name: Check that the Dev Container keeps the host engine out of reach
         run: bash scripts/check-devcontainer.sh
+
+  actions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      # The check's own tests run first: a check that is wrong passes nothing worth trusting.
+      - name: Self-test the action reference check
+        run: bash scripts/test-check-action-refs.sh
+      - name: Check that actions are referenced by major version tag and Dependabot covers them
+        run: bash scripts/check-action-refs.sh
+
+  sensors:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      # The sensor's own tests run first: a sensor that is wrong reports nothing worth reading.
+      - name: Self-test the tests-kept sensor
+        run: bash scripts/test-sensor-tests-kept.sh
+      # The base is the pull request's base branch, or the previous tip on a push to main.
+      - name: Report test files deleted and skip markers added since the base
+        run: bash scripts/sensor-tests-kept.sh "$BASE"
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+      - name: Self-test the revision-due sensor
+        run: bash scripts/test-sensor-revision-due.sh
+      - name: Report the changes since the last design revision
+        run: bash scripts/sensor-revision-due.sh
 
   shell:
     runs-on: ubuntu-latest

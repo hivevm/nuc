@@ -5,7 +5,6 @@
 - **Deciders:** <names / roles of the humans who decide>
 - **Applies to:** <the paths, components, or kinds of change this decision constrains>
 - **Supersedes:** [ADR-NNNN](NNNN-short-title.md)
-- **Note:** <optional>
 
 *Complete the header and delete what does not apply. `Status` ships as `🟡 proposed`; a human flips
 it to `🟢 accepted`, `🔴 rejected`, or `⚪ superseded by ADR-NNNN`, keeping exactly one emoji with
@@ -17,9 +16,8 @@ otherwise the kind of change (every commit, every public interface), in one line
 character: the index mirrors it verbatim, and that is how a reader finds the ADRs that bind a
 change ([mechanics](README.md#mechanics)). `Supersedes` only when this ADR replaces one existing
 ADR or several whose decisions have grown into one, each linked; their status lines flip in the
-same pull request ([mechanics](README.md#mechanics)). `Note` only for what the status line cannot
-carry, such as retroactive documentation. For a decision recorded only because a reader would take
-it for a mistake, cheap to reverse and constraining nothing
+same pull request ([mechanics](README.md#mechanics)). For a decision recorded only because a
+reader would take it for a mistake, cheap to reverse and constraining nothing
 ([`AGENTS.md` §3](../../AGENTS.md#3-adr-rules), rule 2), a sentence each under Context and Decision
 and `None — cheap to reverse` under Alternatives, Sources, and Consequences is the whole record;
 Enforcement stays. Then delete this paragraph.*

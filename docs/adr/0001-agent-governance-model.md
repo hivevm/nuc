@@ -1,10 +1,9 @@
 # ADR-0001: The document set: one specification, one ADR record, one `AGENTS.md`, one overview, one glossary, one conventions file
 
-- **Status:** 🟡 proposed
+- **Status:** 🟢 accepted
 - **Date:** 2026-09-05
 - **Deciders:** NUC maintainer
 - **Applies to:** every document that carries rules for humans or agents, the architecture overview, the glossary, and the conventions
-- **Note:** Documented retroactively: the decision was already embodied in the repository it describes.
 
 ## Context
 

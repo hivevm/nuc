@@ -67,8 +67,11 @@ README's Project Layout block.
    skipped, and a test suite that passes without asserting much, which mutation testing measures
    where the toolchain offers it. Their output is what the reviewer of
    [`AGENTS.md` §5](AGENTS.md#5-quality-bar--definition-of-done) is handed; a sensor that runs
-   only in someone's head is a rule in prose. [Sensors by toolchain](#sensors-by-toolchain)
-   below is a starting list.
+   only in someone's head is a rule in prose. One sensor ships with the template, because no
+   toolchain has it: [`scripts/sensor-tests-kept.sh`](scripts/sensor-tests-kept.sh) reports the
+   test files deleted and the skip markers added since the base. For each other row of
+   [Sensors by toolchain](#sensors-by-toolchain) below, the ADR names a tool or says none, and
+   why.
 7. Lay down one golden path and one test pattern: a small, complete, idiomatic piece of the real
    system and the test that verifies it. Name both in
    [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). The specification says *what*; this is where
@@ -86,16 +89,54 @@ README's Project Layout block.
 
 Project-specific conventions belong in [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md), in checks,
 and in ADRs; on what may and may not be edited, see [`AGENTS.md` §3](AGENTS.md#3-adr-rules).
-Leave the **Dev Container**, **Coding Agents**, **Repository settings**, and **Project Layout**
-sections of the README as-is; they describe the scaffold. The Project Layout block only
-inventories the files, so a document you remove goes out of it too, this file included.
+Leave the **Dev Container**, **Coding Agents**, **Repository settings**, **Template**, and
+**Project Layout** sections of the README as-is; they describe the scaffold. The Template
+section names the release this project was created from and is the one link to the template
+that stays. The Project Layout block only inventories the files, so a document you remove goes
+out of it too, this file included.
+
+## A small project
+
+A tool, a library, or a one-person project pays for the steps above only where they buy
+something. The chain stays intact as long as three inherited ADRs stand: ADR-0001 (the
+documents the checks read), ADR-0003 (a `Verifies:` marker per accepted decision, one line of
+cost), and ADR-0005 (the skills and their pointers, which cost nothing until invoked). Two more
+cost nothing to accept: [ADR-0007](docs/adr/0007-action-references.md) is held by a check over
+workflows every project has, and [ADR-0008](docs/adr/0008-template-releases.md) is one line of
+the README. What can go, and how:
+
+- **No Dev Container?** Supersede [ADR-0002](docs/adr/0002-dev-container-runtime.md) with an ADR
+  that says where the work runs instead, delete [`.devcontainer/`](.devcontainer/), and remove
+  the `devcontainer` job, its `run` lines in [`scripts/check-all.sh`](scripts/check-all.sh), and
+  its name in the README's required checks in the same change; check 9 holds the three lists
+  together.
+- **No core to protect?** A script, a thin CLI, or a library without infrastructure supersedes
+  [ADR-0006](docs/adr/0006-architecture-style.md) with the shape it does have and the test that
+  decides it, or with `**Not mechanically decidable:**` and the reason.
+- **Work never exceeds a session?** [ADR-0004](docs/adr/0004-feature-layer.md) stays accepted and
+  costs nothing: it applies only above that threshold, and the threshold is a judgement under
+  proportionality ([`AGENTS.md` §1](AGENTS.md#1-principles)).
+- **The harness ADR** of step 4 can be five lines: one agent and model, the human reviews every
+  change, nothing runs unattended, no parallel sessions. It grows when the harness does.
+- **The toolchain ADR** of step 6 names the sensors it has, and one that ships with the linter
+  is enough to start; the design revision adds what the mistakes call for.
+- **A single maintainer** cannot approve their own pull request, so the Code Owners review in
+  the repository settings cannot be met; keep the required checks and the force-push block, and
+  let [`.github/CODEOWNERS`](.github/CODEOWNERS) name the owner without the requirement. The
+  status flip and the specification are then guarded by the rule alone; say so where
+  [`SECURITY.md`](SECURITY.md) describes the gate.
+
+[`AGENTS.md`](AGENTS.md), the glossary, the conventions, and the overview stay, empty where
+there is nothing to say; a scaffold section costs a reader a glance, a missing document costs a
+check.
 
 ## Sensors by toolchain
 
 One or two tools per sensor of step 6, each verified against its own releases or documentation
 in September 2026: existence, purpose, and a release or commit in 2025 or 2026. A list like this
 ages; check a tool before the toolchain ADR names it. No verified tool in any toolchain notices a
-**removed** test. That is a diff rule in CI, matching a deleted test or an added skip marker.
+**removed** test; the template's tests-kept sensor does, for every toolchain, and knows the
+skip markers of this table.
 
 | Toolchain | Dependency direction | Size and complexity | Duplication | Dead code | Skipped tests | Mutation testing |
 |---|---|---|---|---|---|---|

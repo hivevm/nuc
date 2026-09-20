@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
 #
-# Self-test of scripts/check-docs.sh. Verifies: ADR-0001 ADR-0005
+# Self-test of scripts/check-docs.sh. Verifies: ADR-0001 ADR-0005 ADR-0008
 #
 # Each case builds a throwaway git repository under a temporary directory — a rule file with
-# numbered sections, a README with a Project Layout block and the required-checks markers, a
-# workflow and a local runner listing the same check, an ADR record with its index, and one skill
-# with its pointer — runs the check against it, and asserts the exit code and, for a failing
-# case, the message that names the violation. The baseline passes; every other case breaks one
-# thing. The skill pointer check (check 11 of check-docs.sh) is covered in every direction; of
-# the older checks, one case each pins the message a maintainer would meet first — check 9 gets
-# two more for the toolchain job a derived project adds, and checks 12 and 13 (inherited ADRs
-# decided and the template's identity replaced once the setup file is gone) have a case for each
-# of their conditions.
+# numbered sections, a README with a Project Layout block, the required-checks markers, and the
+# Template release line, a workflow and a local runner listing the same check, an ADR record with
+# its index, and one skill with its pointer — runs the check against it, and asserts the exit
+# code and, for a failing case, the message that names the violation. The baseline passes; every
+# other case breaks one thing. The skill pointer check (check 11 of check-docs.sh) is covered in
+# every direction; of the older checks, one case each pins the message a maintainer would meet
+# first — check 9 gets two more for the toolchain job a derived project adds, checks 12 and 13
+# (inherited ADRs decided and the template's identity replaced once the setup file is gone) have
+# a case for each of their conditions, and check 14 (the template release named) one for each
+# form the line may take.
 #
 # Section references and ADR numbers inside fixtures are assembled, never written literally, so
 # that check-docs.sh does not read this script's own fixtures as references into this repository.
@@ -94,6 +95,10 @@ repo() {
     # shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
     echo '`docs`'
     echo "<!-- required-checks end -->"
+    echo
+    echo "## Template"
+    echo
+    echo "- **Template release:** unreleased"
   } > "$dir/README.md"
 
   {
@@ -245,6 +250,10 @@ d="$(repo identity-badge)"
 echo "[![Checks](https://github.com/hivevm/nuc/actions/workflows/checks.yml/badge.svg)](https://github.com/hivevm/nuc/actions/workflows/checks.yml)" >> "$d/README.md"
 expect fail "the template's repository in the README badge after setup" "$d" "README.md: the badge still points at the template"
 
+d="$(repo identity-template-link)"
+echo "Created from [NUC](https://github.com/hivevm/nuc)." >> "$d/README.md"
+expect pass "a link to the template's repository outside the badge after setup" "$d"
+
 d="$(repo identity-license)"
 printf 'MIT License\n\nCopyright (c) 2026 Maintainer\n' > "$d/LICENSE"
 expect fail "the placeholder copyright holder after setup" "$d" "LICENSE: the copyright holder is still the placeholder"
@@ -265,6 +274,48 @@ d="$(repo identity-done)"
 printf '# owners\n\n* @someone\n' > "$d/.github/CODEOWNERS"
 printf 'MIT License\n\nCopyright (c) 2026 Someone\n' > "$d/LICENSE"
 expect pass "identity replaced after setup" "$d"
+
+# --- cases: the template release named (check 14) ---------------------------------------
+
+# release_line <dir> <text> — replace the baseline's Template release line with the given text.
+release_line() { sed -i "s/^- \*\*Template release:\*\* unreleased$/$2/" "$1/README.md"; }
+
+d="$(repo release-tag)"
+release_line "$d" '- **Template release:** v1.4.0 of the template ([tags](https:\/\/example.invalid\/tags)).'
+expect pass "a release tag followed by a sentence" "$d"
+
+d="$(repo release-plain-line)"
+release_line "$d" '**Template release:** v0.2.0'
+expect pass "the line without a list marker" "$d"
+
+d="$(repo release-linked)"
+release_line "$d" '* **Template release:** [v1.4.0](https:\/\/example.invalid\/releases\/tag\/v1.4.0), taken up in full.'
+expect pass "the tag as link text after a star marker" "$d"
+
+d="$(repo release-backticked)"
+# shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
+release_line "$d" '- **Template release:** `v1.4.0`'
+expect pass "the tag in backticks" "$d"
+
+d="$(repo release-leading-zero)"
+release_line "$d" '- **Template release:** v01.4.0'
+expect fail "a leading zero, which SemVer forbids" "$d" "names neither a 'vX.Y.Z' tag nor 'unreleased'"
+
+d="$(repo release-missing)"
+release_line "$d" 'Created from the template.'
+expect fail "no Template release line" "$d" "no '**Template release:**' line"
+
+d="$(repo release-malformed)"
+release_line "$d" '- **Template release:** 1.4'
+expect fail "a version that is not a vX.Y.Z tag" "$d" "names neither a 'vX.Y.Z' tag nor 'unreleased'"
+
+d="$(repo release-prerelease)"
+release_line "$d" '- **Template release:** v1.4.0-rc1'
+expect fail "a pre-release suffix on the tag" "$d" "names neither a 'vX.Y.Z' tag nor 'unreleased'"
+
+d="$(repo release-word)"
+release_line "$d" '- **Template release:** latest'
+expect fail "a word that is not 'unreleased'" "$d" "names neither a 'vX.Y.Z' tag nor 'unreleased'"
 
 # --- cases: one each for the older checks ------------------------------------------------
 
@@ -296,13 +347,46 @@ consolidation() {
   {
     echo "# Architecture Decision Records"
     echo
+    echo "### Binding"
+    echo
+    echo "| ADR | Title | Applies to | Status |"
+    echo "|-----|-------|------------|--------|"
+    [[ "$flip" == "yes" ]] || index_row 2 "🟡 proposed"
+    index_row 3 "🟢 accepted"
+    echo
+    echo "### Superseded and rejected"
+    echo
     echo "| ADR | Title | Applies to | Status |"
     echo "|-----|-------|------------|--------|"
     index_row 1 "⚪ superseded by $n3"
-    if [[ "$flip" == "yes" ]]; then index_row 2 "⚪ superseded by $n3"; else index_row 2 "🟡 proposed"; fi
-    index_row 3 "🟢 accepted"
+    [[ "$flip" == "yes" ]] && index_row 2 "⚪ superseded by $n3"
   } > "$dir/docs/adr/README.md"
 }
+
+# --- cases: the two index tables (check 1) ------------------------------------------------
+
+d="$(repo archive-row-above)"
+adr "$d" 1 "🔴 rejected"
+{
+  echo "# Architecture Decision Records"
+  echo
+  echo "| ADR | Title | Applies to | Status |"
+  echo "|-----|-------|------------|--------|"
+  index_row 1 "🔴 rejected"
+} > "$d/docs/adr/README.md"
+expect fail "a rejected row with no archive heading above it" "$d" "sits above the 'Superseded and rejected' heading"
+
+d="$(repo binding-row-below)"
+{
+  echo "# Architecture Decision Records"
+  echo
+  echo "## Superseded and rejected"
+  echo
+  echo "| ADR | Title | Applies to | Status |"
+  echo "|-----|-------|------------|--------|"
+  index_row 1 "🟡 proposed"
+} > "$d/docs/adr/README.md"
+expect fail "a proposed row under the archive heading" "$d" "sits below the 'Superseded and rejected' heading"
 
 d="$(repo consolidation)"
 consolidation "$d" yes

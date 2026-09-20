@@ -72,7 +72,13 @@ regex scan in [`scripts/`](scripts/) would be false confidence rather than enfor
 scanning toolchain is a dependency a project adds through an ADR of its own once it has
 credentials the built-in patterns miss.
 
+## Actions in the workflows
+
+The actions the workflows run are referenced by major version tag, a mutable reference accepted
+with its risk in [ADR-0007](docs/adr/0007-action-references.md) and held by
+[`scripts/check-action-refs.sh`](scripts/check-action-refs.sh).
+
 ## Supported versions
 
-Security fixes are delivered on the current state of the default branch only. Older states are
-not patched.
+Security fixes land on the default branch and ship in the next release
+([ADR-0008](docs/adr/0008-template-releases.md)). Earlier releases are not patched.

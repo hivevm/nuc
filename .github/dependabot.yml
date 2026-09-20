@@ -1,0 +1,9 @@
+# Keeps the GitHub Actions under .github/workflows/ current (ADR-0007): within a major, the
+# version tag picks up new releases by itself; Dependabot raises a pull request when an action
+# publishes a new major. scripts/check-action-refs.sh fails when this entry is missing.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

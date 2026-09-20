@@ -14,11 +14,13 @@ verifies.
 
 - **File.** Copy [`template.md`](template.md) to `NNNN-short-title.md` with the next free number.
   The `# ADR-NNNN` heading matches the filename, and the numbers run `0001..N` without gaps.
-- **Index.** The table below changes in the same pull request as the ADR it describes, for
+- **Index.** The tables below change in the same pull request as the ADR it describes, for
   additions, supersessions, and status flips alike. The status is shown via the legend's bullet
   and the ADR's `Applies to` header is mirrored verbatim in its own column. The index routes a
   reader from a change to the decisions that bind it, so a row says what its ADR governs without
-  the file being opened.
+  the file being opened. Two tables keep what a session reads apart from what it looks up: an
+  accepted or proposed ADR sits under **Binding**, a superseded or rejected one under
+  **Superseded and rejected**, and a status flip moves the row.
 - **Numbers are permanent.** Never renumber, delete, or merge ADRs: other ADRs, commits
   (`Implements ADR-NNNN`), and code may reference a number. A superseded ADR keeps its file and
   its body. Its `Status` line flips to `⚪ superseded by ADR-NNNN` in the pull request that lands
@@ -42,11 +44,26 @@ proposed.
 
 **Status legend:** 🟢 accepted · 🟡 proposed · 🔴 rejected · ⚪ superseded
 
+### Binding
+
+The decisions in force: accepted, and proposed ones that bind the work implementing them. This
+is the table a session reads.
+
 | ADR | Title | Applies to | Status |
 |-----|-------|------------|--------|
-| [0001](0001-agent-governance-model.md) | The document set: one specification, one ADR record, one `AGENTS.md`, one overview, one glossary, one conventions file | every document that carries rules for humans or agents, the architecture overview, the glossary, and the conventions | 🟡 proposed |
-| [0002](0002-dev-container-runtime.md) | The Dev Container keeps the host daemon out of reach and its Features locked | `.devcontainer/`, `.vscode/settings.json`, and everything the container pulls in | 🟡 proposed |
-| [0003](0003-decisions-verified-by-tests.md) | Every accepted decision and every success criterion is verified by a test that cites it | every accepted ADR, the Goals and Quality Goals of `docs/SPECIFICATION.md`, and the tests that verify them | 🟡 proposed |
-| [0004](0004-feature-layer.md) | Work larger than one session is planned on the issue tracker: a feature spec cut into tracer-bullet tickets | every change larger than one agent session, the issue templates, and the pull request template | 🟡 proposed |
-| [0005](0005-procedures-as-skills.md) | The procedures of the rule file are Agent Skills under `.agents/skills/`, each carrying a how and no rule of its own | `.agents/skills/`, the pointers under `.claude/skills/`, and every document that describes how a procedure of `AGENTS.md` is carried out | 🟡 proposed |
+| [0001](0001-agent-governance-model.md) | The document set: one specification, one ADR record, one `AGENTS.md`, one overview, one glossary, one conventions file | every document that carries rules for humans or agents, the architecture overview, the glossary, and the conventions | 🟢 accepted |
+| [0002](0002-dev-container-runtime.md) | The Dev Container keeps the host daemon out of reach and its Features locked | `.devcontainer/`, `.vscode/settings.json`, and everything the container pulls in | 🟢 accepted |
+| [0003](0003-decisions-verified-by-tests.md) | Every accepted decision and every success criterion is verified by a test that cites it | every accepted ADR, the Goals and Quality Goals of `docs/SPECIFICATION.md`, and the tests that verify them | 🟢 accepted |
+| [0004](0004-feature-layer.md) | Work larger than one session is planned on the issue tracker: a feature spec cut into tracer-bullet tickets | every change larger than one agent session, the issue templates, the pull request template, and the `Last design revision` line of `docs/ARCHITECTURE.md` | 🟢 accepted |
+| [0005](0005-procedures-as-skills.md) | The procedures of the rule file are Agent Skills under `.agents/skills/`, each carrying a how and no rule of its own | `.agents/skills/`, the pointers under `.claude/skills/`, and every document that describes how a procedure of `AGENTS.md` is carried out | 🟢 accepted |
 | [0006](0006-architecture-style.md) | Application code is structured as ports and adapters, with every dependency pointing at the core | every module of the system's code, the golden path, and the structural test that decides the dependency direction | 🟡 proposed |
+| [0007](0007-action-references.md) | GitHub Actions are referenced by their major version tag and kept current by Dependabot | every `uses:` reference in `.github/workflows/`, and `.github/dependabot.yml` | 🟡 proposed |
+| [0008](0008-template-releases.md) | The template is released as SemVer tags on `main`, and every repository names the release it carries | the tags of the template repository, the **Template** section of `README.md`, and the pull request that lands a release | 🟡 proposed |
+
+### Superseded and rejected
+
+The record of what was decided against or replaced: read one when a change touches what it
+governed, to learn why the current decision stands. A row moves here in the pull request that
+flips its status.
+
+None yet.

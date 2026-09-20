@@ -1,6 +1,6 @@
 # ADR-0005: The procedures of the rule file are Agent Skills under `.agents/skills/`, each carrying a how and no rule of its own
 
-- **Status:** 🟡 proposed
+- **Status:** 🟢 accepted
 - **Date:** 2026-09-18
 - **Deciders:** NUC maintainer
 - **Applies to:** `.agents/skills/`, the pointers under `.claude/skills/`, and every document that describes how a procedure of `AGENTS.md` is carried out

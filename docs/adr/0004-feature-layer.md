@@ -1,9 +1,9 @@
 # ADR-0004: Work larger than one session is planned on the issue tracker: a feature spec cut into tracer-bullet tickets
 
-- **Status:** 🟡 proposed
+- **Status:** 🟢 accepted
 - **Date:** 2026-09-17
 - **Deciders:** NUC maintainer
-- **Applies to:** every change larger than one agent session, the issue templates, and the pull request template
+- **Applies to:** every change larger than one agent session, the issue templates, the pull request template, and the `Last design revision` line of `docs/ARCHITECTURE.md`
 
 ## Context
 
@@ -21,6 +21,9 @@ without memory gets wrong first. And every feature adds structure faster than an
 a concept lands in one more file, a piece of logic is written a second time, an interface widens
 by one parameter — none of it wrong in the pull request that brought it, all of it entropy no
 check sees. A record protects decisions (ADR-0003); nothing in the process protects the shape.
+The moment to look is while the work that added the structure is still known, and a project that
+is not writing features never reaches it: one in maintenance, with tickets and fixes only,
+revisits its design when somebody remembers to ask.
 
 The artifact cannot live in the specification, which must not churn (ADR-0001); cannot be a
 seventh rule-bearing document; and must be disposable by design, because a plan that outlives its
@@ -49,10 +52,22 @@ revisited the design of what they touched — the modules, the accepted ADRs tha
 the specification criteria they serve — and filed what it found
 ([`AGENTS.md` §5](../../AGENTS.md#5-quality-bar--definition-of-done)).
 
+The revision also comes due **without a spec**, on a count of the work done rather than on a
+date. [`docs/ARCHITECTURE.md`](../ARCHITECTURE.md) carries on one line the date of the last
+revision and the number of changes after which the next is due — `**Last design revision:**
+<YYYY-MM-DD or none yet>, due after <N> changes.` — and a sensor counts the changes since that
+date. A **change** is a commit that touches anything outside `docs/`, merges excluded. The
+number ships as 20 and is the project's to set, on the line rather than in the sensor. The count
+is reported, never enforced: once the number is reached the revision runs over the modules those
+changes touched, and it moves the date. The line sits in the overview because the revision
+corrects that document anyway, and because the overview is the one document that says how the
+system stands (ADR-0001).
+
 **Out of scope:** how work smaller than one session is planned; an artifact for an effort too
-foggy to be written as a spec; triage states for issues that arrive from outside; which tracker a project uses — the templates shipped here are
-for GitHub Issues, and a project on another tracker supersedes this ADR with the same shape on its
-own tracker.
+foggy to be written as a spec; triage states for issues that arrive from outside; whether a due
+revision blocks a merge, which it does not; which tracker a project uses — the templates shipped
+here are for GitHub Issues, and a project on another tracker supersedes this ADR with the same
+shape on its own tracker.
 
 ## Alternatives considered
 
@@ -75,8 +90,14 @@ own tracker.
   the same two questions — what changes, what stays — fit as a section of the feature spec, and
   "greenfield" is an answer to them.
 - **A standing "improve the architecture" chore on a calendar.** Nothing ties it to the work that
-  caused the entropy, so it is skipped when busy and pointless when idle; the close of a feature
-  spec is the moment the touched modules are still known.
+  caused the entropy, so it is skipped when busy and pointless when idle; a spec that closes and
+  a count of changes are both moments the touched modules are still known.
+- **A failing check once the revision is due.** Blocks every pull request until a session that
+  ships no behaviour has run; this layer makes entropy visible, not impossible.
+- **The number of changes inside the sensor.** The sensor belongs to the template and travels
+  with it; how much drift a project tolerates belongs in the project's own document.
+- **Counting lines changed rather than commits.** Nearer to entropy and far noisier: a formatter
+  run is thousands of lines and no structure at all.
 
 ## Sources / Prior art
 
@@ -118,7 +139,8 @@ ticket rather than judged by the session that is stopping.
   audit trail that costs nothing to keep; what the system does today is written down before it is
   changed;
   the design of what a feature touched is revisited while it is still known, and the overview is
-  checked against the tree at the same moment.
+  checked against the tree at the same moment; a project that writes no specs revisits its design
+  at a rhythm its own changes set, and "when did we last look?" is answered in the tree.
 - Negative / trade-offs: a feature now costs an issue and its children before the first slice —
   ceremony a one-session change must not pay, so the threshold is a judgement under the
   proportionality principle ([`AGENTS.md` §1](../../AGENTS.md#1-principles)). An effort whose
@@ -126,13 +148,23 @@ ticket rather than judged by the session that is stopping.
   conversation, which is gone by the next session. Blocking on GitHub is sub-issues and task
   lists, weaker than a native dependency. A feature spec stays open one session longer, and the
   revision costs a session that ships no behaviour; what it files is tickets, so nothing obliges
-  anyone to work them — the decision makes entropy visible, not impossible.
+  anyone to work them — the decision makes entropy visible, not impossible. A commit is a coarse
+  measure of drift, so a project that squashes reaches the number more slowly than one that does
+  not, and the date is moved by hand, by the revision's own change.
 - Follow-ups: the decision map, once an effort too foggy to slice has been met; triage states for
   issues arriving from outside; tooling for claiming and the frontier once a project wants it.
 
 ## Enforcement
 
+[`scripts/sensor-revision-due.sh`](../../scripts/sensor-revision-due.sh) (job `sensors` in
+[`checks.yml`](../../.github/workflows/checks.yml)) reads the `Last design revision` line of the
+overview, counts the changes since its date, reports the count, and lists the directories they
+touched once the number is reached; it fails when the line is missing or unreadable, because
+then it measures nothing. Its self-test cites this ADR
+([ADR-0003](0003-decisions-verified-by-tests.md)).
+
 **Not mechanically decidable:** the tracker is outside the tree, so whether an effort was specced
-and sliced — and whether a spec was closed without its design revision — is review. The templates
-under [`.github/ISSUE_TEMPLATE/`](../../.github/ISSUE_TEMPLATE/) carry the shape, and the pull
-request template asks for the ticket a change closes.
+and sliced — and whether a spec was closed without its design revision — is review, as is whether
+a due revision was run at all and the date moved with it. The templates under
+[`.github/ISSUE_TEMPLATE/`](../../.github/ISSUE_TEMPLATE/) carry the shape, and the pull request
+template asks for the ticket a change closes.

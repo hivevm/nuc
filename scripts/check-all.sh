@@ -42,6 +42,12 @@ run "Traceability self-test" scripts/test-check-traceability.sh
 run "Traceability" scripts/check-traceability.sh
 run "Dev Container self-test" scripts/test-check-devcontainer.sh
 run "Dev Container" scripts/check-devcontainer.sh
+run "Action reference self-test" scripts/test-check-action-refs.sh
+run "Action references" scripts/check-action-refs.sh
+run "Tests-kept sensor self-test" scripts/test-sensor-tests-kept.sh
+run "Tests-kept sensor" scripts/sensor-tests-kept.sh
+run "Revision-due sensor self-test" scripts/test-sensor-revision-due.sh
+run "Revision-due sensor" scripts/sensor-revision-due.sh
 run "Git hooks self-test" scripts/test-git-hooks.sh
 run "Shell lint" scripts/check-shell.sh
 

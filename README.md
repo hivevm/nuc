@@ -70,9 +70,9 @@ docs/GLOSSARY.md      # the vocabulary everyone uses, kept current inline
 docs/CONVENTIONS.md   # how this project writes what no check decides, kept current inline
 docs/ARCHITECTURE.md  # the system as it currently stands
 docs/adr/             # Architecture Decision Records (+ template)
-scripts/              # repository consistency checks (check-all.sh runs them all), enforced in CI
+scripts/              # consistency checks and sensors (check-all.sh runs them all), run in CI
 .githooks/            # git hooks: refuse a commit on main and a push while the checks are red
-.github/              # CI workflows, issue & pull request templates, code owners
+.github/              # CI workflows, Dependabot, issue & pull request templates, code owners
 .devcontainer/        # Dev Container definition (base image + Features)
 .vscode/              # shared editor settings
 .editorconfig         # editor-neutral formatting baseline
@@ -138,7 +138,7 @@ configured once by a maintainer and worth re-checking after a repository move or
 
 - a **ruleset on `main`** that requires pull requests, requires the
   <!-- required-checks begin — compared with the workflow's jobs by scripts/check-docs.sh -->
-  `docs`, `traceability`, `devcontainer`, and `shell`
+  `docs`, `traceability`, `devcontainer`, `actions`, `sensors`, and `shell`
   <!-- required-checks end -->
   jobs of the **Checks** workflow as required status checks (rulesets list checks by their job
   name), and blocks force pushes and branch deletion;
@@ -150,6 +150,12 @@ configured once by a maintainer and worth re-checking after a repository move or
 - enable **secret scanning with push protection**, the only mechanical backstop behind the secrets
   rule ([`AGENTS.md` §7](AGENTS.md#7-secrets)), which is otherwise carried by review alone;
 - enable **private vulnerability reporting** (see [`SECURITY.md`](SECURITY.md)).
+
+## Template
+
+- **Template release:** unreleased — the release of [NUC](https://github.com/hivevm/nuc) this
+  repository carries; a project moves the line when it takes up a later one
+  ([ADR-0008](docs/adr/0008-template-releases.md)).
 
 ## Contributing
 

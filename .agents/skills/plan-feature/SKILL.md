@@ -35,12 +35,10 @@ spec: chart it with the human in the conversation until the questions run out.
    the tickets that block it, and *Read first*: the accepted ADRs whose *Applies to* it touches,
    the glossary terms and conventions in play, the golden path it copies, the seam its tests go
    on. The first slice through new ground is the tracer bullet.
-4. Set each ticket's *Mode*. "unattended" only when the criteria are written, the scope is
-   isolated, a test decides it, a wrong result costs one revert, the slice touches none of the
-   parts the harness ADR keeps with the human, and the cap on open agent work leaves room. Answer
-   on the ticket: how soon would a wrong result be noticed, how cleanly can it be undone, what
-   would prove it right, and when does the session stop, meaning the attempts, time, or criterion
-   past which it leaves its state on the ticket and hands off?
+4. Set each ticket's *Mode*: "unattended" only under the conditions of
+   [`AGENTS.md` §4](../../../AGENTS.md#4-working-style), each answered on the ticket; the stop
+   is concrete, the attempts, time, or criterion past which the session hands off. Otherwise
+   "with the human", and why.
 
 ## 3. Work and close
 

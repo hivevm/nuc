@@ -24,7 +24,8 @@ The reviewer runs in a context that did not write the change and is handed only:
 - the accepted ADRs whose *Applies to* the diff touches, found through the index in
   [`docs/adr/README.md`](../../../docs/adr/README.md);
 - the output of the sensors the toolchain ADR names, and of
-  [`scripts/check-all.sh`](../../../scripts/check-all.sh).
+  [`scripts/check-all.sh`](../../../scripts/check-all.sh), whose tests-kept sensor lists the
+  test files deleted and the skip markers added since the base.
 
 If the implementer's reasoning, plan, or conversation is offered, decline it. The review holds
 the diff against the standards, not against the story of how it came to be.
