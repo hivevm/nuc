@@ -1,6 +1,6 @@
 # ADR-0007: GitHub Actions are referenced by their major version tag and kept current by Dependabot
 
-- **Status:** 🟡 proposed
+- **Status:** 🟢 accepted
 - **Date:** 2026-09-20
 - **Deciders:** NUC maintainer
 - **Applies to:** every `uses:` reference in `.github/workflows/`, and `.github/dependabot.yml`

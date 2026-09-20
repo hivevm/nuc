@@ -1,6 +1,6 @@
 # ADR-0008: The template is released as SemVer tags on `main`, and every repository names the release it carries
 
-- **Status:** 🟡 proposed
+- **Status:** 🟢 accepted
 - **Date:** 2026-09-20
 - **Deciders:** NUC maintainer
 - **Applies to:** the tags of the template repository, the **Template** section of `README.md`, and the pull request that lands a release
