@@ -197,10 +197,11 @@ expect fail "markers in gitignored files do not count" "$d" "ADR-0001 is accepte
 # --- the template's own promise ------------------------------------------------------------
 #
 # TEMPLATE-SETUP.md tells the maintainer of a derived project to accept the inherited ADRs. That
-# must not turn CI red, so while this repository is still the template (the setup file exists)
-# its own tree with every ADR accepted, one the template still proposes included, has to pass:
-# each inherited ADR ships with a citing test or an exemption. A derived project deletes the setup file, and
-# with it this case: its proposed ADRs may await their tests.
+# must not turn CI red, so while the setup file exists the tree with every inherited ADR accepted,
+# one the template still proposes included, has to pass: each ships with a citing test or an
+# exemption. Inherited means its Deciders name the NUC maintainer. The project's own ADRs, which
+# setup step 4 proposes while the file still exists, are left as they are; they await the tests
+# of the golden path, and a proposed one in the copy shows that they stay proposed.
 
 if [[ -f "$ROOT/TEMPLATE-SETUP.md" ]]; then
   d="$work/template-accepted"
@@ -211,7 +212,24 @@ if [[ -f "$ROOT/TEMPLATE-SETUP.md" ]]; then
     cp "$ROOT/$rel" "$d/$rel"
   done < <(git -C "$ROOT" ls-files --cached --others --exclude-standard -z)
   git -C "${d:?}" init -q
+  # The number after the highest, assembled, so this file cites no ADR that does not exist here.
+  n="$(find "$d/docs/adr" -maxdepth 1 -name '[0-9][0-9][0-9][0-9]-*.md' -exec basename {} \; \
+    | cut -c1-4 | sort -n | tail -n 1)"
+  n=$((10#$n))
+  cat > "$d/docs/adr/$(printf '%04d' "$((n + 1))")-a-founding-decision.md" <<ADR
+# $(printf 'ADR-%04d' "$((n + 1))"): A founding decision of the project, proposed in setup step 4
+
+- **Status:** 🟡 proposed
+- **Date:** 2026-01-01
+- **Deciders:** Fixture Owner
+- **Applies to:** the code
+
+## Enforcement
+
+The golden path's test will cite this ADR.
+ADR
   for f in "$d"/docs/adr/[0-9]*.md; do
+    grep -q '^- \*\*Deciders:\*\*.*NUC maintainer' "$f" || continue
     sed -i 's/🟡 proposed/🟢 accepted/' "$f"
   done
   expect pass "the inherited ADRs, once accepted, pass — TEMPLATE-SETUP step 2 keeps CI green" "$d"
