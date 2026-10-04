@@ -3,9 +3,8 @@
 # Git pre-push hook: the checks pass before anything is pushed.
 #
 # AGENTS.md, section 5 requires scripts/check-all.sh to pass before a push, and CI runs the same
-# checks on every pull request. This hook runs them first, so a red push never leaves the machine
-# and the permission prompt an agent answers on 'git push' is only ever about a green one. Enabled
-# through 'git config core.hooksPath .githooks', which the Dev Container sets on creation
+# checks on every pull request. This hook runs them first, so a red push never leaves the machine.
+# Enabled through 'git config core.hooksPath .githooks', which the Dev Container sets on creation
 # (.devcontainer/devcontainer.json); outside it, run that command once per clone.
 #
 # A repository without scripts/check-all.sh has nothing to run, and the push proceeds.

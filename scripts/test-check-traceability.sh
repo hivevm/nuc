@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Self-test of scripts/check-traceability.sh. Verifies: ADR-0003
+# Self-test of scripts/check-traceability.sh. Verifies: ADR-0002
 #
 # Each case builds a throwaway git repository under a temporary directory — a specification with
 # the two criteria sections, a few ADRs, and a file carrying markers — runs the check against it,
@@ -31,7 +31,7 @@ mark() { printf 'Verifies: %s\n' "$*"; }
 repo() {
   local dir="$work/$1"
   mkdir -p "$dir/docs/adr" "$dir/tests"
-  git -C "$dir" init -q
+  git -C "${dir:?}" init -q
   echo "$dir"
 }
 
@@ -78,7 +78,7 @@ adr() {
 expect() {
   local want="$1" name="$2" dir="$3" needle="${4:-}"
   local out rc
-  git -C "$dir" add -A
+  git -C "${dir:?}" add -A
   out="$(bash "$CHECK" "$dir" 2>&1)"; rc=$?
   if [[ "$want" == "pass" && $rc -eq 0 && ( -z "$needle" || "$out" == *"$needle"* ) ]] \
      || [[ "$want" == "fail" && $rc -ne 0 && ( -z "$needle" || "$out" == *"$needle"* ) ]]; then
@@ -198,8 +198,8 @@ expect fail "markers in gitignored files do not count" "$d" "ADR-0001 is accepte
 #
 # TEMPLATE-SETUP.md tells the maintainer of a derived project to accept the inherited ADRs. That
 # must not turn CI red, so while this repository is still the template (the setup file exists)
-# its own tree with every ADR that step accepts flipped to accepted has to pass: each inherited
-# ADR ships with a citing test or an exemption. A derived project deletes the setup file, and
+# its own tree with every ADR accepted, one the template still proposes included, has to pass:
+# each inherited ADR ships with a citing test or an exemption. A derived project deletes the setup file, and
 # with it this case: its proposed ADRs may await their tests.
 
 if [[ -f "$ROOT/TEMPLATE-SETUP.md" ]]; then
@@ -210,11 +210,9 @@ if [[ -f "$ROOT/TEMPLATE-SETUP.md" ]]; then
     mkdir -p "$d/$(dirname "$rel")"
     cp "$ROOT/$rel" "$d/$rel"
   done < <(git -C "$ROOT" ls-files --cached --others --exclude-standard -z)
-  git -C "$d" init -q
-  # ADR-0006 is the one step 2 leaves to step 7: its test is the derived project's structural
-  # test, so it stays proposed here — as TEMPLATE-SETUP says.
+  git -C "${d:?}" init -q
   for f in "$d"/docs/adr/[0-9]*.md; do
-    [[ "$(basename "$f")" == 0006-* ]] || sed -i 's/🟡 proposed/🟢 accepted/' "$f"
+    sed -i 's/🟡 proposed/🟢 accepted/' "$f"
   done
   expect pass "the inherited ADRs, once accepted, pass — TEMPLATE-SETUP step 2 keeps CI green" "$d"
 fi

@@ -3,7 +3,7 @@
 - **Status:** 🟢 accepted
 - **Date:** 2026-09-05
 - **Deciders:** NUC maintainer
-- **Applies to:** every document that carries rules for humans or agents, the architecture overview, the glossary, and the conventions
+- **Applies to:** every document that carries rules for humans or agents, the architecture overview, the glossary, the conventions, and `scripts/check-docs.sh`
 
 ## Context
 
@@ -52,24 +52,28 @@ that carry a rule:
   sentences what it *is*, and lists under _Avoid:_ the synonyms it displaces, where there are any.
   Only terms specific to the domain belong. The specification is written in this vocabulary and
   carries none of its own.
-- `docs/CONVENTIONS.md` — the **conventions**: how this project writes code
+- [`docs/CONVENTIONS.md`](../CONVENTIONS.md) — the **conventions**: how this project writes code
   and tests where no check can decide it. An entry says in a sentence or two what is done and why,
   and is updated inline by whoever settles a convention — an agent included — in the same change
   as the review or code that settled it. Two things are never entries: a convention a check can
-  decide, which becomes the check ([`AGENTS.md` §5](../../AGENTS.md#5-quality-bar--definition-of-done)),
-  and one that constrains future choices, which is an ADR. The reviewer always has this document;
-  the implementer reads it when it needs it.
+  decide, which becomes the check
+  ([`AGENTS.md` §5](../../AGENTS.md#5-quality-bar--definition-of-done)), and one that constrains
+  future choices, which is an ADR. The reviewer always has this document; the implementer reads
+  it when it needs it.
 
 Every other document — [`README.md`](../../README.md), [`CONTRIBUTING.md`](../../CONTRIBUTING.md),
-[`SECURITY.md`](../../SECURITY.md), issue and pull request templates, per-agent pointers — points at
-the rule file and holds no rule of its own. The exception is a document holding the mechanics of a
-record the rule file delegates to it: [`docs/adr/README.md`](README.md) and its
+[`SECURITY.md`](../../SECURITY.md), `TEMPLATE-SETUP.md` while it exists, issue and pull
+request templates, per-agent pointers, the catalogue of concepts in the `propose-adr` skill —
+points at the rule file and holds no rule of its own. The exception is a document holding the
+mechanics of a record the rule file delegates to it: [`docs/adr/README.md`](README.md) and its
 [`template.md`](template.md), delegated by [`AGENTS.md` §3](../../AGENTS.md#3-adr-rules).
 
 **The load-bearing clause is that there is exactly one rule file.** An ADR that supersedes any other
 part of this record restates it. The ADR rules of [`AGENTS.md` §3](../../AGENTS.md#3-adr-rules)
 are the one block with no ADR behind it — accepted here, and reversible by an ADR on the ADR
-process.
+process. Rules 1 and 3 of that block belong to it like the rest: the catalogue is what a decision
+is proposed from, and the founding decisions of a new project travel together in a pull request
+of ADRs only, so that they are proposed as one start and revised while proposed.
 
 **Out of scope:** what `AGENTS.md` says and how other documents cite it; which agents a project uses
 and which need a pointer file; how the ADR record is kept; the notation and depth of the overview;
@@ -137,15 +141,15 @@ created from this template drops.
   so the documents have to stay small enough for review to see it. A stale overview is worse than
   none because it is believed, and no check can tell the two apart. Naming the ADRs a
   specification change moves is a judgement no check makes. The conventions will attract entries a
-  check should decide, and only the retro at the close of a feature spec
+  check should decide, and only the design revision
   ([`AGENTS.md` §5](../../AGENTS.md#5-quality-bar--definition-of-done)) moves them out.
 - Follow-ups: a context map for repositories with more than one bounded context.
 
 ## Enforcement
 
 [`scripts/check-docs.sh`](../../scripts/check-docs.sh) (job `docs` in
-[`checks.yml`](../../.github/workflows/checks.yml)) verifies what is mechanically checkable: that the
-ADR record and its index agree, that links between the documents resolve, and that section
+[`checks.yml`](../../.github/workflows/checks.yml)) verifies what is mechanically checkable:
+that the ADR record and its index agree, that links between the documents resolve, and that section
 references point at the section they name — which is why a document cites a rule as a link to
 its section anchor and never restates it: a renumbering breaks the link, and the check catches
 it, where a restated rule would drift unseen. One gate routes a specification change to a human

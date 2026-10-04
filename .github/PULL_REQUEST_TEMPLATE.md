@@ -8,7 +8,7 @@
 
 ## Related
 
-- Closes #  <!-- the ticket this lands, or the issue it resolves (ADR-0004) -->
+- Closes #  <!-- the ticket this lands, or the issue it resolves (ADR-0006) -->
 - Implements / relates to ADR-
 
 ## Proof
@@ -40,9 +40,9 @@
 
 <!-- One statement each, verifiable against the diff. ADR: new, revised, or none, and why none
      (AGENTS.md [§3](../AGENTS.md#3-adr-rules), rule 2); a new or revised `proposed` ADR ships in
-     its own pull request. ARCHITECTURE.md: updated, or unchanged because the structure is
-     ([§5](../AGENTS.md#5-quality-bar--definition-of-done)). Glossary: the terms this change
-     settled, or none. Specification: the accepted ADRs a change to it moves
+     a pull request of ADRs only (rule 3). ARCHITECTURE.md: updated, or unchanged because the
+     structure is unchanged ([§5](../AGENTS.md#5-quality-bar--definition-of-done)). Glossary: the
+     terms this change settled, or none. Specification: the accepted ADRs a change to it moves
      ([§3](../AGENTS.md#3-adr-rules), rule 7), or untouched. -->
 
 - ADR:

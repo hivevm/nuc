@@ -29,20 +29,20 @@ fixture() { [[ -n "${1:-}" && -d "$1/.git" ]] || { echo "fixture: '$1' is no fix
 # commit <dir> <message> — stage everything and commit with a fixed identity.
 commit() {
   fixture "$1"
-  git -C "$1" add -A
-  git -C "$1" -c user.name=fixture -c user.email=fixture@example.invalid commit -q -m "$2"
+  git -C "${1:?}" add -A
+  git -C "${1:?}" -c user.name=fixture -c user.email=fixture@example.invalid commit -q -m "$2"
 }
 
 # repo <name> — a repository whose base commit is tagged 'base', printed as its path.
 repo() {
   local dir="$work/$1"
   mkdir -p "$dir/tests" "$dir/src"
-  git -C "$dir" init -q -b main
+  git -C "${dir:?}" init -q -b main
   printf 'def test_a():\n    assert True\n' > "$dir/tests/a_test.py"
   printf "it('b', () => {});\n" > "$dir/src/b.spec.ts"
   printf 'print("app")\n' > "$dir/src/app.py"
   commit "$dir" "base"
-  git -C "$dir" tag base
+  git -C "${dir:?}" tag base
   echo "$dir"
 }
 
@@ -70,22 +70,22 @@ commit "$d" "a source change"
 expect 0 "a change that touches no test reports nothing" "$d" "nothing to report"
 
 d="$(repo test-deleted)"
-git -C "$d" rm -q tests/a_test.py
+git -C "${d:?}" rm -q tests/a_test.py
 commit "$d" "drop a test"
 expect 0 "a deleted test file" "$d" "deleted test file: tests/a_test.py"
 
 d="$(repo test-moved-out)"
-git -C "$d" mv tests/a_test.py src/helper.py
+git -C "${d:?}" mv tests/a_test.py src/helper.py
 commit "$d" "move a test out"
 expect 0 "a test file renamed to a path that is no test" "$d" "moved out of the tests: tests/a_test.py -> src/helper.py"
 
 d="$(repo test-moved-within)"
-git -C "$d" mv tests/a_test.py tests/a_more_test.py
+git -C "${d:?}" mv tests/a_test.py tests/a_more_test.py
 commit "$d" "rename a test"
 expect 0 "a test file renamed within the tests" "$d" "nothing to report"
 
 d="$(repo source-deleted)"
-git -C "$d" rm -q src/app.py
+git -C "${d:?}" rm -q src/app.py
 commit "$d" "drop a source file"
 expect 0 "a deleted source file is not a test" "$d" "nothing to report"
 
@@ -107,7 +107,7 @@ expect 0 "a marker in a file that is no test is reported too" "$d" "src/app.py:2
 d="$(repo skip-removed)"
 printf "it.skip('c', () => {});\n" >> "$d/src/b.spec.ts"
 commit "$d" "skip a test"
-git -C "$d" tag skipped
+git -C "${d:?}" tag skipped
 printf "it('b', () => {});\n" > "$d/src/b.spec.ts"
 commit "$d" "unskip it"
 expect 0 "a marker on a deleted line is not read" "$d" "nothing to report" skipped
@@ -126,12 +126,12 @@ d="$(repo bad-base)"
 expect 2 "a base that does not resolve" "$d" "does not resolve" nosuchref
 
 d="$(repo zero-base)"
-git -C "$d" rm -q tests/a_test.py
+git -C "${d:?}" rm -q tests/a_test.py
 commit "$d" "drop a test"
 expect 0 "a base of zeros counts as none and falls back to main, which is head" "$d" "nothing to compare" 0000000000000000000000000000000000000000
 
 d="$(repo no-main)"
-git -C "$d" branch -m main work
+git -C "${d:?}" branch -m main work
 expect 0 "no base and no main" "$d" "no main to compare with" ""
 
 # --- summary ---------------------------------------------------------------------------------

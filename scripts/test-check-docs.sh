@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Self-test of scripts/check-docs.sh. Verifies: ADR-0001 ADR-0005 ADR-0008
+# Self-test of scripts/check-docs.sh. Verifies: ADR-0001 ADR-0003 ADR-0005
 #
 # Each case builds a throwaway git repository under a temporary directory — a rule file with
 # numbered sections, a README with a Project Layout block, the required-checks markers, and the
@@ -65,7 +65,7 @@ repo() {
   local dir="$work/$1"
   mkdir -p "$dir/docs/adr" "$dir/scripts" "$dir/.github/workflows" \
            "$dir/.agents/skills/review" "$dir/.claude/skills"
-  git -C "$dir" init -q
+  git -C "${dir:?}" init -q
 
   {
     echo "# Agent Guide"
@@ -139,7 +139,7 @@ repo() {
 expect() {
   local want="$1" name="$2" dir="$3" needle="${4:-}"
   local out rc
-  git -C "$dir" add -A
+  git -C "${dir:?}" add -A
   out="$(bash "$CHECK" "$dir" 2>&1)"; rc=$?
   if [[ "$want" == "pass" && $rc -eq 0 && ( -z "$needle" || "$out" == *"$needle"* ) ]] \
      || [[ "$want" == "fail" && $rc -ne 0 && ( -z "$needle" || "$out" == *"$needle"* ) ]]; then
@@ -211,7 +211,7 @@ inherited() {
 
 d="$(repo inherited-undecided)"
 inherited "$d" "🟡 proposed" "NUC maintainer"
-expect fail "an inherited ADR still proposed with the setup file gone" "$d" "0001-decision.md: inherited from the template and still proposed"
+expect fail "an inherited ADR nobody here decided, with the setup file gone" "$d" "0001-decision.md: inherited from the template and not decided by this project"
 
 d="$(repo inherited-pending)"
 inherited "$d" "🟡 proposed" "NUC maintainer"
@@ -222,13 +222,34 @@ d="$(repo inherited-accepted)"
 inherited "$d" "🟢 accepted" "NUC maintainer, project maintainer"
 expect pass "an inherited ADR accepted by the project's maintainer" "$d"
 
+d="$(repo inherited-accepted-undecided)"
+inherited "$d" "🟢 accepted" "NUC maintainer"
+expect fail "an inherited ADR shipped accepted, nobody here added to Deciders" "$d" "0001-decision.md: inherited from the template and not decided by this project"
+
+d="$(repo inherited-accepted-and)"
+inherited "$d" "🟢 accepted" "NUC maintainer and project maintainer"
+expect pass "an inherited ADR accepted, the project's maintainer joined with 'and'" "$d"
+
+d="$(repo inherited-rejected)"
+inherited "$d" "🔴 rejected" "NUC maintainer"
+{
+  echo "# Architecture Decision Records"
+  echo
+  echo "### Superseded and rejected"
+  echo
+  echo "| ADR | Title | Applies to | Status |"
+  echo "|-----|-------|------------|--------|"
+  index_row 1 "🔴 rejected"
+} > "$d/docs/adr/README.md"
+expect pass "an inherited ADR the project rejected is history, not read" "$d"
+
 d="$(repo own-proposed)"
 inherited "$d" "🟡 proposed" "project maintainer"
 expect pass "the project's own proposed ADR after setup" "$d"
 
 d="$(repo inherited-wrapped)"
 inherited "$d" "🟡 proposed" "project maintainer (reviewing),\n  NUC maintainer"
-expect fail "an inherited ADR whose Deciders field wraps, the template's name on the second line" "$d" "0001-decision.md: inherited from the template and still proposed"
+expect fail "an inherited ADR whose Deciders field wraps, the template's name on the second line" "$d" "0001-decision.md: inherited from the template and still proposed after setup"
 
 # --- cases: template identity after setup (check 13) ------------------------------------
 
@@ -240,6 +261,18 @@ expect pass "the template's title in the README while the setup file exists" "$d
 d="$(repo identity-title)"
 sed -i 's/^# Fixture$/# NUC — an Agentic Fixture/' "$d/README.md"
 expect fail "the template's title in the README after setup" "$d" "README.md: the title is still the template's"
+
+d="$(repo identity-intro)"
+echo "**NUC** is named after the small *nucleus colony*." >> "$d/README.md"
+expect fail "the template's intro in the README after setup" "$d" "README.md: the intro still explains the template's name"
+
+d="$(repo identity-overview)"
+echo "Describe what this project does, who it is for, and its main goals." >> "$d/README.md"
+expect fail "the scaffold's Overview sentence after setup" "$d" "README.md: the Overview is still the scaffold's sentence"
+
+d="$(repo identity-usage)"
+echo "TODO — show a minimal example of using the project." >> "$d/README.md"
+expect fail "the Usage TODO after setup" "$d" "README.md: the Usage section is still TODO"
 
 d="$(repo identity-devcontainer)"
 mkdir -p "$d/.devcontainer"
@@ -266,14 +299,108 @@ d="$(repo identity-contact)"
 echo "- email the maintainer: <!-- TODO: add a security contact address -->." > "$d/SECURITY.md"
 expect fail "the placeholder security contact after setup" "$d" "SECURITY.md: the security contact is still the placeholder"
 
+d="$(repo identity-conduct)"
+echo "- Reporting contact: <!-- TODO: add a contact address (email or private channel) -->" > "$d/CODE_OF_CONDUCT.md"
+expect fail "the placeholder reporting contact after setup" "$d" "CODE_OF_CONDUCT.md: the reporting contact is still the placeholder"
+
 d="$(repo identity-codeowners)"
 printf '# /docs/SPECIFICATION.md @owner\n# /docs/adr/ @owner\n' > "$d/.github/CODEOWNERS"
 expect fail "a CODEOWNERS with its rules still commented out after setup" "$d" ".github/CODEOWNERS: no active rule"
 
+d="$(repo identity-codeowners-todo)"
+printf '# TODO: add a code owner and uncomment the rules.\n/docs/adr/ @someone\n' > "$d/.github/CODEOWNERS"
+expect fail "the code owner TODO still there after setup" "$d" ".github/CODEOWNERS: the instruction to add a code owner is still there"
+
+d="$(repo identity-spec-title)"
+printf '# Specification — <Project Name>\n' > "$d/docs/SPECIFICATION.md"
+expect fail "the scaffold's title in the specification after setup" "$d" "docs/SPECIFICATION.md: the title still carries '<Project Name>'"
+
+d="$(repo identity-glossary-title)"
+printf '# Glossary — <Project Name>\n' > "$d/docs/GLOSSARY.md"
+expect fail "the scaffold's title in the glossary after setup" "$d" "docs/GLOSSARY.md: the title still carries '<Project Name>'"
+
+d="$(repo identity-goal)"
+printf '# Specification — Fixture\n\n## Goals / Success Criteria\n\n1. **G-1** — …\n' > "$d/docs/SPECIFICATION.md"
+expect fail "a goal still the scaffold's ellipsis after setup" "$d" "docs/SPECIFICATION.md: a criterion is still the scaffold's placeholder"
+
+d="$(repo identity-quality)"
+printf '# Specification — Fixture\n\n## Quality Goals\n\n- **Q-1** — <Quality, e.g. Performance>: why.\n' > "$d/docs/SPECIFICATION.md"
+expect fail "a quality goal still the scaffold's placeholder after setup" "$d" "docs/SPECIFICATION.md: a criterion is still the scaffold's placeholder"
+
+for entry in ARCHITECTURE:Part GLOSSARY:Term CONVENTIONS:Convention; do
+  d="$(repo "identity-entry-${entry#*:}")"
+  printf '# Fixture\n\n- **<%s>** — what it is.\n' "${entry#*:}" > "$d/docs/${entry%%:*}.md"
+  expect fail "the scaffold's <${entry#*:}> entry after setup" "$d" "docs/${entry%%:*}.md: the scaffold's"
+done
+
+d="$(repo identity-build)"
+echo "- **Build:** TODO <!-- e.g. \`make build\` -->" >> "$d/README.md"
+expect fail "a Build command still TODO after setup" "$d" "README.md: a Build, Test, Lint, or Run command is still TODO"
+
+d="$(repo identity-lint)"
+echo "- **Lint:** TODO" >> "$d/README.md"
+expect fail "a Lint command still TODO after setup" "$d" "README.md: a Build, Test, Lint, or Run command is still TODO"
+
+d="$(repo identity-build-pending)"
+echo "- **Build:** TODO" >> "$d/README.md"
+echo "# Template setup" > "$d/TEMPLATE-SETUP.md"
+expect pass "a Build command still TODO while the setup file exists" "$d"
+
 d="$(repo identity-done)"
 printf '# owners\n\n* @someone\n' > "$d/.github/CODEOWNERS"
 printf 'MIT License\n\nCopyright (c) 2026 Someone\n' > "$d/LICENSE"
+printf '# Specification — Fixture\n\n## Goals / Success Criteria\n\n1. **G-1** — When asked, the system shall answer.\n' > "$d/docs/SPECIFICATION.md"
+echo "- **Build:** \`make build\`" >> "$d/README.md"
 expect pass "identity replaced after setup" "$d"
+
+# --- cases: prose width (check 15) ---------------------------------------------------------
+
+# words_of <n> — n characters of prose, words of four letters and a space.
+words_of() { local s=""; while ((${#s} < $1)); do s+="word "; done; printf '%s' "${s:0:$1}"; }
+
+d="$(repo width-long)"
+words_of 101 >> "$d/README.md"; echo >> "$d/README.md"
+expect fail "a prose line over 100 columns" "$d" "101 columns — wrap the prose at 100"
+
+d="$(repo width-limit)"
+words_of 100 >> "$d/README.md"; echo >> "$d/README.md"
+expect pass "a prose line of exactly 100 columns" "$d"
+
+d="$(repo width-dashes)"
+printf '%s — %s\n' "$(words_of 48)" "$(words_of 49)" >> "$d/README.md"
+expect pass "an em dash counts as one column" "$d"
+
+d="$(repo width-link)"
+printf '  [a long link text](https://example.invalid/%s)\n' "$(words_of 100 | tr ' ' x)" >> "$d/README.md"
+expect pass "a link that cannot break stands on a line of its own" "$d"
+
+d="$(repo width-exempt)"
+# shellcheck disable=SC2016  # the backticks are a Markdown code fence, not a command substitution
+printf '| %s |\n\n## %s\n\n```\n%s\n```\n' "$(words_of 120)" "$(words_of 120)" "$(words_of 120)" >> "$d/README.md"
+expect pass "a table row, a heading, and a code block are exempt" "$d"
+
+d="$(repo width-inner-fence)"
+# shellcheck disable=SC2016  # the backticks are Markdown code fences, not a command substitution
+printf '````\n```\n%s\n```\n````\n' "$(words_of 120)" >> "$d/README.md"
+expect pass "a fence inside a longer fence does not close it" "$d"
+
+d="$(repo width-generated)"
+words_of 120 > "$d/CHANGELOG.md"; echo >> "$d/CHANGELOG.md"
+echo "CHANGELOG.md linguist-generated" > "$d/.gitattributes"
+expect pass "a file git marks as generated is not read" "$d"
+
+d="$(repo width-generated-unset)"
+words_of 120 > "$d/CHANGELOG.md"; echo >> "$d/CHANGELOG.md"
+echo "CHANGELOG.md -linguist-generated" > "$d/.gitattributes"
+expect fail "a file marked not generated is read" "$d" "CHANGELOG.md:1: 120 columns"
+
+d="$(repo width-link-then-prose)"
+printf '[a link](https://example.invalid/%s) and prose that could wrap\n' "$(words_of 100 | tr ' ' x)" >> "$d/README.md"
+expect fail "prose after a long link can wrap" "$d" "columns — wrap the prose at 100"
+
+d="$(repo width-label)"
+printf -- '- **Label:** %s\n' "$(words_of 110)" >> "$d/README.md"
+expect fail "a bold label outside an ADR header is prose" "$d" "columns — wrap the prose at 100"
 
 # --- cases: the template release named (check 14) ---------------------------------------
 
@@ -407,6 +534,30 @@ expect fail "a wrapped Supersedes field, the name on the second line not flipped
 d="$(repo section-ref)"
 echo "Cited in [\`AGENTS.md\` $(sect 9)](AGENTS.md#9-nowhere)." >> "$d/README.md"
 expect fail "a section reference that names no section" "$d" "matches no numbered section"
+
+# words <n> — the word form of a section reference, assembled for the same reason as sect.
+words() { printf 'AGENTS.md, section %s' "$1"; }
+
+d="$(repo section-words)"
+echo "# Required by $(words 9)." > "$d/scripts/run.sh"
+expect fail "a reference in words that names no section" "$d" "reference '$(words 9)' matches no numbered section"
+
+d="$(repo section-words-valid)"
+echo "# Required by $(words 2)." > "$d/scripts/run.sh"
+expect pass "a reference in words to a section that exists" "$d"
+
+d="$(repo section-hook)"
+mkdir -p "$d/.githooks"
+echo "# See AGENTS.md $(sect 9)." > "$d/.githooks/pre-commit"
+expect fail "a section reference in a git hook" "$d" ".githooks/pre-commit:1: reference"
+
+d="$(repo section-json)"
+echo "{ \"de\": \"Siehe $(sect 9) BGB\" }" > "$d/messages.json"
+expect pass "the section sign in JSON is an ordinary character" "$d"
+
+d="$(repo section-json-words)"
+echo "{ \"note\": \"$(words 9)\" }" > "$d/settings.json"
+expect fail "a reference in words in a JSON file" "$d" "settings.json:1: reference"
 
 d="$(repo unknown-adr-ref)"
 echo "Decided in $(adr_id 42)." >> "$d/README.md"

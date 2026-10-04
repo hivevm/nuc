@@ -1,9 +1,9 @@
-# ADR-0003: Every accepted decision and every success criterion is verified by a test that cites it
+# ADR-0002: Every accepted decision and every success criterion is verified by a test that cites it, and the checks that hold the decisions are bash scripts under `scripts/`
 
 - **Status:** 🟢 accepted
 - **Date:** 2026-09-16
 - **Deciders:** NUC maintainer
-- **Applies to:** every accepted ADR, the Goals and Quality Goals of `docs/SPECIFICATION.md`, and the tests that verify them
+- **Applies to:** every accepted ADR, the Goals and Quality Goals of `docs/SPECIFICATION.md`, the tests that verify them, and the checks and sensors under `scripts/`
 
 ## Context
 
@@ -29,8 +29,9 @@ no test cites.
 - **Identifiers.** Every list item in those two sections starts with a bold `G-n` (Goals) or `Q-n`
   (Quality Goals), as in `- **G-1** — …`; an item without one fails. Identifiers are never
   renumbered or reused.
-- **Marker.** `Verifies:` followed by one or more identifiers (`ADR-0002`, `G-1`), in any tracked
-  file that is not Markdown. It is plain text so that every language can carry it.
+- **Marker.** `Verifies:` followed by one or more identifiers (`ADR-0004`, `G-1`), in any file
+  of the repository that git does not ignore and that is not Markdown. It is plain text so that
+  every language can carry it.
 - **Exception.** An ADR whose decision no test can decide — because only a human can, or because
   it is about how the project works rather than what the system does — says so in its
   *Enforcement* section, in a paragraph starting `**Not mechanically decidable:**` with the reason.
@@ -41,6 +42,12 @@ no test cites.
   constitution.
 - **Invalid citation.** A marker citing an identifier that does not exist, or an ADR that is
   superseded or rejected, fails.
+- **The checks.** Every check and sensor the template ships is a bash script under `scripts/`
+  that needs nothing beyond bash, git, and the standard tools of the base image (coreutils, grep,
+  sed, awk, find, tar), the shell lint's ShellCheck aside, and runs after its own self-test on
+  fixture repositories. A sensor fails on nothing it counts until a project's decision turns it
+  into a check. `scripts/check-all.sh`, the `checks.yml` workflow, and the README's required
+  checks list the same ones.
 
 `proposed` ADRs are out of the check's scope: their implementation and tests land while they are
 still proposed, and the acceptance lands with them ([`AGENTS.md` §3](../../AGENTS.md#3-adr-rules)).
@@ -92,3 +99,7 @@ project uses.
 `scripts/check-traceability.sh`, run by `scripts/check-all.sh` and as its own job in
 [`checks.yml`](../../.github/workflows/checks.yml), fails on every violation listed in the decision
 above and lists the criteria without a test. It ships with a self-test that cites this ADR.
+Check 9 of [`scripts/check-docs.sh`](../../scripts/check-docs.sh) holds the three lists of checks
+together and fails a workflow job that runs no script, and
+[`scripts/check-shell.sh`](../../scripts/check-shell.sh) lints every script. That a check stays
+free of further dependencies and runs after its self-test is review.
