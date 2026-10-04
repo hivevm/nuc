@@ -222,6 +222,17 @@ if [[ -d "$ROOT/.devcontainer" && -f "$ROOT/scripts/check-devcontainer.sh" ]] \
   && grep -q '^- \*\*Status:\*\* 🟢 accepted$' "$ROOT/docs/adr/0004-dev-container-runtime.md" 2>/dev/null; then
   d="$(copy no-container)"
   setup_steps "$d"
+  # A check of the project's own in the devcontainer job, as a project adds one for its
+  # environment: the path has to take it out of the local runner together with the job.
+  printf '#!/usr/bin/env bash\necho "project environment check passed"\n' \
+    > "$d/scripts/check-project-environment.sh"
+  awk '{ print } /^  devcontainer:$/ { job = 1 }
+       job && /run: bash scripts\/check-devcontainer\.sh$/ {
+         print "      - name: Check the project'"'"'s environment"
+         print "        run: bash scripts/check-project-environment.sh"; job = 0 }' \
+    "$d/.github/workflows/checks.yml" > "$d/checks.yml.new" && mv "$d/checks.yml.new" "$d/.github/workflows/checks.yml"
+  edit "$d" scripts/check-all.sh \
+    '/scripts\/check-devcontainer\.sh$/a run "Project environment" scripts/check-project-environment.sh'
   # The superseding ADR, with the next free number; assembled, so this file cites no ADR that
   # does not exist here.
   n="$(find "$d/docs/adr" -maxdepth 1 -name '[0-9][0-9][0-9][0-9]-*.md' | wc -l)"
@@ -273,9 +284,20 @@ ADR
     { print }' "$d/docs/adr/README.md" > "$d/docs/adr/README.md.new" && mv "$d/docs/adr/README.md.new" "$d/docs/adr/README.md"
   # What the container brings, removed as the small-project path lists it.
   rm -r "$d/.devcontainer" "$d/scripts/check-devcontainer.sh" "$d/scripts/test-check-devcontainer.sh"
+  # Every script the devcontainer job runs leaves the local runner with the job, a project's own
+  # check included; check 9 holds the job list and the runner together.
+  awk '/^  devcontainer:$/ { job = 1; next } job && /^  [a-z][a-z0-9-]*:$/ { job = 0 }
+       job && match($0, /run: bash scripts\/[A-Za-z0-9._-]+\.sh/) { print substr($0, RSTART + 10, RLENGTH - 10) }' \
+    "$d/.github/workflows/checks.yml" > "$d/job-scripts"
+  awk 'NR == FNR { gone[$0] = 1; next }
+       match($0, /^[[:space:]]*run[[:space:]]+"[^"]*"[[:space:]]+scripts\/[A-Za-z0-9._-]+\.sh/) {
+         script = substr($0, RSTART, RLENGTH); sub(/.*[[:space:]]/, "", script)
+         if (script in gone) next
+       }
+       { print }' "$d/job-scripts" "$d/scripts/check-all.sh" > "$d/check-all.new" \
+    && mv "$d/check-all.new" "$d/scripts/check-all.sh" && rm "$d/job-scripts"
   awk '/^  devcontainer:$/ { skip = 1; next } skip && /^  [a-z][a-z0-9-]*:$/ { skip = 0 } !skip' \
     "$d/.github/workflows/checks.yml" > "$d/checks.yml.new" && mv "$d/checks.yml.new" "$d/.github/workflows/checks.yml"
-  edit "$d" scripts/check-all.sh '/scripts\/\(test-\)\?check-devcontainer\.sh$/d'
   # shellcheck disable=SC2016  # the backticks are Markdown, not a command substitution
   edit "$d" README.md 's/`devcontainer`, //'
   edit "$d" .vscode/settings.json '/^  \/\/ Manage the \*host/,/^  }$/d'
