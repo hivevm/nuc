@@ -7,9 +7,10 @@ labels: spec
 
 <!-- The destination of a piece of work larger than one agent session, written from the user's
      side. It is disposable: it closes when its tickets have merged and the design revision has
-     run, and whatever has to last moves into docs/SPECIFICATION.md, an ADR, or
-     docs/ARCHITECTURE.md. No file paths or code; they go stale. How it is written is the
-     plan-feature skill under .agents/skills/. Decided in docs/adr/0004-feature-layer.md. -->
+     run, and whatever has to last moves into docs/SPECIFICATION.md, an ADR,
+     docs/ARCHITECTURE.md, docs/GLOSSARY.md, or docs/CONVENTIONS.md. No file paths or code; they
+     go stale. How it is written is the plan-feature skill under .agents/skills/. Decided in
+     docs/adr/0004-feature-layer.md. -->
 
 ## Problem
 
@@ -63,6 +64,6 @@ labels: spec
 
 ## ADR impact
 
-<!-- Which accepted ADRs bind this work (by number), and whether it needs a new `proposed` ADR
-     before implementation starts (AGENTS.md [§3](../../AGENTS.md#3-adr-rules)). "None" is an
-     answer; write why. -->
+<!-- Which ADRs in force bind this work (by number, from the Binding table of
+     docs/adr/README.md), and whether it needs a new `proposed` ADR before implementation starts
+     (AGENTS.md [§3](../../AGENTS.md#3-adr-rules)). "None" is an answer; write why. -->

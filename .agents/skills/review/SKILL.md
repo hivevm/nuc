@@ -21,11 +21,17 @@ The reviewer runs in a context that did not write the change and is handed only:
   it could not confirm;
 - [`docs/CONVENTIONS.md`](../../../docs/CONVENTIONS.md);
 - the golden path named in [`docs/ARCHITECTURE.md`](../../../docs/ARCHITECTURE.md);
-- the accepted ADRs whose *Applies to* the diff touches, found through the index in
-  [`docs/adr/README.md`](../../../docs/adr/README.md);
+- the ADRs in force whose *Applies to* the diff touches, found through the **Binding** table of
+  [`docs/adr/README.md`](../../../docs/adr/README.md#binding);
+- for each of those ADRs that chose a concept of the catalogue in
+  [`propose-adr`](../propose-adr/concepts/README.md), that entry's *Does not fit* and *The rule a
+  test decides*: what the tests decide is checked there, and the rest is checked here;
 - the output of the sensors the toolchain ADR names, and of
   [`scripts/check-all.sh`](../../../scripts/check-all.sh), whose tests-kept sensor lists the
   test files deleted and the skip markers added since the base.
+
+The reviewer is the harness's inferential sensor: it judges what the computational ones, the
+tests and checks, cannot decide.
 
 If the implementer's reasoning, plan, or conversation is offered, decline it. The review holds
 the diff against the standards, not against the story of how it came to be.
@@ -39,12 +45,9 @@ not met, or met by a test that does not decide it. Scope the task did not ask fo
 is there a smaller change that meets the same criteria; what did the diff add that nothing asked
 for, such as an abstraction, a dependency, a parameter, a flag, a fallback, or a comment restating
 the code; what could be deleted. Then each bullet of
-[`AGENTS.md` §5](../../../AGENTS.md#5-quality-bar--definition-of-done) that applies: builds and
-passes; new behaviour has tests and a bug fix its regression test; the tests go through
-interfaces the implementation can change behind and take their expected values from the
-criterion, not from the code under test; every accepted ADR and criterion the change touches is
-cited by a test; nothing weakened the suite; the diff is releasable; `ARCHITECTURE.md` moved
-with the structure. Then the conventions, the ADRs, and the sensor output; a sensor finding the
+[`AGENTS.md` §5](../../../AGENTS.md#5-quality-bar--definition-of-done) that applies, in its order;
+of the tests, also whether they take their expected values from the criterion rather than from
+the code under test. Then the conventions, the ADRs, and the sensor output; a sensor finding the
 implementer suppressed is a finding here. Last, the *Doubts*: each disagreement checked against
 its evidence, each unconfirmed point confirmed or left open by name. A "none" is checked like any
 other claim.

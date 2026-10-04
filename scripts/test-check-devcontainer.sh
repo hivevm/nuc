@@ -118,6 +118,11 @@ config "$d" "ghcr.io/devcontainers/features/docker-outside-of-docker:1"
 lock "$d" "ghcr.io/devcontainers/features/docker-outside-of-docker:1"
 expect fail "a Feature that mounts the socket" "$d" "would mount the host Docker socket"
 
+d="$(repo engine-inside)"
+config "$d" "ghcr.io/devcontainers/features/docker-in-docker:2"
+lock "$d" "ghcr.io/devcontainers/features/docker-in-docker:2"
+expect pass "an engine inside the container talks to no host engine and is the project's choice" "$d" "1 Features pinned and locked"
+
 d="$(repo unpinned-feature)"
 config "$d" "ghcr.io/devcontainers/features/github-cli:latest"
 lock "$d" "ghcr.io/devcontainers/features/github-cli:latest"

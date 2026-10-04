@@ -7,8 +7,9 @@
 #
 #   1. Socket: .devcontainer/devcontainer.json mounts no host Docker socket — no 'docker.sock'
 #      and no '/var/run/docker' on any line that is not a full-line comment — and adds no
-#      Feature whose id names 'docker-in-docker' or 'docker-outside-of-docker', the two that
-#      would mount one.
+#      Feature whose id names 'docker-outside-of-docker', the one that mounts it. An engine
+#      inside the container, such as the Docker-in-Docker Feature, talks to no host engine and
+#      is the project's choice (ADR-0002, out of scope).
 #   2. Pinning: every Feature is referenced by its major version tag alone ('<ref>:N'), never
 #      untagged, ':latest', a full version, or a digest in the hand-edited file.
 #   3. Lock: .devcontainer/devcontainer-lock.json exists and its 'features' block names exactly
@@ -86,8 +87,8 @@ else
 
   mapfile -t features < <(feature_ids "$ROOT/$CONFIG")
   for id in "${features[@]}"; do
-    if [[ "$id" == *docker-in-docker* || "$id" == *docker-outside-of-docker* ]]; then
-      add_error "$CONFIG: Feature '$id' would mount the host Docker socket or nest an engine — neither is added (ADR-0002)"
+    if [[ "$id" == *docker-outside-of-docker* ]]; then
+      add_error "$CONFIG: Feature '$id' would mount the host Docker socket — it is not added (ADR-0002)"
     fi
     # 2. Pinning.
     [[ "$id" =~ :[0-9]+$ ]] \

@@ -8,7 +8,8 @@
 # script cannot read; the reviewer of AGENTS.md, section 5, holds the list against it.
 #
 #   1. Test files: a path with a segment or a basename that contains 'test' or 'spec', in any
-#      case — the convention every toolchain of TEMPLATE-SETUP.md shares, and a heuristic: a
+#      case — the convention every toolchain of the catalogue entry Toolchain shares
+#      (.agents/skills/propose-adr/concepts/toolchain.md), and a heuristic: a
 #      deleted 'manifest.json' is reported too, and the reviewer sees at once that it is none.
 #      A deletion, or a rename to a path that is no longer one, is a finding.
 #   2. Markers: an added line, in any file, that carries a skip or focus marker of one of those
@@ -67,12 +68,14 @@ while IFS=$'\t' read -r status old new; do
 done < <(git diff --name-status -M --diff-filter=DR "$base" "$head")
 
 # 2. Skip or focus markers on added lines. The regex reaches awk through the environment, so
-# that its backslashes are not escape-processed a second time. This script and its self-test
-# carry the markers as data and are left out.
+# that its backslashes are not escape-processed a second time. This script, its self-test, and the
+# toolchain entry of the catalogue, whose table names the markers, carry them as data
+# and are left out.
 while IFS= read -r hit; do
   findings+=("skip or focus marker added: $hit")
 done < <(git diff -U0 --no-color "$base" "$head" -- . \
            ':(exclude)scripts/sensor-tests-kept.sh' ':(exclude)scripts/test-sensor-tests-kept.sh' \
+           ':(exclude).agents/skills/propose-adr/concepts/toolchain.md' \
          | MARKERS="$MARKERS" awk '
              /^\+\+\+ / { file = substr($0, 7); next }
              /^@@/      { match($0, /\+[0-9]+/); line = substr($0, RSTART + 1, RLENGTH - 1) + 0; next }

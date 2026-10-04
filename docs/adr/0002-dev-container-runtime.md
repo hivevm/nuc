@@ -3,7 +3,7 @@
 - **Status:** 🟢 accepted
 - **Date:** 2026-09-05
 - **Deciders:** NUC maintainer
-- **Applies to:** `.devcontainer/`, `.vscode/settings.json`, and everything the container pulls in
+- **Applies to:** `.devcontainer/`, `.vscode/settings.json`, `scripts/check-devcontainer.sh`, and everything the container pulls in
 
 ## Context
 
@@ -25,13 +25,15 @@ the same Features. Host containers are managed from an extension pinned to the h
 `remote.extensionKind` in [`.vscode/settings.json`](../../.vscode/settings.json).
 
 **Out of scope:** which base image, Features, and extensions a project picks, and whether it pins
-extensions; its toolchain; whether work may happen outside the container; hardening the container,
-which is not a security boundary; and how the lock is refreshed.
+extensions; its toolchain; whether an engine runs inside the container and how the work reaches
+the containers it needs, a founding decision the catalogue entry *Container access* of the
+`propose-adr` skill prepares; whether work may happen outside the container; hardening the
+container, which is not a security boundary; and how the lock is refreshed.
 
 ## Alternatives considered
 
-- **`docker-outside-of-docker`, docker-in-docker, rootless engine inside** — host-socket exposure,
-  privileged nesting, and an engine that cannot manage host containers anyway.
+- **`docker-outside-of-docker`** — mounts the host socket and hands host-level control to
+  everything inside, the agent included.
 - **Ignore the Feature lock** — a repointed tag reaches the credentials before anyone sees a diff.
 - **Digests directly in `devcontainer.json`** — buries hashes in the hand-edited file and loses the
   readable tag.

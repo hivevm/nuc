@@ -1,9 +1,9 @@
-# ADR-0008: The template is released as SemVer tags on `main`, and every repository names the release it carries
+# ADR-0006: The template is released as SemVer tags on `main`, and every repository names the release it carries
 
 - **Status:** 🟢 accepted
 - **Date:** 2026-09-20
 - **Deciders:** NUC maintainer
-- **Applies to:** the tags of the template repository, the **Template** section of `README.md`, and the pull request that lands a release
+- **Applies to:** the tags of the template repository, its own ADRs, the **Template** section of `README.md`, check 14 of `scripts/check-docs.sh`, and the pull request that lands a release
 
 ## Context
 
@@ -37,10 +37,15 @@ from, and `unreleased` before the first.
   tagged.
 - **Major, minor, patch:** a major is a change an existing derived project must act on, such as
   a check that would fail on its tree or an inherited ADR superseded; a minor adds a check, an
-  ADR, a skill, or a document; a patch changes wording. Before `v1.0.0` a minor may break, per
-  SemVer item 4.
+  ADR, a skill, a catalogue entry, or a document; a patch changes wording. Before `v1.0.0` a
+  minor may break, per SemVer item 4.
 - **A derived project moves the line** when it takes up a later release, and only then; a line
   never moved still tells the truth.
+- **The template corrects its own ADRs in place.** A derived project takes them up by release,
+  not by reference, so a correction reaches it with the release notes, and one it must act on
+  makes the release a major. From the first release on, the template's ADR numbers are
+  permanent. A derived project's ADRs, the inherited ones it accepted included, change only by
+  supersession ([`AGENTS.md` §3](../../AGENTS.md#3-adr-rules), rule 5).
 
 **Out of scope:** a changelog file; release automation; how a derived project merges a release,
 by subtree, by patch, or by hand; which releases receive fixes, which

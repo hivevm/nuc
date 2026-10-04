@@ -32,9 +32,11 @@ spec: chart it with the human in the conversation until the questions run out.
    architecture-relevant is an ADR, not a bullet: use `propose-adr`.
 3. Cut *Ticket* issues as vertical slices. Each is an end-to-end behaviour that is demoable or
    verifiable on its own, sized to one fresh session, with Given/When/Then acceptance criteria,
-   the tickets that block it, and *Read first*: the accepted ADRs whose *Applies to* it touches,
+   the tickets that block it, and *Read first*: the ADRs in force whose *Applies to* it touches,
    the glossary terms and conventions in play, the golden path it copies, the seam its tests go
-   on. The first slice through new ground is the tracer bullet.
+   on. The first slice through new ground is the tracer bullet. Where it takes a decision the
+   catalogue of `propose-adr` has an entry for and no ADR in force decides, `propose-adr` runs
+   before it.
 4. Set each ticket's *Mode*: "unattended" only under the conditions of
    [`AGENTS.md` §4](../../../AGENTS.md#4-working-style), each answered on the ticket; the stop
    is concrete, the attempts, time, or criterion past which the session hands off. Otherwise
@@ -45,5 +47,5 @@ spec: chart it with the human in the conversation until the questions run out.
 A session claims a ticket from the frontier, the open tickets whose blockers are all closed, by
 assigning itself before any work. Its pull request names the ticket it closes. The spec closes
 only after `design-revision` has run over what its tickets touched. Whatever in the spec has to
-last moves into the specification, an ADR, the architecture overview, or the glossary before it
-does.
+last moves into the specification, an ADR, the architecture overview, the glossary, or the
+conventions before it does.

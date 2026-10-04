@@ -9,7 +9,7 @@
 An entry says in a sentence or two what is done and why; the why tells a convention from a habit.
 A convention a check can decide is the check, not an entry. One that constrains future choices is
 an ADR. What the golden path already shows needs none. Few entries that hold beat many that are
-skimmed. The design revision at the close of a feature spec drops what prevented nothing
+skimmed. The design revision drops what prevented nothing
 ([`AGENTS.md` §5](../AGENTS.md#5-quality-bar--definition-of-done)).
 
 - **<Convention>** — what is done, and why.

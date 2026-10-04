@@ -10,10 +10,11 @@
 [`AGENTS.md`](../../AGENTS.md) states rules. Four of them are procedures — developing an ADR
 ([§3](../../AGENTS.md#3-adr-rules), rule 3), planning work larger than one session
 ([§4](../../AGENTS.md#4-working-style)), reviewing a change, and revising the design when a
-feature spec closes ([§5](../../AGENTS.md#5-quality-bar--definition-of-done)) — and each was
-written out in the rule file and again where it is used: the ADR template, the issue templates,
-the pull request template. Four copies drift, and every sharpening lands in a file that every
-session reads in full whether it reviews, plans, or fixes a typo.
+feature spec closes or a number of changes has passed
+([§5](../../AGENTS.md#5-quality-bar--definition-of-done)) — and each was written out in the rule
+file and again where it is used: the ADR template, the issue templates, the pull request template.
+Four copies drift, and every sharpening lands in a file that every session reads in full whether
+it reviews, plans, or fixes a typo.
 
 Two forces limit the answer. The rule file is the single source of working rules, and no other
 document may state one (ADR-0001) — so wherever a procedure moves, it must carry the *how* and
@@ -31,11 +32,13 @@ holding one symlink per skill loads all of them.
 ## Decision
 
 We will keep the four procedures of the rule file — developing an ADR, planning work larger than
-one session, reviewing a change, revising the design at the close of a feature spec — as Agent
+one session, reviewing a change, revising the design — as Agent
 Skills under `.agents/skills/`, one directory with a `SKILL.md` each, reached by Claude Code
 through one symlink per skill under `.claude/skills/`. A skill carries the steps of one procedure,
 cites the section of `AGENTS.md` or the ADR that requires it, and states no rule of its own; the
-rule file and the templates name the skill and drop the steps.
+rule file and the templates name the skill and drop the steps. A skill may carry reference files
+its procedure reads, such as the catalogue of concepts of `propose-adr`; they hold knowledge and
+no rule.
 
 **Out of scope:** skills a derived project adds for its own domain; whether a skill may run
 unattended, which its ticket decides ([§4](../../AGENTS.md#4-working-style)); the checks that
@@ -62,8 +65,8 @@ neutral path — they are deleted then, as the `CLAUDE.md` pointer will be.
 - Agent Skills specification — <https://agentskills.io/specification>; client list at
   <https://agentskills.io/>.
 - Skill locations — Claude Code: <https://code.claude.com/docs/en/skills>; Codex:
-  <https://learn.chatgpt.com/docs/build-skills>; Gemini CLI: <https://geminicli.com/docs/cli/skills/>;
-  Cursor: <https://cursor.com/docs/context/skills>.
+  <https://learn.chatgpt.com/docs/build-skills>; Gemini CLI:
+  <https://geminicli.com/docs/cli/skills/>; Cursor: <https://cursor.com/docs/context/skills>.
 - Matt Pocock's skills — <https://github.com/mattpocock/skills>: a process as a set of named,
   lazily loaded `SKILL.md` files rather than a framework that owns it; *Writing for agents* —
   <https://www.aihero.dev/skills-writing-for-agents>: what applies in one context out of ten goes
@@ -79,10 +82,11 @@ neutral path — they are deleted then, as the `CLAUDE.md` pointer will be.
   when it runs; a human starts a review or an ADR by name instead of by hoping a paragraph is
   followed; the templates' comments become pointers.
 - Negative / trade-offs: a fifth kind of tracked artifact, and one that can smuggle a rule past
-  ADR-0001 — only review sees that. A skill is Markdown and is followed as reliably as Markdown
-  is; what the template enforces, it enforces through hooks, settings, and CI as before, and this
-  decision adds nothing to that. The pointers rest on observed behaviour of one Claude Code
-  version, not on documented behaviour.
+  ADR-0001, a skill's reference file as much as its steps — only review sees that. A skill is
+  Markdown and is followed as reliably as Markdown is; what the template enforces, it enforces
+  through git hooks, CI checks, and repository settings as before, and this decision adds
+  nothing to that. The pointers rest on observed behaviour of one Claude Code version, not on
+  documented behaviour.
 - Follow-ups: delete the pointers and their check once Claude Code reads the neutral path; a
   check on skill front matter once the reference validator is a dependency worth taking.
 

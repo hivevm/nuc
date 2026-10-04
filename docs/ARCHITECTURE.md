@@ -6,12 +6,10 @@
 > is updated in the same change as the structure it describes
 > ([ADR-0001](adr/0001-agent-governance-model.md)).
 >
-> **Kept current by:** <one named role or person>. A document everyone may edit and nobody owns is
-> the one that goes stale.
->
-> **Last design revision:** none yet, due after 20 changes. The revision that ran moves the
+> **Last design revision:** 2026-10-04, due after 20 changes. The revision that ran moves the
 > date; the number is this project's to set; a sensor counts the changes outside `docs/` since
-> the date and says when the next is due ([ADR-0004](adr/0004-feature-layer.md)).
+> the commit that set the date and says when the next is due
+> ([ADR-0004](adr/0004-feature-layer.md)).
 
 ## Context
 

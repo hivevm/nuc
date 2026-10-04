@@ -18,8 +18,9 @@
 # tests, not the constitution.
 #
 # A marker is the word 'Verifies', a colon, and one or more identifiers (ADR-0002, G-1, Q-2)
-# separated by spaces or commas, in any tracked file that is not Markdown. Markdown is excluded
-# so that the specification and the ADRs can describe markers without being counted as one.
+# separated by spaces or commas, in any file git does not ignore that is not Markdown. Markdown
+# is excluded so that the specification and the ADRs can describe markers without being counted
+# as one.
 # Whether the citing test asserts anything is review, not this check.
 #
 # 🟡 proposed ADRs are out of scope: their tests land while they are proposed, and the acceptance

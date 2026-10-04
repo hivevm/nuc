@@ -29,7 +29,7 @@ labels: ticket
 
 ## Read first
 
-<!-- What the session that works this ticket loads before anything else: the accepted ADRs whose
+<!-- What the session that works this ticket loads before anything else: the ADRs in force whose
      "Applies to" it touches, the glossary terms and conventions in play, the golden path it
      copies from, the seam its tests go on. Everything else it explores as needed (AGENTS.md
      [§4](../../AGENTS.md#4-working-style)). -->
@@ -46,9 +46,7 @@ labels: ticket
 ## Mode
 
 <!-- "unattended" only under the conditions of AGENTS.md [§4](../../AGENTS.md#4-working-style),
-     with the questions the plan-feature skill asks answered here: how soon would a wrong result
-     be noticed, how cleanly can it be undone, what would prove it right, and when does the
-     session stop, meaning the attempts, time, or criterion past which it leaves its state here
-     and hands off? Otherwise "with the human", and why. -->
+     each answered here, the stop included: the attempts, time, or criterion past which the
+     session leaves its state here and hands off. Otherwise "with the human", and why. -->
 
 with the human

@@ -2,39 +2,21 @@ name: Checks
 
 # Enforces the repository's rules as CI. Pure bash + coreutils — nothing is installed
 # (ShellCheck, used by the shell job, ships preinstalled on the GitHub-hosted runner image).
-# scripts/check-all.sh runs the same checks in the same order locally (AGENTS.md §5); a check
-# added here is added there in the same change. Check 9 of scripts/check-docs.sh
-# verifies that the two lists, and the required checks named in README.md, still agree.
-# - Documentation: the consistency checks that scripts/check-docs.sh runs, after its own self-test
-#   has passed. Its header lists them and is the single place they are described — this file does
-#   not restate the list.
-# - Traceability: every accepted ADR is cited by a test and every citation names something that
-#   exists (ADR-0003), checked by scripts/check-traceability.sh after its own self-test has passed.
-# - Dev Container: no host Docker socket, Features pinned and locked, the container-management
-#   extension on the host side (ADR-0002), checked by scripts/check-devcontainer.sh after its own
-#   self-test has passed.
-# - Action references: every action a workflow uses is referenced by its major version tag and
-#   Dependabot is configured to raise the major bump (ADR-0007), checked by
-#   scripts/check-action-refs.sh after its own self-test has passed.
-# - Sensors: what weakens the test suite and no toolchain's tools notice — test files deleted
-#   and skip markers added since the pull request's base — reported by
-#   scripts/sensor-tests-kept.sh for the reviewer (AGENTS.md, section 5), and the changes since
-#   the last design revision, reported by scripts/sensor-revision-due.sh (ADR-0004), each after
-#   its self-test has passed. The job reports and never fails on what it counts; the reason for
-#   a finding is in the pull request, and a due revision is the human's to schedule. It checks
-#   out the full history because both sensors read it.
-# - Shell lint: every shell script passes ShellCheck — the scripts are this repository's
-#   enforcement layer, so they are linted themselves. The job first runs the self-test of the
-#   git hooks under .githooks/, which refuse a commit on main and a push while the checks are
-#   red: a hook that is wrong guards nothing.
-# - Build, test, lint: absent until the project has a toolchain (the base image ships none; adding
-#   one is architecture-relevant and recorded as an ADR first, AGENTS.md §3). Then one more job
-#   here: a step that sets up the toolchain, then 'run: bash scripts/<the script the toolchain ADR
-#   names>' — the same script scripts/check-all.sh runs — with a timeout that fits the real build,
-#   'submodules: recursive' on the checkout if the project uses submodules, and its name among the
-#   required checks in README.md — the one job of this workflow that installs something. Check 9
-#   recognises the job by that run line and fails a job whose commands are written inline
-#   instead: those would run here and never in the local gate.
+# scripts/check-all.sh is the local equivalent; check 9 of scripts/check-docs.sh holds the two
+# lists and the required checks named in README.md together. Each job runs a check after its own
+# self-test, and each script's header says what it checks:
+# - Documentation: scripts/check-docs.sh, then scripts/test-template-setup.sh.
+# - Traceability: scripts/check-traceability.sh (ADR-0003).
+# - Dev Container: scripts/check-devcontainer.sh (ADR-0002).
+# - Sensors: scripts/sensor-tests-kept.sh, sensor-revision-due.sh (ADR-0004), and
+#   sensor-action-refs.sh. They report for the reviewer and fail on nothing they count, except
+#   the action references once a project runs that sensor with --require. The job checks out the
+#   full history because two sensors read it.
+# - Shell lint: scripts/check-shell.sh, after the self-test of the git hooks.
+# - Build, test, lint: absent until the project has a toolchain. The catalogue entry Toolchain of
+#   the propose-adr skill says how the job is added; it is the one job of this workflow that
+#   installs something, with a timeout that fits the real build and 'submodules: recursive' on
+#   the checkout where the project uses submodules.
 #
 # Every job is bounded by a timeout — a hung step would otherwise occupy a runner until the
 # platform's own six-hour limit — and every checkout runs with 'persist-credentials: false': the
@@ -45,15 +27,21 @@ on:
   pull_request:
   push:
     branches: [main]
+  # Once a week against main without a change: catches what moves without a commit, the runner
+  # image, a retagged action, a toolchain download. GitHub disables a schedule after 60 days
+  # without activity in a public repository.
+  schedule:
+    - cron: "17 5 * * 1"
 
 permissions:
   contents: read
 
 # Cancel a pull request's superseded runs: a new push makes the previous run's verdict irrelevant,
 # while a queued run keeps a required check pending. Runs on 'main' are never cancelled — every
-# commit there keeps a result of its own.
+# commit there keeps a result of its own, and the event name keeps a scheduled run out of the group
+# of the pushes.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -74,6 +62,10 @@ jobs:
         run: bash scripts/test-check-docs.sh
       - name: Check documentation consistency
         run: bash scripts/check-docs.sh
+      # The setup promises a green project once every step is done, and that check-docs.sh names
+      # every placeholder left behind; this holds only on the real scaffold, not on a fixture.
+      - name: Self-test the template setup against the scaffold
+        run: bash scripts/test-template-setup.sh
 
   traceability:
     runs-on: ubuntu-latest
@@ -101,19 +93,6 @@ jobs:
       - name: Check that the Dev Container keeps the host engine out of reach
         run: bash scripts/check-devcontainer.sh
 
-  actions:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-      # The check's own tests run first: a check that is wrong passes nothing worth trusting.
-      - name: Self-test the action reference check
-        run: bash scripts/test-check-action-refs.sh
-      - name: Check that actions are referenced by major version tag and Dependabot covers them
-        run: bash scripts/check-action-refs.sh
-
   sensors:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -134,6 +113,10 @@ jobs:
         run: bash scripts/test-sensor-revision-due.sh
       - name: Report the changes since the last design revision
         run: bash scripts/sensor-revision-due.sh
+      - name: Self-test the action references sensor
+        run: bash scripts/test-sensor-action-refs.sh
+      - name: Report the forms of the action references the workflows use
+        run: bash scripts/sensor-action-refs.sh
 
   shell:
     runs-on: ubuntu-latest
@@ -144,5 +127,7 @@ jobs:
           persist-credentials: false
       - name: Self-test the git hooks
         run: bash scripts/test-git-hooks.sh
+      - name: Self-test the shell lint
+        run: bash scripts/test-check-shell.sh
       - name: Lint shell scripts with ShellCheck
         run: bash scripts/check-shell.sh

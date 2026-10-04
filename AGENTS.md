@@ -10,12 +10,14 @@
 ## 1. Principles
 
 The human decides *why* and *what*; the agent works out *how*. A how that binds future choices is
-the human's too, recorded with its why in an ADR ([§3](#3-adr-rules)). Four principles win over
+the human's too, recorded with its why in an ADR ([§3](#3-adr-rules)). Five principles win over
 speed and cleverness:
 
 - **Simplicity.** Build the simplest thing that satisfies the specification. Add a dependency or
   an abstraction only for a present need. Removing code is progress. Justify warranted complexity
   in an ADR.
+- **Evolvability.** Decide the essential architecture at the start, and keep it open to change:
+  following a technology means superseding the ADR that chose it, not working around it.
 - **Proportionality.** Ceremony scales with how hard a change is to reverse. Skipping ceremony a
   reader would expect is said out loud.
 - **Reflection.** Weigh alternatives and consequences, and write the reasoning down.
@@ -49,21 +51,27 @@ restates nothing, and a rule this file does not state is not a rule of this proj
 1. **Create an ADR before any architecture-relevant decision:** a dependency or framework, a
    public interface, a persistence or synchronization strategy, a protocol or data format,
    anything that constrains future technology choices. One decision per ADR. A cross-cutting ADR
-   only for an integration, where the decision *is* the interplay.
+   only for an integration, where the decision *is* the interplay. Where a change takes a decision
+   the catalogue of concepts in `propose-adr` has an entry for and no ADR in force decides,
+   propose its fitting concepts, the simplest among them, before implementing.
 2. **Calibrate.** An ADR is for a decision that is *costly to reverse*, that *constrains future
    choices*, or that **a reader without this conversation would take for a mistake**; record the
-   last however cheap it is to reverse. No ADR for implementing within an accepted ADR, bug
+   last however cheap it is to reverse. No ADR for implementing within an ADR in force, bug
    fixes, interface-preserving refactorings, tests, docs, formatting, and dev-only tooling. When
    genuinely unsure, prefer a short `proposed` ADR over a silent decision.
-3. **Develop the ADR with the human, critically.** Submit it with status `proposed` **in its own
-   pull request**, never mixed with implementation. Skill: `propose-adr`.
+3. **Develop the ADR with the human, critically.** Submit it with status `proposed` **in a
+   pull request of ADRs only**, never mixed with implementation; the founding decisions of a new
+   project travel together in one. Skill: `propose-adr`.
 4. **After human review, implement while the ADR is still `proposed`.** Findings return as
    revisions, each in its own ADR-only pull request. **Only a human changes the status;** the
    flip to `accepted` may land with the implementation.
 5. **Accepted ADRs are binding and immutable.** Never violate or work around one; change it only
-   by superseding it. The sole permitted edit is the `Status` line, flipped by a human. ADR
-   numbers are permanent. If the specification and an ADR conflict, the specification wins:
-   raise the conflict, never choose silently.
+   by superseding it. The sole permitted edits are the `Status` line, flipped by a human, and
+   the `Deciders` line of an ADR inherited from the template, to which a human adds the
+   project's decider when the project accepts it as its own. ADR numbers are permanent. The
+   template repository corrects its own ADRs in place
+   ([ADR-0006](docs/adr/0006-template-releases.md)). If the specification and an ADR conflict,
+   the specification wins: raise the conflict, never choose silently.
 6. **Use the vocabulary of [`docs/GLOSSARY.md`](docs/GLOSSARY.md)** in code, comments, and
    documentation. Add a term in the same change that settles it; a missing entry is a gap to
    close there, not a word to invent.
@@ -88,9 +96,9 @@ restates nothing, and a rule this file does not state is not a rule of this proj
 - **Work with the human:** small steps, reasoning surfaced, feedback sought early. A task runs
   unattended only when its ticket answers for it: a test decides its criteria, its scope is
   isolated and a wrong result costs one revert, it touches nothing the harness ADR keeps with
-  the human and fits under that
-  ADR's cap on open agent work, and it says how a wrong result is noticed and undone, what proves
-  it right, and the stop past which the session hands off instead of trying on.
+  the human and fits under that ADR's cap on open agent work, and it says how a wrong result is
+  noticed and undone, what proves it right, and the stop past which the session hands off
+  instead of trying on.
 - **Keep the context lean.** Subagents return conclusions, not file dumps. Alignment,
   implementation, and review each start in a fresh session with only what they need, never by
   compacting the old one. The implementing session loads what its ticket's *Read first* names.
@@ -117,8 +125,9 @@ restates nothing, and a rule this file does not state is not a rule of this proj
   implementation can change behind. Before changing what exists, pin the behaviour that must
   stay, tests first where none exist. A rewrite or migration is done when the old suite passes
   against the new implementation.
-- **Every accepted ADR and every specification criterion (`G-n`, `Q-n`) is cited by a test** with
-  a `Verifies: <id>` marker; an ADR no test can decide says so in its *Enforcement* section
+- **Every accepted ADR, and every specification criterion (`G-n`, `Q-n`) a change meets, is
+  cited by a test** with a `Verifies: <id>` marker; an ADR no test can decide says so in its
+  *Enforcement* section, and a criterion no test cites yet is pending work
   ([ADR-0003](docs/adr/0003-decisions-verified-by-tests.md)).
 - **Never weaken the suite to make it pass. A flaky test is a defect, not noise:** no retries, no
   re-running until green.
@@ -148,8 +157,6 @@ restates nothing, and a rule this file does not state is not a rule of this proj
   [§5](#5-quality-bar--definition-of-done) are red.
 - **Authenticate `gh` through its web flow;** a human enters the one-time code. Never request,
   store, or hard-code personal access tokens.
-- **The Dev Container mounts no host Docker socket** and adds no Feature that would;
-  `devcontainer-lock.json` is committed ([ADR-0002](docs/adr/0002-dev-container-runtime.md)).
 - **Changes reach `main` through a pull request.** What no file can enforce is listed under
   [Repository settings](README.md#repository-settings).
 
