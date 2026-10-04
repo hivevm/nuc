@@ -2,18 +2,15 @@
 #
 # Runs every consistency check this repository enforces, in one command.
 #
-# AGENTS.md §5 requires these checks to pass before pushing, and
-# .github/workflows/checks.yml runs each of them as a job of its own. This script is the local
-# equivalent of that workflow and lists the same checks in the same order — a check added to one
-# is added to the other in the same change, or the local gate and CI drift apart and "it passed
-# locally" stops meaning anything. Check 9 of check-docs.sh verifies that the two lists,
-# and the required status checks named in README.md, still agree.
+# AGENTS.md §5 requires these checks to pass before pushing. This script is the local equivalent
+# of .github/workflows/checks.yml, in the same order; check 9 of check-docs.sh holds the two lists
+# and the required status checks named in README.md together.
 #
 # Every check runs even after an earlier one fails, so a single run reports everything that is
 # wrong instead of the first thing. The exit code is what a pre-push decision is made on.
 #
-# Pure bash + coreutils/git. The individual checks state their own dependencies — the shell lint needs
-# ShellCheck and skips itself with a notice where it is missing.
+# Pure bash + coreutils/git. The individual checks state their own dependencies — the shell lint
+# needs ShellCheck and skips itself with a notice where it is missing.
 #
 # Usage:
 #     scripts/check-all.sh        (or: bash scripts/check-all.sh)
@@ -38,17 +35,19 @@ run() {
 
 run "Documentation self-test" scripts/test-check-docs.sh
 run "Documentation consistency" scripts/check-docs.sh
+run "Template setup self-test" scripts/test-template-setup.sh
 run "Traceability self-test" scripts/test-check-traceability.sh
 run "Traceability" scripts/check-traceability.sh
 run "Dev Container self-test" scripts/test-check-devcontainer.sh
 run "Dev Container" scripts/check-devcontainer.sh
-run "Action reference self-test" scripts/test-check-action-refs.sh
-run "Action references" scripts/check-action-refs.sh
 run "Tests-kept sensor self-test" scripts/test-sensor-tests-kept.sh
 run "Tests-kept sensor" scripts/sensor-tests-kept.sh
 run "Revision-due sensor self-test" scripts/test-sensor-revision-due.sh
 run "Revision-due sensor" scripts/sensor-revision-due.sh
+run "Action references sensor self-test" scripts/test-sensor-action-refs.sh
+run "Action references sensor" scripts/sensor-action-refs.sh
 run "Git hooks self-test" scripts/test-git-hooks.sh
+run "Shell lint self-test" scripts/test-check-shell.sh
 run "Shell lint" scripts/check-shell.sh
 
 printf '\n'

@@ -1,9 +1,9 @@
-# ADR-0004: Work larger than one session is planned on the issue tracker: a feature spec cut into tracer-bullet tickets
+# ADR-0006: Work larger than one session is planned on the issue tracker as a feature spec cut into tracer-bullet tickets, and the design is revised when a spec closes or after a number of changes
 
 - **Status:** 🟢 accepted
 - **Date:** 2026-09-17
 - **Deciders:** NUC maintainer
-- **Applies to:** every change larger than one agent session, the issue templates, the pull request template, and the `Last design revision` line of `docs/ARCHITECTURE.md`
+- **Applies to:** every change larger than one agent session, the issue templates, the pull request template, the `Last design revision` line of `docs/ARCHITECTURE.md`, and `scripts/sensor-revision-due.sh`
 
 ## Context
 
@@ -20,7 +20,7 @@ must stay as it is, and how what exists gets from the old behaviour to the new �
 without memory gets wrong first. And every feature adds structure faster than anyone revisits it:
 a concept lands in one more file, a piece of logic is written a second time, an interface widens
 by one parameter — none of it wrong in the pull request that brought it, all of it entropy no
-check sees. A record protects decisions (ADR-0003); nothing in the process protects the shape.
+check sees. A record protects decisions (ADR-0002); nothing in the process protects the shape.
 The moment to look is while the work that added the structure is still known, and a project that
 is not writing features never reaches it: one in maintenance, with tickets and fixes only,
 revisits its design when somebody remembers to ask.
@@ -34,7 +34,8 @@ usefulness is noise for every later session — which rules out a tracked docume
 We will plan every change larger than one agent session on the repository's issue tracker — as a
 **feature spec** broken into **tracer-bullet tickets** that each declare which tickets block them
 — and treat both as **disposable**: they close when their work merges, and whatever in them has to
-last moves into the specification, an ADR, the architecture overview, or the glossary.
+last moves into the specification, an ADR, the architecture overview, the glossary, or the
+conventions.
 
 A **feature spec** states the problem and the solution from the user's side, the existing
 behaviour it changes and what must stay as it is, the goals of the specification it serves by
@@ -55,10 +56,11 @@ the specification criteria they serve — and filed what it found
 The revision also comes due **without a spec**, on a count of the work done rather than on a
 date. [`docs/ARCHITECTURE.md`](../ARCHITECTURE.md) carries on one line the date of the last
 revision and the number of changes after which the next is due — `**Last design revision:**
-<YYYY-MM-DD or none yet>, due after <N> changes.` — and a sensor counts the changes since that
-date. A **change** is a commit that touches anything outside `docs/`, merges excluded. The
-number ships as 20 and is the project's to set, on the line rather than in the sensor. The count
-is reported, never enforced: once the number is reached the revision runs over the modules those
+<YYYY-MM-DD or none yet>, due after <N> changes.` — and a sensor counts the changes since
+the commit that set that date, so the history decides where the count starts, not the clock. A
+**change** is a commit that touches anything outside `docs/`, merges excluded. The number ships
+as 20 and is the project's to set, on the line rather than in the sensor. The count is
+reported, never enforced: once the number is reached the revision runs over the modules those
 changes touched, and it moves the date. The line sits in the overview because the revision
 corrects that document anyway, and because the overview is the one document that says how the
 system stands (ADR-0001).
@@ -158,10 +160,10 @@ ticket rather than judged by the session that is stopping.
 
 [`scripts/sensor-revision-due.sh`](../../scripts/sensor-revision-due.sh) (job `sensors` in
 [`checks.yml`](../../.github/workflows/checks.yml)) reads the `Last design revision` line of the
-overview, counts the changes since its date, reports the count, and lists the directories they
-touched once the number is reached; it fails when the line is missing or unreadable, because
-then it measures nothing. Its self-test cites this ADR
-([ADR-0003](0003-decisions-verified-by-tests.md)).
+overview, counts the changes since the commit that set its date, reports the count, and lists
+the top-level directories and files they touched, with the changes each, once the number is
+reached; it fails when the line is missing or unreadable, because then it measures nothing. Its
+self-test cites this ADR ([ADR-0002](0002-decisions-verified-by-tests.md)).
 
 **Not mechanically decidable:** the tracker is outside the tree, so whether an effort was specced
 and sliced — and whether a spec was closed without its design revision — is review, as is whether

@@ -3,13 +3,14 @@
 [![Checks](https://github.com/hivevm/nuc/actions/workflows/checks.yml/badge.svg)](https://github.com/hivevm/nuc/actions/workflows/checks.yml)
 
 **NUC** is named after the small *nucleus colony* a full hive grows from in beekeeping. It is a
-starting point for building
-software **with coding agents** inside a ready-to-use Dev Container. The work is driven by a
-written **specification** ([`docs/SPECIFICATION.md`](docs/SPECIFICATION.md)) and **Architecture
-Decision Records** ([`docs/adr/`](docs/adr/)), so intent and the reasoning behind every structural
-choice stay explicit and reviewable.
+starting point for building software **with coding agents** inside a ready-to-use Dev Container.
+The work is driven by a written **specification**
+([`docs/SPECIFICATION.md`](docs/SPECIFICATION.md)) and **Architecture Decision Records**
+([`docs/adr/`](docs/adr/)), so intent and the reasoning behind every structural choice stay
+explicit and reviewable.
 
-> For agent instructions, see [`AGENTS.md`](AGENTS.md), the single source of truth for all coding agents.
+> For agent instructions, see [`AGENTS.md`](AGENTS.md), the single source of truth for all coding
+> agents.
 
 > [!NOTE]
 > **This project still carries its template setup.** The one-time steps that turn the scaffold
@@ -44,11 +45,13 @@ goals live in [`docs/SPECIFICATION.md`](docs/SPECIFICATION.md), the vocabulary i
 
 ## Build, Test & Run
 
-<!-- Fill in once the toolchain is chosen. This section is the single source for build/test/run
-     commands; both humans and agents rely on it (AGENTS.md links here). -->
+<!-- Fill in once the toolchain is chosen. This section is the single source for
+     build/test/lint/run commands; both humans and agents rely on it, and the rule file names
+     it. -->
 
 - **Build:** TODO <!-- e.g. `make build` -->
 - **Test:** TODO <!-- e.g. `make test` -->
+- **Lint:** TODO <!-- e.g. `make lint` -->
 - **Run:** TODO <!-- e.g. `make run` -->
 
 ## Usage
@@ -77,7 +80,7 @@ scripts/              # consistency checks and sensors (check-all.sh runs them a
 .vscode/              # shared editor settings
 .editorconfig         # editor-neutral formatting baseline
 .gitattributes        # line-ending normalization (LF everywhere)
-.agents/skills/       # the procedures of AGENTS.md as Agent Skills, one directory each (ADR-0005)
+.agents/skills/       # the procedures of AGENTS.md as Agent Skills, one directory each (ADR-0003)
 .claude/CLAUDE.md     # pointer for Claude Code to read AGENTS.md
 .claude/skills/       # pointers (one symlink per skill) for Claude Code to read .agents/skills/
 .claude/settings.json # Claude Code permissions: deny reading .env files (see SECURITY.md)
@@ -96,7 +99,7 @@ version cannot be repointed and a version suffix is VS Code-specific.
 ### Host container management
 
 The Dev Container deliberately has **no access to the host Docker daemon**: the socket is not
-mounted ([ADR-0002](docs/adr/0002-dev-container-runtime.md)). To manage the host's containers from
+mounted ([ADR-0004](docs/adr/0004-dev-container-runtime.md)). To manage the host's containers from
 VS Code, run the **Container Tools** extension (`ms-azuretools.vscode-containers`) on the **host**
 side: install it in your host VS Code. [`.vscode/settings.json`](.vscode/settings.json) already pins
 it to run locally via `remote.extensionKind`, so it keeps talking to the host engine even when this
@@ -119,7 +122,7 @@ lands, delete the pointer file rather than keeping a second file to maintain.
 The procedures those rules name (proposing an ADR, planning a feature, reviewing a change,
 revising the design) are Agent Skills under [`.agents/skills/`](.agents/skills/), the open format
 and the directory Codex, Gemini CLI, and Cursor read
-([ADR-0005](docs/adr/0005-procedures-as-skills.md)). An agent invokes one by name (`/review`) or
+([ADR-0003](docs/adr/0003-procedures-as-skills.md)). An agent invokes one by name (`/review`) or
 picks it up when the task matches its description. Claude Code reads `.claude/skills/` only, so
 that directory holds one symlink per skill into `.agents/skills/`; a directory-level symlink is
 not followed. The symlinks are pointers of the same kind as `CLAUDE.md`, tracked upstream as
@@ -138,7 +141,7 @@ configured once by a maintainer and worth re-checking after a repository move or
 
 - a **ruleset on `main`** that requires pull requests, requires the
   <!-- required-checks begin — compared with the workflow's jobs by scripts/check-docs.sh -->
-  `docs`, `traceability`, `devcontainer`, `actions`, `sensors`, and `shell`
+  `docs`, `traceability`, `devcontainer`, `sensors`, and `shell`
   <!-- required-checks end -->
   jobs of the **Checks** workflow as required status checks (rulesets list checks by their job
   name), and blocks force pushes and branch deletion;
@@ -153,9 +156,9 @@ configured once by a maintainer and worth re-checking after a repository move or
 
 ## Template
 
-- **Template release:** unreleased — the release of [NUC](https://github.com/hivevm/nuc) this
+- **Template release:** v0.1.0 — the release of [NUC](https://github.com/hivevm/nuc) this
   repository carries; a project moves the line when it takes up a later one
-  ([ADR-0008](docs/adr/0008-template-releases.md)).
+  ([ADR-0005](docs/adr/0005-template-releases.md)).
 
 ## Contributing
 

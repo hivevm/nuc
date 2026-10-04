@@ -1,9 +1,9 @@
-# ADR-0002: The Dev Container keeps the host daemon out of reach and its Features locked
+# ADR-0004: The Dev Container keeps the host daemon out of reach and its Features locked
 
 - **Status:** 🟢 accepted
 - **Date:** 2026-09-05
 - **Deciders:** NUC maintainer
-- **Applies to:** `.devcontainer/`, `.vscode/settings.json`, and everything the container pulls in
+- **Applies to:** `.devcontainer/`, `.vscode/settings.json`, `scripts/check-devcontainer.sh`, and everything the container pulls in
 
 ## Context
 
@@ -25,13 +25,15 @@ the same Features. Host containers are managed from an extension pinned to the h
 `remote.extensionKind` in [`.vscode/settings.json`](../../.vscode/settings.json).
 
 **Out of scope:** which base image, Features, and extensions a project picks, and whether it pins
-extensions; its toolchain; whether work may happen outside the container; hardening the container,
-which is not a security boundary; and how the lock is refreshed.
+extensions; its toolchain; whether an engine runs inside the container and how the work reaches
+the containers it needs, a founding decision the catalogue entry *Container access* of the
+`propose-adr` skill prepares; whether work may happen outside the container; hardening the
+container, which is not a security boundary; and how the lock is refreshed.
 
 ## Alternatives considered
 
-- **`docker-outside-of-docker`, docker-in-docker, rootless engine inside** — host-socket exposure,
-  privileged nesting, and an engine that cannot manage host containers anyway.
+- **`docker-outside-of-docker`** — mounts the host socket and hands host-level control to
+  everything inside, the agent included.
 - **Ignore the Feature lock** — a repointed tag reaches the credentials before anyone sees a diff.
 - **Digests directly in `devcontainer.json`** — buries hashes in the hand-edited file and loses the
   readable tag.
@@ -60,6 +62,6 @@ adds a Feature that would, when a Feature carries no major version tag, when the
 or names other Features than the definition, or when
 [`.vscode/settings.json`](../../.vscode/settings.json) no longer pins the container-management
 extension to the host side. Its self-test cites this ADR
-([ADR-0003](0003-decisions-verified-by-tests.md)). Not checked: a variant definition under a
+([ADR-0002](0002-decisions-verified-by-tests.md)). Not checked: a variant definition under a
 subdirectory of `.devcontainer/`, whether the lock's digests are the ones the tags currently
 resolve to, and the container itself — no CI job builds it.

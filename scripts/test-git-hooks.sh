@@ -27,7 +27,7 @@ passed=0
 # g <dir> <git args...> — git in the fixture with an identity, so that commits need no config.
 g() {
   local dir="$1"; shift
-  git -C "$dir" -c user.name=t -c user.email=t@example.invalid "$@"
+  git -C "${dir:?}" -c user.name=t -c user.email=t@example.invalid "$@"
 }
 
 # repo <name> — a fixture repository with one commit on main, the hooks enabled after that
@@ -35,11 +35,11 @@ g() {
 repo() {
   local dir="$work/$1"
   mkdir -p "$dir"
-  git -C "$dir" init -q -b main
+  git -C "${dir:?}" init -q -b main
   g "$dir" commit -q --allow-empty -m init
-  git -C "$dir" config core.hooksPath "$HOOKS"
+  git -C "${dir:?}" config core.hooksPath "$HOOKS"
   git init -q --bare "$dir.git"
-  git -C "$dir" remote add origin "$dir.git"
+  git -C "${dir:?}" remote add origin "$dir.git"
   echo "$dir"
 }
 
@@ -73,23 +73,23 @@ expect refuse "a commit on main" "$d" "on 'main'" commit -q --allow-empty -m x
 expect pass "a push from main with no check script to run" "$d" "" push -q origin main
 
 d="$(repo on-branch)"
-git -C "$d" switch -q -c feature
+git -C "${d:?}" switch -q -c feature
 expect pass "a commit on a branch" "$d" "" commit -q --allow-empty -m x
 
 d="$(repo red)"
-git -C "$d" switch -q -c feature
+git -C "${d:?}" switch -q -c feature
 checks "$d" 1
 expect refuse "a push while the checks are red" "$d" "the checks are red" push -q origin feature
 expect refuse "the refusal shows the check output" "$d" "check output for the test" push -q origin feature
 expect pass "a commit is not gated by the checks" "$d" "" commit -q --allow-empty -m x
 
 d="$(repo green)"
-git -C "$d" switch -q -c feature
+git -C "${d:?}" switch -q -c feature
 checks "$d" 0
 expect pass "a push while the checks are green" "$d" "" push -q origin feature
 
 d="$(repo detached)"
-git -C "$d" checkout -q --detach
+git -C "${d:?}" checkout -q --detach
 expect pass "a commit on a detached HEAD is not on main" "$d" "" commit -q --allow-empty -m x
 
 # --- summary -------------------------------------------------------------------------------

@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #
-# Self-test of scripts/check-devcontainer.sh. Verifies: ADR-0002
+# Self-test of scripts/check-devcontainer.sh. Verifies: ADR-0004
 #
 # Each case builds a fixture under a temporary directory — a devcontainer.json with comments and
 # one pinned Feature, the lock that resolves it, and the editor settings that pin the
 # container-management extension to the host — runs the check against it, and asserts the exit
 # code and, for a failing case, the message that names the violation. The baseline passes; every
-# other case breaks one thing ADR-0002 decides.
+# other case breaks one thing ADR-0004 decides.
 #
 # Usage:
 #     scripts/test-check-devcontainer.sh
@@ -30,7 +30,7 @@ config() {
   {
     echo '{'
     echo '  "name": "fixture",'
-    echo '  // A comment: the container has no socket mount — see ADR-0002.'
+    echo '  // A comment: the container has no socket mount — see ADR-0004.'
     echo '  "image": "mcr.microsoft.com/devcontainers/base:debian",'
     printf '  %s\n' "$@"
     echo '  "features": {'
@@ -117,6 +117,11 @@ d="$(repo docker-feature)"
 config "$d" "ghcr.io/devcontainers/features/docker-outside-of-docker:1"
 lock "$d" "ghcr.io/devcontainers/features/docker-outside-of-docker:1"
 expect fail "a Feature that mounts the socket" "$d" "would mount the host Docker socket"
+
+d="$(repo engine-inside)"
+config "$d" "ghcr.io/devcontainers/features/docker-in-docker:2"
+lock "$d" "ghcr.io/devcontainers/features/docker-in-docker:2"
+expect pass "an engine inside the container talks to no host engine and is the project's choice" "$d" "1 Features pinned and locked"
 
 d="$(repo unpinned-feature)"
 config "$d" "ghcr.io/devcontainers/features/github-cli:latest"

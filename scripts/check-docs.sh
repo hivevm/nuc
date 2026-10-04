@@ -26,12 +26,13 @@
 #      Checks 3 to 6 skip ⚪ superseded and 🔴 rejected ADRs (see is_inactive_adr): both
 #      describe a repository state that does not exist, so holding their references against the
 #      current tree would demand that it still contain what the project decided against.
-#   4. Section-reference integrity: in Markdown, YAML and shell files, every section reference
-#      (the section sign followed by a number, e.g. in "AGENTS.md, section 6") matches a numbered
-#      '## N.' heading in AGENTS.md — the only numbered document in this repository; extend the
-#      check if another one appears. The headings there must themselves run 1..N in order: a
-#      gap or a repeat is a botched renumbering, and it is the only half of the renumbering
-#      hazard a check can see (AGENTS.md, section 3).
+#   4. Section-reference integrity: every section reference matches a numbered '## N.' heading
+#      in AGENTS.md: the section sign followed by a number in Markdown, YAML, and shell files
+#      and in the git hooks, and the words 'AGENTS.md, section N' in every text file but
+#      Markdown. AGENTS.md is the only numbered document in this repository; extend the check if
+#      another one appears. The headings there must themselves run 1..N in order: a gap or a
+#      repeat is a botched renumbering, and it is the only half of the renumbering hazard a check
+#      can see (AGENTS.md, section 3).
 #   5. ADR-reference integrity: every 'ADR-NNNN' reference (with actual digits) names an ADR
 #      file that exists in docs/adr/ — anticipated follow-ups are described by topic, never by
 #      a number that does not exist yet (docs/adr/README.md).
@@ -53,45 +54,56 @@
 #   9. Check-list agreement: the jobs in .github/workflows/checks.yml, the invocations in
 #      scripts/check-all.sh, and the required status checks named between the 'required-checks'
 #      markers in README.md list the same checks. A check that runs in only one of the three is a
-#      gate somebody believes in and does not have, and both files already say in their header
-#      that a check added to one is added to the other in the same change (AGENTS.md, section 5).
-#      A job of the workflow that runs no script under scripts/ fails too: its commands run in
-#      CI and never in the local gate.
+#      gate somebody believes in and does not have (AGENTS.md, section 5). A job of the workflow
+#      that runs no script under scripts/ fails too: its commands run in CI and never in the
+#      local gate.
 #  10. Project Layout integrity: every path listed in the 'Project Layout' block of README.md
 #      exists, a trailing '/' meaning a directory. The block is written by hand and nothing else
 #      tells a reader that one of its lines has gone stale. The reverse direction is deliberately
 #      not checked — the block is a tour of the parts a newcomer needs, not a file listing.
 #  11. Skill pointer integrity: every skill under .agents/skills/ (a directory with a SKILL.md)
 #      has a symlink of the same name under .claude/skills/ that resolves to it, and every entry
-#      under .claude/skills/ is such a symlink (ADR-0005). Claude Code reads only the pointer
+#      under .claude/skills/ is such a symlink (ADR-0003). Claude Code reads only the pointer
 #      directory, so a skill without its pointer is invisible to it and to no other agent —
 #      nobody notices; a copy instead of a symlink is a second source that drifts, and a skill
 #      that lives only in the pointer directory is one no other agent finds. Each message says
 #      the command that fixes it. A repository with neither directory has nothing to check.
-#  12. Inherited ADRs decided: once TEMPLATE-SETUP.md is gone, no ADR whose '**Deciders:**' field
-#      names the NUC maintainer is still 🟡 proposed. Each was accepted, with the project's own
-#      maintainer added to Deciders, or superseded (docs/adr/README.md): an inherited ADR nobody
-#      accepted is a rule nobody decided, and the test that ADR asks for lands with its
-#      acceptance. While the setup file exists the decision is pending by design, and the check
-#      is silent.
+#  12. Inherited ADRs decided: once TEMPLATE-SETUP.md is gone, every ADR in force whose
+#      '**Deciders:**' field names the NUC maintainer also names a decider of this project and is
+#      not 🟡 proposed. An inherited ADR binds a derived project once its own maintainer has added
+#      their name and accepted it, or it is superseded (docs/adr/README.md): an inherited ADR
+#      nobody here decided is a rule nobody decided. A superseded or rejected one is not read.
+#      While the setup file exists the decision is pending by design, and the check is silent.
 #  13. Template identity replaced: once TEMPLATE-SETUP.md is gone, none of the template's
-#      placeholders is left: the project name NUC in the README title and the Dev Container name,
-#      the template's repository in the README badge, the copyright holder in LICENSE, the
-#      security contact in SECURITY.md, and a CODEOWNERS with no active rule. Step 1 of the setup
-#      replaces each; a placeholder that survives it describes the template, not the project. A
-#      file that does not exist has nothing to check.
+#      placeholders is left. Step 1 of the setup: the project name NUC in the README title, its
+#      intro, and the Dev Container name, the template's repository in the README badge, the
+#      copyright holder in LICENSE, the security contact in SECURITY.md, the reporting contact in
+#      CODE_OF_CONDUCT.md, and a CODEOWNERS with no active rule or with its TODO. Step 3: the
+#      '<Project Name>' title of the specification, the overview, the glossary, and the
+#      conventions, a criterion of the specification still reading '…' or '<Quality', and the
+#      scaffold's '<Part>', '<Term>', and '<Convention>' entries. Step 5: a 'TODO' as the Build,
+#      Test, Lint, or Run command of the README, its Overview sentence, and its Usage TODO. A
+#      placeholder that survives the setup describes the template, not the project. A file that
+#      does not exist has nothing to check.
 #  14. Template release named: README.md carries a '**Template release:**' line naming a
-#      'vX.Y.Z' tag or 'unreleased' (ADR-0008). Tags do not travel with GitHub's template
+#      'vX.Y.Z' tag or 'unreleased' (ADR-0005). Tags do not travel with GitHub's template
 #      mechanism, so the line is the one thing that tells a derived project which release of the
 #      template it carries; a release moves it, and a project that takes a release up moves it.
+#  15. Prose width: a line of Markdown prose is at most 100 columns, so a diff shows the sentence
+#      that changed. Fenced code, front matter, table rows, headings, and ADR header fields are
+#      exempt, and so is a line that cannot break, such as a link standing on a line of its own.
+#      Superseded and rejected ADRs are not read, nor is a file .gitattributes marks
+#      'linguist-generated', such as a changelog a tool writes. Indented code blocks are read as
+#      prose.
 #
 # Checks 5 and 6 read every text file of the repository, not a list of documentation extensions:
 # docs/adr/README.md states that code may reference an ADR number, so a verifier restricted to
 # documentation file types would leave the references most likely to go stale — those in source
-# comments, which no reviewer reads alongside the ADR index — unchecked. Check 4 stays on
-# documentation file types on purpose: 'ADR-NNNN' means one thing wherever it appears, but '§' in
-# source code is an ordinary character (see is_doc_file), and flagging it there would make a
-# project's own string literals fail this repository's CI.
+# comments, which no reviewer reads alongside the ADR index — unchecked. Check 4 reads the
+# section sign only in documentation file types on purpose: 'ADR-NNNN' and the words
+# 'AGENTS.md, section N' mean one thing wherever they appear, but '§' in source code is an
+# ordinary character (see is_doc_file), and flagging it there would make a project's own string
+# literals fail this repository's CI.
 #
 # Pure bash + coreutils/grep/sed/awk/find, plus git to enumerate the repository's files — all present
 # in the Dev Container base image, so running it adds no toolchain and no dependency that would
@@ -165,12 +177,16 @@ collect_text_files() {
 }
 
 # is_doc_file <file> — true for the file types in which the section sign is a reference into
-# AGENTS.md by convention: Markdown, YAML, and shell scripts. In source code the section sign is
-# an ordinary character with its own meanings — a statute cited in a German string literal, a
-# translated message, a test fixture — none of which are claims about a section of AGENTS.md.
+# AGENTS.md by convention: Markdown, YAML, shell scripts, and the git hooks. Elsewhere, in JSON
+# and in source code, the section sign is an ordinary character with its own meanings — a statute
+# cited in a German string literal, a translated message, a test fixture — none of which are
+# claims about a section of AGENTS.md.
 # The ADR checks scan every text file because 'ADR-NNNN' is unambiguous; this notation is not.
 is_doc_file() {
-  case "$1" in *.md | *.yml | *.yaml | *.sh) return 0 ;; *) return 1 ;; esac
+  case "$1" in
+    *.md | *.yml | *.yaml | *.sh | "$ROOT"/.githooks/*) return 0 ;;
+    *) return 1 ;;
+  esac
 }
 
 # is_inactive_adr <file> — true for an ADR whose status is ⚪ superseded or 🔴 rejected. Both are
@@ -537,9 +553,18 @@ check_section_refs() {
 
   local f rel lineno line clean linkexpr target frag
   for f in "${TEXT_FILES[@]}"; do
-    is_doc_file "$f" || continue
     rel="${f#"$ROOT"/}"
     is_inactive_adr "$f" && continue
+    # The word form, 'AGENTS.md, section N', is unambiguous wherever it stands, so it is read in
+    # every text file but Markdown, which cites a section as a link.
+    if [[ "$f" != *.md ]]; then
+      while IFS=: read -r lineno line; do
+        n="${line##* }"
+        _contains "$n" "${valid_sections[@]}" \
+          || add_error "$rel:$lineno: reference 'AGENTS.md, section $n' matches no numbered section in AGENTS.md"
+      done < <(grep -noE 'AGENTS\.md,? section [0-9]+' "$f")
+    fi
+    is_doc_file "$f" || continue
 
     case "$f" in
       *.md)
@@ -801,7 +826,7 @@ check_skill_pointers() {
     if [[ ! -L "$p" ]]; then
       # A copy of an existing skill was reported above; what is left is a skill living here only.
       [[ -f "$skills/$name/SKILL.md" ]] \
-        || add_error ".claude/skills/$name: is not a symlink into .agents/skills/ — a skill lives there, where every agent reads it, and is pointed at from here (ADR-0005)"
+        || add_error ".claude/skills/$name: is not a symlink into .agents/skills/ — a skill lives there, where every agent reads it, and is pointed at from here (ADR-0003)"
       continue
     fi
     if ! target="$(cd -P "$p" 2>/dev/null && pwd -P)"; then
@@ -815,15 +840,23 @@ check_skill_pointers() {
 }
 
 # Check 12 (see the header). Inherited means the Deciders field still names the template's
-# maintainer, on whichever of its lines; a derived project's own ADRs never do.
+# maintainer, on whichever of its lines; a derived project's own ADRs never do. Another decider
+# is whatever is left of the field once that name, commas, and the word 'and' are removed.
 check_inherited_adrs() {
   [[ -f "$ROOT/TEMPLATE-SETUP.md" ]] && return
-  local f base
+  local f base deciders others status
   while IFS= read -r f; do
-    header_field "$f" Deciders | grep -qF 'NUC maintainer' || continue
-    [[ "$(grep -m1 -F '**Status:**' "$f" | first_status_emoji)" == "🟡" ]] || continue
+    deciders="$(header_field "$f" Deciders)"
+    grep -qF 'NUC maintainer' <<< "$deciders" || continue
+    status="$(grep -m1 -F '**Status:**' "$f" | first_status_emoji)"
+    [[ "$status" == "⚪" || "$status" == "🔴" ]] && continue
     base="$(basename "$f")"
-    add_error "$base: inherited from the template and still proposed after setup — accept it with your name in Deciders and the status flipped, or supersede it (docs/adr/README.md)"
+    others="$(sed -E 's/^- \*\*Deciders:\*\*//; s/NUC maintainer//g; s/(^|[[:space:],])and([[:space:],]|$)/ /g; s/[[:space:],]//g' <<< "$deciders" | tr -d '\n')"
+    if [[ -z "$others" ]]; then
+      add_error "$base: inherited from the template and not decided by this project — add your name to Deciders and accept it, or supersede it (docs/adr/README.md)"
+    elif [[ "$status" == "🟡" ]]; then
+      add_error "$base: inherited from the template and still proposed after setup — flip the status to accepted, or supersede it (docs/adr/README.md)"
+    fi
   done < <(find "$ADR_DIR" -maxdepth 1 -type f -name '[0-9][0-9][0-9][0-9]-*.md' | sort)
 }
 
@@ -837,29 +870,82 @@ check_template_identity() {
     grep -qE "$2" "$ROOT/$1" && add_error "$1: $3"
   }
   placeholder README.md '^# NUC — an Agentic' "the title is still the template's; give the project its name"
+  placeholder README.md '^\*\*NUC\*\* is named after' "the intro still explains the template's name; say what the project is"
+  placeholder README.md '^Describe what this project does' "the Overview is still the scaffold's sentence; describe the project"
+  placeholder README.md '^TODO — show a minimal example' "the Usage section is still TODO; show how the project is used, or say there is nothing to use yet"
   # Anchored to the workflow path of the badge: the Template section links the template's
   # repository on purpose, and that link stays.
   placeholder README.md 'github\.com/hivevm/nuc/actions/workflows/' "the badge still points at the template's repository; repoint or delete it"
   placeholder .devcontainer/devcontainer.json '"name": "NUC DevContainer"' "the Dev Container still carries the template's name"
   placeholder LICENSE '^Copyright\b.*\bMaintainer\b' "the copyright holder is still the placeholder; name the maintainer"
   placeholder SECURITY.md 'TODO: add a security contact' "the security contact is still the placeholder"
+  placeholder CODE_OF_CONDUCT.md 'TODO: add a contact address' "the reporting contact is still the placeholder"
+  placeholder .github/CODEOWNERS '^# TODO: add a code owner' "the instruction to add a code owner is still there; remove it once the rules are active"
   if [[ -f "$ROOT/.github/CODEOWNERS" ]] && ! grep -qE '^[^#[:space:]]' "$ROOT/.github/CODEOWNERS"; then
     add_error ".github/CODEOWNERS: no active rule; name the code owner and uncomment the two rules"
   fi
+  local doc
+  for doc in SPECIFICATION ARCHITECTURE GLOSSARY CONVENTIONS; do
+    placeholder "docs/$doc.md" '^# .*<Project Name>' "the title still carries '<Project Name>'; give the project its name"
+  done
+  placeholder docs/SPECIFICATION.md '\*\*[GQ]-[0-9]+\*\* — (…|<Quality)' "a criterion is still the scaffold's placeholder; write it, or delete the item"
+  placeholder docs/ARCHITECTURE.md '^- \*\*<Part>\*\*' "the scaffold's building block is still listed; describe the parts, or delete the entry"
+  placeholder docs/GLOSSARY.md '^- \*\*<Term>\*\*' "the scaffold's entry is still listed; write the first term, or delete the entry"
+  placeholder docs/CONVENTIONS.md '^- \*\*<Convention>\*\*' "the scaffold's entry is still listed; write the first convention, or delete the entry"
+  placeholder README.md '^- \*\*(Build|Test|Lint|Run):\*\* TODO' "a Build, Test, Lint, or Run command is still TODO; name the command the toolchain ADR chose"
+}
+
+# Check 15 (see the header). Characters are counted, not bytes, so an em dash is one column.
+check_prose_width() {
+  local f rel n line fence front indent body in_adr
+  local LC_ALL=C.UTF-8
+  for f in "${TEXT_FILES[@]}"; do
+    [[ "$f" == *.md ]] || continue
+    is_inactive_adr "$f" && continue
+    rel="${f#"$ROOT"/}"
+    # A file git marks as generated is written by a tool, not wrapped by hand.
+    case "$(git -C "$ROOT" check-attr linguist-generated -- "$rel")" in
+      *": set" | *": true") continue ;;
+    esac
+    n=0 fence="" front=0 in_adr=0
+    [[ "$f" == "$ADR_DIR"/* ]] && in_adr=1
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      n=$((n + 1))
+      if ((n == 1)) && [[ "$line" == "---" ]]; then front=1; continue; fi
+      if ((front)); then [[ "$line" == "---" ]] && front=0; continue; fi
+      # A fence closes on a line of the same character, at least as long, and nothing else.
+      if [[ -n "$fence" ]]; then
+        [[ "$line" =~ ^[[:space:]]*([\`~]{3,})[[:space:]]*$ && "${BASH_REMATCH[1]}" == "$fence"* ]] \
+          && fence=""
+        continue
+      fi
+      if [[ "$line" =~ ^[[:space:]]*(\`{3,}|~{3,}) ]]; then fence="${BASH_REMATCH[1]}"; continue; fi
+      ((${#line} > 100)) || continue
+      # A table row, a heading, and an ADR header field are one line by their syntax.
+      [[ "$line" =~ ^[[:space:]]*\| || "$line" =~ ^# ]] && continue
+      [[ in_adr -eq 1 && "$line" =~ ^-\ \*\*[A-Za-z\ ]+:\*\* ]] && continue
+      # A link is one word, whatever its text holds. A line without a space outside its links
+      # cannot break; any other line can.
+      indent="${line%%[! ]*}"
+      body="$(sed -E ':a; s/(\[[^] ]*) ([^]]*\]\()/\1\x01\2/; ta' <<< "${line:${#indent}}")"
+      [[ "$body" == *" "* ]] \
+        && add_error "$rel:$n: ${#line} columns — wrap the prose at 100 (a link that does not fit stands on a line of its own)"
+    done < "$f"
+  done
 }
 
 # Check 14 (see the header). The first matching line is read; a Markdown list marker before the
 # bold label is allowed, the version may be written as a link or in backticks, and what follows
 # it — a sentence, a link target — is not read. After the version only a space, a punctuation
 # mark, or the end of the line may follow: a pre-release suffix, build metadata, and a fourth
-# number are not a tag ADR-0008 cuts, and SemVer allows no leading zero.
+# number are not a tag ADR-0005 cuts, and SemVer allows no leading zero.
 check_template_release() {
   local readme="$ROOT/README.md"
   [[ -f "$readme" ]] || return   # check 10 reports the missing README
   local line value
   line="$(grep -m1 -E '^[[:space:]]*([-*] )?\*\*Template release:\*\*' "$readme")"
   if [[ -z "$line" ]]; then
-    add_error "README.md: no '**Template release:**' line — the Template section names the release of the template this repository carries, or 'unreleased' (ADR-0008)"
+    add_error "README.md: no '**Template release:**' line — the Template section names the release of the template this repository carries, or 'unreleased' (ADR-0005)"
     return
   fi
   value="${line#*\*\*Template release:\*\*}"
@@ -868,7 +954,7 @@ check_template_release() {
   # shellcheck disable=SC2016  # the backticks are Markdown to match, not a command substitution
   local re='^[[`]?(v'"$num"'\.'"$num"'\.'"$num"'|unreleased)($|[][:space:],;:)`]|\.([[:space:]]|$))'
   [[ "$value" =~ $re ]] \
-    || add_error "README.md: the Template release line names neither a 'vX.Y.Z' tag nor 'unreleased' — a release moves it to the tag it cuts (ADR-0008)"
+    || add_error "README.md: the Template release line names neither a 'vX.Y.Z' tag nor 'unreleased' — a release moves it to the tag it cuts (ADR-0005)"
 }
 
 collect_text_files
@@ -886,6 +972,7 @@ check_skill_pointers
 check_inherited_adrs
 check_template_identity
 check_template_release
+check_prose_width
 
 if ((${#errors[@]} > 0)); then
   echo "Documentation checks FAILED:"
