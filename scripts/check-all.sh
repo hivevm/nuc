@@ -44,6 +44,8 @@ run "Tests-kept sensor self-test" scripts/test-sensor-tests-kept.sh
 run "Tests-kept sensor" scripts/sensor-tests-kept.sh
 run "Revision-due sensor self-test" scripts/test-sensor-revision-due.sh
 run "Revision-due sensor" scripts/sensor-revision-due.sh
+run "Plan frontier sensor self-test" scripts/test-sensor-plan-frontier.sh
+run "Plan frontier sensor" scripts/sensor-plan-frontier.sh
 run "Action references sensor self-test" scripts/test-sensor-action-refs.sh
 run "Action references sensor" scripts/sensor-action-refs.sh
 run "Git hooks self-test" scripts/test-git-hooks.sh

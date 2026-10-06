@@ -91,8 +91,10 @@ restates nothing, and a rule this file does not state is not a rule of this proj
 - **Write to [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md).** Settle a new judgement call there in
   the same change that raised it. One a check can decide becomes the check
   ([§5](#5-quality-bar--definition-of-done)); one that constrains future choices becomes an ADR.
-- **Plan work larger than one session on the issue tracker:** a feature spec cut into
-  tracer-bullet tickets ([ADR-0006](docs/adr/0006-feature-layer.md)). Skill: `plan-feature`.
+- **Plan work larger than one session in the tree, under `docs/plan/`:** a feature spec cut into
+  tracer-bullet tickets, each file deleted by the change that lands its work
+  ([ADR-0006](docs/adr/0006-feature-layer.md)). Skill: `plan-feature`; the tickets are
+  worked, one at a time or in parallel, through the skill `work-tickets`.
 - **Work with the human:** small steps, reasoning surfaced, feedback sought early. A task runs
   unattended only when its ticket answers for it: a test decides its criteria, its scope is
   isolated and a wrong result costs one revert, it touches nothing the harness ADR keeps with
@@ -103,14 +105,15 @@ restates nothing, and a rule this file does not state is not a rule of this proj
   implementation, and review each start in a fresh session with only what they need, never by
   compacting the old one. The implementing session loads what its ticket's *Read first* names.
   A degraded session hands off.
-- **Session artifacts are not tracked.** Plans, handoff notes, and scratch files live under
-  `.scratch/` (gitignored) or outside the tree. What has to outlive the session becomes an issue,
+- **Session artifacts are not tracked.** Session plans, handoff notes, and scratch files live under
+  `.scratch/` (gitignored) or outside the tree. What has to outlive the session becomes a ticket,
   a `proposed` ADR, or a change to one of the six documents of ADR-0001.
 - **Research before a decision that is costly to reverse,** external sources included, cited in
   the ADR. Below that bar, research what you are actually unsure of. Never pass off recalled
   interfaces, versions, or defaults as verified.
-- **Open an issue first when scope or intent is still open.** The trigger is disagreement about
-  *why* and *what*, not size. **When in doubt, ask the human before implementing.**
+- **Settle scope and intent with the human first when they are still open.** The trigger is
+  disagreement about *why* and *what*, not size. **When in doubt, ask the human before
+  implementing.**
 
 ## 5. Quality bar & Definition of Done
 
@@ -144,7 +147,7 @@ restates nothing, and a rule this file does not state is not a rule of this proj
 - **A mistake a check could have caught becomes a check,** shipped with the fix. A rule in prose
   is the fallback for what no check can decide. The design revision drops what prevented nothing.
 - **Keep the diff releasable.** No commented-out code, stray debug output, or `TODO` standing in
-  for a decision. Unfinished work is an issue or a `proposed` ADR, not hidden in the tree.
+  for a decision. Unfinished work is a ticket or a `proposed` ADR, not hidden in the code.
 - **A change to the structure updates [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** in the same
   change.
 
@@ -152,7 +155,11 @@ restates nothing, and a rule this file does not state is not a rule of this proj
 
 - **Commit freely on a branch, never on `main`. A human decides what leaves the machine.**
   Pushing, `gh`, and anything that rewrites or discards history (`reset`, `rebase`, `merge`,
-  `restore`, `clean`) wait for an instruction that names it and implies no next one. The git
+  `restore`, `clean`) wait for an instruction that names it and implies no next one. The one
+  push a standing instruction may cover is the claim on a ticket across clones, which creates
+  the ticket's branch with an empty commit and nothing else, where the harness ADR grants it
+  ([ADR-0006](docs/adr/0006-feature-layer.md)); it skips the pre-push hook, whose checks have
+  nothing to decide on a tree that is the remote's own `main`. The git
   hooks under [`.githooks/`](.githooks/) refuse a commit on `main` and a push while the checks of
   [§5](#5-quality-bar--definition-of-done) are red.
 - **Authenticate `gh` through its web flow;** a human enters the one-time code. Never request,

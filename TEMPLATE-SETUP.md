@@ -5,7 +5,16 @@ delete it together with the two notes that point here from [`README.md`](README.
 the README's Project Layout block, and
 [`scripts/test-template-setup.sh`](scripts/test-template-setup.sh) with its `run` line in
 [`scripts/check-all.sh`](scripts/check-all.sh) and its step in the `docs` job of
-[`checks.yml`](.github/workflows/checks.yml).
+[`checks.yml`](.github/workflows/checks.yml), and the
+[`setup-project`](.agents/skills/setup-project/SKILL.md) skill with its pointer under
+`.claude/skills/`.
+
+Choose the **profile** first, because it decides how much of each step you take. A small
+project takes the path of [A small project](#a-small-project) at each step; a complex one takes
+every step in full and grows its harness to tickets worked in parallel, as
+[A complex project](#a-complex-project) says. An agent walks you through the steps one question
+at a time with the `setup-project` skill, and writes the specification of step 3 with you,
+section by section.
 
 ## What only you can do
 
@@ -167,3 +176,27 @@ README. What can go, and how:
 [`AGENTS.md`](AGENTS.md), the glossary, the conventions, and the overview stay, empty where
 there is nothing to say; a scaffold section costs a reader a glance, a missing document costs a
 check.
+
+## A complex project
+
+Several people or agents, work that spans sessions, or assets worth protecting: every step is
+taken in full, and the founding decisions of step 4 take the larger forms of their catalogue
+entries.
+
+- **The harness** takes the form *Parallel tickets under a cap* of its
+  [catalogue entry](.agents/skills/propose-adr/concepts/harness.md): the ADR names the agent and
+  model that implement and the one that reviews, the command that starts each without a human,
+  the cap on open agent work, the parts never worked unattended, and, where several people
+  dispatch from clones of their own, the remote claims are made on. Tickets are worked through
+  the [`work-tickets`](.agents/skills/work-tickets/SKILL.md) skill: a dispatching session reads
+  the frontier from [`scripts/sensor-plan-frontier.sh`](scripts/sensor-plan-frontier.sh), claims
+  each ticket by its branch in a worktree of its own, and starts a fresh session in each.
+- **The environment** says how parallel sessions are kept apart: worktrees in the one Dev
+  Container, or a container each. The worktrees lie under the ignored `.scratch/`, so a tool of
+  the toolchain that walks directories without reading `.gitignore`, such as a test runner or a
+  file watcher, is configured to leave `.scratch/` out.
+- **The work** is planned under `docs/plan/` from the start, through the
+  [`plan-feature`](.agents/skills/plan-feature/SKILL.md) skill; the golden path of step 7 is the
+  tracer bullet of the first spec.
+- **A second maintainer** makes the Code Owners review of the repository settings possible; keep
+  it required.

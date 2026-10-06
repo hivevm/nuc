@@ -13,8 +13,10 @@ session and states no rule of its own
 
 ## 1. Scope
 
-Take the feature spec and its merged tickets. The modules those pull requests touched are the
-scope; the rest of the tree is context, not a target. One session, one spec.
+Take the feature spec and its merged tickets: once only its `spec.md` is left, the tickets are the
+files the history deleted from its directory (`git log --diff-filter=D -- docs/plan/<spec>/`).
+The modules those pull requests touched are the scope; the rest of the tree is context, not a
+target. One session, one spec.
 
 Without a spec, when [`scripts/sensor-revision-due.sh`](../../../scripts/sensor-revision-due.sh)
 says the revision is due, the scope is the directories it lists: the changes since the last
@@ -72,7 +74,8 @@ dropped, unless an ADR or a criterion cites it
 The conventions and the overview are corrected inline, as their documents ask. Everything else
 is filed before the revision ends rather than implemented here: a ticket per candidate the survey
 found, a ticket per check to write, a `proposed` ADR through `propose-adr` where a finding is a
-decision, a consolidating one included, and a drafted specification change handed to the human
-as an issue. Move the `Last design revision` line of
-[`docs/ARCHITECTURE.md`](../../../docs/ARCHITECTURE.md) to today's date. Then a spec in
-scope closes.
+decision, a consolidating one included, and a drafted specification change as a ticket whose
+*Mode* is "with the human". The tickets go into `docs/plan/revision-<YYYY-MM-DD>/`, in the
+shape of the `plan-feature` skill's ticket template, without a spec. Move the `Last design
+revision` line of [`docs/ARCHITECTURE.md`](../../../docs/ARCHITECTURE.md) to today's date. Then
+delete the `spec.md` of a spec in scope: it is closed.

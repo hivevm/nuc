@@ -16,9 +16,9 @@ cheapest *Enforcement* entry an ADR can carry is "review only", and it is the on
 nothing.
 
 Two forces limit the answer. Some decisions cannot be decided by a program — that only a human
-flips an ADR's status, that an effort was planned on a tracker outside the tree — and demanding
-tests for them produces tests that assert a constant. And this template ships no language
-toolchain, so the rule can prescribe only something every language's tests can carry.
+flips an ADR's status, that an effort too large for one session was planned before it was built —
+and demanding tests for them produces tests that assert a constant. And this template ships no
+language toolchain, so the rule can prescribe only something every language's tests can carry.
 
 ## Decision
 

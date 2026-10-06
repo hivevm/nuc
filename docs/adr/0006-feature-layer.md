@@ -1,9 +1,9 @@
-# ADR-0006: Work larger than one session is planned on the issue tracker as a feature spec cut into tracer-bullet tickets, and the design is revised when a spec closes or after a number of changes
+# ADR-0006: Work larger than one session is planned in the tree as a feature spec cut into tracer-bullet tickets, files deleted when their work lands, and the design is revised when a spec closes or after a number of changes
 
 - **Status:** 🟢 accepted
 - **Date:** 2026-09-17
 - **Deciders:** NUC maintainer
-- **Applies to:** every change larger than one agent session, the issue templates, the pull request template, the `Last design revision` line of `docs/ARCHITECTURE.md`, and `scripts/sensor-revision-due.sh`
+- **Applies to:** every change larger than one agent session, `docs/plan/`, the spec and ticket templates of the `plan-feature` skill, the pull request template, the `Last design revision` line of `docs/ARCHITECTURE.md`, `scripts/sensor-revision-due.sh`, `scripts/sensor-plan-frontier.sh`, and the claim script `.agents/skills/work-tickets/claim.sh`
 
 ## Context
 
@@ -27,15 +27,25 @@ revisits its design when somebody remembers to ask.
 
 The artifact cannot live in the specification, which must not churn (ADR-0001); cannot be a
 seventh rule-bearing document; and must be disposable by design, because a plan that outlives its
-usefulness is noise for every later session — which rules out a tracked document nobody deletes.
+usefulness is noise for every later session. It must also be readable by any agent with the tools
+it already has, without one vendor's tracker or an account on it: the template stays
+vendor-neutral.
 
 ## Decision
 
-We will plan every change larger than one agent session on the repository's issue tracker — as a
+We will plan every change larger than one agent session in the tree, under `docs/plan/` — as a
 **feature spec** broken into **tracer-bullet tickets** that each declare which tickets block them
-— and treat both as **disposable**: they close when their work merges, and whatever in them has to
-last moves into the specification, an ADR, the architecture overview, the glossary, or the
-conventions.
+— and treat both as **disposable**: a ticket's file is deleted by the pull request that lands its
+work, a spec's by the design revision that closes it, and whatever in them has to last moves into
+the specification, an ADR, the architecture overview, the glossary, or the conventions. The
+history keeps the deleted files.
+
+Each spec is a directory `docs/plan/<spec>/` holding `spec.md` and one file per ticket,
+`<NN>-<slug>.md`, numbered in the order they are cut. Tickets filed outside a spec — by a design
+revision, or for unfinished work a session leaves — get a directory of their own without a
+`spec.md`. A directory that has lost its last
+file is gone, so what lies under `docs/plan/` is exactly the open work. The shapes are templates
+of the `plan-feature` skill (ADR-0003).
 
 A **feature spec** states the problem and the solution from the user's side, the existing
 behaviour it changes and what must stay as it is, the goals of the specification it serves by
@@ -45,12 +55,26 @@ whether it needs an ADR. A **ticket** states the end-to-end behaviour it deliver
 criteria, the tickets that block it, what the session that works it reads first, and whether it is
 worked with the human or may run unattended — and, if so, when the session stops
 ([`AGENTS.md` §4](../../AGENTS.md#4-working-style)). A ticket is sized to one fresh session and is
-demoable or verifiable on its own. The frontier — open
-tickets whose blockers are all closed — is what an agent picks from; it claims a ticket by
-assigning itself before any work, so that parallel sessions skip it. A pull request names the
-ticket it closes. A feature spec closes when its tickets have merged and a fresh session has
-revisited the design of what they touched — the modules, the accepted ADRs that bind them, and
-the specification criteria they serve — and filed what it found
+demoable or verifiable on its own. It names its blockers by path under `docs/plan/`, as text
+rather than links, and a blocker is closed once its file is gone. The frontier — open tickets
+whose blockers are all closed and that no branch claims — is what an agent picks from, and a
+sensor lists it with each ticket's *Mode*. The agent claims a ticket by creating the branch
+`ticket/<spec>/<NN>-<slug>` before any work, so that parallel sessions skip it, through the
+claim script of the `work-tickets` skill. Among sessions that share a repository the claim is
+the local branch, which git refuses to create twice, and needs no commit and nothing pushed.
+Among clones that share a remote, the claim is made there first: a push that only creates the
+branch, with an empty commit of its own on the remote's `main`, because a push of a commit the
+branch already points at succeeds without creating anything, and two clones would both win.
+That push is the one the harness ADR may grant without an instruction per push
+([`AGENTS.md` §6](../../AGENTS.md#6-project-rules)); a project whose sessions share a
+repository grants none. A ticket is claimable once it is on `main`, where the worker's branch
+starts and other clones read it, and a claim given up is released by a human deleting its
+branch. Sessions that run in parallel each work in a worktree or a container of
+their own, as the harness ADR says, which also says how a claim is made among sessions that
+share neither a repository nor a remote. A pull request deletes the ticket file it lands. A
+feature spec closes when its tickets have merged and a fresh session has revisited the design
+of what they touched — the modules, the accepted ADRs that bind them, and the specification
+criteria they serve — and filed what it found
 ([`AGENTS.md` §5](../../AGENTS.md#5-quality-bar--definition-of-done)).
 
 The revision also comes due **without a spec**, on a count of the work done rather than on a
@@ -66,20 +90,28 @@ corrects that document anyway, and because the overview is the one document that
 system stands (ADR-0001).
 
 **Out of scope:** how work smaller than one session is planned; an artifact for an effort too
-foggy to be written as a spec; triage states for issues that arrive from outside; whether a due
-revision blocks a merge, which it does not; which tracker a project uses — the templates shipped
-here are for GitHub Issues, and a project on another tracker supersedes this ADR with the same
-shape on its own tracker.
+foggy to be written as a spec; how reports that arrive from outside — bug reports, questions — are
+received and triaged; whether a due revision blocks a merge, which it does not.
 
 ## Alternatives considered
 
 - **Plan in the conversation.** The state this ADR ends: the plan lives in a context window that
   is gone by the next session.
-- **A tracked document per feature under `docs/`.** Read by every later session whether still
-  true or not; nobody deletes a document, an issue closes itself.
-- **Issues only, no spec.** Slices without the destination they serve: nothing says when the
+- **The repository's issue tracker.** Closes itself and carries assignment and sub-issues, at the
+  price of one vendor's tracker: an agent needs its API or CLI and an account to read the plan,
+  the plan is out of reach offline and of review in the pull request, and a project that moves
+  host loses it. Claiming by assignment needs no shared repository, which is the one thing a file
+  in the tree cannot give.
+- **A long-lived document per feature under `docs/`.** Read by every later session whether still
+  true or not; nobody deletes a document that no step of the process deletes. Here the deletion
+  is a step of landing the work.
+- **A ticket marked done rather than deleted.** Keeps closed work in front of every session that
+  lists the directory; the history already keeps it.
+- **A planning tool's own format, such as git-bug or Backlog.md.** One more tool in the
+  environment and its format for the plan; the same files in plain Markdown need neither.
+- **Tickets only, no spec.** Slices without the destination they serve: nothing says when the
   feature is done or which goal it meets.
-- **A decision map while the way is unclear.** A map issue naming the destination, with one child
+- **A decision map while the way is unclear.** A map document naming the destination, with one child
   decision ticket per question that can be stated now — typed research, prototype, conversation,
   or task — resolved one per session, the spec cut once no question remains. The right shape for
   an effort whose questions cannot all be asked at once, and not in the template because no
@@ -107,7 +139,7 @@ The shape of this layer follows Matt Pocock's skills — <https://github.com/mat
 closely, and a reader who knows them should recognise it:
 
 - *to-spec* — <https://www.aihero.dev/skills-to-spec>: the spec as a tracker issue, disposable
-  once the work ships.
+  once the work ships; here a file the work deletes.
 - *to-tickets* —
   <https://github.com/mattpocock/skills/blob/main/skills/engineering/to-tickets/SKILL.md>:
   tracer-bullet vertical slices sized to one fresh context window, blocking edges on the tracker,
@@ -135,26 +167,32 @@ ticket rather than judged by the session that is stopping.
 
 ## Consequences
 
-- Positive: the slicing rule has a carrier; a session opens the tracker instead of re-deriving the
-  plan; "may this run unattended?" and "when does it stop?" are answered by the ticket, so a
-  session that is not converging hands off instead of widening its scope; closed issues are an
-  audit trail that costs nothing to keep; what the system does today is written down before it is
-  changed;
+- Positive: the slicing rule has a carrier; a session reads `docs/plan/` instead of re-deriving
+  the plan, with the file tools every agent has; the plan is reviewed in the pull request like
+  the code, works offline, and moves with the repository; "may this run unattended?" and "when
+  does it stop?" are answered by the ticket, so a session that is not converging hands off
+  instead of widening its scope; the history is an audit trail of closed work that costs nothing
+  to keep; what the system does today is written down before it is changed;
   the design of what a feature touched is revisited while it is still known, and the overview is
   checked against the tree at the same moment; a project that writes no specs revisits its design
   at a rhythm its own changes set, and "when did we last look?" is answered in the tree.
-- Negative / trade-offs: a feature now costs an issue and its children before the first slice —
+- Negative / trade-offs: a feature now costs a spec and its tickets before the first slice —
   ceremony a one-session change must not pay, so the threshold is a judgement under the
   proportionality principle ([`AGENTS.md` §1](../../AGENTS.md#1-principles)). An effort whose
   questions cannot all be asked at once has no artifact of its own and is charted in the
-  conversation, which is gone by the next session. Blocking on GitHub is sub-issues and task
-  lists, weaker than a native dependency. A feature spec stays open one session longer, and the
-  revision costs a session that ships no behaviour; what it files is tickets, so nothing obliges
-  anyone to work them — the decision makes entropy visible, not impossible. A commit is a coarse
-  measure of drift, so a project that squashes reaches the number more slowly than one that does
-  not, and the date is moved by hand, by the revision's own change.
-- Follow-ups: the decision map, once an effort too foggy to slice has been met; triage states for
-  issues arriving from outside; tooling for claiming and the frontier once a project wants it.
+  conversation, which is gone by the next session. Blocking is a list of paths, and the
+  sensor that resolves it reports the frontier and refuses only a ticket it cannot place. A plan
+  lands through a pull request like any change, so it is on `main` only once merged. A claim
+  across clones costs a push the harness ADR has to grant, an empty commit on the branch, and a
+  fetch before every read of the frontier, and holds only where the sessions share a remote. A
+  ticket file whose deletion a pull request forgot stays open until review notices. A feature
+  spec stays open one session longer, and the revision costs a session that ships no behaviour;
+  what it files is tickets, so nothing obliges anyone to work them — the decision makes entropy
+  visible, not impossible. A commit is a coarse measure of drift, so a project that squashes
+  reaches the number more slowly than one that does not, and the date is moved by hand, by the
+  revision's own change.
+- Follow-ups: the decision map, once an effort too foggy to slice has been met; triage of reports
+  arriving from outside.
 
 ## Enforcement
 
@@ -164,9 +202,15 @@ overview, counts the changes since the commit that set its date, reports the cou
 the top-level directories and files they touched, with the changes each, once the number is
 reached; it fails when the line is missing or unreadable, because then it measures nothing. Its
 self-test cites this ADR ([ADR-0002](0002-decisions-verified-by-tests.md)).
+[`scripts/sensor-plan-frontier.sh`](../../scripts/sensor-plan-frontier.sh), in the same job, lists
+the open tickets as claimed, blocked, or on the frontier with their *Mode*, and fails on a ticket
+without a *Blocked by* or a *Mode* section, which it cannot place; its self-test cites this ADR
+and runs the claim script of the `work-tickets` skill, in one repository and across two clones of
+one remote, where the second claim of a ticket must lose.
 
-**Not mechanically decidable:** the tracker is outside the tree, so whether an effort was specced
-and sliced — and whether a spec was closed without its design revision — is review, as is whether
-a due revision was run at all and the date moved with it. The templates under
-[`.github/ISSUE_TEMPLATE/`](../../.github/ISSUE_TEMPLATE/) carry the shape, and the pull request
-template asks for the ticket a change closes.
+**Not mechanically decidable:** whether an effort was larger than one session and so had to be
+specced and sliced, whether a pull request that landed a ticket's work deleted its file, and
+whether a spec was deleted without its design revision are review, as is whether a due revision
+was run at all and the date moved with it. The templates of the
+[`plan-feature`](../../.agents/skills/plan-feature/) skill carry the shape, and the pull request
+template asks for the ticket a change deletes.

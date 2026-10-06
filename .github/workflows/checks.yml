@@ -8,10 +8,10 @@ name: Checks
 # - Documentation: scripts/check-docs.sh, then scripts/test-template-setup.sh.
 # - Traceability: scripts/check-traceability.sh (ADR-0002).
 # - Dev Container: scripts/check-devcontainer.sh (ADR-0004).
-# - Sensors: scripts/sensor-tests-kept.sh, sensor-revision-due.sh (ADR-0006), and
-#   sensor-action-refs.sh. They report for the reviewer and fail on nothing they count, except
-#   the action references once a project runs that sensor with --require. The job checks out the
-#   full history because two sensors read it.
+# - Sensors: scripts/sensor-tests-kept.sh, sensor-revision-due.sh and sensor-plan-frontier.sh
+#   (ADR-0006), and sensor-action-refs.sh. They report for the reviewer and fail on nothing
+#   they count, except the action references once a project runs that sensor with --require.
+#   The job checks out the full history because two sensors read it.
 # - Shell lint: scripts/check-shell.sh, after the self-test of the git hooks.
 # - Build, test, lint: absent until the project has a toolchain. The catalogue entry Toolchain of
 #   the propose-adr skill says how the job is added; it is the one job of this workflow that
@@ -113,6 +113,10 @@ jobs:
         run: bash scripts/test-sensor-revision-due.sh
       - name: Report the changes since the last design revision
         run: bash scripts/sensor-revision-due.sh
+      - name: Self-test the plan frontier sensor
+        run: bash scripts/test-sensor-plan-frontier.sh
+      - name: Report the tickets that may be claimed, the claimed, and the blocked
+        run: bash scripts/sensor-plan-frontier.sh
       - name: Self-test the action references sensor
         run: bash scripts/test-sensor-action-refs.sh
       - name: Report the forms of the action references the workflows use

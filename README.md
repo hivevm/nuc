@@ -14,8 +14,9 @@ explicit and reviewable.
 
 > [!NOTE]
 > **This project still carries its template setup.** The one-time steps that turn the scaffold
-> into your own project are in [`TEMPLATE-SETUP.md`](TEMPLATE-SETUP.md). Delete that file and this
-> note once you are through them.
+> into your own project are in [`TEMPLATE-SETUP.md`](TEMPLATE-SETUP.md); ask your agent to run the
+> `setup-project` skill to be walked through them, one question at a time. Delete that file and
+> this note once you are through them.
 
 ## Overview
 
@@ -119,9 +120,10 @@ exists for one gap only: Claude Code loads `CLAUDE.md`, not `AGENTS.md`, tracked
 [anthropics/claude-code#34235](https://github.com/anthropics/claude-code/issues/34235). Once that
 lands, delete the pointer file rather than keeping a second file to maintain.
 
-The procedures those rules name (proposing an ADR, planning a feature, reviewing a change,
-revising the design) are Agent Skills under [`.agents/skills/`](.agents/skills/), the open format
-and the directory Codex, Gemini CLI, and Cursor read
+The procedures those rules name (proposing an ADR, planning a feature, working its tickets
+alone or in parallel, reviewing a change, revising the design) are Agent Skills under
+[`.agents/skills/`](.agents/skills/), the open format and the directory Codex, Gemini CLI, and
+Cursor read
 ([ADR-0003](docs/adr/0003-procedures-as-skills.md)). An agent invokes one by name (`/review`) or
 picks it up when the task matches its description. Claude Code reads `.claude/skills/` only, so
 that directory holds one symlink per skill into `.agents/skills/`; a directory-level symlink is
@@ -132,6 +134,11 @@ skill without its pointer. A rule is enforced only by what every agent hits: the
 [`.githooks/`](.githooks/), the checks, and the repository settings below. A tool's own
 configuration is not used to enforce one, because a gate that one agent honours and the next does
 not looks like a rule and is not one.
+
+Agents work tickets in parallel without any one vendor's mechanism: a dispatching session claims
+each ticket by its branch in a git worktree of its own and starts a fresh session there, with the
+non-interactive command of whichever agent the project's harness ADR names, and the session works
+the ticket through the `work-tickets` skill.
 
 ## Repository settings
 

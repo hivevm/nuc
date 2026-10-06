@@ -10,8 +10,9 @@
 #
 #   1. Setup file deleted, nothing else done: check-docs.sh names each placeholder of steps 1,
 #      2, 3, and 5 that is still in the tree, and the README's notes that point at the setup
-#      file while they are there. Every file that carries a token of a placeholder (TOKENS) is
-#      named in its output, so a placeholder added to a file no row knows of fails here.
+#      file while they are there, and the setup skill left behind. Every file that carries a
+#      token of a placeholder (TOKENS) is named in its output, so a placeholder added to a file
+#      no row knows of fails here.
 #   2. The remaining steps done, as an agent would do them from the steps' wording: no token is
 #      left, and check-docs.sh, check-traceability.sh, and check-devcontainer.sh pass.
 #   3. The same, on the path 'No Dev Container?' of 'A small project': ADR-0004 superseded and
@@ -124,6 +125,7 @@ PLACEHOLDERS=(
   "docs/adr/0001-agent-governance-model.md|^- \*\*Deciders:\*\* NUC maintainer$|inherited from the template and not decided by this project"
   "README.md|\(TEMPLATE-SETUP\.md\)|README.md: broken relative link -> 'TEMPLATE-SETUP.md'"
   "README.md|^TEMPLATE-SETUP\.md |README.md: Project Layout lists 'TEMPLATE-SETUP.md'"
+  ".agents/skills/setup-project/SKILL.md|\(\.\./\.\./\.\./TEMPLATE-SETUP\.md\)|.agents/skills/setup-project/SKILL.md: broken relative link -> '../../../TEMPLATE-SETUP.md'"
 )
 
 d="$(copy pending)"
@@ -160,6 +162,8 @@ done < <(scaffold_tokens "$ROOT")
 setup_steps() {
   local d="$1" f doc
   rm "$d/TEMPLATE-SETUP.md"
+  # The skill that walks the setup, and its pointer.
+  rm -rf "$d/.agents/skills/setup-project" "$d/.claude/skills/setup-project"
   # The README's notes that point at the setup file, and its row in the Project Layout block.
   edit "$d" README.md '/^> \[!NOTE\]$/,/^$/d'
   edit "$d" README.md '/^> Setting the project up/,/^$/d'

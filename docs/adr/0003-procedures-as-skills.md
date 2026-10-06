@@ -7,13 +7,13 @@
 
 ## Context
 
-[`AGENTS.md`](../../AGENTS.md) states rules. Four of them are procedures — developing an ADR
-([§3](../../AGENTS.md#3-adr-rules), rule 3), planning work larger than one session
-([§4](../../AGENTS.md#4-working-style)), reviewing a change, and revising the design when a
-feature spec closes or a number of changes has passed
+[`AGENTS.md`](../../AGENTS.md) states rules. Several of them are procedures — developing an ADR
+([§3](../../AGENTS.md#3-adr-rules), rule 3), planning work larger than one session and working
+its tickets ([§4](../../AGENTS.md#4-working-style)), reviewing a change, and revising the design
+when a feature spec closes or a number of changes has passed
 ([§5](../../AGENTS.md#5-quality-bar--definition-of-done)) — and each was written out in the rule
 file and again where it is used: the ADR template, the issue templates, the pull request template.
-Four copies drift, and every sharpening lands in a file that every session reads in full whether
+The copies drift, and every sharpening lands in a file that every session reads in full whether
 it reviews, plans, or fixes a typo.
 
 Two forces limit the answer. The rule file is the single source of working rules, and no other
@@ -31,14 +31,17 @@ holding one symlink per skill loads all of them.
 
 ## Decision
 
-We will keep the four procedures of the rule file — developing an ADR, planning work larger than
-one session, reviewing a change, revising the design — as Agent
-Skills under `.agents/skills/`, one directory with a `SKILL.md` each, reached by Claude Code
-through one symlink per skill under `.claude/skills/`. A skill carries the steps of one procedure,
-cites the section of `AGENTS.md` or the ADR that requires it, and states no rule of its own; the
-rule file and the templates name the skill and drop the steps. A skill may carry reference files
-its procedure reads, such as the catalogue of concepts of `propose-adr`; they hold knowledge and
-no rule.
+We will keep the procedures of the rule file — developing an ADR, planning work larger than one
+session, working its tickets alone or in parallel, reviewing a change, revising the design — as
+Agent Skills under `.agents/skills/`, one directory with a `SKILL.md` each, reached by Claude Code
+through one symlink per skill under `.claude/skills/`. The walk through `TEMPLATE-SETUP.md` is a
+skill of the same kind, deleted together with that file. A skill carries the steps of one
+procedure, cites the section of `AGENTS.md`, the ADR, or the setup step that requires it, and
+states no rule of its own; the rule file and the templates name the skill and drop the steps. A
+skill may carry reference files its procedure reads, such as the catalogue of concepts of
+`propose-adr`; they hold knowledge and no rule. It may carry a script a step runs where the step
+is a sequence of commands whose order decides its outcome, such as the claim of `work-tickets`;
+the script is a how like the steps, and a self-test under `scripts/` runs it (ADR-0002).
 
 **Out of scope:** skills a derived project adds for its own domain; whether a skill may run
 unattended, which its ticket decides ([§4](../../AGENTS.md#4-working-style)); the checks that

@@ -8,7 +8,7 @@
 
 ## Related
 
-- Closes #  <!-- the ticket this lands, or the issue it resolves (ADR-0006) -->
+- Ticket:  <!-- the file under docs/plan/ this deletes, or the report it resolves (ADR-0006) -->
 - Implements / relates to ADR-
 
 ## Proof
