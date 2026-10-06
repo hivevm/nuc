@@ -64,7 +64,7 @@ copy() {
 stage() { fixture "$1"; git -C "${1:?}" add -A; }
 
 # edit <dir> <file> <sed script> — apply one edit of the setup to the copy, where the file exists.
-edit() { [[ ! -f "$1/$2" ]] || sed -i "$3" "$1/$2"; }
+edit() { [[ ! -f "$1/$2" ]] || { sed "$3" "$1/$2" > "$1/$2.tmp" && mv "$1/$2.tmp" "$1/$2"; }; }
 
 # run_check <dir> <script> — run one check against the copy; prints its output and exit code.
 run_check() { fixture "$1"; bash "$ROOT/scripts/$2" "$1" 2>&1; }
@@ -194,7 +194,9 @@ setup_steps() {
   # run.
   edit "$d" README.md 's/^Describe what this project does.*/Fixture answers questions./'
   edit "$d" README.md 's/^TODO — show a minimal example.*/Run fixture ask./'
-  edit "$d" README.md 's/^- \*\*\(Build\|Test\|Lint\|Run\):\*\* TODO.*/- **\1:** none/'
+  for field in Build Test Lint Run; do
+    edit "$d" README.md "s/^- \*\*$field:\*\* TODO.*/- **$field:** none/"
+  done
 }
 
 d="$(copy complete)"
@@ -302,10 +304,10 @@ ADR
   edit "$d" README.md 's/`devcontainer`, //'
   edit "$d" .vscode/settings.json '/^  \/\/ Manage the \*host/,/^  }$/d'
   edit "$d" .gitignore '/^# Dev Container:/,/(ADR-0004)\.$/d'
-  edit "$d" README.md '/^## Dev Container$/,/^## Coding Agents$/{/^## Coding Agents$/!d}'
+  edit "$d" README.md '/^## Dev Container$/,/^## Coding Agents$/{/^## Coding Agents$/!d;}'
   edit "$d" README.md '/^\.devcontainer\/ /d'
   edit "$d" README.md '/^This Dev Container preinstalls/,/^$/d'
-  edit "$d" SECURITY.md '/^- \*\*The Dev Container has no access/,/^- \*\*Nothing leaves/{/^- \*\*Nothing leaves/!d}'
+  edit "$d" SECURITY.md '/^- \*\*The Dev Container has no access/,/^- \*\*Nothing leaves/{/^- \*\*Nothing leaves/!d;}'
   stage "$d"
   expect_pass "the small-project path passes the documentation checks" "$d" check-docs.sh
   expect_pass "the small-project path passes the traceability check" "$d" check-traceability.sh
