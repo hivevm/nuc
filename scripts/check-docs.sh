@@ -197,7 +197,7 @@ is_doc_file() {
 # the rejection. Verifying either one's references would demand that the tree still contain what
 # the project decided against, so the reference checks below skip them.
 is_inactive_adr() {
-  [[ "$1" == "$ADR_DIR"/* ]] && grep -m1 -F '**Status:**' "$1" | grep -q '⚪\|🔴'
+  [[ "$1" == "$ADR_DIR"/* ]] && grep -m1 -F '**Status:**' "$1" | grep -qE '⚪|🔴'
 }
 
 check_adr_index() {
@@ -927,7 +927,7 @@ check_prose_width() {
       # A link is one word, whatever its text holds. A line without a space outside its links
       # cannot break; any other line can.
       indent="${line%%[! ]*}"
-      body="$(sed -E ':a; s/(\[[^] ]*) ([^]]*\]\()/\1\x01\2/; ta' <<< "${line:${#indent}}")"
+      body="$(sed -E -e ':a' -e 's/(\[[^] ]*) ([^]]*\]\()/\1_\2/' -e 'ta' <<< "${line:${#indent}}")"
       [[ "$body" == *" "* ]] \
         && add_error "$rel:$n: ${#line} columns — wrap the prose at 100 (a link that does not fit stands on a line of its own)"
     done < "$f"
