@@ -151,7 +151,9 @@ configured once by a maintainer and worth re-checking after a repository move or
   `docs`, `traceability`, `devcontainer`, `sensors`, and `shell`
   <!-- required-checks end -->
   jobs of the **Checks** workflow as required status checks (rulesets list checks by their job
-  name), and blocks force pushes and branch deletion;
+  name) and a branch up to date with `main` before it merges, so that the checks see what the
+  merge produces, such as two ADRs proposed in parallel under one number, and blocks force
+  pushes and branch deletion;
 - enable **require a review from Code Owners** on that ruleset, so the two artifacts only a human
   decides, [`docs/SPECIFICATION.md`](docs/SPECIFICATION.md) and everything under
   [`docs/adr/`](docs/adr/) ([`AGENTS.md` §3](AGENTS.md#3-adr-rules)), cannot be merged without the

@@ -199,4 +199,6 @@ entries.
   [`plan-feature`](.agents/skills/plan-feature/SKILL.md) skill; the golden path of step 7 is the
   tracer bullet of the first spec.
 - **A second maintainer** makes the Code Owners review of the repository settings possible; keep
-  it required.
+  it required. With several, a team is the code owner in
+  [`.github/CODEOWNERS`](.github/CODEOWNERS), and the harness ADR says which of them decides the
+  ADRs of which part, so that the pull requests of ADRs do not all wait on one person.

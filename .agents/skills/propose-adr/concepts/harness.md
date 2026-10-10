@@ -15,6 +15,7 @@ and the cap on open agent work.
 - A second agent, a second human, or parallel sessions start working in the repository.
 - A ticket asks to run unattended, and nothing says what may.
 - Reviews pile up faster than the humans read them.
+- Pull requests of ADRs wait on the one human who may decide them.
 
 ## Fits when
 
@@ -34,7 +35,12 @@ and the cap on open agent work.
   [`work-tickets`](../../work-tickets/SKILL.md) skill is the order of that work, and every
   agent that reads skills and runs from a command line can be dispatcher or worker.
 
-Whichever fits, the ADR answers: which agent and model implements and which reviews, and the
+Whichever fits, the ADR answers: who decides ADRs and lands changes to the specification, one
+maintainer or several, and where several, which of them decides for which part of the system,
+named by the paths an ADR's *Applies to* names, with the code owners of `docs/adr/` and the
+specification being exactly those who may decide and each ADR's `Deciders` line naming the one
+who did; which agent and model implements and which
+reviews, and the
 command that starts a session of each without a human, such as the agent's non-interactive
 mode; how parallel sessions are kept apart, if there are any, and on which remote claims on
 tickets are made where the sessions do not all share one repository; how much agent work may
@@ -54,11 +60,11 @@ and whatever else the specification's threats protect.
 
 ## The rule a test decides
 
-None, as a rule: who reviews and what runs unattended is decided outside the tree. The ADR says
-so in a `**Not mechanically decidable:**` paragraph
-([ADR-0002](../../../../docs/adr/0002-decisions-verified-by-tests.md)). What the harness relies on
-mechanically is already checked: the git hooks, the required checks, and the Code Owners review
-of the repository settings.
+None, as a rule: who reviews, who decides which ADRs, and what runs unattended is decided
+outside the tree. The ADR says so in a `**Not mechanically decidable:**` paragraph
+([ADR-0002](../../../../docs/adr/0002-decisions-verified-by-tests.md)). What the harness relies
+on mechanically is already checked: the git hooks, the required checks, and the Code Owners
+review of the repository settings.
 
 ## Sensors
 

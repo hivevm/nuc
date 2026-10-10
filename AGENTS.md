@@ -60,8 +60,10 @@ restates nothing, and a rule this file does not state is not a rule of this proj
    fixes, interface-preserving refactorings, tests, docs, formatting, and dev-only tooling. When
    genuinely unsure, prefer a short `proposed` ADR over a silent decision.
 3. **Develop the ADR with the human, critically.** Submit it with status `proposed` **in a
-   pull request of ADRs only**, never mixed with implementation; the founding decisions of a new
-   project travel together in one. Skill: `propose-adr`.
+   pull request of ADRs only**, never mixed with implementation. ADRs the same human decides may
+   travel together in one, as the founding decisions of a new project do; each stays one
+   decision, and one the human sends back leaves that pull request for one of its own. Skill:
+   `propose-adr`.
 4. **After human review, implement while the ADR is still `proposed`.** Findings return as
    revisions, each in its own ADR-only pull request. **Only a human changes the status;** the
    flip to `accepted` may land with the implementation.

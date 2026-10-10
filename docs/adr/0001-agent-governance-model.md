@@ -72,8 +72,9 @@ mechanics of a record the rule file delegates to it: [`docs/adr/README.md`](READ
 part of this record restates it. The ADR rules of [`AGENTS.md` §3](../../AGENTS.md#3-adr-rules)
 are the one block with no ADR behind it — accepted here, and reversible by an ADR on the ADR
 process. Rules 1 and 3 of that block belong to it like the rest: the catalogue is what a decision
-is proposed from, and the founding decisions of a new project travel together in a pull request
-of ADRs only, so that they are proposed as one start and revised while proposed.
+is proposed from, and ADRs the same human decides may travel together in a pull request of ADRs
+only, the founding decisions of a new project always, so that they are proposed as one start and
+revised while proposed.
 
 **Out of scope:** what `AGENTS.md` says and how other documents cite it; which agents a project uses
 and which need a pointer file; how the ADR record is kept; the notation and depth of the overview;

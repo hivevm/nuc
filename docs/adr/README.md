@@ -21,10 +21,13 @@ verifies.
   the file being opened. Two tables keep what a session reads apart from what it looks up: an
   accepted or proposed ADR sits under **Binding**, a superseded or rejected one under
   **Superseded and rejected**, and a status flip moves the row.
-- **Numbers are permanent.** Never renumber, delete, or merge ADRs: other ADRs, commits
-  (`Implements ADR-NNNN`), and code may reference a number. A superseded ADR keeps its file and
-  its body. Its `Status` line flips to `⚪ superseded by ADR-NNNN` in the pull request that lands
-  the superseding ADR, whose `Supersedes` field names it back.
+- **Numbers are permanent once on `main`.** Never renumber, delete, or merge an ADR there: other
+  ADRs, commits (`Implements ADR-NNNN`), and code may reference a number. A proposed ADR whose
+  number another pull request brought to `main` first takes the next free number before it
+  merges, in its file name, heading, and index row and in every reference its own branch makes
+  to it. A superseded ADR keeps its file and its body. Its `Status` line flips to
+  `⚪ superseded by ADR-NNNN` in the pull request that lands the superseding ADR, whose
+  `Supersedes` field names it back.
 - **Sprawl is curbed by supersession, never by editing.** One ADR may supersede several whose
   decisions have grown into one. Its `Supersedes` field names each, and each flips its status in
   the same pull request, so the set an agent reads for a change shrinks while every number and
