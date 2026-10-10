@@ -33,8 +33,12 @@ Before any non-trivial work, read:
 1. [`docs/SPECIFICATION.md`](docs/SPECIFICATION.md): problem, goals, success criteria, in the
    vocabulary of [`docs/GLOSSARY.md`](docs/GLOSSARY.md).
 2. [`docs/adr/README.md`](docs/adr/README.md): the ADR index. **Accepted ADRs are binding.** Read
-   every one whose *Applies to* names what your change touches. A `proposed` ADR binds the work
-   that implements it. Rejected and superseded ADRs explain *why*; they are not rules.
+   every one whose *Applies to* names what your change touches.
+   [`scripts/sensor-binding-adrs.sh`](scripts/sensor-binding-adrs.sh) lists those that name one
+   of its paths. An *Applies to* written in prose you match yourself. Of each binding ADR, read
+   the header, the *Decision*, and the *Enforcement*. Read the rest when the change questions,
+   revises, or supersedes it. A `proposed` ADR binds the work that implements it. Rejected and
+   superseded ADRs explain *why*; they are not rules.
 3. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): the system as it stands today. Where it and an
    accepted ADR disagree, the ADR is right.
 

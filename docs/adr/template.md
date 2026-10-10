@@ -34,7 +34,9 @@ Interrogate the request with the human before writing this section
 ## Decision
 
 What we decided, in one clear, active sentence ("We will …"). A second "We will …" sentence is a
-sign of two ADRs ([`AGENTS.md` §3](../../AGENTS.md#3-adr-rules)).
+sign of two ADRs ([`AGENTS.md` §3](../../AGENTS.md#3-adr-rules)). Everything that binds stands
+here or under *Enforcement*. A session whose change only follows the ADR reads these two and the
+header ([`AGENTS.md` §2](../../AGENTS.md#2-start-here)).
 
 **Out of scope:** what this decision deliberately leaves open, so a later ADR can take it up
 without contradicting this one. Write "nothing beyond the sentence above" when the decision is

@@ -47,9 +47,10 @@ described: each is a finding, because a stale overview is believed.
 ## 4. Read the record and the constitution against the system
 
 Take the ADRs in force whose *Applies to* names a touched module, through the index in
-[`docs/adr/README.md`](../../../docs/adr/README.md). Decisions that have grown into one, each ADR
-true on its own and the set said in one sentence, are a candidate for one superseding ADR that
-consolidates them ([mechanics](../../../docs/adr/README.md#mechanics)).
+[`docs/adr/README.md`](../../../docs/adr/README.md). Read each in full, because the revision weighs
+its forces against the system. Decisions that have grown into one, each ADR true on its own
+and the set said in one sentence, are a candidate for one superseding ADR that consolidates
+them ([mechanics](../../../docs/adr/README.md#mechanics)).
 
 Then the criteria of [`docs/SPECIFICATION.md`](../../../docs/SPECIFICATION.md) the feature spec
 named as served; without a spec, the criteria a `Verifies:` marker cites from the directories

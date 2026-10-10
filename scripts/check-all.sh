@@ -42,6 +42,8 @@ run "Dev Container self-test" scripts/test-check-devcontainer.sh
 run "Dev Container" scripts/check-devcontainer.sh
 run "Tests-kept sensor self-test" scripts/test-sensor-tests-kept.sh
 run "Tests-kept sensor" scripts/sensor-tests-kept.sh
+run "Binding ADRs sensor self-test" scripts/test-sensor-binding-adrs.sh
+run "Binding ADRs sensor" scripts/sensor-binding-adrs.sh
 run "Revision-due sensor self-test" scripts/test-sensor-revision-due.sh
 run "Revision-due sensor" scripts/sensor-revision-due.sh
 run "Plan frontier sensor self-test" scripts/test-sensor-plan-frontier.sh

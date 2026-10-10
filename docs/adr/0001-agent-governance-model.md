@@ -3,7 +3,7 @@
 - **Status:** 🟢 accepted
 - **Date:** 2026-09-05
 - **Deciders:** NUC maintainer
-- **Applies to:** every document that carries rules for humans or agents, the architecture overview, the glossary, the conventions, and `scripts/check-docs.sh`
+- **Applies to:** every document that carries rules for humans or agents, `AGENTS.md` among them, the architecture overview, the glossary, the conventions, `scripts/check-docs.sh`, and `scripts/sensor-binding-adrs.sh`
 
 ## Context
 
@@ -153,7 +153,11 @@ created from this template drops.
 that the ADR record and its index agree, that links between the documents resolve, and that section
 references point at the section they name — which is why a document cites a rule as a link to
 its section anchor and never restates it: a renumbering breaks the link, and the check catches
-it, where a restated rule would drift unseen. One gate routes a specification change to a human
+it, where a restated rule would drift unseen.
+[`scripts/sensor-binding-adrs.sh`](../../scripts/sensor-binding-adrs.sh) (job `sensors`) lists
+the ADRs in force whose *Applies to* names a path a change touches, so that the session and its
+reviewer start from the same list; it reads paths only, never fails, and its self-test cites
+this ADR. One gate routes a specification change to a human
 without judging it: [`.github/CODEOWNERS`](../../.github/CODEOWNERS) requires the owner's review
 once the repository enables it ([**Repository settings**](../../README.md#repository-settings)).
 That no other document holds a rule, that the
