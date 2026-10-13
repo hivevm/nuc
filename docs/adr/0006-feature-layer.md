@@ -65,6 +65,8 @@ the local branch, which git refuses to create twice, and needs no commit and not
 Among clones that share a remote, the claim is made there first: a push that only creates the
 branch, with an empty commit of its own on the remote's `main`, because a push of a commit the
 branch already points at succeeds without creating anything, and two clones would both win.
+That push skips the pre-push hook: its commit carries the tree of the remote's `main`
+unchanged, so the checks have nothing to decide.
 That push is the one the harness ADR may grant without an instruction per push
 ([`AGENTS.md` §6](../../AGENTS.md#6-project-rules)); a project whose sessions share a
 repository grants none. A ticket is claimable once it is on `main`, where the worker's branch
