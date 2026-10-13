@@ -68,17 +68,25 @@ restates nothing. A rule this file does not state is not a rule of this project.
    pull request of ADRs only**, never mixed with implementation. ADRs the same human decides may
    travel together in one pull request, as the founding decisions of a new project do. Each stays
    one decision. One the human sends back leaves that pull request for one of its own. Skill:
-   `propose-adr`.
+   `propose-adr`. The normalization of rule 5 is the one exception: its pull request carries the
+   restated ADRs and the references that move with them.
 4. **After human review, implement while the ADR is still `proposed`.** Findings return as
    revisions, each in its own ADR-only pull request. **Only a human changes the status.** The
    flip to `accepted` may land with the implementation.
 5. **Accepted ADRs are binding and immutable.** Never violate or work around one; change it only
-   by superseding it. Two edits are permitted, both by a human. One flips the `Status` line. The
-   other adds the project's decider to the `Deciders` line of an ADR inherited from the template,
-   when the project accepts it as its own. ADR numbers are permanent. The template repository
-   corrects its own ADRs in place ([ADR-0005](docs/adr/0005-template-releases.md)). If the
-   specification and an ADR conflict, the specification wins. Raise the conflict; never choose
-   silently.
+   by superseding it. Outside a normalization, never rewrite or delete one. Two edits are
+   permitted, both by a human. One flips the `Status` line. The other adds the project's decider
+   to the `Deciders` line of an ADR inherited from the template, when the project accepts it as
+   its own. ADR numbers are permanent between normalizations. The template repository corrects
+   its own ADRs in place ([ADR-0005](docs/adr/0005-template-releases.md)). If the specification
+   and an ADR conflict, the specification wins. Raise the conflict; never choose silently.
+
+   **A normalization restates the record, only on a human's instruction.** The specification is
+   restated first, under rule 7. The ADRs it invalidates are superseded next. Then the ADRs in
+   force are rewritten as a new series in reading order, the inherited ones among them, and
+   superseded and rejected ADRs are deleted. A normalization changes no decision. It is rare, at a
+   milestone or a release, because it makes the numbers cited outside the tree harder to read.
+   Skill: `normalize`.
 6. **Use the vocabulary of [`docs/GLOSSARY.md`](docs/GLOSSARY.md)** in code, comments, and
    documentation. Add a term in the same change that settles it. A missing entry is a gap to
    close there, not a word to invent.

@@ -3,7 +3,7 @@
 - **Status:** 🟢 accepted
 - **Date:** 2026-09-05
 - **Deciders:** NUC maintainer
-- **Applies to:** every document that carries rules for humans or agents, `AGENTS.md` among them, the architecture overview, the glossary, the conventions, `scripts/check-docs.sh`, and `scripts/sensor-binding-adrs.sh`
+- **Applies to:** every document that carries rules for humans or agents, `AGENTS.md` among them, the architecture overview, the glossary, the conventions, `scripts/check-docs.sh`, `scripts/sensor-binding-adrs.sh`, and the map script of the `normalize` skill, `.agents/skills/normalize/remap.sh`
 
 ## Context
 
@@ -74,7 +74,9 @@ are the one block with no ADR behind it — accepted here, and reversible by an 
 process. Rules 1 and 3 of that block belong to it like the rest: the catalogue is what a decision
 is proposed from, and ADRs the same human decides may travel together in a pull request of ADRs
 only, the founding decisions of a new project always, so that they are proposed as one start and
-revised while proposed.
+revised while proposed. Rule 5 belongs to it with its normalization: on a human's instruction the
+record is restated in reading order, without its dead ADRs, and no decision changes. A record
+that only grows costs every session the reconstruction the overview exists to spare it.
 
 **Out of scope:** what `AGENTS.md` says and how other documents cite it; which agents a project uses
 and which need a pointer file; how the ADR record is kept; the notation and depth of the overview;
@@ -157,9 +159,12 @@ it, where a restated rule would drift unseen.
 [`scripts/sensor-binding-adrs.sh`](../../scripts/sensor-binding-adrs.sh) (job `sensors`) lists
 the ADRs in force whose *Applies to* names a path a change touches, so that the session and its
 reviewer start from the same list; it reads paths only, never fails, and its self-test cites
-this ADR. One gate routes a specification change to a human
+this ADR. The self-test of the `normalize` skill's map script
+([`scripts/test-normalize-remap.sh`](../../scripts/test-normalize-remap.sh), job `docs`) cites
+this ADR too: it decides that a map moves every reference once, a swap included, and leaves the
+record it describes to the normalization. One gate routes a specification change to a human
 without judging it: [`.github/CODEOWNERS`](../../.github/CODEOWNERS) requires the owner's review
 once the repository enables it ([**Repository settings**](../../README.md#repository-settings)).
 That no other document holds a rule, that the
-overview matches the system, that the glossary's terms are the ones in use, and that no convention
-stands where a check could, is review only.
+overview matches the system, that the glossary's terms are the ones in use, that no convention
+stands where a check could, and that a normalization changed no decision, is review only.

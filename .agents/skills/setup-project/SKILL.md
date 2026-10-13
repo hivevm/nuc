@@ -23,6 +23,9 @@ the conversation and states no rule of its own
   8 once the human has reviewed those ADRs, on branches of their own. A later session resumes
   from the tree: a title still `<Project Name>`, a criterion still `…`, an inherited ADR without
   a decider of this project show where the walk stopped.
+- In an existing project, steps 2 and 3 run as the adoption of the
+  [`normalize`](../normalize/SKILL.md) skill, and this walk resumes with step 4 for what no
+  record of the project decides yet.
 
 ## 1. The profile
 
@@ -55,9 +58,9 @@ written once confirmed:
 2. **Mission, Vision, Strategy:** two or three candidate wordings each, the human chooses or
    rewrites; in a small project one sentence each is enough.
 3. **Goals:** for each, the trigger and the response, *When <trigger>, the system shall
-   <response>*, and how a test would decide it; numbered `G-1` onward.
+   <response>*, and how a test would decide it; numbered from 1 as `G-n`.
 4. **Quality goals:** the few properties that decide between designs, in priority order, each
-   with a measure that would settle a disagreement; numbered `Q-1` onward.
+   with a measure that would settle a disagreement; numbered from 1 as `Q-n`.
 5. **Non-goals:** what a reader would expect the project to do that it will not.
 6. **Constraints:** platforms, standards, systems to work with, limits of time, budget, and team.
 7. **Threats:** the assets, who threatens them, the trust boundaries, and what the system must

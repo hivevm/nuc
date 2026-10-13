@@ -16,6 +16,12 @@ every step in full and grows its harness to tickets worked in parallel, as
 at a time with the `setup-project` skill, and writes the specification of step 3 with you,
 section by section.
 
+An **existing project** takes up the template by an adoption, with the
+[`normalize`](.agents/skills/normalize/SKILL.md) skill. Its files are copied into the tree, and
+step 1 gives the project its identity. Then the specification and the record are restated in
+place of steps 2 and 3: the project's own decisions and the inherited ADRs become one series
+([`AGENTS.md` §3](AGENTS.md#3-adr-rules), rule 5). The steps still open follow.
+
 ## What only you can do
 
 1. Give the project its identity. An agent asks the human for four values and applies them:

@@ -33,6 +33,10 @@ commit() {
   git -C "${1:?}" -c user.name=fixture -c user.email=fixture@example.invalid commit -q -m "$2"
 }
 
+# adr_id <n> — the identifier ADR-000n, assembled so that this file carries no literal one: a
+# normalization rewrites every literal one in the tree.
+adr_id() { printf "ADR-%04d" "$1"; }
+
 # adr <dir> <number> <status emoji and word> <applies to> — write an ADR header.
 adr() {
   mkdir -p "$1/docs/adr"
@@ -48,7 +52,7 @@ repo() {
   # shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
   adr "$dir" 0001 "🟢 accepted" 'the plan under `docs/plan/` and `README.md`'
   # shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
-  adr "$dir" 0002 "⚪ superseded by ADR-0003" 'everything under `src/`'
+  adr "$dir" 0002 "⚪ superseded by $(adr_id 3)" 'everything under `src/`'
   # shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
   adr "$dir" 0003 "🟡 proposed" 'the code under `src/`, and the `pull request` template'
   printf 'readme\n' > "$dir/README.md"
@@ -98,13 +102,13 @@ expect 2 "a base that does not resolve fails" "$d" "does not resolve" "no-such-r
 d="$(repo dir)"
 printf 'more\n' >> "$d/docs/plan/README.md"
 commit "$d" "touch the plan"
-expect 0 "a path under a directory of Applies to binds" "$d" "- ADR-0001 (docs/adr/0001-fixture.md) — docs/plan/README.md"
+expect 0 "a path under a directory of Applies to binds" "$d" "- $(adr_id 1) (docs/adr/0001-fixture.md) — docs/plan/README.md"
 expect 0 "one ADR in force names the change" "$d" "1 ADR(s) in force name one of them"
 
 d="$(repo file)"
 printf 'more\n' >> "$d/README.md"
 commit "$d" "touch the readme"
-expect 0 "a file named in Applies to binds" "$d" "- ADR-0001 (docs/adr/0001-fixture.md) — README.md"
+expect 0 "a file named in Applies to binds" "$d" "- $(adr_id 1) (docs/adr/0001-fixture.md) — README.md"
 
 d="$(repo prefix)"
 printf 'x\n' > "$d/README.md.bak"
@@ -114,8 +118,8 @@ expect 0 "a file named in Applies to binds only itself" "$d" "no ADR in force na
 d="$(repo code)"
 printf 'more\n' >> "$d/src/app.sh"
 commit "$d" "touch the code"
-expect 0 "a proposed ADR binds" "$d" "- ADR-0003 (docs/adr/0003-fixture.md) — src/app.sh"
-reject "a superseded ADR does not bind" "$d" "ADR-0002"
+expect 0 "a proposed ADR binds" "$d" "- $(adr_id 3) (docs/adr/0003-fixture.md) — src/app.sh"
+reject "a superseded ADR does not bind" "$d" "$(adr_id 2)"
 reject "a backticked phrase with a space is no path" "$d" "pull request"
 
 d="$(repo added)"
@@ -123,7 +127,7 @@ d="$(repo added)"
 adr "$d" 0004 "🟡 proposed" 'the tools under `tools/`'
 mkdir -p "$d/tools" && printf 'tool\n' > "$d/tools/t.sh"
 commit "$d" "a new ADR with its first tool"
-expect 0 "an ADR the change adds is read as the head has it" "$d" "- ADR-0004 (docs/adr/0004-fixture.md) — tools/t.sh"
+expect 0 "an ADR the change adds is read as the head has it" "$d" "- $(adr_id 4) (docs/adr/0004-fixture.md) — tools/t.sh"
 
 d="$(repo none)"
 printf 'notes\n' > "$d/NOTES.txt"
@@ -137,14 +141,14 @@ expect 0 "more than three hits are counted, not listed" "$d" "src/f1.sh src/f2.s
 
 d="$(repo worktree)"
 printf 'more\n' >> "$d/src/app.sh"
-expect 0 "an uncommitted change binds before the first commit" "$d" "- ADR-0003 (docs/adr/0003-fixture.md) — src/app.sh"
+expect 0 "an uncommitted change binds before the first commit" "$d" "- $(adr_id 3) (docs/adr/0003-fixture.md) — src/app.sh"
 printf 'new\n' > "$d/src/new.sh"
 expect 0 "an untracked file is part of the change" "$d" "src/app.sh src/new.sh"
 HEADREF=HEAD expect 0 "with a head, the working tree is not read" "$d" "nothing to compare"
 # shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
 adr "$d" 0001 "🔴 rejected" 'the plan under `docs/plan/` and `README.md`'
 printf 'more\n' >> "$d/README.md"
-reject "the working tree's own ADRs are read without a head" "$d" "ADR-0001"
+reject "the working tree's own ADRs are read without a head" "$d" "$(adr_id 1)"
 
 d="$(repo names)"
 # shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
@@ -154,7 +158,7 @@ printf 'ü\n' > "$d/docs/über.md"
 commit "$d" "names"
 git -C "${d:?}" tag -f base >/dev/null
 printf 'more\n' >> "$d/Makefile"
-expect 0 "a file without an extension binds" "$d" "ADR-0004 (docs/adr/0004-fixture.md) — Makefile"
+expect 0 "a file without an extension binds" "$d" "$(adr_id 4) (docs/adr/0004-fixture.md) — Makefile"
 git -C "${d:?}" checkout -q -- Makefile
 printf 'more\n' >> "$d/.githooks/pre-push"
 expect 0 "a directory written without its slash binds what is under it" "$d" "— .githooks/pre-push"
@@ -163,7 +167,7 @@ printf 'more\n' >> "$d/docs/über.md"
 expect 0 "a path outside ASCII binds" "$d" "— docs/über.md"
 git -C "${d:?}" checkout -q -- docs
 rm "$d/Makefile"
-expect 0 "a deleted file binds" "$d" "ADR-0004 (docs/adr/0004-fixture.md) — Makefile"
+expect 0 "a deleted file binds" "$d" "$(adr_id 4) (docs/adr/0004-fixture.md) — Makefile"
 
 # --- summary ---------------------------------------------------------------------------------
 

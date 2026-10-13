@@ -36,16 +36,20 @@ from, and `unreleased` before the first.
   SemVer allows and this template has no use for; what is not ready to be released is not
   tagged.
 - **Major, minor, patch:** a major is a change an existing derived project must act on, such as
-  a check that would fail on its tree or an inherited ADR superseded; a minor adds a check, an
-  ADR, a skill, a catalogue entry, or a document; a patch changes wording. Before `v1.0.0` a
-  minor may break, per SemVer item 4.
+  a check that would fail on its tree, an inherited ADR superseded, or the record normalized; a
+  minor adds a check, an ADR, a skill, a catalogue entry, or a document; a patch changes wording.
+  Before `v1.0.0` a minor may break, per SemVer item 4.
 - **A derived project moves the line** when it takes up a later release, and only then; a line
   never moved still tells the truth.
 - **The template corrects its own ADRs in place.** A derived project takes them up by release,
   not by reference, so a correction reaches it with the release notes, and one it must act on
   makes the release a major. From the first release on, the template's ADR numbers are
-  permanent. A derived project's ADRs, the inherited ones it accepted included, change only by
-  supersession ([`AGENTS.md` §3](../../AGENTS.md#3-adr-rules), rule 5).
+  permanent between normalizations. A normalization of the template is a major, and its notes
+  carry the map from the old numbers to the new. A derived project's ADRs, the inherited ones it
+  accepted included, change only by supersession, and are restated only by a normalization of
+  its own ([`AGENTS.md` §3](../../AGENTS.md#3-adr-rules), rule 5). It takes up the ADRs of a
+  release by a normalization: what changed between the tag it carries and the new one enters its
+  record.
 
 **Out of scope:** a changelog file; release automation; how a derived project merges a release,
 by subtree, by patch, or by hand; which releases receive fixes, which
@@ -82,13 +86,14 @@ by subtree, by patch, or by hand; which releases receive fixes, which
 
 ## Consequences
 
-- Positive: a derived project can say what it inherited and diff its state against a tag; the
-  maintainer has a coherent state to point to; the version says whether taking it up is work;
-  cutting a release is one line and one tag.
+- Positive: a derived project can say what it inherited and diff the template between the tag it
+  carries and a later one; the maintainer has a coherent state to point to; the version says
+  whether taking it up is work; cutting a release is one line and one tag.
 - Negative / trade-offs: the line is moved by hand, and a release nobody cuts leaves `main` ahead
   of the last tag, which harms nothing but names nothing either; a derived project that never
   moves the line reads a state that grows old; tags do not travel, which is why the line exists.
-- Follow-ups: a procedure for taking up a release in a derived project, once one has done it.
+- Follow-ups: a procedure for taking up the files of a release, beyond the record that a
+  normalization takes up.
 
 ## Enforcement
 

@@ -27,9 +27,10 @@ every criterion under **Goals / Success Criteria** or **Quality Goals** in the s
 no test cites.
 
 - **Identifiers.** Every list item in those two sections starts with a bold `G-n` (Goals) or `Q-n`
-  (Quality Goals), as in `- **G-1** — …`; an item without one fails. Identifiers are never
-  renumbered or reused.
-- **Marker.** `Verifies:` followed by one or more identifiers (`ADR-0004`, `G-1`), in any file
+  (Quality Goals), as in `- **G-n** — …`; an item without one fails. Identifiers are never
+  reused. Only a normalization renumbers them, and it moves every marker with them
+  ([`AGENTS.md` §3](../../AGENTS.md#3-adr-rules), rule 5).
+- **Marker.** `Verifies:` followed by one or more identifiers (`ADR-NNNN`, `G-n`), in any file
   of the repository that git does not ignore and that is not Markdown. It is plain text so that
   every language can carry it.
 - **Exception.** An ADR whose decision no test can decide — because only a human can, or because

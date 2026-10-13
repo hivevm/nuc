@@ -21,17 +21,40 @@ verifies.
   the file being opened. Two tables keep what a session reads apart from what it looks up: an
   accepted or proposed ADR sits under **Binding**, a superseded or rejected one under
   **Superseded and rejected**, and a status flip moves the row.
-- **Numbers are permanent once on `main`.** Never renumber, delete, or merge an ADR there: other
-  ADRs, commits (`Implements ADR-NNNN`), and code may reference a number. A proposed ADR whose
-  number another pull request brought to `main` first takes the next free number before it
-  merges, in its file name, heading, and index row and in every reference its own branch makes
-  to it. A superseded ADR keeps its file and its body. Its `Status` line flips to
-  `⚪ superseded by ADR-NNNN` in the pull request that lands the superseding ADR, whose
-  `Supersedes` field names it back.
-- **Sprawl is curbed by supersession, never by editing.** One ADR may supersede several whose
-  decisions have grown into one. Its `Supersedes` field names each, and each flips its status in
-  the same pull request, so the set an agent reads for a change shrinks while every number and
-  every body stays.
+- **Numbers are permanent once on `main`, until a normalization.** Between two normalizations,
+  never renumber, delete, or merge an ADR there: other ADRs, commits (`Implements ADR-NNNN`), and
+  code may reference a number. A proposed ADR whose number another pull request brought to
+  `main` first takes the next free number before it merges, in its file name, heading, and index
+  row and in every reference its own branch makes to it. Until a normalization, a superseded ADR
+  keeps its file and its body. Its `Status` line flips to `⚪ superseded by ADR-NNNN` in the pull
+  request that lands the superseding ADR, whose `Supersedes` field names it back.
+- **Between normalizations, sprawl is curbed by supersession, never by editing.** One ADR may
+  supersede several whose decisions have grown into one. Its `Supersedes` field names each, and
+  each flips its status in the same pull request, so the set an agent reads for a change shrinks
+  while every number and every body stays.
+- **A normalization restates the record** ([`AGENTS.md` §3](../../AGENTS.md#3-adr-rules), rule
+  5).
+  - **Start.** The tree has no proposed ADR, no feature spec or ticket under `docs/plan/`, and
+    green checks.
+  - **Steps.** Three pull requests, each landed by a human: the restated specification, whose
+    `G-n` and `Q-n` run from 1; the supersessions it calls for; and the restated record.
+  - **Order.** The record numbers the ADRs in force `0001..N` by what they govern. The document
+    set and the ADR process come first, then the founding decisions in the order of the setup,
+    then the rest in groups. An inherited ADR takes its place like any other, and may be merged
+    with the project's own.
+  - **Clauses.** Every clause of an old ADR lives on in one new ADR. The pull request of the
+    record lists each clause with the new ADR that carries it.
+  - **Header.** A new ADR keeps the status of the ADRs it restates. Its `Deciders` name all of
+    theirs, its `Date` is the latest of theirs, and it has no `Supersedes` field. In an
+    adoption, an ADR the project had accepted stays accepted. A decision found outside any
+    record enters as proposed.
+  - **Dead ADRs.** Superseded and rejected ADRs are deleted. What one of them chose, and why it
+    did not stand, becomes an entry under *Alternatives considered* in the new ADR that governs
+    its topic.
+  - **References.** Each step moves its references with a map, old to new, applied by the map
+    script of the `normalize` skill. The map stands in the pull request description and the
+    commit body, and in no document. A commit older than the normalization cites the numbers it
+    had then.
 - **Cite only what exists.** Every `ADR-NNNN` reference names a file already in this directory.
   An anticipated follow-up is described by topic ("a follow-up ADR on session storage"), never by
   a number. In Markdown, cite an ADR as a link to its own file.
@@ -54,7 +77,7 @@ is the table a session reads.
 
 | ADR | Title | Applies to | Status |
 |-----|-------|------------|--------|
-| [0001](0001-agent-governance-model.md) | The document set: one specification, one ADR record, one `AGENTS.md`, one overview, one glossary, one conventions file | every document that carries rules for humans or agents, `AGENTS.md` among them, the architecture overview, the glossary, the conventions, `scripts/check-docs.sh`, and `scripts/sensor-binding-adrs.sh` | 🟢 accepted |
+| [0001](0001-agent-governance-model.md) | The document set: one specification, one ADR record, one `AGENTS.md`, one overview, one glossary, one conventions file | every document that carries rules for humans or agents, `AGENTS.md` among them, the architecture overview, the glossary, the conventions, `scripts/check-docs.sh`, `scripts/sensor-binding-adrs.sh`, and the map script of the `normalize` skill, `.agents/skills/normalize/remap.sh` | 🟢 accepted |
 | [0002](0002-decisions-verified-by-tests.md) | Every accepted decision and every success criterion is verified by a test that cites it, and the checks that hold the decisions are bash scripts under `scripts/` | every accepted ADR, the Goals and Quality Goals of `docs/SPECIFICATION.md`, the tests that verify them, and the checks and sensors under `scripts/` | 🟢 accepted |
 | [0003](0003-procedures-as-skills.md) | The procedures of the rule file are Agent Skills under `.agents/skills/`, each carrying a how and no rule of its own | `.agents/skills/`, the pointers under `.claude/skills/`, and every document that describes how a procedure of `AGENTS.md` is carried out | 🟢 accepted |
 | [0004](0004-dev-container-runtime.md) | The Dev Container keeps the host daemon out of reach and its Features locked | `.devcontainer/`, `.vscode/settings.json`, `scripts/check-devcontainer.sh`, and everything the container pulls in | 🟢 accepted |

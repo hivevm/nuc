@@ -121,9 +121,9 @@ exists for one gap only: Claude Code loads `CLAUDE.md`, not `AGENTS.md`, tracked
 lands, delete the pointer file rather than keeping a second file to maintain.
 
 The procedures those rules name (proposing an ADR, planning a feature, working its tickets
-alone or in parallel, reviewing a change, revising the design) are Agent Skills under
-[`.agents/skills/`](.agents/skills/), the open format and the directory Codex, Gemini CLI, and
-Cursor read
+alone or in parallel, reviewing a change, revising the design, normalizing the record) are Agent
+Skills under [`.agents/skills/`](.agents/skills/), the open format and the directory Codex,
+Gemini CLI, and Cursor read
 ([ADR-0003](docs/adr/0003-procedures-as-skills.md)). An agent invokes one by name (`/review`) or
 picks it up when the task matches its description. Claude Code reads `.claude/skills/` only, so
 that directory holds one symlink per skill into `.agents/skills/`; a directory-level symlink is

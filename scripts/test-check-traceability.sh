@@ -27,6 +27,10 @@ passed=0
 # mark <ids...> — the marker line for the given identifiers.
 mark() { printf 'Verifies: %s\n' "$*"; }
 
+# adr_id <n> — the identifier ADR-000n, assembled so that this file carries no literal one: a
+# normalization rewrites every literal one in the tree.
+adr_id() { printf "ADR-%04d" "$1"; }
+
 # repo <name> — create an empty fixture repository and print its path.
 repo() {
   local dir="$work/$1"
@@ -95,20 +99,20 @@ expect() {
 d="$(repo covered)"
 spec "$d" "**G-1** — it works."
 adr "$d" 0001 "🟢 accepted"
-{ mark ADR-0001; mark G-1; } > "$d/tests/t.txt"
+{ mark "$(adr_id 1)"; mark G-1; } > "$d/tests/t.txt"
 expect pass "accepted ADR and criterion both cited" "$d"
 
 d="$(repo comma-list)"
 spec "$d" "**G-1** — it works." "**G-2** — it also works."
 adr "$d" 0001 "🟢 accepted"
-mark "ADR-0001, G-1 G-2" > "$d/tests/t.txt"
+mark "$(adr_id 1), G-1 G-2" > "$d/tests/t.txt"
 expect pass "several identifiers on one marker line" "$d"
 
 d="$(repo uncited-adr)"
 spec "$d" "**G-1** — it works."
 adr "$d" 0001 "🟢 accepted"
 mark G-1 > "$d/tests/t.txt"
-expect fail "accepted ADR without a citing test" "$d" "ADR-0001 is accepted but no test cites it"
+expect fail "accepted ADR without a citing test" "$d" "$(adr_id 1) is accepted but no test cites it"
 
 d="$(repo proposed-out-of-scope)"
 spec "$d" "**G-1** — it works."
@@ -175,24 +179,24 @@ expect fail "marker citing an ADR that does not exist" "$d" "'$unknown', which d
 
 d="$(repo superseded-adr)"
 spec "$d" "**G-1** — it works."
-adr "$d" 0001 "⚪ superseded by ADR-0002"
+adr "$d" 0001 "⚪ superseded by $(adr_id 2)"
 adr "$d" 0002 "🟢 accepted"
-mark "G-1 ADR-0001 ADR-0002" > "$d/tests/t.txt"
-expect fail "marker citing a superseded ADR" "$d" "'ADR-0001', which is superseded or rejected"
+mark "G-1 $(adr_id 1) $(adr_id 2)" > "$d/tests/t.txt"
+expect fail "marker citing a superseded ADR" "$d" "'$(adr_id 1)', which is superseded or rejected"
 
 d="$(repo markdown-not-counted)"
 spec "$d" "**G-1** — it works."
 adr "$d" 0001 "🟢 accepted"
-{ mark ADR-0001; mark G-1; } > "$d/tests/notes.md"
-expect fail "markers in Markdown do not count" "$d" "ADR-0001 is accepted but no test cites it"
+{ mark "$(adr_id 1)"; mark G-1; } > "$d/tests/notes.md"
+expect fail "markers in Markdown do not count" "$d" "$(adr_id 1) is accepted but no test cites it"
 
 d="$(repo ignored-not-counted)"
 spec "$d" "**G-1** — it works."
 adr "$d" 0001 "🟢 accepted"
 echo "build/" > "$d/.gitignore"
 mkdir -p "$d/build"
-{ mark ADR-0001; mark G-1; } > "$d/build/t.txt"
-expect fail "markers in gitignored files do not count" "$d" "ADR-0001 is accepted but no test cites it"
+{ mark "$(adr_id 1)"; mark G-1; } > "$d/build/t.txt"
+expect fail "markers in gitignored files do not count" "$d" "$(adr_id 1) is accepted but no test cites it"
 
 # --- the template's own promise ------------------------------------------------------------
 #
