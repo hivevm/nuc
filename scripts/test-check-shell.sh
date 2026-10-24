@@ -10,6 +10,8 @@
 # ShellCheck is not on PATH the lint skips ShellCheck, and so does this test with the cases that
 # need it.
 #
+# Inputs: scripts/check-shell.sh
+#
 # Usage:
 #     scripts/test-check-shell.sh
 # Exit code 0 when every case passes, 1 otherwise.

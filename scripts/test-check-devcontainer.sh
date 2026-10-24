@@ -8,6 +8,8 @@
 # code and, for a failing case, the message that names the violation. The baseline passes; every
 # other case breaks one thing ADR-0004 decides.
 #
+# Inputs: scripts/check-devcontainer.sh
+#
 # Usage:
 #     scripts/test-check-devcontainer.sh
 # Exit code 0 when every case passes, 1 otherwise.

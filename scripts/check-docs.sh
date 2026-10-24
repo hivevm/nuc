@@ -405,28 +405,37 @@ check_adr_supersessions() {
   done < <(find "$ADR_DIR" -maxdepth 1 -type f -name '[0-9][0-9][0-9][0-9]-*.md' | sort)
 }
 
-# Print the GitHub-style slug of every ATX heading in a Markdown file.
+# Print the GitHub-style slug of every ATX heading in a Markdown file. One awk pass per file: a
+# pipeline per heading made this the most expensive part of the script.
 extract_heading_slugs() {
-  local line text
-  while IFS= read -r line; do
-    [[ "$line" =~ ^#{1,6}[[:space:]]+(.*)$ ]] || continue
-    text="${BASH_REMATCH[1]}"
-    # Drop a trailing run of '#' (closed ATX headings), then slugify the way GitHub does:
-    # lowercase, remove everything but [a-z0-9 _-], then one hyphen per remaining space. A run of
-    # spaces yields a run of hyphens: GitHub drops a character such as "&" and keeps the spaces
-    # around it, so "Quality bar & Definition of Done" anchors as "quality-bar--definition-of-done".
-    printf '%s\n' "$text" \
-      | sed -E 's/[[:space:]]+#*[[:space:]]*$//' \
-      | tr '[:upper:]' '[:lower:]' \
-      | sed -E 's/[^a-z0-9 _-]+//g; s/[[:space:]]/-/g'
-  done < "$1"
+  awk '
+    match($0, /^#+[[:space:]]+/) {
+      hashes = $0; sub(/[^#].*$/, "", hashes)
+      if (length(hashes) > 6) next
+      text = substr($0, RLENGTH + 1)
+      # Drop a trailing run of "#" (closed ATX headings), then slugify the way GitHub does:
+      # lowercase, remove everything but [a-z0-9 _-], then one hyphen per remaining space. A run
+      # of spaces yields a run of hyphens: GitHub drops a character such as "&" and keeps the
+      # spaces around it, so "Quality bar & Definition of Done" anchors as
+      # "quality-bar--definition-of-done".
+      sub(/[[:space:]]+#*[[:space:]]*$/, "", text)
+      text = tolower(text)
+      gsub(/[^a-z0-9 _-]+/, "", text)
+      gsub(/[[:space:]]/, "-", text)
+      print text
+    }
+  ' "$1"
 }
+
+# HEADING_SLUGS — the slugs of each Markdown file an anchor was looked up in, newline-framed, keyed
+# by path: a file is linked from many others, and its headings are read once.
+declare -A HEADING_SLUGS=()
 
 # anchor_resolves <file> <fragment> — true if the fragment exists in the file.
 # Handles GitHub line anchors (Lnn, Lnn-Lmm) for any file and heading-slug anchors for
 # Markdown files; any other anchor is unverifiable from disk and is accepted.
 anchor_resolves() {
-  local file="$1" frag="$2" start end lines slug
+  local file="$1" frag="$2" start end lines
   if [[ "$frag" =~ ^L([0-9]+)(-L([0-9]+))?$ ]]; then
     start="${BASH_REMATCH[1]}"; end="${BASH_REMATCH[3]:-$start}"
     lines="$(wc -l < "$file")"
@@ -436,10 +445,9 @@ anchor_resolves() {
   fi
   case "$file" in
     *.md)
-      while IFS= read -r slug; do
-        [[ "$slug" == "$frag" ]] && return 0
-      done < <(extract_heading_slugs "$file")
-      return 1 ;;
+      [[ -v HEADING_SLUGS["$file"] ]] \
+        || HEADING_SLUGS["$file"]=$'\n'"$(extract_heading_slugs "$file")"$'\n'
+      [[ "${HEADING_SLUGS["$file"]}" == *$'\n'"$frag"$'\n'* ]] ;;
     *) return 0 ;;
   esac
 }
@@ -455,15 +463,22 @@ strip_code_fences() {
   ' "$1"
 }
 
-# link_target <linkexpr> — the target of one '[text](target)' expression: trimmed, with an
-# optional trailing '"title"' or "'title'" removed (a link title is not part of the path).
+# link_target <linkexpr> — sets LINK_TARGET to the target of one '[text](target)' expression:
+# trimmed, with an optional trailing '"title"' or "'title'" removed (a link title is not part of
+# the path). It sets a variable rather than printing, so that a caller reading every link of the
+# repository forks no subshell per link.
+LINK_EXPR_RE='^\[[^]]*\]\(([^)]+)\)$'
+# LINK_RE — one '[text](target)' expression anywhere in a line, as the checks' grep -o reads it.
+LINK_RE='\[[^]]*\]\([^)]+\)'
 LINK_TITLE_RE="^([^[:space:]]+)[[:space:]]+(\"[^\"]*\"|'[^']*')\$"
+LINK_TARGET=""
 link_target() {
-  local target
-  target="$(printf '%s' "$1" | sed -E 's/^\[[^]]*\]\(([^)]+)\)$/\1/')"
-  target="$(printf '%s' "$target" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
+  local target="$1"
+  [[ "$target" =~ $LINK_EXPR_RE ]] && target="${BASH_REMATCH[1]}"
+  target="${target#"${target%%[![:space:]]*}"}"
+  target="${target%"${target##*[![:space:]]}"}"
   [[ "$target" =~ $LINK_TITLE_RE ]] && target="${BASH_REMATCH[1]}"
-  printf '%s' "$target"
+  LINK_TARGET="$target"
 }
 
 check_relative_links() {
@@ -472,9 +487,10 @@ check_relative_links() {
     case "$md" in *.md) ;; *) continue ;; esac
     rel="${md#"$ROOT"/}"
     is_inactive_adr "$md" && continue
-    dir="$(dirname "$md")"
+    dir="${md%/*}"
     while IFS= read -r linkexpr; do
-      target="$(link_target "$linkexpr")"
+      link_target "$linkexpr"
+      target="$LINK_TARGET"
       case "$target" in
         http://*|https://*|mailto:*) continue ;;
       esac
@@ -551,7 +567,8 @@ check_section_refs() {
     _contains "$n" "${valid_sections[@]}" && section_slug[n]="$slug"
   done < <(extract_heading_slugs "$agents")
 
-  local f rel lineno line clean linkexpr target frag
+  local f rel lineno line clean linkexpr target frag rest
+  local links=()
   for f in "${TEXT_FILES[@]}"; do
     rel="${f#"$ROOT"/}"
     is_inactive_adr "$f" && continue
@@ -571,20 +588,39 @@ check_section_refs() {
         lineno=0
         while IFS= read -r line; do
           lineno=$((lineno + 1))
+          # Most lines cite no section; only those that do are worth a process.
+          [[ "$line" == *§* ]] || continue
           # Inline code spans hold literals, not citations: '`§1`' in a sentence about references
           # is the notation itself. Dropping them also strips the '`AGENTS.md`' inside a link text,
-          # which leaves the link expression itself intact.
-          # shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
-          line="$(sed -E 's/`[^`]*`//g' <<< "$line")"
+          # which leaves the link expression itself intact. A span runs from a backtick to the
+          # next one; an unpaired backtick stays.
+          rest="$line" line=""
+          while [[ "$rest" == *'`'*'`'* ]]; do
+            line+="${rest%%\`*}"
+            rest="${rest#*\`}"
+            rest="${rest#*\`}"
+          done
+          line+="$rest"
           [[ "$line" == *§* ]] || continue
-          while IFS= read -r linkexpr; do
+          # Split the line into its links and what is left once every link is removed, which is a
+          # reference nothing verifies. Each match is the leftmost one, so cutting the text up to
+          # its first occurrence cuts exactly the text up to the match.
+          links=() clean="" rest="$line"
+          while [[ "$rest" =~ $LINK_RE ]]; do
+            links+=("${BASH_REMATCH[0]}")
+            clean+="${rest%%"${BASH_REMATCH[0]}"*}"
+            rest="${rest#*"${BASH_REMATCH[0]}"}"
+          done
+          clean+="$rest"
+          for linkexpr in "${links[@]}"; do
             [[ "$linkexpr" =~ §([0-9]+) ]] || continue
             n="${BASH_REMATCH[1]}"
             if ! _contains "$n" "${valid_sections[@]}"; then
               add_error "$rel:$lineno: reference '§$n' matches no numbered section in AGENTS.md"
               continue
             fi
-            target="$(link_target "$linkexpr")"
+            link_target "$linkexpr"
+            target="$LINK_TARGET"
             frag=""
             [[ "$target" == *"#"* ]] && frag="${target#*#}"
             if [[ -z "$frag" ]]; then
@@ -592,16 +628,17 @@ check_section_refs() {
             elif [[ "$frag" != "${section_slug[$n]}" ]]; then
               add_error "$rel:$lineno: '§$n' links to anchor '#$frag', but section $n of AGENTS.md anchors as '#${section_slug[$n]}'"
             fi
-          done < <(grep -oE '\[[^]]*\]\([^)]+\)' <<< "$line")
-          # What is left once every link is removed is a reference nothing verifies.
-          clean="$(sed -E 's/\[[^]]*\]\([^)]+\)//g' <<< "$line")"
-          while IFS= read -r n; do
+          done
+          rest="$clean"
+          while [[ "$rest" =~ §([0-9]+) ]]; do
+            n="${BASH_REMATCH[1]}"
+            rest="${rest#*"${BASH_REMATCH[0]}"}"
             if _contains "$n" "${valid_sections[@]}"; then
               add_error "$rel:$lineno: '§$n' stands outside a link — cite a section as a link to its anchor, e.g. [\`AGENTS.md\` §$n](AGENTS.md#${section_slug[$n]})"
             else
               add_error "$rel:$lineno: reference '§$n' matches no numbered section in AGENTS.md"
             fi
-          done < <(grep -oE '§[0-9]+' <<< "$clean" | tr -d '§')
+          done
         done < <(strip_code_fences "$f")
         ;;
       *)
@@ -647,11 +684,14 @@ check_adr_link_targets() {
     [[ "$f" == "$ADR_DIR/template.md" ]] && continue
     is_inactive_adr "$f" && continue
     while IFS= read -r linkexpr; do
-      text="$(printf '%s' "$linkexpr" | sed -E 's/^\[([^]]*)\].*$/\1/')"
+      # The text runs from the opening bracket to the first closing one, which it cannot contain.
+      text="${linkexpr#\[}"
+      text="${text%%]*}"
       [[ "$text" =~ ADR-([0-9]{4}) ]] || continue
       number="${BASH_REMATCH[1]}"
-      target="$(link_target "$linkexpr")"
-      base="$(basename "${target%%#*}")"
+      link_target "$linkexpr"
+      target="${LINK_TARGET%%#*}"
+      base="${target##*/}"
       # Compare only against ADR filenames; anything else is not a claim about which ADR it is.
       case "$base" in [0-9][0-9][0-9][0-9]-*.md) ;; *) continue ;; esac
       if [[ "$base" != "$number"-* ]]; then

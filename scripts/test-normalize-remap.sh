@@ -13,6 +13,8 @@
 # The identifiers in the fixtures are assembled at run time: a literal one would be a reference
 # that check-docs.sh and check-traceability.sh hold against this repository.
 #
+# Inputs: .agents/skills/normalize/ scripts/ docs/adr/ docs/SPECIFICATION.md
+#
 # Usage:
 #     scripts/test-normalize-remap.sh
 # Exit code 0 when every case passes, 1 otherwise.

@@ -9,6 +9,8 @@
 # A push case ships its own scripts/check-all.sh, green or red, so the test decides what the hook
 # finds.
 #
+# Inputs: .githooks/
+#
 # Usage:
 #     scripts/test-git-hooks.sh
 # Exit code 0 when every case passes, 1 otherwise.
@@ -46,7 +48,7 @@ repo() {
 # checks <dir> <exit code> — give the fixture a scripts/check-all.sh that exits as told.
 checks() {
   mkdir -p "$1/scripts"
-  printf '#!/usr/bin/env bash\necho "check output for the test"\nexit %s\n' "$2" > "$1/scripts/check-all.sh"
+  printf '#!/usr/bin/env bash\necho "check output for the test, args: $*"\nexit %s\n' "$2" > "$1/scripts/check-all.sh"
 }
 
 # expect <pass|refuse> <name> <dir> <needle> <git args...> — run the git command; a refused one
@@ -81,6 +83,7 @@ git -C "${d:?}" switch -q -c feature
 checks "$d" 1
 expect refuse "a push while the checks are red" "$d" "the checks are red" push -q origin feature
 expect refuse "the refusal shows the check output" "$d" "check output for the test" push -q origin feature
+expect refuse "the hook runs the checks with --changed" "$d" "args: --changed" push -q origin feature
 expect pass "a commit is not gated by the checks" "$d" "" commit -q --allow-empty -m x
 
 d="$(repo green)"

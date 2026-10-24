@@ -9,6 +9,8 @@
 # counted (a docs-only commit, a merge, a change of the number), the due message with its
 # directories and their changes, and the three ways the line fails to read.
 #
+# Inputs: scripts/sensor-revision-due.sh
+#
 # Usage:
 #     scripts/test-sensor-revision-due.sh
 # Exit code 0 when every case passes, 1 otherwise.

@@ -14,7 +14,8 @@ name: Checks
 #   They report for the reviewer and fail on nothing they count, except the action references
 #   once a project runs that sensor with --require. The job checks out the full history because
 #   three sensors read it.
-# - Shell lint: scripts/check-shell.sh, after the self-test of the git hooks.
+# - Shell lint: scripts/check-shell.sh, after the self-tests of scripts/check-all.sh and of the
+#   git hooks.
 # - Build, test, lint: absent until the project has a toolchain. The catalogue entry Toolchain of
 #   the propose-adr skill says how the job is added; it is the one job of this workflow that
 #   installs something, with a timeout that fits the real build and 'submodules: recursive' on
@@ -139,6 +140,8 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+      - name: Self-test the check runner
+        run: bash scripts/test-check-all.sh
       - name: Self-test the git hooks
         run: bash scripts/test-git-hooks.sh
       - name: Self-test the shell lint

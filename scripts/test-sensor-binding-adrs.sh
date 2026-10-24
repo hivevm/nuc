@@ -8,6 +8,8 @@
 # path its prose only resembles, an ADR no longer in force, an ADR the change itself adds, a
 # change no ADR names, nothing to compare, and a base that does not resolve.
 #
+# Inputs: scripts/sensor-binding-adrs.sh
+#
 # Usage:
 #     scripts/test-sensor-binding-adrs.sh
 # Exit code 0 when every case passes, 1 otherwise.

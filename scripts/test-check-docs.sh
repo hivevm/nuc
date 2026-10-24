@@ -17,6 +17,8 @@
 # Section references and ADR numbers inside fixtures are assembled, never written literally, so
 # that check-docs.sh does not read this script's own fixtures as references into this repository.
 #
+# Inputs: scripts/check-docs.sh
+#
 # Usage:
 #     scripts/test-check-docs.sh
 # Exit code 0 when every case passes, 1 otherwise.
@@ -461,6 +463,20 @@ expect fail "a word that is not 'unreleased'" "$d" "names neither a 'vX.Y.Z' tag
 d="$(repo broken-link)"
 echo "See [the missing file](missing.md)." >> "$d/README.md"
 expect fail "a relative link to a file that does not exist" "$d" "broken relative link"
+
+d="$(repo anchor-missing)"
+echo "See [the rules](AGENTS.md#3-rules)." >> "$d/README.md"
+expect fail "a link to an anchor no heading carries" "$d" "has no matching anchor '#3-rules'"
+
+d="$(repo anchor-slug)"
+printf '\n## Bar & Done ##\n' >> "$d/AGENTS.md"
+echo "See [the bar](AGENTS.md#bar--done)." >> "$d/README.md"
+expect pass "an anchor slugged the way GitHub does, closing hashes dropped" "$d"
+
+d="$(repo anchor-last-line)"
+printf '\n## Last' >> "$d/AGENTS.md"
+echo "See [the last section](AGENTS.md#last)." >> "$d/README.md"
+expect pass "a heading on a last line without a newline anchors" "$d"
 
 d="$(repo index-status)"
 adr "$d" 1 "🟢 accepted"

@@ -7,6 +7,8 @@
 # other case is one thing the sensor reports, or one it must stay silent on. The cases run with
 # --require hold it as a check: the decided form passes, and every other form fails.
 #
+# Inputs: scripts/sensor-action-refs.sh
+#
 # Usage:
 #     scripts/test-sensor-action-refs.sh
 # Exit code 0 when every case passes, 1 otherwise.

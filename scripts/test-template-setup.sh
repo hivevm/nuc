@@ -28,6 +28,9 @@
 # step in the docs job. Should the script outlive the file, it says there is nothing left to
 # test and passes.
 #
+# No '# Inputs:' line: it reads the whole tree, so scripts/check-all.sh runs it in its
+# --changed mode too.
+#
 # Pure bash + coreutils/sed/tar, plus git to enumerate the files and build the copy. Usage:
 #     scripts/test-template-setup.sh
 # Exit code 0 when every case passes, 1 otherwise.

@@ -11,6 +11,8 @@
 # skill is exercised with it: a claim in one repository, and a claim on a remote that a second
 # clone's claim of the same ticket loses, also when the branch there points at main itself.
 #
+# Inputs: scripts/sensor-plan-frontier.sh .agents/skills/work-tickets/claim.sh
+#
 # Usage:
 #     scripts/test-sensor-plan-frontier.sh
 # Exit code 0 when every case passes, 1 otherwise.

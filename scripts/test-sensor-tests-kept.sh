@@ -8,6 +8,8 @@
 # unchanged repository reports nothing; every other case is one thing the sensor reports, or one
 # it must stay silent on.
 #
+# Inputs: scripts/sensor-tests-kept.sh
+#
 # Usage:
 #     scripts/test-sensor-tests-kept.sh
 # Exit code 0 when every case passes, 1 otherwise.
