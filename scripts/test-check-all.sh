@@ -8,7 +8,7 @@
 # file, a directory, a path that does not exist, or no line at all — and the cases change one
 # path on a branch and assert which self-tests ran. The checks themselves run in every case.
 #
-# Inputs: scripts/check-all.sh
+# Inputs: scripts/check-all.sh scripts/lib/
 #
 # Usage:
 #     scripts/test-check-all.sh
@@ -16,14 +16,9 @@
 
 set -uo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source-path=SCRIPTDIR source=lib/selftest.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/selftest.sh"
 RUNNER="$ROOT/scripts/check-all.sh"
-
-work="$(mktemp -d)"
-trap 'rm -rf "$work"' EXIT
-
-failed=0
-passed=0
 
 # g <dir> <git args...> — git in the fixture with an identity, so that commits need no config.
 g() {
@@ -182,9 +177,4 @@ expect_exit "--changed fails on a red check" 1 "$d" --changed
 
 # --- summary -------------------------------------------------------------------------------
 
-if ((failed)); then
-  echo "check-all self-test FAILED ($failed of $((passed + failed)) cases)." >&2
-  exit 1
-fi
-echo "check-all self-test passed ($passed cases)."
-exit 0
+summary "check-all self-test"

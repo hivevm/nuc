@@ -17,7 +17,7 @@
 # Section references and ADR numbers inside fixtures are assembled, never written literally, so
 # that check-docs.sh does not read this script's own fixtures as references into this repository.
 #
-# Inputs: scripts/check-docs.sh
+# Inputs: scripts/check-docs.sh scripts/lib/
 #
 # Usage:
 #     scripts/test-check-docs.sh
@@ -25,14 +25,9 @@
 
 set -uo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source-path=SCRIPTDIR source=lib/selftest.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/selftest.sh"
 CHECK="$ROOT/scripts/check-docs.sh"
-
-work="$(mktemp -d)"
-trap 'rm -rf "$work"' EXIT
-
-failed=0
-passed=0
 
 # sed_in <file> <sed script> — edit a fixture file in place, the same way on GNU and BSD sed.
 sed_in() {
@@ -628,9 +623,4 @@ expect fail "a Project Layout entry that no longer exists" "$d" "is not a direct
 
 # --- summary -------------------------------------------------------------------------------
 
-if ((failed)); then
-  echo "Documentation self-test FAILED ($failed of $((passed + failed)) cases)." >&2
-  exit 1
-fi
-echo "Documentation self-test passed ($passed cases)."
-exit 0
+summary "Documentation self-test"

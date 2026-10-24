@@ -9,7 +9,7 @@
 # A push case ships its own scripts/check-all.sh, green or red, so the test decides what the hook
 # finds.
 #
-# Inputs: .githooks/
+# Inputs: .githooks/ scripts/lib/
 #
 # Usage:
 #     scripts/test-git-hooks.sh
@@ -17,14 +17,9 @@
 
 set -uo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source-path=SCRIPTDIR source=lib/selftest.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/selftest.sh"
 HOOKS="$ROOT/.githooks"
-
-work="$(mktemp -d)"
-trap 'rm -rf "$work"' EXIT
-
-failed=0
-passed=0
 
 # g <dir> <git args...> — git in the fixture with an identity, so that commits need no config.
 g() {
@@ -121,6 +116,31 @@ if [[ -n "$(git -C "$d" config hooktest.leak)" ]]; then
   echo "FAIL: a fixture the checks build in a linked worktree wrote into the pushed repository" >&2
 fi
 
+# The shared library of the self-tests guards the same: a self-test that sources it inherits no
+# variable that binds git to a repository, and its fixture guard refuses any path but a fixture
+# repository under the test's own directory, this repository's root included.
+lib="$ROOT/scripts/lib/selftest.sh"
+# shellcheck disable=SC2016 # expanded by the inner shell
+leaked="$(GIT_DIR="$ROOT/.git" GIT_WORK_TREE="$ROOT" bash -c 'source "$1"; echo "${GIT_DIR-}${GIT_WORK_TREE-}"' _ "$lib")"
+if [[ -z "$leaked" ]]; then passed=$((passed + 1)); else
+  failed=$((failed + 1)); echo "FAIL: a self-test sourcing the library keeps GIT_DIR or GIT_WORK_TREE" >&2; fi
+# '$outside' is shaped like a fixture but lies outside $work: it decides the clause on $work
+# where '$ROOT' cannot, in a linked worktree, whose .git is a file.
+outside="$(mktemp -d)"
+# The library's trap removes $work only; this one removes $outside too, whatever ends the test.
+trap 'rm -rf "$work" "$outside"' EXIT
+mkdir -p "$outside/.git"
+# shellcheck disable=SC2016 # expanded by the inner shell
+for target in '' '$ROOT' '$outside' '$work/plain' '$work/fixture'; do
+  out="$(outside="$outside" bash -c 'source "$1"; mkdir -p "$work/plain" "$work/fixture/.git"; fixture "'"$target"'" && echo accepted' _ "$lib" 2>&1)"
+  want="refused"; [[ "$target" == '$work/fixture' ]] && want="accepted"
+  if [[ ("$want" == "accepted" && "$out" == "accepted") || ("$want" == "refused" && "$out" == *"no fixture repository"*) ]]; then
+    passed=$((passed + 1))
+  else
+    failed=$((failed + 1)); echo "FAIL: the fixture guard on '$target' (expected $want): $out" >&2
+  fi
+done
+
 # A clone without the merge settings still commits and pushes; the push gates what a
 # fast-forward brought past pre-merge-commit.
 d="$(repo unconfigured)"
@@ -133,7 +153,6 @@ expect pass "a push from a clone without the merge settings" "$d" "" push -q ori
 d="$(repo detached)"
 git -C "${d:?}" checkout -q --detach
 expect pass "a commit on a detached HEAD is not on main" "$d" "" commit -q --allow-empty -m x
-
 
 # merging <name> <docs exit code> <checks exit code> — a fixture with documentation check and
 # check output as told, a branch 'feature' one commit ahead of main that a fast-forward could
@@ -263,9 +282,4 @@ expect pass "without origin/main nothing is decided" "$d" "" commit -q --no-veri
 
 # --- summary -------------------------------------------------------------------------------
 
-if ((failed)); then
-  echo "git hooks self-test FAILED ($failed of $((passed + failed)) cases)." >&2
-  exit 1
-fi
-echo "git hooks self-test passed ($passed cases)."
-exit 0
+summary "git hooks self-test"

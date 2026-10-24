@@ -21,14 +21,9 @@
 
 set -uo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source-path=SCRIPTDIR source=lib/selftest.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/selftest.sh"
 REMAP="$ROOT/.agents/skills/normalize/remap.sh"
-
-work="$(mktemp -d)"
-trap 'rm -rf "$work"' EXIT
-
-failed=0
-passed=0
 
 A="ADR"
 V="Verifies"
@@ -181,8 +176,4 @@ for i in "${!pids[@]}"; do
   ((rc == 0)) || sed 's/^/    /' "$work/${names[$i]}.log" >&2
 done
 
-if ((failed)); then
-  echo "Normalize map self-test FAILED ($failed of $((passed + failed)) cases)." >&2
-  exit 1
-fi
-echo "Normalize map self-test passed ($passed cases)."
+summary "Normalize map self-test"

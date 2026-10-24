@@ -12,7 +12,7 @@
 # and code together and apart: the text of an ADR with other paths is listed, its Status, Date,
 # and Deciders lines and the index are not, inside a merged branch too.
 #
-# Inputs: scripts/sensor-review-binding.sh
+# Inputs: scripts/sensor-review-binding.sh scripts/lib/
 #
 # Usage:
 #     scripts/test-sensor-review-binding.sh
@@ -20,17 +20,9 @@
 
 set -uo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source-path=SCRIPTDIR source=lib/selftest.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/selftest.sh"
 SENSOR="$ROOT/scripts/sensor-review-binding.sh"
-
-work="$(mktemp -d)"
-trap 'rm -rf "$work"' EXIT
-
-failed=0
-passed=0
-
-# fixture <dir> — refuse an empty fixture path: 'git -C ""' would act on this repository.
-fixture() { [[ -n "${1:-}" && -d "$1/.git" ]] || { echo "fixture: '$1' is no fixture repository" >&2; exit 1; }; }
 
 # g <dir> <git args...> — git in the fixture with a fixed identity.
 g() {
@@ -431,9 +423,4 @@ expect 2 "a base that does not resolve" "$d" "does not resolve to a commit" "no-
 
 # --- summary ---------------------------------------------------------------------------------
 
-if ((failed)); then
-  echo "Review binding sensor self-test FAILED ($failed of $((passed + failed)) cases)." >&2
-  exit 1
-fi
-echo "Review binding sensor self-test passed ($passed cases)."
-exit 0
+summary "Review binding sensor self-test"

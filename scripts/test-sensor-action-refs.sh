@@ -7,7 +7,7 @@
 # other case is one thing the sensor reports, or one it must stay silent on. The cases run with
 # --require hold it as a check: the decided form passes, and every other form fails.
 #
-# Inputs: scripts/sensor-action-refs.sh
+# Inputs: scripts/sensor-action-refs.sh scripts/lib/
 #
 # Usage:
 #     scripts/test-sensor-action-refs.sh
@@ -15,14 +15,9 @@
 
 set -uo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source-path=SCRIPTDIR source=lib/selftest.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/selftest.sh"
 SENSOR="$ROOT/scripts/sensor-action-refs.sh"
-
-work="$(mktemp -d)"
-trap 'rm -rf "$work"' EXIT
-
-failed=0
-passed=0
 
 # repo <name> <uses line...> — a fixture whose one workflow runs the given steps, printed as its
 # path.
@@ -186,9 +181,4 @@ else
   echo "FAIL: a missing root (expected exit 2, exit $rc)" >&2
 fi
 
-if ((failed)); then
-  echo "Action references sensor self-test FAILED ($failed of $((passed + failed)) cases)." >&2
-  exit 1
-fi
-echo "Action references sensor self-test passed ($passed cases)."
-exit 0
+summary "Action references sensor self-test"

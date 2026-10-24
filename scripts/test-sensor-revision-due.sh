@@ -9,7 +9,7 @@
 # counted (a docs-only commit, a merge, a change of the number), the due message with its
 # directories and their changes, and the three ways the line fails to read.
 #
-# Inputs: scripts/sensor-revision-due.sh
+# Inputs: scripts/sensor-revision-due.sh scripts/lib/
 #
 # Usage:
 #     scripts/test-sensor-revision-due.sh
@@ -17,17 +17,9 @@
 
 set -uo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source-path=SCRIPTDIR source=lib/selftest.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/selftest.sh"
 SENSOR="$ROOT/scripts/sensor-revision-due.sh"
-
-work="$(mktemp -d)"
-trap 'rm -rf "$work"' EXIT
-
-failed=0
-passed=0
-
-# fixture <dir> — refuse an empty fixture path: 'git -C ""' would act on this repository.
-fixture() { [[ -n "${1:-}" && -d "$1/.git" ]] || { echo "fixture: '$1' is no fixture repository" >&2; exit 1; }; }
 
 # commit <dir> <date> <message> — stage everything and commit on the given date.
 commit() {
@@ -184,9 +176,4 @@ expect 1 "no overview at all" "$d" "ARCHITECTURE.md not found"
 
 # --- summary ---------------------------------------------------------------------------------
 
-if ((failed)); then
-  echo "Design revision sensor self-test FAILED ($failed of $((passed + failed)) cases)." >&2
-  exit 1
-fi
-echo "Design revision sensor self-test passed ($passed cases)."
-exit 0
+summary "Design revision sensor self-test"

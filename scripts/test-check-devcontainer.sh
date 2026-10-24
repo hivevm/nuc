@@ -8,7 +8,7 @@
 # code and, for a failing case, the message that names the violation. The baseline passes; every
 # other case breaks one thing ADR-0004 decides.
 #
-# Inputs: scripts/check-devcontainer.sh
+# Inputs: scripts/check-devcontainer.sh scripts/lib/
 #
 # Usage:
 #     scripts/test-check-devcontainer.sh
@@ -16,14 +16,9 @@
 
 set -uo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source-path=SCRIPTDIR source=lib/selftest.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/selftest.sh"
 CHECK="$ROOT/scripts/check-devcontainer.sh"
-
-work="$(mktemp -d)"
-trap 'rm -rf "$work"' EXIT
-
-failed=0
-passed=0
 
 # config <dir> <feature id> [extra json lines...] — write devcontainer.json with one Feature and,
 # before the features block, any extra top-level lines given.
@@ -178,9 +173,4 @@ expect fail "no Dev Container at all" "$d" "devcontainer.json: not found"
 
 # --- summary -------------------------------------------------------------------------------
 
-if ((failed)); then
-  echo "Dev Container self-test FAILED ($failed of $((passed + failed)) cases)." >&2
-  exit 1
-fi
-echo "Dev Container self-test passed ($passed cases)."
-exit 0
+summary "Dev Container self-test"

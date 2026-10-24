@@ -10,7 +10,7 @@
 # ShellCheck is not on PATH the lint skips ShellCheck, and so does this test with the cases that
 # need it.
 #
-# Inputs: scripts/check-shell.sh
+# Inputs: scripts/check-shell.sh scripts/lib/
 #
 # Usage:
 #     scripts/test-check-shell.sh
@@ -18,7 +18,8 @@
 
 set -uo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source-path=SCRIPTDIR source=lib/selftest.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/selftest.sh"
 CHECK="$ROOT/scripts/check-shell.sh"
 
 # The cases of ShellCheck's own findings need ShellCheck; the sed rule's cases run without it, as
@@ -28,12 +29,6 @@ if ! command -v shellcheck >/dev/null 2>&1; then
   echo "Shell lint self-test: shellcheck is not installed — its cases skipped (CI runs them)."
   have_shellcheck=0
 fi
-
-work="$(mktemp -d)"
-trap 'rm -rf "$work"' EXIT
-
-failed=0
-passed=0
 
 # A script ShellCheck flags: an unquoted expansion (SC2086).
 FLAGGED=$'#!/usr/bin/env bash\necho $1\n'
@@ -114,9 +109,4 @@ printf '#!/usr/bin/env bash\n# Never %s here.\necho ok\n' "$IN_PLACE" > "$d/edit
 git -C "${d:?}" add edit.sh
 expect 0 "a comment naming the flag passes" "$d"
 
-if ((failed)); then
-  echo "Shell lint self-test FAILED ($failed of $((passed + failed)) cases)." >&2
-  exit 1
-fi
-echo "Shell lint self-test passed ($passed cases)."
-exit 0
+summary "Shell lint self-test"

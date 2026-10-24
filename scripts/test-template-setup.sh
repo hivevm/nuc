@@ -43,21 +43,13 @@
 
 set -uo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source-path=SCRIPTDIR source=lib/selftest.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/selftest.sh"
 
 if [[ ! -f "$ROOT/TEMPLATE-SETUP.md" ]]; then
   echo "Template setup self-test: TEMPLATE-SETUP.md is gone, the setup is done — nothing to test."
   exit 0
 fi
-
-work="$(mktemp -d)"
-trap 'rm -rf "$work"' EXIT
-
-failed=0
-passed=0
-
-# fixture <dir> — refuse an empty fixture path: 'git -C ""' would act on this repository.
-fixture() { [[ -n "${1:-}" && -d "$1/.git" ]] || { echo "fixture: '$1' is no fixture repository" >&2; exit 1; }; }
 
 # copy <name> — the repository's files (tracked, and new ones git does not ignore) in a fresh git
 # repository, printed as its path. Symlinks stay symlinks.
@@ -394,9 +386,4 @@ fi
 
 # --- summary ---------------------------------------------------------------------------------
 
-if ((failed)); then
-  echo "Template setup self-test FAILED ($failed of $((passed + failed)) cases)." >&2
-  exit 1
-fi
-echo "Template setup self-test passed ($passed cases)."
-exit 0
+summary "Template setup self-test"
