@@ -30,6 +30,7 @@ goals live in [`docs/SPECIFICATION.md`](docs/SPECIFICATION.md), the vocabulary i
   [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
   extension, or any DevContainer-compatible IDE
 - Docker / Podman (rootless) available on the host
+- Outside the Dev Container: bash 4.4 or later for the checks; macOS ships 3.2
 
 ## Getting Started
 
@@ -162,7 +163,7 @@ still gates what it brought.
 | `reference-transaction` | moving the local `main` to a commit `origin/main` lacks: by a commit, merge, cherry-pick, reset, or `git branch -f`. It lets through `git merge --ff-only origin/main`, a reset to it, `git fetch origin main:main`, a write of `main` where it already is, and a deletion. Needs git 2.28 or later. | running git without the hooks (`git -c core.hooksPath=/dev/null`), or moving `origin/main` by hand; not by `--no-verify` |
 | `pre-commit` | a commit on `main`; the conclusion of a conflicted merge while `scripts/check-all.sh --changed` is red | `--no-verify` |
 | `pre-merge-commit` | a merge on `main`; a merge into any other branch while `scripts/check-docs.sh` is red | `--no-verify` |
-| `pre-push` | a push to the remote's `main`, a deletion included; any other push while `scripts/check-all.sh --changed` is red | `--no-verify`, as the claim on a ticket does ([`AGENTS.md` §6](AGENTS.md#6-project-rules)) |
+| `pre-push` | a push to the remote's `main`, a deletion included; any other push while `scripts/check-all.sh --changed` is red, except one that only deletes | `--no-verify`, as the claim on a ticket does ([`AGENTS.md` §6](AGENTS.md#6-project-rules)) |
 
 With `--changed`, the self-tests of what the branch left untouched since `main` are skipped; CI
 runs every one before anything reaches `main`. A bypass is a deliberate act, not a default;

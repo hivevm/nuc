@@ -90,6 +90,17 @@ expect refuse "the refusal shows the check output" "$d" "check output for the te
 expect refuse "the hook runs the checks with --changed" "$d" "args: --changed" push -q origin feature
 expect pass "a commit is not gated by the checks" "$d" "" commit -q --allow-empty -m x
 
+# A deletion sends nothing to check: it passes while the checks are red, and a push that sends a
+# branch besides is checked as any other.
+d="$(repo delete-red)"
+git -C "${d:?}" switch -q -c feature
+g "$d" push -q --no-verify origin main feature feature:other
+checks "$d" 1
+expect pass "a deletion of a branch while the checks are red" "$d" "" push -q origin --delete feature
+expect refuse "a push of a branch while the checks are red, after a deletion passed" "$d" "the checks are red" push -q origin feature
+expect refuse "a deletion together with a push of a branch is checked" "$d" "the checks are red" push -q origin :other feature
+expect refuse "a deletion of the remote's main while the checks are red" "$d" "through a pull request, not a push" push -q origin --delete main
+
 d="$(repo green)"
 git -C "${d:?}" switch -q -c feature
 checks "$d" 0

@@ -31,9 +31,10 @@ These properties shape the security posture of the coding agents working here:
   gate in one agent's own configuration would hold for that agent only, so none is used.
   Authentication uses the web flow of `gh` with no stored tokens. Three guarantees hold for every
   agent and every human, because they are the repository's own git hooks: the local `main` moves
-  only to what the remote's has, no push goes to the remote's, and no other push passes while the
-  checks are red. Each can be bypassed, as a deliberate act and not a default; what each hook
-  refuses, and what bypasses it, is under [Git hooks](README.md#git-hooks) in the README.
+  only to what the remote's has, no push goes to the remote's, and no other push that sends a
+  commit passes while the checks are red. Each can be bypassed, as a deliberate act and not a
+  default; what each hook refuses, and what bypasses it, is under [Git hooks](README.md#git-hooks)
+  in the README.
 - **The specification and the decision record change only by human decision.** A change to
   [`docs/SPECIFICATION.md`](docs/SPECIFICATION.md) is a decision rather than an edit, and only a
   human changes an ADR's status ([`AGENTS.md` §3](AGENTS.md#3-adr-rules)). The gate is
