@@ -72,7 +72,7 @@ place of steps 2 and 3: the project's own decisions and the inherited ADRs becom
    [`.agents/skills/propose-adr/concepts/`](.agents/skills/propose-adr/concepts/README.md), the
    simplest among them, with what each one's *Does not fit* says about this project; you choose,
    and the choice becomes an ADR of your own ([`AGENTS.md` §3](AGENTS.md#3-adr-rules), rule 1).
-   One decision per ADR, all of them in one pull request of ADRs, status `proposed`
+   One decision per ADR, all of them on one branch of ADRs, status `proposed`
    ([`AGENTS.md` §3](AGENTS.md#3-adr-rules), rule 3). Keeping what the template ships is a
    choice too, and gets the mini-ADR of [`docs/adr/template.md`](docs/adr/template.md): this
    file goes once the setup is done, and without the record the next session proposes the
@@ -91,8 +91,8 @@ place of steps 2 and 3: the project's own decisions and the inherited ADRs becom
      template ships them, and, where the specification names credentials as an asset, where
      secrets live and how a leak is caught.
 
-   These ADRs are a start, not a cage. While they are `proposed`, a finding revises one in an
-   ADR-only pull request ([`AGENTS.md` §3](AGENTS.md#3-adr-rules), rule 4), and the ones the
+   These ADRs are a start, not a cage. While they are `proposed`, a finding revises one in a
+   commit of ADRs only ([`AGENTS.md` §3](AGENTS.md#3-adr-rules), rule 4), and the ones the
    golden path of step 7 proves wrong are rewritten before they bind. Each flips to accepted with
    what decides it: the shape and the toolchain with the golden path and its tests, the
    environment with `scripts/check-devcontainer.sh` and what its ADR adds, the supply chain with
@@ -207,4 +207,4 @@ entries.
 - **A second maintainer** makes the Code Owners review of the repository settings possible; keep
   it required. With several, a team is the code owner in
   [`.github/CODEOWNERS`](.github/CODEOWNERS), and the harness ADR says which of them decides the
-  ADRs of which part, so that the pull requests of ADRs do not all wait on one person.
+  ADRs of which part, so that the proposed ADRs do not all wait on one person.

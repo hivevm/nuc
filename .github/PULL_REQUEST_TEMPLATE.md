@@ -12,6 +12,8 @@
 
 - Ticket:  <!-- the file under docs/plan/ this deletes, or the report it resolves (ADR-0006) -->
 - Implements / relates to ADR-
+- ADRs reviewed at:  <!-- the commit of ADRs only the human reviewed before the implementation,
+     or none (AGENTS.md [§3](../AGENTS.md#3-adr-rules), rule 4) -->
 
 ## Proof
 
@@ -42,7 +44,7 @@
 
 <!-- One statement each, verifiable against the diff. ADR: new, revised, or none, and why none
      (AGENTS.md [§3](../AGENTS.md#3-adr-rules), rule 2); a new or revised `proposed` ADR ships in
-     a pull request of ADRs only (rule 3). ARCHITECTURE.md: updated, or unchanged because the
+     commits of ADRs only (rule 3). ARCHITECTURE.md: updated, or unchanged because the
      structure is unchanged ([§5](../AGENTS.md#5-quality-bar--definition-of-done)). Glossary: the
      terms this change settled, or none. Specification: the accepted ADRs a change to it moves
      ([§3](../AGENTS.md#3-adr-rules), rule 7), or untouched. -->

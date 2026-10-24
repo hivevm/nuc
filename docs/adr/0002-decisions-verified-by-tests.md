@@ -90,7 +90,7 @@ project uses.
 - Positive: "which test protects this decision?" and "is this goal met?" become lookups; a decision
   nobody verifies fails CI when it is accepted, not when it is found broken later; *Enforcement*
   stops being free text that can say "none".
-- Negative / trade-offs: accepting an ADR requires its tests in the same pull request. A marker
+- Negative / trade-offs: accepting an ADR requires its tests in the same change. A marker
   proves a claim, not adequacy — a test that cites and asserts nothing passes, and so does a marker
   in a file that is no test. A criterion that loses its test is visible only in the check's report
   and in the diff that deleted the test. Quality goals must be phrased so a test can decide them.

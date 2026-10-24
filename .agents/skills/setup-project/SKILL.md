@@ -18,9 +18,9 @@ the conversation and states no rule of its own
 - What the human does not know yet is not invented: it goes into the specification's
   *Assumptions*, or stays an open question in the conversation until it is answered.
 - Commit after each step, so the walk can stop anywhere. Steps 1 to 3 go on a branch
-  `chore/setup` and its pull request; the founding decisions of step 4 on a branch and pull
-  request of ADRs only ([`AGENTS.md` §3](../../../AGENTS.md#3-adr-rules), rule 3); steps 5 to
-  8 once the human has reviewed those ADRs, on branches of their own. A later session resumes
+  `chore/setup` and its pull request; the founding decisions of step 4 on a branch of ADRs
+  only ([`AGENTS.md` §3](../../../AGENTS.md#3-adr-rules), rule 3); steps 5 to 8 once the human
+  has reviewed those ADRs, on branches stacked on it. A later session resumes
   from the tree: a title still `<Project Name>`, a criterion still `…`, an inherited ADR without
   a decider of this project show where the walk stopped.
 - In an existing project, steps 2 and 3 run as the adoption of the
@@ -74,7 +74,7 @@ documents of `docs/` get the project's name in their title.
 
 Step 4, one decision at a time through [`propose-adr`](../propose-adr/SKILL.md), weighed against
 the specification just written: the simplest fitting concepts proposed, the human chooses, each
-choice an ADR at `proposed`, all of them in one pull request. For the harness, ask whether
+choice an ADR at `proposed`, all of them on one branch. For the harness, ask whether
 agents are to work tickets in parallel; if so, the ADR takes the catalogue's form *Parallel
 tickets under a cap* and names the command that starts each agent without a human.
 

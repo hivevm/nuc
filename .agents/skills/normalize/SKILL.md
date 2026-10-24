@@ -56,7 +56,7 @@ decision found outside a record with where it was found.
 ## 3. The supersessions
 
 Each ADR the new specification invalidates is superseded through
-[`propose-adr`](../propose-adr/SKILL.md), each in its own pull request of ADRs, before the record
+[`propose-adr`](../propose-adr/SKILL.md), each in commits of ADRs only, before the record
 is restated. These are the only decisions that change.
 
 ## 4. The cut

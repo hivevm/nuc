@@ -70,10 +70,12 @@ mechanics of a record the rule file delegates to it: [`docs/adr/README.md`](READ
 
 **The load-bearing clause is that there is exactly one rule file.** An ADR that supersedes any other
 part of this record restates it. The ADR rules of [`AGENTS.md` §3](../../AGENTS.md#3-adr-rules)
-are the one block with no ADR behind it — accepted here, and reversible by an ADR on the ADR
-process. Rules 1 and 3 of that block belong to it like the rest: the catalogue is what a decision
-is proposed from, and ADRs the same human decides may travel together in a pull request of ADRs
-only, the founding decisions of a new project always, so that they are proposed as one start and
+are the one block with no ADR behind it — accepted here. In the template repository the block
+changes as this ADR is corrected in place, and the release notes say so
+([ADR-0005](0005-template-releases.md)); in a derived project, by an ADR on the ADR process.
+Rules 1 and 3 of that block belong to it like the rest: the catalogue is what a decision
+is proposed from, and ADRs the same human decides may travel together on a branch of ADRs only,
+the founding decisions of a new project always, so that they are proposed as one start and
 revised while proposed. Rule 5 belongs to it with its normalization: on a human's instruction the
 record is restated in reading order, without its dead ADRs, and no decision changes. A record
 that only grows costs every session the reconstruction the overview exists to spare it.

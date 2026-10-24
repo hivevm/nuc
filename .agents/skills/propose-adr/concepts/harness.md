@@ -15,7 +15,7 @@ and the cap on open agent work.
 - A second agent, a second human, or parallel sessions start working in the repository.
 - A ticket asks to run unattended, and nothing says what may.
 - Reviews pile up faster than the humans read them.
-- Pull requests of ADRs wait on the one human who may decide them.
+- Proposed ADRs wait on the one human who may decide them.
 
 ## Fits when
 

@@ -65,15 +65,18 @@ restates nothing. A rule this file does not state is not a rule of this project.
    last however cheap it is to reverse. No ADR is needed for implementing within an ADR in force,
    for bug fixes, interface-preserving refactorings, tests, docs, formatting, or dev-only tooling.
    When genuinely unsure, prefer a short `proposed` ADR over a silent decision.
-3. **Develop the ADR with the human, critically.** Submit it with status `proposed` **in a
-   pull request of ADRs only**, never mixed with implementation. ADRs the same human decides may
-   travel together in one pull request, as the founding decisions of a new project do. Each stays
-   one decision. One the human sends back leaves that pull request for one of its own. Skill:
-   `propose-adr`. The normalization of rule 5 is the one exception: its pull request carries the
-   restated ADRs and the references that move with them.
-4. **After human review, implement while the ADR is still `proposed`.** Findings return as
-   revisions, each in its own ADR-only pull request. **Only a human changes the status.** The
-   flip to `accepted` may land with the implementation.
+3. **Develop the ADR with the human, critically.** Submit it with status `proposed` **in
+   commits of ADRs only**, on a branch of its own, and hand that branch to the human before
+   anything is implemented against it. ADRs the same human decides may share that branch, as the
+   founding decisions of a new project do; each stays one decision, and one the human sends back
+   leaves for a branch of its own. Skill: `propose-adr`. The two exceptions of rule 5, a
+   normalization and the template repository's correction of its own ADRs, carry the restated
+   or corrected ADRs with the text that cites them.
+4. **After human review, implement while the ADR is still `proposed`,** on a branch stacked on
+   the ADR's, or on that branch itself. A commit that changes the text of an ADR changes nothing
+   else. Findings return as revisions, each a commit of ADRs only. The hand-off names the commit
+   of ADRs the human reviewed before the implementation. **Only a human changes the status.**
+   The flip to `accepted`, a header line and no text, may land with the implementation.
 5. **Accepted ADRs are binding and immutable.** Never violate or work around one; change it only
    by superseding it. Outside a normalization, never rewrite or delete one. Two edits are
    permitted, both by a human. One flips the `Status` line. The other adds the project's decider
