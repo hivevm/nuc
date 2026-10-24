@@ -15,13 +15,11 @@
 # main. Without origin/main, a repository that has no remote's main yet, nothing is decided.
 # A refused fast-forward has already brought the index and the working tree to its target while
 # main stays: from a clean tree, 'git restore --source=HEAD --staged --worktree .' takes them
-# back. Enabled through 'git config core.hooksPath .githooks', like the other hooks; it needs git
-# 2.28 or later.
+# back. Enabled as the README's "Git hooks" says; it needs git 2.28 or later.
 #
 # Bypassable by running git without the hooks ('git -c core.hooksPath=/dev/null'), or by moving
-# origin/main itself ('git update-ref refs/remotes/origin/main'), which is what a maintainer does
-# on purpose and what an agent has no instruction for; a push that runs the hooks still cannot
-# reach the remote's main.
+# origin/main itself ('git update-ref refs/remotes/origin/main'); AGENTS.md, section 6 says who
+# may. A push that runs the hooks still cannot reach the remote's main.
 # scripts/test-git-hooks.sh exercises this hook.
 
 set -uo pipefail

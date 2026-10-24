@@ -38,12 +38,8 @@ goals live in [`docs/SPECIFICATION.md`](docs/SPECIFICATION.md), the vocabulary i
 
 1. Open the repository in VS Code and choose **Reopen in Container**. The Dev Container and the
    preconfigured agent extensions build automatically, and the container enables the repository's
-   git hooks ([`.githooks/`](.githooks/)): the local `main` moves only to what the remote's
-   has, no push goes to it, the checks run before a push, and the documentation check before any
-   other merge. It also makes every merge a merge commit, and every pull a fast-forward. Working
-   outside the container? Do the same yourself, once per clone:
-   `git config core.hooksPath .githooks`, `git config merge.ff false`, and
-   `git config pull.ff only`.
+   git hooks with the merge settings they rely on ([Git hooks](#git-hooks)). Working outside the
+   container? Run the three commands listed there yourself, once per clone.
 2. Authenticate your coding agent inside the container (for Claude Code: `claude login`).
 3. Start working with the agent. Drive the work from the specification and the ADRs.
 
@@ -78,7 +74,7 @@ docs/CONVENTIONS.md   # how this project writes what no check decides, kept curr
 docs/ARCHITECTURE.md  # the system as it currently stands
 docs/adr/             # Architecture Decision Records (+ template)
 scripts/              # consistency checks and sensors (check-all.sh runs them all), run in CI
-.githooks/            # git hooks: nothing lands on main locally; checks before a push
+.githooks/            # git hooks: nothing lands on main locally; checks before a merge and a push
 .github/              # CI workflows, Dependabot, issue & pull request templates, code owners
 .devcontainer/        # Dev Container definition (base image + Features)
 .vscode/              # shared editor settings
@@ -143,6 +139,37 @@ each ticket by its branch in a git worktree of its own and starts a fresh sessio
 non-interactive command of whichever agent the project's harness ADR names, and the session works
 the ticket through the `work-tickets` skill.
 
+## Git hooks
+
+Git does not version its hooks, so the repository keeps them under [`.githooks/`](.githooks/).
+They hold for every agent and every human. The Dev Container enables them, with the merge
+settings they rely on, on every start; outside it, run once per clone:
+
+```sh
+git config core.hooksPath .githooks
+git config merge.ff false
+git config pull.ff only
+```
+
+`merge.ff false` makes every merge a merge commit, as a `feat/` branch keeps them
+([`AGENTS.md` §6](AGENTS.md#6-project-rules)); a fast-forward would make no commit and run no
+hook. `pull.ff only` keeps a pull from then making a merge. Without the two settings the hooks
+still hold: a fast-forward skips the documentation check of `pre-merge-commit`, and the push
+still gates what it brought.
+
+| Hook | Refuses | Bypassed by |
+|---|---|---|
+| `reference-transaction` | moving the local `main` to a commit `origin/main` lacks: by a commit, merge, cherry-pick, reset, or `git branch -f`. It lets through `git merge --ff-only origin/main`, a reset to it, `git fetch origin main:main`, a write of `main` where it already is, and a deletion. Needs git 2.28 or later. | running git without the hooks (`git -c core.hooksPath=/dev/null`), or moving `origin/main` by hand; not by `--no-verify` |
+| `pre-commit` | a commit on `main`; the conclusion of a conflicted merge while `scripts/check-all.sh --changed` is red | `--no-verify` |
+| `pre-merge-commit` | a merge on `main`; a merge into any other branch while `scripts/check-docs.sh` is red | `--no-verify` |
+| `pre-push` | a push to the remote's `main`, a deletion included; any other push while `scripts/check-all.sh --changed` is red | `--no-verify`, as the claim on a ticket does ([`AGENTS.md` §6](AGENTS.md#6-project-rules)) |
+
+With `--changed`, the self-tests of what the branch left untouched since `main` are skipped; CI
+runs every one before anything reaches `main`. A bypass is a deliberate act, not a default;
+[`AGENTS.md` §6](AGENTS.md#6-project-rules) says when an agent may. Each refusal says what to do
+instead.
+[`scripts/test-git-hooks.sh`](scripts/test-git-hooks.sh) exercises every row.
+
 ## Integration branches
 
 A change reaches `main` through a pull request. Several branches may integrate first on a
@@ -151,8 +178,9 @@ A change reaches `main` through a pull request. Several branches may integrate f
 
 1. Start it at the remote's `main`: `git fetch origin`, then
    `git switch -c feat/<topic> origin/main`.
-2. Merge a reviewed branch into it with its hand-off as the message:
-   `git merge -F .scratch/<hand-off>.md <branch>`. The documentation check gates the merge, and
+2. Merge a reviewed branch into it with its hand-off as the message, written to a file since an
+   editor strips its headings: `git merge --no-ff -F .scratch/<hand-off>.md <branch>`. The
+   documentation check gates the merge, and
    the push of step 4 runs the rest. One that stops on a conflict is concluded, once resolved and
    staged, with `git commit -F .scratch/<hand-off>.md`, and all the checks gate that commit.
 3. Rework it as often as needed: rebase it, regroup its commits, or drop what did not hold. A

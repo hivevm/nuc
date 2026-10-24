@@ -27,15 +27,9 @@
   "initializeCommand": "mkdir \"${localEnv:HOME}${localEnv:USERPROFILE}/.claude\" || exit 0",
 
   // Runs inside the container on every start, so the settings are set again should a session
-  // have changed them. Git does not version its hooks, so the repository keeps them under
-  // .githooks/ and this points git at them: pre-commit and pre-merge-commit refuse a commit and a
-  // merge on main, pre-merge-commit runs the documentation check on any other merge and
-  // pre-commit all checks on a conflicted one, reference-transaction keeps main to what
-  // origin/main has, pre-push refuses a push to the remote's main (AGENTS.md, section 6) and runs
-  // the checks before a push (AGENTS.md, section 5). Every merge is made a merge commit, as a
-  // feat/ branch keeps them (AGENTS.md, section 6), and a pull, which would then merge,
-  // fast-forwards only. Outside the container, run the same three commands once per clone
-  // (README → "Getting Started").
+  // have changed them: the repository's git hooks under .githooks/ and the merge settings they
+  // rely on. What each refuses, and the same commands for a clone outside the container,
+  // are under "Git hooks" in the README.
   "postStartCommand": {
     "hooks": "git config core.hooksPath .githooks",
     "merge": "git config merge.ff false && git config pull.ff only"

@@ -10,9 +10,7 @@
 # feat/ branch took up since its last push are held to all of them; pre-merge-commit runs only the
 # documentation check on each. It runs them with --changed: the self-tests of what the branch left
 # untouched since main are skipped, since CI runs them, and every check itself still runs;
-# check-all.sh says which run. Enabled through 'git config core.hooksPath .githooks', which the
-# Dev Container sets on every start (.devcontainer/devcontainer.json); outside it, run that command
-# once per clone.
+# check-all.sh says which run. Enabled as the README's "Git hooks" says.
 #
 # A repository without scripts/check-all.sh has nothing to run, and the push proceeds.
 # Bypassable with 'git push --no-verify'. scripts/test-git-hooks.sh exercises this hook.

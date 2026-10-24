@@ -10,9 +10,9 @@
 # a second, so it runs here on the merged tree, which git has written before this hook and before
 # the commit. The rest of scripts/check-all.sh runs before the push (pre-push), where it sees every
 # merge at once; a merge that stops on a conflict, the one carrying edits by hand, runs all of it
-# when concluded (pre-commit). A fast-forward makes no commit and runs no hook; the Dev Container
-# sets 'merge.ff' to false (.devcontainer/devcontainer.json), and the push still gates what it
-# brought. Enabled through 'git config core.hooksPath .githooks', like the other hooks.
+# when concluded (pre-commit). A fast-forward makes no commit and runs no hook; 'merge.ff' false
+# prevents one, and the push still gates what it brought. Enabled as the README's "Git hooks"
+# says.
 #
 # A repository without scripts/check-docs.sh has nothing to run, and the merge proceeds.
 # Bypassable with 'git merge --no-verify'. scripts/test-git-hooks.sh exercises this hook.

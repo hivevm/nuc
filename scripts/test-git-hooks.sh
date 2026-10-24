@@ -1,11 +1,7 @@
 #!/usr/bin/env bash
 #
-# Self-test of the git hooks under .githooks/: pre-commit and pre-merge-commit refuse every commit
-# and merge on main, pre-merge-commit a merge into any other branch while the documentation check
-# is red, pre-commit the conclusion of a conflicted merge while the checks are red,
-# reference-transaction refuses to move main to anything origin/main does not have, and pre-push
-# refuses a push to the remote's main and any push while the checks are red (AGENTS.md, sections
-# 5 and 6).
+# Self-test of the git hooks under .githooks/: every refusal and every passage the table under
+# "Git hooks" in the README lists (AGENTS.md, sections 5 and 6).
 #
 # Each case builds a throwaway repository under a temporary directory with core.hooksPath pointing
 # at this repository's .githooks/, runs a real 'git commit' or 'git push' in it — the push goes to
@@ -255,6 +251,10 @@ if [[ "$(git -C "$d" log -1 --format=%s feat/kept)" != "unpushed" ]]; then
   failed=$((failed + 1))
   echo "FAIL: the branch does not keep the commit the main ahead had" >&2
 fi
+d="$(moves delete-main)"
+git -C "${d:?}" switch -q ahead
+expect pass "a deletion of the local main" "$d" "" branch -q -D main
+
 d="$(moves behind-remote-hint)"
 expect refuse "a main not ahead is told to take up the remote's main" "$d" "Take up the remote's main" merge -q --ff-only ahead
 

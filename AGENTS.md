@@ -185,27 +185,23 @@ restates nothing. A rule this file does not state is not a rule of this project.
   `restore`, `clean`) wait for an instruction. The instruction names the action and implies no
   next one. A standing instruction may cover one push only: the claim on a ticket across clones,
   where the harness ADR grants it. A claim reserves a ticket by creating its branch, with an
-  empty commit and nothing else ([ADR-0006](docs/adr/0006-feature-layer.md)). Its push skips the
-  pre-push hook. The git hooks under [`.githooks/`](.githooks/) refuse to move the local `main`
-  to anything the remote's `main` does not have, and a push to the remote's `main`. They refuse
-  a push while the checks of [§5](#5-quality-bar--definition-of-done) are red, a merge into any
-  other branch while `scripts/check-docs.sh` is, and the conclusion of a conflicted merge while
-  the checks are.
+  empty commit and nothing else ([ADR-0006](docs/adr/0006-feature-layer.md)). The git hooks
+  under [`.githooks/`](.githooks/) enforce what a file can of this section and of
+  [§5](#5-quality-bar--definition-of-done); what each refuses is under
+  [Git hooks](README.md#git-hooks). **An agent never bypasses this repository's hooks:** no
+  `--no-verify`, no git run without them, no hand-moved `origin/main`. The one exception is the
+  push of a claim, which skips the pre-push hook. A human may bypass one, deliberately.
 - **Authenticate `gh` through its web flow;** a human enters the one-time code. Never request,
   store, or hard-code personal access tokens.
 - **Changes reach `main` through a pull request,** merged as a merge commit. The local `main`
   only takes up the remote's, with `git merge --ff-only origin/main`. What no file can enforce
   is listed under [Repository settings](README.md#repository-settings).
-- **Branches may integrate first on a `feat/` branch** by a local merge. The human instructs it,
-  after the review of [§5](#5-quality-bar--definition-of-done). It is made with `--no-ff`, so
-  every integrated branch is one merge commit. Its message is the hand-off of the change and
-  fills the sections of the [pull request template](.github/PULL_REQUEST_TEMPLATE.md). It is
-  written to a file and passed with `-F`, since an editor strips its headings; a merge that
-  stops on a conflict is concluded with `git commit -F` and the same file. Until its pull request
-  merges, the `feat/` branch is the human's to rework: rebased, regrouped, or cut down. Its
-  pipelines run on a draft pull request, which runs them on every push; a branch kept without
-  one runs them by hand (`gh workflow run checks.yml --ref <branch>`). A rework already pushed
-  goes out with `git push --force-with-lease`, by the human. The steps are under
+- **Branches may integrate first on a `feat/` branch** by a local merge, on the human's
+  instruction, after the review of [§5](#5-quality-bar--definition-of-done). Each integrated
+  branch is one merge commit (`--no-ff`), whose message is the hand-off of the change and fills
+  the sections of the [pull request template](.github/PULL_REQUEST_TEMPLATE.md). Until its pull
+  request merges, the `feat/` branch is the human's to rework: rebased, regrouped, or cut down,
+  and pushed again by the human with `--force-with-lease`. The steps are under
   [Integration branches](README.md#integration-branches).
 
 ## 7. Secrets

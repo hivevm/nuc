@@ -166,9 +166,10 @@ README. What can go, and how:
   - the `remote.extensionKind` entry of [`.vscode/settings.json`](.vscode/settings.json) and the
     lock comment of [`.gitignore`](.gitignore);
   - in the README, the Dev Container section and the `.devcontainer/` row of the Project Layout,
-    with Prerequisites, Getting Started, and the first paragraph of Coding Agents rewritten for
-    the host; the first bullet of Agent execution in [`SECURITY.md`](SECURITY.md); and the Dev
-    Container in the workflow of [`CONTRIBUTING.md`](CONTRIBUTING.md).
+    with Prerequisites, Getting Started, the first paragraph of Git hooks, and the first paragraph
+    of Coding Agents rewritten for the host; the first bullet of Agent execution in
+    [`SECURITY.md`](SECURITY.md); and the Dev Container in the workflow of
+    [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
   The link, layout, list, and traceability checks fail on a file, a job, or a link left behind;
   the prose is the reviewer's to read. This file names what the path removes without linking it,
