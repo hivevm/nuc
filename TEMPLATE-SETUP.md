@@ -44,16 +44,18 @@ place of steps 2 and 3: the project's own decisions and the inherited ADRs becom
    still present once this file is gone.
 2. Review the ADRs you inherit in [`docs/adr/`](docs/adr/), in the order of their numbers:
    the document set, how decisions are verified, and the skills come first, because every later
-   one rests on them; the Dev Container, the releases, and the feature layer follow. Each was
-   decided by the NUC maintainer, not by you, and binds this project only once you accept it as
+   one rests on them; the releases and the feature layer follow. Each was decided by the NUC
+   maintainer, not by you, and binds this project only once you accept it as
    your own decision: add yourself to its `Deciders`, with its `Status` at `🟢 accepted` in the
    index and the file, or supersede it with an ADR of your own
    ([`AGENTS.md` §3](AGENTS.md#3-adr-rules)). Nothing in between: an inherited ADR nobody here
    has accepted is a rule nobody decided, and check 12 of
    [`scripts/check-docs.sh`](scripts/check-docs.sh) fails on one in force without a decider of
    this project once this file is gone. The template ships each with its test or its exemption,
-   so the checks stay green. The shape of the code is not among them: it is a founding decision
-   of step 4.
+   so the checks stay green. The Dev Container waits for step 4, where it is decided beside the
+   environment: whether the project needs one rests on where its work runs, which the
+   specification of step 3 says. The shape of the code is not an inherited ADR: it is a
+   founding decision of step 4.
 3. Write down the **project idea** in [`docs/SPECIFICATION.md`](docs/SPECIFICATION.md), and
    give it and the other three documents of [`docs/`](docs/) the project's name in their title.
    Each section of the scaffold says in a line what belongs in it. Write the **Problem** first;
@@ -86,7 +88,9 @@ place of steps 2 and 3: the project's own decisions and the inherited ADRs becom
      structural test decides, or no prescribed shape, as the template ships. A decision about
      the shape is the one entropy erodes first.
    - **The environment:** the base of the Dev Container (an image, a `Dockerfile`, or Compose)
-     and how the work reaches the containers it needs, or none, as `.devcontainer/` ships it.
+     and how the work reaches the containers it needs, or none, as `.devcontainer/` ships it;
+     with it, whether the inherited [ADR-0004](docs/adr/0004-dev-container-runtime.md) is kept
+     or superseded.
    - **The supply chain:** how the workflows reference actions, by major version tag as the
      template ships them, and, where the specification names credentials as an asset, where
      secrets live and how a leak is caught.
@@ -99,7 +103,10 @@ place of steps 2 and 3: the project's own decisions and the inherited ADRs becom
    [`scripts/sensor-action-refs.sh`](scripts/sensor-action-refs.sh) run as its check, wired as
    its [catalogue entry](.agents/skills/propose-adr/concepts/action-references.md) says. The
    harness and a kept default usually flip with a `**Not mechanically decidable:**` paragraph.
-   After that, following the technology means superseding the one ADR that chose it.
+   If ADR-0004 is kept, its decider is added as step 2 describes; an ADR superseding it is
+   proposed here, and what it removes goes on the branch stacked on this one, where it flips to
+   accepted ([`AGENTS.md` §3](AGENTS.md#3-adr-rules), rule 4). After that, following the
+   technology means superseding the one ADR that chose it.
 5. Fill in the **Overview**, **Build, Test & Run**, and **Usage** sections of
    [`README.md`](README.md). Check 13 fails on the scaffold's Overview sentence, the Usage
    `TODO`, and a Build, Test, Lint, or Run command still `TODO` once this file is gone; write
@@ -148,7 +155,8 @@ cost), and ADR-0003 (the skills and their pointers, which cost nothing until inv
 README. What can go, and how:
 
 - **No Dev Container?** Supersede [ADR-0004](docs/adr/0004-dev-container-runtime.md) with an ADR
-  that says where the work runs instead, and remove what the container brings in the same change:
+  that says where the work runs instead, proposed with the founding decisions of step 4, and
+  remove what the container brings in the change that implements it:
   - `.devcontainer/`, and the check that holds ADR-0004: `scripts/check-devcontainer.sh` and its
     self-test, which cites the superseded ADR;
   - the `devcontainer` job and its bullet in the header of

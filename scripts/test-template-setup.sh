@@ -28,12 +28,18 @@
 # step in the docs job. Should the script outlive the file, it says there is nothing left to
 # test and passes.
 #
+# With --open it tests nothing and lists what the setup still leaves open, for a session that
+# resumes it: what check-docs.sh names on the copy of case 1, its findings about the setup file
+# aside, and each section of the specification still reading '…'. Case 1 holds the listing to
+# what check-docs.sh names and to the sections that carry a '…'.
+#
 # No '# Inputs:' line: it reads the whole tree, so scripts/check-all.sh runs it in its
 # --changed mode too.
 #
-# Pure bash + coreutils/sed/tar, plus git to enumerate the files and build the copy. Usage:
-#     scripts/test-template-setup.sh
-# Exit code 0 when every case passes, 1 otherwise.
+# Pure bash + coreutils/sed/awk/grep/tar, plus git to enumerate the files and build the copy. Usage:
+#     scripts/test-template-setup.sh [--open]
+# Exit code 0 when every case passes or with --open, 1 when a case fails, 2 on an unknown
+# argument.
 
 set -uo pipefail
 
@@ -85,6 +91,27 @@ expect_pass() {
   echo "FAIL: $name ($script exited $rc)" >&2
   while IFS= read -r l; do printf '    %s\n' "$l"; done <<< "$out" >&2
 }
+
+# open_steps — what the setup still leaves open, for a session that resumes it: what
+# check-docs.sh names on a copy without the setup file, its findings about that file aside, and
+# each section of the specification still reading '…'. One line each.
+open_steps() {
+  local d
+  d="$(copy open)"
+  rm "$d/TEMPLATE-SETUP.md"
+  stage "$d"
+  run_check "$d" check-docs.sh | grep '^  - ' | grep -v 'TEMPLATE-SETUP\.md'
+  awk -v q="'" '/^## / { section = substr($0, 4); next }
+       /(^|[ *])…$/ && !(section in seen) {
+         seen[section]; print "  - docs/SPECIFICATION.md: the section " q section q " still reads " q "…" q
+       }' "$ROOT/docs/SPECIFICATION.md"
+}
+
+case "${1:-}" in
+  "") ;;
+  --open) open_steps; exit 0 ;;
+  *) echo "test-template-setup: unknown argument '$1' — usage: scripts/test-template-setup.sh [--open]" >&2; exit 2 ;;
+esac
 
 # --- case 1: the setup file deleted, nothing else done ----------------------------------------
 
@@ -159,6 +186,51 @@ while IFS= read -r file; do
   fi
 done < <(scaffold_tokens "$ROOT")
 
+# --- case 1, read by --open: what is open, without the findings about the setup file -----------
+
+# pass; fail <message> — count a case as passed, or as failed with the message.
+pass() { passed=$((passed + 1)); }
+fail() { failed=$((failed + 1)); echo "FAIL: $1" >&2; }
+
+open="$(open_steps)"
+# What check-docs.sh names on the copy: each finding about the setup file is a link to it or its
+# row in the Project Layout, left out; every other one is listed.
+link_re="broken relative link -> '([./]*)TEMPLATE-SETUP\.md"
+layout="Project Layout lists 'TEMPLATE-SETUP.md'"
+while IFS= read -r l; do
+  [[ "$l" == "  - "* ]] || continue
+  if [[ "$l" != *"TEMPLATE-SETUP.md"* ]]; then
+    if [[ "$open" == *"$l"* ]]; then pass; else fail "--open does not list what check-docs.sh names:$l"; fi
+    continue
+  fi
+  if [[ "$l" =~ $link_re || "$l" == *"$layout"* ]]; then pass
+  else fail "a finding about the setup file that is neither a link nor its layout row:$l"; fi
+  if [[ "$open" != *"$l"* ]]; then pass; else fail "--open lists a finding about the setup file:$l"; fi
+done <<< "$out"
+# The sections of the specification with a line still ending in '…', read here line by line:
+# each is listed once, and no other.
+declare -A unwritten=()
+section=""
+while IFS= read -r l; do
+  if [[ "$l" == "## "* ]]; then section="${l#\#\# }"; continue; fi
+  if [[ -n "$section" && ( "$l" == "…" || "$l" == *" …" || "$l" == *"*…" ) ]]; then
+    unwritten["$section"]=1
+  fi
+done < "$ROOT/docs/SPECIFICATION.md"
+for section in "${!unwritten[@]}"; do
+  if [[ "$open" == *"  - docs/SPECIFICATION.md: the section '$section' still reads '…'"* ]]; then pass
+  else fail "--open does not list the section '$section', which still reads '…'"; fi
+done
+listed="$(grep -c "still reads '…'" <<< "$open")"
+if ((listed == ${#unwritten[@]})); then pass
+else fail "--open lists $listed sections of the specification, and ${#unwritten[@]} still read '…'"; fi
+# The argument: --open prints the listing and exits 0, an unknown one exits 2.
+if by_arg="$(bash "$ROOT/scripts/test-template-setup.sh" --open)"; then pass; else fail "--open does not exit 0"; fi
+if [[ "$by_arg" == "$open" ]]; then pass; else fail "--open prints something else than the listing"; fi
+bash "$ROOT/scripts/test-template-setup.sh" --unknown >/dev/null 2>&1
+rc=$?
+if ((rc == 2)); then pass; else fail "an unknown argument exits $rc, not 2"; fi
+
 # --- case 2: every step done ------------------------------------------------------------------
 
 # setup_steps <dir> — the steps of the setup, done in the copy as an agent would do them.
@@ -181,7 +253,7 @@ setup_steps() {
   edit "$d" .github/CODEOWNERS '/^# TODO: add a code owner/,/^# would enforce nothing/d'
   edit "$d" SECURITY.md 's/<!-- TODO: add a security contact address -->/security@example.invalid/'
   edit "$d" CODE_OF_CONDUCT.md 's/<!-- TODO: add a contact address[^>]*-->/conduct@example.invalid/'
-  # Step 2: every inherited ADR accepted by a decider of this project.
+  # Steps 2 and 4: every inherited ADR accepted by a decider of this project.
   for f in "$d"/docs/adr/[0-9][0-9][0-9][0-9]-*.md; do
     edit "$d" "docs/adr/$(basename "$f")" \
       's/^- \*\*Deciders:\*\* NUC maintainer$/- **Deciders:** NUC maintainer, Fixture Owner/'
