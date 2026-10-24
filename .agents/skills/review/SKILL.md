@@ -68,4 +68,9 @@ the suite and is the first finding.
 
 Findings, concrete and ranked, with file and line, and what the reviewer itself could not
 verify. No fixes applied. The implementer fixes them before the hand-off and records in its *Review*
-section who reviewed, the findings on both axes, and what was fixed.
+section who reviewed, the findings on both axes, what was fixed, and the commit the reviewer was
+handed, on its `Reviewed at:` line. The fixes come after that commit;
+[`scripts/sensor-review-binding.sh`](../../../scripts/sensor-review-binding.sh) lists them for the
+human who decides the merge, unless a second review sees them first and the line moves. A
+`feat/` branch reworked after its merges is reviewed as a whole at its head, and its pull
+request's description carries that line.

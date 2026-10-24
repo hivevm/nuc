@@ -74,9 +74,10 @@ restates nothing. A rule this file does not state is not a rule of this project.
    or corrected ADRs with the text that cites them.
 4. **After human review, implement while the ADR is still `proposed`,** on a branch stacked on
    the ADR's, or on that branch itself. A commit that changes the text of an ADR changes nothing
-   else. Findings return as revisions, each a commit of ADRs only. The hand-off names the commit
-   of ADRs the human reviewed before the implementation. **Only a human changes the status.**
-   The flip to `accepted`, a header line and no text, may land with the implementation.
+   else, and a sensor lists one that does. Findings return as revisions, each a commit of ADRs
+   only. The hand-off names the commit of ADRs the human reviewed before the implementation.
+   **Only a human changes the status.** The flip to `accepted`, a header line and no text, may
+   land with the implementation.
 5. **Accepted ADRs are binding and immutable.** Never violate or work around one; change it only
    by superseding it. Outside a normalization, never rewrite or delete one. Two edits are
    permitted, both by a human. One flips the `Status` line. The other adds the project's decider
@@ -162,7 +163,8 @@ restates nothing. A rule this file does not state is not a rule of this project.
   it. The reviewer gets the diff, the task, the doubts, and the standards, never the reasoning.
   It reports on two axes: does the change do what was asked, and does it meet this bar,
   simplicity first. Findings are fixed before the change is handed off. Every existing test the
-  diff changes or removes needs a reason. Skill: `review`.
+  diff changes or removes needs a reason. The hand-off names the commit the review saw, and a
+  sensor lists what landed after it. Skill: `review`.
 - **A feature spec closes only after a design revision.** A fresh session revisits the modules
   its tickets touched, the ADRs that bind them, and the criteria they serve. It files what it
   finds as tickets, checks, a `proposed` ADR, or a drafted specification change. With no spec

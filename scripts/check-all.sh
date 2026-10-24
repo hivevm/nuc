@@ -119,6 +119,8 @@ run "Plan frontier sensor self-test" scripts/test-sensor-plan-frontier.sh
 run "Plan frontier sensor" scripts/sensor-plan-frontier.sh
 run "Action references sensor self-test" scripts/test-sensor-action-refs.sh
 run "Action references sensor" scripts/sensor-action-refs.sh
+run "Review binding sensor self-test" scripts/test-sensor-review-binding.sh
+run "Review binding sensor" scripts/sensor-review-binding.sh
 run "Check runner self-test" scripts/test-check-all.sh
 run "Git hooks self-test" scripts/test-git-hooks.sh
 run "Shell lint self-test" scripts/test-check-shell.sh
