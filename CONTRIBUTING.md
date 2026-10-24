@@ -25,8 +25,9 @@ Authority runs **specification → accepted ADRs → task**
    ([§6](AGENTS.md#6-project-rules)). Run [`scripts/check-all.sh`](scripts/check-all.sh) locally
    before pushing ([§5](AGENTS.md#5-quality-bar--definition-of-done)). It runs the same checks CI
    runs on every pull request, in the same order. With the repository's git hooks enabled (the Dev
-   Container does it; otherwise `git config core.hooksPath .githooks`) a push runs them for you
-   and stops while they are red. They need only bash and coreutils, already in the Dev Container.
+   Container does it; otherwise the three `git config` commands of the README's Getting Started)
+   a push runs them for you and stops while they are red. They need only bash and
+   coreutils, already in the Dev Container.
    Only the shell lint additionally needs [ShellCheck](https://www.shellcheck.net), which the Dev
    Container installs; elsewhere it skips itself where that is missing, and CI runs it always.
 3. **Open a pull request** against `main`, fill in the PR template, and link the issue or ADR.

@@ -23,8 +23,9 @@ over speed and cleverness:
 - **Reflection.** Weigh alternatives and consequences, and write the reasoning down.
 - **Critical stance.** Take nothing at face value: not the human's framing, not your own earlier
   output, not the existing code. Verify against the specification, the ADRs, the code, and
-  authoritative sources. Put disagreement, with its evidence, into the pull request. Put what you
-  could not confirm there too; "none" is a claim the reviewer checks.
+  authoritative sources. Put disagreement, with its evidence, into the hand-off of the change
+  ([§6](#6-project-rules)). Put what you could not confirm there too; "none" is a claim the
+  reviewer checks.
 
 ## 2. Start here
 
@@ -157,7 +158,7 @@ restates nothing. A rule this file does not state is not a rule of this project.
 - **Review in a fresh context before handing off.** The session that wrote a change never reviews
   it. The reviewer gets the diff, the task, the doubts, and the standards, never the reasoning.
   It reports on two axes: does the change do what was asked, and does it meet this bar,
-  simplicity first. Findings are fixed before the pull request opens. Every existing test the
+  simplicity first. Findings are fixed before the change is handed off. Every existing test the
   diff changes or removes needs a reason. Skill: `review`.
 - **A feature spec closes only after a design revision.** A fresh session revisits the modules
   its tickets touched, the ADRs that bind them, and the criteria they serve. It files what it
@@ -180,12 +181,27 @@ restates nothing. A rule this file does not state is not a rule of this project.
   next one. A standing instruction may cover one push only: the claim on a ticket across clones,
   where the harness ADR grants it. A claim reserves a ticket by creating its branch, with an
   empty commit and nothing else ([ADR-0006](docs/adr/0006-feature-layer.md)). Its push skips the
-  pre-push hook. The git hooks under [`.githooks/`](.githooks/) refuse a commit on `main`. They
-  refuse a push while the checks of [§5](#5-quality-bar--definition-of-done) are red.
+  pre-push hook. The git hooks under [`.githooks/`](.githooks/) refuse to move the local `main`
+  to anything the remote's `main` does not have, and a push to the remote's `main`. They refuse
+  a push while the checks of [§5](#5-quality-bar--definition-of-done) are red, a merge into any
+  other branch while `scripts/check-docs.sh` is, and the conclusion of a conflicted merge while
+  the checks are.
 - **Authenticate `gh` through its web flow;** a human enters the one-time code. Never request,
   store, or hard-code personal access tokens.
-- **Changes reach `main` through a pull request.** What no file can enforce is listed under
-  [Repository settings](README.md#repository-settings).
+- **Changes reach `main` through a pull request,** merged as a merge commit. The local `main`
+  only takes up the remote's, with `git merge --ff-only origin/main`. What no file can enforce
+  is listed under [Repository settings](README.md#repository-settings).
+- **Branches may integrate first on a `feat/` branch** by a local merge. The human instructs it,
+  after the review of [§5](#5-quality-bar--definition-of-done). It is made with `--no-ff`, so
+  every integrated branch is one merge commit. Its message is the hand-off of the change and
+  fills the sections of the [pull request template](.github/PULL_REQUEST_TEMPLATE.md). It is
+  written to a file and passed with `-F`, since an editor strips its headings; a merge that
+  stops on a conflict is concluded with `git commit -F` and the same file. Until its pull request
+  merges, the `feat/` branch is the human's to rework: rebased, regrouped, or cut down. Its
+  pipelines run on a draft pull request, which runs them on every push; a branch kept without
+  one runs them by hand (`gh workflow run checks.yml --ref <branch>`). A rework already pushed
+  goes out with `git push --force-with-lease`, by the human. The steps are under
+  [Integration branches](README.md#integration-branches).
 
 ## 7. Secrets
 

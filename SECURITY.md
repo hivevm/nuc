@@ -31,9 +31,10 @@ These properties shape the security posture of the coding agents working here:
   gate in one agent's own configuration would hold for that agent only, so none is used.
   Authentication uses the web flow of `gh` with no stored tokens. Two halves hold for every agent
   and every human, because they are the repository's own git hooks ([`.githooks/`](.githooks/),
-  enabled once per clone as the README's Getting Started says): no commit on `main`, and no push
-  while the checks are red. Each is bypassable with `--no-verify`, which is a deliberate act, not
-  a default.
+  enabled once per clone as the README's Getting Started says): the local `main` moves only to
+  what the remote's has, no push goes to it, and no other push passes while the checks are red.
+  The first holds unless git runs without the hooks or `origin/main` is moved by hand; the others
+  are bypassable with `--no-verify`. Each is a deliberate act, not a default.
 - **The specification and the decision record change only by human decision.** A change to
   [`docs/SPECIFICATION.md`](docs/SPECIFICATION.md) is a decision rather than an edit, and only a
   human changes an ADR's status ([`AGENTS.md` §3](AGENTS.md#3-adr-rules)). The gate is

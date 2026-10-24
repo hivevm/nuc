@@ -28,6 +28,10 @@ Run in a fresh session. Name the entry point with the human:
   commit bodies of its normalizations, read in order, say which of its ADRs restates which
   template ADR.
 
+Before an adoption or a template release, a local `main` with commits the remote's lacks moves
+them to a `feat/` branch: the hooks the template brings keep `main` to what `origin/main` has
+([`AGENTS.md` §6](../../../AGENTS.md#6-project-rules)).
+
 Confirm the preconditions of the mechanics before anything is written. When the last
 normalization is recent, say so before starting. Report the inventory to the human: the ADRs in
 force, the dead ones and their final successors, the criteria, and, for an adoption, each
@@ -47,7 +51,7 @@ decision found outside a record with where it was found.
    citations noted in the step before.
 4. Name every accepted ADR whose basis the change moves, and why. The human judges that list.
 5. Run [`scripts/check-all.sh`](../../../scripts/check-all.sh), commit on a branch of its own,
-   and hand the pull request to the human with the map in its description. Only a human lands it.
+   and hand the branch to the human with the map in its hand-off. Only a human merges it.
 
 ## 3. The supersessions
 
@@ -70,7 +74,7 @@ has agreed the cut.
    alternatives, sources, and consequences are rewritten to the state of today. What a
    superseded or rejected ADR chose, and why it did not stand, becomes an alternative of the new
    ADR that governs its topic. The header follows the mechanics.
-2. Write the clause table for the pull request: each clause of each old ADR, in its own words
+2. Write the clause table for the hand-off: each clause of each old ADR, in its own words
    shortened to a line, with the new ADR and the section that carry it.
 3. Delete the old files, and rewrite both tables of the index.
 4. Write the ADR map, one line per old file, `OLD NEW`: a dead ADR maps to the new file of its
@@ -85,9 +89,9 @@ has agreed the cut.
 Hand the change to the [`review`](../review/SKILL.md) skill with the old record at the base
 commit, the map, and the clause table: the reviewer walks the table, reads each clause against the
 new ADR that carries it, and reports any decision that moved and any clause the table misses.
-Commit with the map in the commit body, and hand the pull request to the human with the map, the
-cut, the clause table, and the review in its description.
+Commit with the map in the commit body, and hand the branch to the human with the map, the cut,
+the clause table, and the review in its hand-off.
 
 In the template, the release that lands a normalization is a major, and its notes carry the map
 ([ADR-0005](../../../docs/adr/0005-template-releases.md)). In a derived project that took up a
-release, the `Template release` line moves to it in the same pull request.
+release, the `Template release` line moves to it in the same change.

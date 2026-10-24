@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 #
-# Self-test of the git hooks under .githooks/: pre-commit refuses a commit on main, pre-push
-# refuses a push while the checks are red (AGENTS.md, sections 5 and 6).
+# Self-test of the git hooks under .githooks/: pre-commit and pre-merge-commit refuse every commit
+# and merge on main, pre-merge-commit a merge into any other branch while the documentation check
+# is red, pre-commit the conclusion of a conflicted merge while the checks are red,
+# reference-transaction refuses to move main to anything origin/main does not have, and pre-push
+# refuses a push to the remote's main and any push while the checks are red (AGENTS.md, sections
+# 5 and 6).
 #
 # Each case builds a throwaway repository under a temporary directory with core.hooksPath pointing
 # at this repository's .githooks/, runs a real 'git commit' or 'git push' in it — the push goes to
@@ -32,14 +36,16 @@ g() {
   git -C "${dir:?}" -c user.name=t -c user.email=t@example.invalid "$@"
 }
 
-# repo <name> — a fixture repository with one commit on main, the hooks enabled after that
-# commit, and a bare remote 'origin' to push to. Prints its path.
+# repo <name> — a fixture repository with one commit on main, the hooks and the Dev Container's
+# merge settings enabled after that commit, and a bare remote 'origin' to push to. Prints its path.
 repo() {
   local dir="$work/$1"
   mkdir -p "$dir"
   git -C "${dir:?}" init -q -b main
   g "$dir" commit -q --allow-empty -m init
   git -C "${dir:?}" config core.hooksPath "$HOOKS"
+  git -C "${dir:?}" config merge.ff false
+  git -C "${dir:?}" config pull.ff only
   git init -q --bare "$dir.git"
   git -C "${dir:?}" remote add origin "$dir.git"
   echo "$dir"
@@ -49,6 +55,12 @@ repo() {
 checks() {
   mkdir -p "$1/scripts"
   printf '#!/usr/bin/env bash\necho "check output for the test, args: $*"\nexit %s\n' "$2" > "$1/scripts/check-all.sh"
+}
+
+# docs <dir> <exit code> — give the fixture a scripts/check-docs.sh that exits as told.
+docs() {
+  mkdir -p "$1/scripts"
+  printf '#!/usr/bin/env bash\necho "docs output for the test"\nexit %s\n' "$2" > "$1/scripts/check-docs.sh"
 }
 
 # expect <pass|refuse> <name> <dir> <needle> <git args...> — run the git command; a refused one
@@ -72,7 +84,8 @@ expect() {
 
 d="$(repo on-main)"
 expect refuse "a commit on main" "$d" "on 'main'" commit -q --allow-empty -m x
-expect pass "a push from main with no check script to run" "$d" "" push -q origin main
+expect refuse "a push to the remote's main" "$d" "through a pull request, not a push" push -q origin main
+expect pass "a push of main to a branch of its own with no check script to run" "$d" "" push -q origin main:other
 
 d="$(repo on-branch)"
 git -C "${d:?}" switch -q -c feature
@@ -112,9 +125,141 @@ if [[ -n "$(git -C "$d" config hooktest.leak)" ]]; then
   echo "FAIL: a fixture the checks build in a linked worktree wrote into the pushed repository" >&2
 fi
 
+# A clone without the merge settings still commits and pushes; the push gates what a
+# fast-forward brought past pre-merge-commit.
+d="$(repo unconfigured)"
+git -C "${d:?}" switch -q -c feature
+git -C "${d:?}" config --unset merge.ff
+git -C "${d:?}" config --unset pull.ff
+expect pass "a commit in a clone without the merge settings" "$d" "" commit -q --allow-empty -m x
+expect pass "a push from a clone without the merge settings" "$d" "" push -q origin feature
+
 d="$(repo detached)"
 git -C "${d:?}" checkout -q --detach
 expect pass "a commit on a detached HEAD is not on main" "$d" "" commit -q --allow-empty -m x
+
+
+# merging <name> <docs exit code> <checks exit code> — a fixture with documentation check and
+# check output as told, a branch 'feature' one commit ahead of main that a fast-forward could
+# take, and the integration branch 'feat/x' at main checked out.
+merging() {
+  local d
+  d="$(repo "$1")"
+  docs "$d" "$2"
+  checks "$d" "$3"
+  git -C "${d:?}" switch -q -c feature
+  echo feature > "$d/f"
+  g "$d" add f
+  g "$d" commit -q -m feature
+  git -C "${d:?}" switch -q -c feat/x main
+  echo "$d"
+}
+
+d="$(merging merge-red 1 0)"
+expect refuse "a merge into a branch while the documentation check is red" "$d" "the documentation check is red on the merge" merge -q -m m feature
+
+d="$(merging merge-red-output 1 0)"
+expect refuse "the refusal shows the documentation check's output" "$d" "docs output for the test" merge -q -m m feature
+
+d="$(merging merge-suite 0 1)"
+expect pass "a clean merge is not gated by the rest of the checks" "$d" "" merge -q -m m feature
+
+d="$(merging merge-ff 1 0)"
+expect refuse "merge.ff false keeps a fast-forward from passing the hook" "$d" "pre-merge-commit: refused" merge -q feature
+
+d="$(merging merge-green 0 0)"
+expect pass "a merge into a branch while the checks are green" "$d" "" merge -q -m m feature
+
+d="$(merging merge-main 0 0)"
+git -C "${d:?}" switch -q main
+expect refuse "a merge on main, though the checks are green" "$d" "on 'main'" merge -q -m m feature
+
+# conflict <name> <checks exit code> <branch> — a merge into the branch stopped on a conflict,
+# resolved and staged, with a green documentation check.
+conflict() {
+  local d
+  d="$(merging "$1" 0 "$2")"
+  git -C "${d:?}" switch -q "$3"
+  echo other > "$d/f"
+  g "$d" add f
+  g "$d" commit -q --no-verify -m other
+  g "$d" merge -q -m m feature >/dev/null 2>&1
+  echo resolved > "$d/f"
+  g "$d" add f
+  echo "$d"
+}
+
+d="$(conflict conflict-red 1 feat/x)"
+expect refuse "concluding a conflicted merge while the checks are red" "$d" "pre-commit: refused — the checks are red" commit -q --no-edit
+
+d="$(conflict conflict-changed 1 feat/x)"
+expect refuse "concluding a conflicted merge runs the checks with --changed" "$d" "args: --changed" commit -q --no-edit
+
+d="$(conflict conflict-green 0 feat/x)"
+expect pass "concluding a conflicted merge while the checks are green" "$d" "" commit -q --no-edit
+
+d="$(conflict conflict-main 0 main)"
+expect refuse "concluding a conflicted merge on main, though the checks are green" "$d" "on 'main'" commit -q --no-edit
+
+# moves <name> — a fixture whose remote has main, fetched as origin/main, and a branch 'ahead'
+# one commit past main that the remote does not have, with main checked out.
+moves() {
+  local d
+  d="$(repo "$1")"
+  g "$d" push -q --no-verify origin main
+  g "$d" fetch -q origin
+  git -C "${d:?}" switch -q -c ahead
+  echo ahead > "$d/a"
+  g "$d" add a
+  g "$d" commit -q -m ahead
+  git -C "${d:?}" switch -q main
+  echo "$d"
+}
+
+d="$(moves moves)"
+expect refuse "a fast-forward of main to a local branch" "$d" "main moves only to what origin/main has" merge -q --ff-only ahead
+g "$d" restore --source=HEAD --staged --worktree .
+expect pass "a refused fast-forward leaves main where it was" "$d" "" diff --quiet origin/main main
+expect pass "the documented restore takes the index and the working tree back" "$d" "" diff --quiet HEAD
+if [[ -e "$d/a" ]]; then
+  failed=$((failed + 1))
+  echo "FAIL: the documented restore leaves the file the refused fast-forward brought" >&2
+fi
+expect refuse "a commit on main that skips pre-commit" "$d" "main moves only to what origin/main has" commit -q --no-verify --allow-empty -m x
+expect refuse "a cherry-pick onto main" "$d" "main moves only to what origin/main has" cherry-pick ahead
+g "$d" cherry-pick --abort >/dev/null 2>&1
+expect refuse "a reset of main to a local branch" "$d" "main moves only to what origin/main has" reset -q --hard ahead
+expect refuse "an update of main by its ref" "$d" "main moves only to what origin/main has" update-ref refs/heads/main ahead
+git -C "${d:?}" switch -q ahead
+expect pass "a commit on another branch is no move of main" "$d" "" commit -q --allow-empty -m on-ahead
+expect refuse "git branch -f of main from another branch" "$d" "main moves only to what origin/main has" branch -f main ahead
+# Pushed by path, the remote's main moves while origin/main stays behind, as when another clone
+# moved it; the fetch then moves origin/main and main in one transaction.
+g "$d" push -q --no-verify "$d.git" ahead:main
+expect pass "a fetch that moves main with origin/main" "$d" "" fetch -q origin main:main
+git -C "${d:?}" switch -q main
+expect pass "main takes up the remote's main" "$d" "" merge -q --ff-only origin/main
+expect pass "main is reset to the remote's main" "$d" "" reset -q --hard origin/main
+expect refuse "a deletion of the remote's main" "$d" "through a pull request, not a push" push -q origin --delete main
+
+# A clone whose main is ahead of the remote's, as one that took up these hooks with unpushed work.
+d="$(moves ahead-of-remote)"
+g "$d" -c core.hooksPath=/dev/null commit -q --allow-empty -m unpushed
+expect pass "pack-refs writes main where it already is" "$d" "" pack-refs --all
+expect pass "a reset of main to where it is moves nothing" "$d" "" reset -q --hard HEAD
+expect refuse "main ahead still moves no further" "$d" "main moves only to what origin/main has" commit -q --no-verify --allow-empty -m more
+expect refuse "the refusal says how to keep the commits of a main ahead" "$d" "git switch -c feat/<topic> main, then git branch -f main origin/main" commit -q --no-verify --allow-empty -m more
+expect pass "the commits of a main ahead move to a branch" "$d" "" switch -q -c feat/kept main
+expect pass "main is taken back to the remote's main" "$d" "" branch -f main origin/main
+if [[ "$(git -C "$d" log -1 --format=%s feat/kept)" != "unpushed" ]]; then
+  failed=$((failed + 1))
+  echo "FAIL: the branch does not keep the commit the main ahead had" >&2
+fi
+d="$(moves behind-remote-hint)"
+expect refuse "a main not ahead is told to take up the remote's main" "$d" "Take up the remote's main" merge -q --ff-only ahead
+
+d="$(repo no-remote-main)"
+expect pass "without origin/main nothing is decided" "$d" "" commit -q --no-verify --allow-empty -m x
 
 # --- summary -------------------------------------------------------------------------------
 

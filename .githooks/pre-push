@@ -1,18 +1,32 @@
 #!/usr/bin/env bash
 #
-# Git pre-push hook: the checks pass before anything is pushed.
+# Git pre-push hook: nothing is pushed to the remote's main, and the checks pass before anything
+# else is pushed.
 #
-# AGENTS.md, section 5 requires scripts/check-all.sh to pass before a push, and CI runs the same
-# checks on every pull request. This hook runs them first, so a red push never leaves the machine.
-# It runs them with --changed: the self-tests of what the branch left untouched since main are
-# skipped, since CI runs them, and every check itself still runs; check-all.sh says which run.
-# Enabled through 'git config core.hooksPath .githooks', which the Dev Container sets on creation
-# (.devcontainer/devcontainer.json); outside it, run that command once per clone.
+# Changes reach main through a pull request (AGENTS.md, section 6); a push to it would skip that,
+# and a ruleset that an administrator may bypass is no reason to try. AGENTS.md, section 5 requires
+# scripts/check-all.sh to pass before a push, and CI runs the same checks on every pull request.
+# This hook runs them first, so a red push never leaves the machine, and it is where the merges a
+# feat/ branch took up since its last push are held to all of them; pre-merge-commit runs only the
+# documentation check on each. It runs them with --changed: the self-tests of what the branch left
+# untouched since main are skipped, since CI runs them, and every check itself still runs;
+# check-all.sh says which run. Enabled through 'git config core.hooksPath .githooks', which the
+# Dev Container sets on every start (.devcontainer/devcontainer.json); outside it, run that command
+# once per clone.
 #
 # A repository without scripts/check-all.sh has nothing to run, and the push proceeds.
 # Bypassable with 'git push --no-verify'. scripts/test-git-hooks.sh exercises this hook.
 
 set -uo pipefail
+
+# Git hands the hook one line per ref on its standard input: local ref, local object, remote ref,
+# remote object. A deletion of the remote's main is refused like any other push to it.
+while read -r _ _ remote_ref _; do
+  if [[ "$remote_ref" == "refs/heads/main" ]]; then
+    echo "pre-push: refused — changes reach main through a pull request, not a push (AGENTS.md, section 6). Push a branch of its own and open one: gh pr create --base main" >&2
+    exit 1
+  fi
+done
 
 root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
 

@@ -1,4 +1,6 @@
-<!-- Keep changes small and reviewable. Write everything in English. State what a reviewer can
+<!-- The hand-off of a change: the description of its pull request, or the message of its merge
+     into a feat/ branch (AGENTS.md [§6](../AGENTS.md#6-project-rules)). Keep changes small and
+     reviewable. Write everything in English. State what a reviewer can
      verify against the diff, a test, or an output; a claim nothing shows is one the reviewer has
      to redo. -->
 
@@ -52,7 +54,7 @@
 
 ## Review
 
-<!-- The fresh-context review that ran before this pull request opened, the review skill under
+<!-- The fresh-context review that ran before this hand-off, the review skill under
      .agents/skills/ ([§5](../AGENTS.md#5-quality-bar--definition-of-done)): who or what reviewed,
      its findings on the two axes (does it do what was asked, does it meet the bar), and what
      was fixed. -->

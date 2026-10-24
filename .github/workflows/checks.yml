@@ -30,6 +30,10 @@ on:
   pull_request:
   push:
     branches: [main]
+  # Started by hand on a pushed branch that has no pull request yet, such as a feat/ branch
+  # under rework (AGENTS.md, section 6): gh workflow run checks.yml --ref <branch>. GitHub offers
+  # it only once this trigger is on the default branch.
+  workflow_dispatch:
   # Once a week against main without a change: catches what moves without a commit, the runner
   # image, a retagged action, a toolchain download. GitHub disables a schedule after 60 days
   # without activity in a public repository.

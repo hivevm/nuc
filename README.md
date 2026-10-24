@@ -38,9 +38,12 @@ goals live in [`docs/SPECIFICATION.md`](docs/SPECIFICATION.md), the vocabulary i
 
 1. Open the repository in VS Code and choose **Reopen in Container**. The Dev Container and the
    preconfigured agent extensions build automatically, and the container enables the repository's
-   git hooks ([`.githooks/`](.githooks/)): no commit on `main`, and the checks run before a push.
-   Working outside the container? Enable them yourself, once per clone:
-   `git config core.hooksPath .githooks`.
+   git hooks ([`.githooks/`](.githooks/)): the local `main` moves only to what the remote's
+   has, no push goes to it, the checks run before a push, and the documentation check before any
+   other merge. It also makes every merge a merge commit, and every pull a fast-forward. Working
+   outside the container? Do the same yourself, once per clone:
+   `git config core.hooksPath .githooks`, `git config merge.ff false`, and
+   `git config pull.ff only`.
 2. Authenticate your coding agent inside the container (for Claude Code: `claude login`).
 3. Start working with the agent. Drive the work from the specification and the ADRs.
 
@@ -75,7 +78,7 @@ docs/CONVENTIONS.md   # how this project writes what no check decides, kept curr
 docs/ARCHITECTURE.md  # the system as it currently stands
 docs/adr/             # Architecture Decision Records (+ template)
 scripts/              # consistency checks and sensors (check-all.sh runs them all), run in CI
-.githooks/            # git hooks: refuse a commit on main and a push while the checks are red
+.githooks/            # git hooks: nothing lands on main locally; checks before a push
 .github/              # CI workflows, Dependabot, issue & pull request templates, code owners
 .devcontainer/        # Dev Container definition (base image + Features)
 .vscode/              # shared editor settings
@@ -140,13 +143,41 @@ each ticket by its branch in a git worktree of its own and starts a fresh sessio
 non-interactive command of whichever agent the project's harness ADR names, and the session works
 the ticket through the `work-tickets` skill.
 
+## Integration branches
+
+A change reaches `main` through a pull request. Several branches may integrate first on a
+`feat/` branch by local merges, which stays the human's to rework until its pull request merges
+([`AGENTS.md` §6](AGENTS.md#6-project-rules)). Each step waits for a human's instruction.
+
+1. Start it at the remote's `main`: `git fetch origin`, then
+   `git switch -c feat/<topic> origin/main`.
+2. Merge a reviewed branch into it with its hand-off as the message:
+   `git merge -F .scratch/<hand-off>.md <branch>`. The documentation check gates the merge, and
+   the push of step 4 runs the rest. One that stops on a conflict is concluded, once resolved and
+   staged, with `git commit -F .scratch/<hand-off>.md`, and all the checks gate that commit.
+3. Rework it as often as needed: rebase it, regroup its commits, or drop what did not hold. A
+   rebase without `--rebase-merges` flattens the merges, and their hand-offs with them.
+4. Test it in the pipelines: `git push -u origin feat/<topic>`, then open a draft pull request,
+   `gh pr create --draft --base main`, which runs them on every push against what the merge
+   into `main` would produce. A branch kept without a pull request, such as an experiment, runs
+   them by hand: `gh workflow run checks.yml --ref feat/<topic>`. A rework already pushed goes out
+   with `git push --force-with-lease`.
+5. Take up what the remote's `main` gained meanwhile, such as a Dependabot update, since the
+   ruleset merges only a branch up to date with it: `git merge origin/main` on the `feat/`
+   branch, gated like any merge, or a rebase onto it.
+6. Once the pull request has merged as a merge commit, take it up and drop the branch:
+   `git switch main`, `git fetch origin`, `git merge --ff-only origin/main`, then
+   `git branch -d feat/<topic>` and `git push origin --delete feat/<topic>`.
+
 ## Repository settings
 
 Some of this project's rules cannot be enforced by files in the repository
 ([`AGENTS.md` §6](AGENTS.md#6-project-rules)). They are settings on the GitHub repository itself,
 configured once by a maintainer and worth re-checking after a repository move or transfer:
 
-- a **ruleset on `main`** that requires pull requests, requires the
+- a **ruleset on `main`** that requires pull requests and allows the merge method **merge commit**
+  only, since squash and rebase discard the merges a `feat/` branch carries and the commits it
+  was reworked into ([`AGENTS.md` §6](AGENTS.md#6-project-rules)); requires the
   <!-- required-checks begin — compared with the workflow's jobs by scripts/check-docs.sh -->
   `docs`, `traceability`, `devcontainer`, `sensors`, and `shell`
   <!-- required-checks end -->

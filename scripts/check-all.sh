@@ -14,9 +14,9 @@
 # tree against the merge base with origin/main, else main, untracked files included. A path in
 # that line is a file, or with a trailing '/' a directory. A self-test without the line or naming
 # a path that does not exist runs, and so does everything on main or without such a merge base.
-# The checks, the sensors, and a project's build, test, and lint always run. The pre-push hook
-# runs this mode; CI runs every self-test, so what is skipped here is still decided before a
-# merge.
+# The checks, the sensors, and a project's build, test, and lint always run. The hooks run this
+# mode before a push and on the conclusion of a conflicted merge; CI runs every self-test, so what
+# is skipped here is still decided before anything reaches main.
 #
 # Pure bash + coreutils/git. The individual checks state their own dependencies — the shell lint
 # needs ShellCheck and skips itself with a notice where it is missing.
