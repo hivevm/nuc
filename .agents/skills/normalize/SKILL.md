@@ -28,9 +28,21 @@ Run in a fresh session. Name the entry point with the human:
   commit bodies of its normalizations, read in order, say which of its ADRs restates which
   template ADR.
 
-Before an adoption or a template release, a local `main` with commits the remote's lacks moves
-them to a `feat/` branch: the hooks the template brings keep `main` to what `origin/main` has
-([`AGENTS.md` §6](../../../AGENTS.md#6-project-rules)).
+An adoption or a template release brings the template's git hooks and its repository settings
+with its files:
+
+- **Before the copy,** a local `main` with commits the remote's lacks moves them to a `feat/`
+  branch: the hooks keep `main` to what `origin/main` has
+  ([`AGENTS.md` §6](../../../AGENTS.md#6-project-rules)).
+- **Once the files are in,** every clone enables the hooks with the merge settings they rely
+  on, as [Git hooks](../../../README.md#git-hooks) in the README says; a Dev Container rebuilt
+  from the new configuration does it on every start.
+- **Before the take-up reaches `main`,** a maintainer walks
+  [Repository settings](../../../README.md#repository-settings) against the GitHub repository:
+  for an adoption all of it, for a release what changed in the template's section between the
+  two tags, such as the merge method or a required check. A ruleset that still requires a check
+  the workflow no longer runs blocks the merge; one that lacks a new check lets the merge through
+  while that check fails.
 
 Confirm the preconditions of the mechanics before anything is written. When the last
 normalization is recent, say so before starting. Report the inventory to the human: the ADRs in
