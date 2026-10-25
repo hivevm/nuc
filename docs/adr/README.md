@@ -36,8 +36,10 @@ verifies.
   5).
   - **Start.** The tree has no proposed ADR, no feature spec or ticket under `docs/plan/`, and
     green checks.
-  - **Steps.** Three branches, each merged by a human: the restated specification, whose
-    `G-n` and `Q-n` run from 1; the supersessions it calls for; and the restated record.
+  - **Steps.** Three, in this order on one branch, each handed to the human and confirmed
+    before the next begins: the restated specification, whose `G-n` and `Q-n` run from 1; the
+    supersessions it calls for; and the restated record. One pull request lands them, merged by
+    a human.
   - **Order.** The record numbers the ADRs in force `0001..N` by what they govern. The document
     set and the ADR process come first, then the founding decisions in the order of the setup,
     then the rest in groups. An inherited ADR takes its place like any other, and may be merged
