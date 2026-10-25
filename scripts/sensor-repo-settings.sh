@@ -7,7 +7,8 @@
 # differs from that list (ADR-0002, sensors of the GitHub repository):
 #
 #   1. The rules in effect on main, from every ruleset that targets it: a pull request required,
-#      merge commit the only merge method, the Code Owners review, the required status checks
+#      merge commit the only merge method, with no linear history required and a merge queue,
+#      if any, merging by merge commit, the Code Owners review, the required status checks
 #      against the job names between the 'required-checks' markers of README.md, a branch up to
 #      date before it merges, and force pushes and the branch's deletion blocked.
 #   2. Secret scanning with push protection. GitHub shows it to an admin of the repository only;
@@ -52,7 +53,8 @@ expected="$(sed -n '/required-checks begin/,/required-checks end/p' "$ROOT/READM
 
 # 1. The rules in effect on main, one line per rule of every ruleset, fields split by a tab:
 # 'pull_request <methods> <code owners>', 'strict <true|false>' and one 'check <name>' per
-# required check of a required_status_checks rule, and the bare type of any other rule.
+# required check of a required_status_checks rule, 'merge_queue <method>', and the bare type of
+# any other rule.
 tab=$'\t'
 rules="$("$GH" api --paginate "repos/$repo/rules/branches/main" --jq '.[] |
   if .type == "pull_request" then
@@ -60,6 +62,8 @@ rules="$("$GH" api --paginate "repos/$repo/rules/branches/main" --jq '.[] |
   elif .type == "required_status_checks" then
     ("strict\t\(.parameters.strict_required_status_checks_policy)",
      (.parameters.required_status_checks[] | "check\t\(.context)"))
+  elif .type == "merge_queue" then
+    "merge_queue\t\(.parameters.merge_method)"
   else .type end' 2>/dev/null)"
 rules_rc=$?
 if ((rules_rc)); then
@@ -98,6 +102,12 @@ else
       [[ " $expected" == *" $name "* ]] || finding "main: the required check '$name' is not among those README names"
     done
   fi
+  # Two rules that make a merge commit impossible whatever the pull request rule allows.
+  grep -qx 'required_linear_history' <<< "$rules" \
+    && finding "main: a linear history is required, which refuses merge commits"
+  while IFS="$tab" read -r _ method; do
+    [[ "$method" == MERGE ]] || finding "main: the merge queue merges by '$method', not by merge commit"
+  done < <(grep "^merge_queue$tab" <<< "$rules")
   grep -qx 'non_fast_forward' <<< "$rules" || finding "main: force pushes are not blocked"
   grep -qx 'deletion' <<< "$rules" || finding "main: the branch's deletion is not blocked"
 fi

@@ -153,6 +153,20 @@ d="$(repo deletion)"
 answer "$d" repos/owner/name/rules/branches/main "$(grep -v '^deletion' <<< "$RULES")"
 expect "deletion not blocked" "$d" 0 "the branch's deletion is not blocked"
 
+d="$(repo linear-history)"
+answer "$d" repos/owner/name/rules/branches/main "$RULES
+required_linear_history"
+expect "a linear history refuses merge commits" "$d" 0 "a linear history is required"
+
+d="$(repo merge-queue-squash)"
+answer "$d" repos/owner/name/rules/branches/main "$RULES
+merge_queue${T}SQUASH"
+expect "a merge queue that squashes" "$d" 0 "the merge queue merges by 'SQUASH'"
+d="$(repo merge-queue-merge)"
+answer "$d" repos/owner/name/rules/branches/main "$RULES
+merge_queue${T}MERGE"
+expect "a merge queue that merges by merge commit reports nothing" "$d" 0 "nothing to report"
+
 d="$(repo push-protection)"
 answer "$d" repos/owner/name "disabled"
 expect "push protection disabled" "$d" 0 "push protection is disabled"
