@@ -40,7 +40,9 @@ with its files:
 - **Before the take-up reaches `main`,** a maintainer walks
   [Repository settings](../../../README.md#repository-settings) against the GitHub repository:
   for an adoption all of it, for a release what changed in the template's section between the
-  two tags, such as the merge method or a required check. A ruleset that still requires a check
+  two tags, such as the merge method or a required check.
+  [`scripts/sensor-repo-settings.sh`](../../../scripts/sensor-repo-settings.sh) reports what
+  differs once the new README is in. A ruleset that still requires a check
   the workflow no longer runs blocks the merge; one that lacks a new check lets the merge through
   while that check fails.
 

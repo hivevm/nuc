@@ -106,7 +106,7 @@ docs/GLOSSARY.md      # the vocabulary everyone uses, kept current inline
 docs/CONVENTIONS.md   # how this project writes what no check decides, kept current inline
 docs/ARCHITECTURE.md  # the system as it currently stands
 docs/adr/             # Architecture Decision Records (+ template)
-scripts/              # consistency checks and sensors (check-all.sh runs them all), run in CI
+scripts/              # checks and sensors, run by check-all.sh and in CI; the settings sensor by hand
 .githooks/            # git hooks: nothing lands on main locally; checks before a merge and a push
 .github/              # CI workflows, Dependabot, issue & pull request templates, code owners
 .devcontainer/        # Dev Container definition (base image + Features)
@@ -259,6 +259,10 @@ configured once by a maintainer and worth re-checking after a repository move or
 - enable **secret scanning with push protection**, the only mechanical backstop behind the secrets
   rule ([`AGENTS.md` §7](AGENTS.md#7-secrets)), which is otherwise carried by review alone;
 - enable **private vulnerability reporting** (see [`SECURITY.md`](SECURITY.md)).
+
+[`scripts/sensor-repo-settings.sh`](scripts/sensor-repo-settings.sh) reads these settings
+through `gh` and reports each one that differs from this list. It runs on a maintainer's
+instruction, not in the checks, since only an admin of the repository can read all of them.
 
 ## Template
 
