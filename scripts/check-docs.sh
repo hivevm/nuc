@@ -77,7 +77,7 @@
 #  13. Template identity replaced: once TEMPLATE-SETUP.md is gone, none of the template's
 #      placeholders is left. Step 1 of the setup: the project name NUC in the README title, its
 #      intro, its Why NUC section, and the Dev Container name, the template's repository in the
-#      README badge, the copyright holder in LICENSE, the security contact in SECURITY.md, the
+#      README badges, the copyright holder in LICENSE, the security contact in SECURITY.md, the
 #      reporting contact in CODE_OF_CONDUCT.md, and a CODEOWNERS with no active rule or with its TODO. Step 3: the
 #      '<Project Name>' title of the specification, the overview, the glossary, and the
 #      conventions, a criterion of the specification still reading '…' or '<Quality', and the
@@ -914,9 +914,9 @@ check_template_identity() {
   placeholder README.md '^## Why NUC$' "the Why NUC section still presents the template; delete it"
   placeholder README.md '^Describe what this project does' "the Overview is still the scaffold's sentence; describe the project"
   placeholder README.md '^TODO — show a minimal example' "the Usage section is still TODO; show how the project is used, or say there is nothing to use yet"
-  # Anchored to the workflow path of the badge: the Template section links the template's
-  # repository on purpose, and that link stays.
-  placeholder README.md 'github\.com/hivevm/nuc/actions/workflows/' "the badge still points at the template's repository; repoint or delete it"
+  # Anchored to a badge line: the Template section links the template's repository on purpose,
+  # and that link stays.
+  placeholder README.md '^\[!\[[^]]*\]\([^)]*hivevm/nuc' "a badge still points at the template's repository; repoint or delete it"
   placeholder .devcontainer/devcontainer.json '"name": "NUC DevContainer"' "the Dev Container still carries the template's name"
   placeholder LICENSE '^Copyright\b.*\bMaintainer\b' "the copyright holder is still the placeholder; name the maintainer"
   placeholder SECURITY.md 'TODO: add a security contact' "the security contact is still the placeholder"

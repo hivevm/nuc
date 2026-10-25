@@ -74,7 +74,7 @@ are the one block with no ADR behind it — accepted here. In the template repos
 changes as this ADR is corrected in place, and the release notes say so
 ([ADR-0005](0005-template-releases.md)); in a derived project, by an ADR on the ADR process.
 Rules 1 and 3 of that block belong to it like the rest: the catalogue is what a decision
-is proposed from, and ADRs the same human decides may travel together on a branch of ADRs only,
+is proposed from, and ADRs the same human decides may travel together in commits of ADRs only,
 the founding decisions of a new project always, so that they are proposed as one start and
 revised while proposed. Rule 5 belongs to it with its normalization: on a human's instruction the
 record is restated in reading order, without its dead ADRs, and no decision changes. A record

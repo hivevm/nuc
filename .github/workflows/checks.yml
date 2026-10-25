@@ -5,8 +5,9 @@ name: Checks
 # scripts/check-all.sh is the local equivalent; check 9 of scripts/check-docs.sh holds the two
 # lists and the required checks named in README.md together. Each job runs a check after its own
 # self-test, and each script's header says what it checks:
-# - Documentation: scripts/check-docs.sh, then scripts/test-template-setup.sh and the self-test of
-#   the normalize skill's map script, scripts/test-normalize-remap.sh (ADR-0001).
+# - Documentation: scripts/check-docs.sh, then the self-test of the normalize skill's map script,
+#   scripts/test-normalize-remap.sh (ADR-0001).
+# - Template setup, in the documentation job: scripts/test-template-setup.sh, until it closes.
 # - Traceability: scripts/check-traceability.sh (ADR-0002).
 # - Dev Container: scripts/check-devcontainer.sh (ADR-0004).
 # - Sensors: scripts/sensor-tests-kept.sh, sensor-binding-adrs.sh (ADR-0001),
@@ -15,7 +16,9 @@ name: Checks
 #   and fail on nothing they count, except the action references once a project runs that sensor
 #   with --require; their self-tests fail like any check's. The job checks out the full history
 #   because four sensors read it. An edit of a pull request's description runs none of these
-#   jobs: review-binding.yml runs the review binding sensor again on it.
+#   jobs: review-binding.yml runs the review binding sensor again on it. Of
+#   sensor-repo-settings.sh only the self-test runs here; the sensor reads GitHub and runs on a
+#   human's instruction (ADR-0002).
 # - Shell lint: scripts/check-shell.sh, after the self-tests of scripts/check-all.sh and of the
 #   git hooks.
 # - Build, test, lint: absent until the project has a toolchain. The catalogue entry Toolchain of
@@ -141,6 +144,9 @@ jobs:
         run: bash scripts/sensor-action-refs.sh
       - name: Self-test the review binding sensor
         run: bash scripts/test-sensor-review-binding.sh
+      # The repository settings sensor itself runs on a human's instruction (ADR-0002).
+      - name: Self-test the repository settings sensor
+        run: bash scripts/test-sensor-repo-settings.sh
       # On a pull request only, against its head: the checkout is a synthetic merge of the two,
       # and a push to main brings the merge of that pull request, not the hand-offs it carries.
       # The description is the hand-off of the whole branch; it reaches the sensor through the

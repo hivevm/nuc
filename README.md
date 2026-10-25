@@ -1,6 +1,8 @@
 # NUC — an Agentic, Specification-Oriented Starter Template
 
 [![Checks](https://github.com/hivevm/nuc/actions/workflows/checks.yml/badge.svg)](https://github.com/hivevm/nuc/actions/workflows/checks.yml)
+[![Release](https://img.shields.io/github/v/release/hivevm/nuc)](https://github.com/hivevm/nuc/releases/latest)
+[![License](https://img.shields.io/github/license/hivevm/nuc)](LICENSE)
 
 **NUC** is named after the small *nucleus colony* a full hive grows from in beekeeping. It is a
 starting point for building software **with coding agents** inside a ready-to-use Dev Container.
@@ -15,13 +17,14 @@ explicit and reviewable.
 > [!NOTE]
 > **This project still carries its template setup.** The one-time steps that turn the scaffold
 > into your own project are in [`TEMPLATE-SETUP.md`](TEMPLATE-SETUP.md); ask your agent to run the
-> `setup-project` skill to be walked through them, one question at a time. Delete that file and
-> this note once you are through them.
+> `setup-project` skill to be walked through them, one question at a time. Once you are through
+> them, `scripts/test-template-setup.sh --close` removes that file and this note.
 
 ## Why NUC
 
-NUC is a repository template, not a tool to install. A project starts from it with what a
-codebase built by several humans and agents over years needs on day one:
+NUC is a paved road for agentic coding: a repository template, not a tool to install, for how
+humans and agents decide, review, and enforce. It ships no toolchain. A project starts from it
+with what a codebase built by several humans and agents over years needs on day one:
 
 - **One rule file for every agent.** [`AGENTS.md`](AGENTS.md) and the Agent Skills under
   [`.agents/skills/`](.agents/skills/) are read by Claude Code, Codex, Gemini CLI, Cursor, and
@@ -64,8 +67,12 @@ goals live in [`docs/SPECIFICATION.md`](docs/SPECIFICATION.md), the vocabulary i
 
 ## Getting Started
 
-> Setting the project up for the first time? The one-time steps are in
-> [`TEMPLATE-SETUP.md`](TEMPLATE-SETUP.md). Delete this paragraph together with that file.
+> Setting the project up for the first time? Create the repository from the template, with
+> **Use this template** on GitHub or with
+> `gh repo create <owner>/<name> --template hivevm/nuc --public --clone`. A private repository
+> needs a paid GitHub plan for the rulesets of [Repository settings](#repository-settings).
+> The one-time steps are in [`TEMPLATE-SETUP.md`](TEMPLATE-SETUP.md); the close of the setup
+> removes this paragraph with that file.
 
 1. Open the repository in VS Code and choose **Reopen in Container**. The Dev Container and the
    preconfigured agent extensions build automatically, and the container enables the repository's
@@ -104,7 +111,7 @@ docs/GLOSSARY.md      # the vocabulary everyone uses, kept current inline
 docs/CONVENTIONS.md   # how this project writes what no check decides, kept current inline
 docs/ARCHITECTURE.md  # the system as it currently stands
 docs/adr/             # Architecture Decision Records (+ template)
-scripts/              # consistency checks and sensors (check-all.sh runs them all), run in CI
+scripts/              # checks and sensors, run by check-all.sh and in CI; the settings sensor by hand
 .githooks/            # git hooks: nothing lands on main locally; checks before a merge and a push
 .github/              # CI workflows, Dependabot, issue & pull request templates, code owners
 .devcontainer/        # Dev Container definition (base image + Features)
@@ -257,6 +264,10 @@ configured once by a maintainer and worth re-checking after a repository move or
 - enable **secret scanning with push protection**, the only mechanical backstop behind the secrets
   rule ([`AGENTS.md` §7](AGENTS.md#7-secrets)), which is otherwise carried by review alone;
 - enable **private vulnerability reporting** (see [`SECURITY.md`](SECURITY.md)).
+
+[`scripts/sensor-repo-settings.sh`](scripts/sensor-repo-settings.sh) reads these settings
+through `gh` and reports each one that differs from this list. It runs on a human's
+instruction, not in the checks, since only an admin of the repository can read all of them.
 
 ## Template
 

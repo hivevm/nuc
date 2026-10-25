@@ -290,7 +290,11 @@ expect fail "the template's Dev Container name after setup" "$d" "devcontainer.j
 
 d="$(repo identity-badge)"
 echo "[![Checks](https://github.com/hivevm/nuc/actions/workflows/checks.yml/badge.svg)](https://github.com/hivevm/nuc/actions/workflows/checks.yml)" >> "$d/README.md"
-expect fail "the template's repository in the README badge after setup" "$d" "README.md: the badge still points at the template"
+expect fail "the template's repository in the README badge after setup" "$d" "README.md: a badge still points at the template"
+
+d="$(repo identity-license-badge)"
+echo "[![License](https://img.shields.io/github/license/hivevm/nuc)](LICENSE)" >> "$d/README.md"
+expect fail "the template's repository in a shields.io badge after setup" "$d" "README.md: a badge still points at the template"
 
 d="$(repo identity-template-link)"
 echo "Created from [NUC](https://github.com/hivevm/nuc)." >> "$d/README.md"

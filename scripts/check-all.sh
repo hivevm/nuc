@@ -121,6 +121,9 @@ run "Action references sensor self-test" scripts/test-sensor-action-refs.sh
 run "Action references sensor" scripts/sensor-action-refs.sh
 run "Review binding sensor self-test" scripts/test-sensor-review-binding.sh
 run "Review binding sensor" scripts/sensor-review-binding.sh
+# The repository settings sensor reads GitHub and runs on a human's instruction (ADR-0002); its
+# self-test runs here.
+run "Repository settings sensor self-test" scripts/test-sensor-repo-settings.sh
 run "Check runner self-test" scripts/test-check-all.sh
 run "Git hooks self-test" scripts/test-git-hooks.sh
 run "Shell lint self-test" scripts/test-check-shell.sh
