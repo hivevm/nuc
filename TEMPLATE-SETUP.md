@@ -1,13 +1,13 @@
 # Template setup
 
 This repository is a scaffold. Work through this file to turn it into your own project. Then
-delete it together with the two notes that point here from [`README.md`](README.md), its row in
-the README's Project Layout block, and
-[`scripts/test-template-setup.sh`](scripts/test-template-setup.sh) with its `run` line in
-[`scripts/check-all.sh`](scripts/check-all.sh) and its step in the `docs` job of
-[`checks.yml`](.github/workflows/checks.yml), and the
-[`setup-project`](.agents/skills/setup-project/SKILL.md) skill with its pointer under
-`.claude/skills/`.
+close the setup with `scripts/test-template-setup.sh --close`, and run
+[`scripts/check-all.sh`](scripts/check-all.sh). The close removes this file and what exists only
+for it: the notes and the layout row of [`README.md`](README.md), the
+[`setup-project`](.agents/skills/setup-project/SKILL.md) skill, and the setup's own self-test.
+Documents that mention the setup in passing, such as the ADRs, keep their sentence.
+Its function `close_setup` in [`scripts/test-template-setup.sh`](scripts/test-template-setup.sh)
+lists them.
 
 Choose the **profile** first, because it decides how much of each step you take. A small
 project takes the path of [A small project](#a-small-project) at each step; a complex one takes
@@ -44,6 +44,15 @@ place of steps 2 and 3: the project's own decisions and the inherited ADRs becom
      For another license, replace the text of both.
    Check 13 of [`scripts/check-docs.sh`](scripts/check-docs.sh) fails on any of these placeholders
    still present once this file is gone.
+
+   Then work through [**Repository settings**](README.md#repository-settings), before the
+   setup's pull request is opened. They are the rules only the GitHub repository can enforce. Until
+   they are set, nothing on GitHub keeps a change from reaching `main` without a pull request and
+   its checks. The jobs they name as required checks exist from the start. Without a second
+   maintainer, the Code Owners review stays off until one joins, as
+   [A small project](#a-small-project) says. Then run
+   [`scripts/sensor-repo-settings.sh`](scripts/sensor-repo-settings.sh): it reports what still
+   differs from the list.
 2. Review the ADRs you inherit in [`docs/adr/`](docs/adr/), in the order of their numbers:
    the document set, how decisions are verified, and the skills come first, because every later
    one rests on them; the releases and the feature layer follow. Each was decided by the NUC
@@ -72,11 +81,12 @@ place of steps 2 and 3: the project's own decisions and the inherited ADRs becom
    acts, and its **sensors**, which check what it did. Committing to them early narrows what an
    agent can produce to what the sensors can hold
    ([harness engineering](https://martinfowler.com/articles/harness-engineering.html)).
-   For each, the agent proposes the fitting concepts of the catalogue in
+
+   **Deciding.** For each, the agent proposes the fitting concepts of the catalogue in
    [`.agents/skills/propose-adr/concepts/`](.agents/skills/propose-adr/concepts/README.md), the
    simplest among them, with what each one's *Does not fit* says about this project; you choose,
    and the choice becomes an ADR of your own ([`AGENTS.md` §3](AGENTS.md#3-adr-rules), rule 1).
-   One decision per ADR, all of them on one branch of ADRs, status `proposed`
+   One decision per ADR, all of them in commits of ADRs only, status `proposed`
    ([`AGENTS.md` §3](AGENTS.md#3-adr-rules), rule 3). Keeping what the template ships is a
    choice too, and gets the mini-ADR of [`docs/adr/template.md`](docs/adr/template.md): this
    file goes once the setup is done, and without the record the next session proposes the
@@ -97,18 +107,22 @@ place of steps 2 and 3: the project's own decisions and the inherited ADRs becom
      template ships them, and, where the specification names credentials as an asset, where
      secrets live and how a leak is caught.
 
-   These ADRs are a start, not a cage. While they are `proposed`, a finding revises one in a
-   commit of ADRs only ([`AGENTS.md` §3](AGENTS.md#3-adr-rules), rule 4), and the ones the
-   golden path of step 7 proves wrong are rewritten before they bind. Each flips to accepted with
-   what decides it: the shape and the toolchain with the golden path and its tests, the
-   environment with `scripts/check-devcontainer.sh` and what its ADR adds, the supply chain with
-   [`scripts/sensor-action-refs.sh`](scripts/sensor-action-refs.sh) run as its check, wired as
-   its [catalogue entry](.agents/skills/propose-adr/concepts/action-references.md) says. The
-   harness and a kept default usually flip with a `**Not mechanically decidable:**` paragraph.
-   If ADR-0004 is kept, its decider is added as step 2 describes; an ADR superseding it is
-   proposed here, and what it removes goes on the branch stacked on this one, where it flips to
-   accepted ([`AGENTS.md` §3](AGENTS.md#3-adr-rules), rule 4). After that, following the
-   technology means superseding the one ADR that chose it.
+   **When they bind.** These ADRs are a start, not a cage. While they are `proposed`, a finding
+   revises one in a commit of ADRs only ([`AGENTS.md` §3](AGENTS.md#3-adr-rules), rule 4). The
+   ones the golden path of step 7 proves wrong are rewritten before they bind. Each flips to
+   accepted with what decides it:
+   - **The shape and the toolchain** flip with the golden path of step 7 and its tests.
+   - **The environment** flips with `scripts/check-devcontainer.sh` and what its ADR adds. If
+     ADR-0004 is kept, its decider is added as step 2 describes. An ADR superseding it is
+     proposed here, and what it removes follows in a commit after the reviewed ADRs, where it
+     flips to accepted ([`AGENTS.md` §3](AGENTS.md#3-adr-rules), rule 4).
+   - **The supply chain** flips with
+     [`scripts/sensor-action-refs.sh`](scripts/sensor-action-refs.sh) run as its check, wired as
+     its [catalogue entry](.agents/skills/propose-adr/concepts/action-references.md) says.
+   - **The harness and a kept default** usually flip with a `**Not mechanically decidable:**`
+     paragraph.
+
+   After that, following the technology means superseding the one ADR that chose it.
 5. Fill in the **Overview**, **Build, Test & Run**, and **Usage** sections of
    [`README.md`](README.md). Check 13 fails on the scaffold's Overview sentence, the Usage
    `TODO`, and a Build, Test, Lint, or Run command still `TODO` once this file is gone; write
@@ -117,8 +131,8 @@ place of steps 2 and 3: the project's own decisions and the inherited ADRs becom
    and lint commands of the README run through **one script under [`scripts/`](scripts/)**, say
    `check-build.sh`. [`scripts/check-all.sh`](scripts/check-all.sh) invokes it with a `run` line,
    and a job of [`checks.yml`](.github/workflows/checks.yml) runs it after setting up the
-   toolchain, the job named among the required checks in the README. That is what makes the
-   pre-push hook and CI refuse a red change
+   toolchain, the job named among the required checks in the README and added to those of the
+   ruleset on `main`. That is what makes the pre-push hook and CI refuse a red change
    ([`AGENTS.md` §5](AGENTS.md#5-quality-bar--definition-of-done)). Check 9 of
    [`scripts/check-docs.sh`](scripts/check-docs.sh) fails on a job whose commands are written
    inline instead, and while the three lists disagree. What is too slow to gate a push, such as
@@ -135,8 +149,6 @@ place of steps 2 and 3: the project's own decisions and the inherited ADRs becom
    ADR flips to accepted with it; the toolchain ADR flips with the golden path's tests. What the
    golden path shows that no check decides and a reader could not guess, the why behind a shape,
    is the first entry in [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md).
-8. Work through [**Repository settings**](README.md#repository-settings), the rules that only the
-   GitHub repository itself can enforce.
 
 Project-specific conventions belong in [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md), in checks,
 and in ADRs; on what may and may not be edited, see [`AGENTS.md` §3](AGENTS.md#3-adr-rules).
@@ -164,7 +176,8 @@ README. What can go, and how:
   - the `devcontainer` job and its bullet in the header of
     [`checks.yml`](.github/workflows/checks.yml), its `run` lines in
     [`scripts/check-all.sh`](scripts/check-all.sh), and its name in the README's required checks;
-    check 9 holds the three lists together;
+    check 9 holds the three lists together. Take it out of the required checks of the ruleset
+    on `main` as well, since the pull request that removes the job can merge only then;
   - the `remote.extensionKind` entry of [`.vscode/settings.json`](.vscode/settings.json) and the
     lock comment of [`.gitignore`](.gitignore);
   - in the README, the Dev Container section and the `.devcontainer/` row of the Project Layout,

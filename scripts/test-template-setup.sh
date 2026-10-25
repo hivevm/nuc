@@ -25,30 +25,43 @@
 # no longer applies stays in the copy, and case 2 fails on it.
 #
 # The setup file goes together with this script, its 'run' line in scripts/check-all.sh, and its
-# step in the docs job. Should the script outlive the file, it says there is nothing left to
-# test and passes.
+# step in the docs job, which --close removes. Should the script outlive the file, it says there
+# is nothing left to test and passes.
 #
 # With --open it tests nothing and lists what the setup still leaves open, for a session that
 # resumes it: what check-docs.sh names on the copy of case 1, its findings about the setup file
-# aside, and each section of the specification still reading '…'. Case 1 holds the listing to
-# what check-docs.sh names and to the sections that carry a '…'.
+# aside, each section of the specification still reading '…', step 6 while checks.yml has no
+# job beside the template's and the README names a command, and step 7 while the Building
+# blocks of docs/ARCHITECTURE.md name no golden path. Case 1 holds the listing to what
+# check-docs.sh names, to the sections that carry a '…', and to the two steps.
+#
+# With --close it tests nothing and closes the setup in this repository: it removes the setup
+# file and what exists only for it, as close_setup lists, this script included. Case 2 makes the same edits on its copy, and case 4 runs --close on a copy. It
+# refuses while the README carries the template's title, so the template's own tree stays.
 #
 # No '# Inputs:' line: it reads the whole tree, so scripts/check-all.sh runs it in its
 # --changed mode too.
 #
 # Pure bash + coreutils/sed/awk/grep/tar, plus git to enumerate the files and build the copy. Usage:
-#     scripts/test-template-setup.sh [--open]
-# Exit code 0 when every case passes or with --open, 1 when a case fails, 2 on an unknown
-# argument.
+#     scripts/test-template-setup.sh [--open|--close]
+# Exit code 0 when every case passes, with --open, or once --close has closed the setup; 1 when
+# a case fails; 2 on an unknown argument or a --close the template's title refuses.
 
 set -uo pipefail
 
 # shellcheck source-path=SCRIPTDIR source=lib/selftest.sh
 source "$(dirname "${BASH_SOURCE[0]}")/lib/selftest.sh"
 
+# Once the setup file is gone there is nothing to test or list. --close still runs: a setup file
+# deleted by hand leaves the rest of what the close removes behind.
 if [[ ! -f "$ROOT/TEMPLATE-SETUP.md" ]]; then
-  echo "Template setup self-test: TEMPLATE-SETUP.md is gone, the setup is done — nothing to test."
-  exit 0
+  case "${1:-}" in
+    "" | --open)
+      echo "Template setup self-test: TEMPLATE-SETUP.md is gone, the setup is done — nothing to test."
+      exit 0 ;;
+    --close) ;;
+    *) echo "test-template-setup: unknown argument '$1' — usage: scripts/test-template-setup.sh [--open|--close]" >&2; exit 2 ;;
+  esac
 fi
 
 # copy <name> — the repository's files (tracked, and new ones git does not ignore) in a fresh git
@@ -97,12 +110,78 @@ open_steps() {
        /(^|[ *])…$/ && !(section in seen) {
          seen[section]; print "  - docs/SPECIFICATION.md: the section " q section q " still reads " q "…" q
        }' "$ROOT/docs/SPECIFICATION.md"
+  open_toolchain "$ROOT"
+  open_golden_path "$ROOT"
+}
+
+# open_toolchain <dir> — step 6: no job of checks.yml beside the template's own, while the README
+# names a command to run.
+open_toolchain() {
+  local wf="$1/.github/workflows/checks.yml" none
+  [[ -f "$wf" ]] || return 0
+  none="$(grep -cE '^- \*\*(Build|Test|Lint|Run):\*\* none$' "$1/README.md" 2>/dev/null)"
+  ((none == 4)) && return 0
+  awk '/^jobs:/ { j = 1; next } j && /^  [a-z][a-z0-9_-]*:$/ { print substr($0, 3, length($0) - 3) }' "$wf" \
+    | grep -qvxE 'docs|traceability|devcontainer|sensors|shell' \
+    || echo "  - step 6: .github/workflows/checks.yml has no job of the project's toolchain"
+}
+
+# open_golden_path <dir> — step 7: the Building blocks of the overview name no golden path, the
+# scaffold's sentence that says where it goes aside.
+open_golden_path() {
+  local doc="$1/docs/ARCHITECTURE.md"
+  [[ -f "$doc" ]] || return 0
+  sed -n '/^## Building blocks/,/^## [^B]/p' "$doc" | grep -v 'are named here\.$' | grep -qi 'golden path' \
+    || echo "  - step 7: docs/ARCHITECTURE.md names no golden path under Building blocks"
+}
+
+# close_setup <dir> — the close of the setup in the tree: the setup file, the README's notes
+# that point at it and its row in the Project Layout block, the setup skill and its pointer, and
+# this script with its 'run' line and its step in the docs job. The same edits make case 2.
+close_setup() {
+  local d="$1"
+  rm -f "$d/TEMPLATE-SETUP.md"
+  rm -rf "$d/.agents/skills/setup-project" "$d/.claude/skills/setup-project"
+  # The setup's note only, not another NOTE block of the project: the note and the blank line
+  # after it, when its first line says the project still carries its setup.
+  if [[ -f "$d/README.md" ]]; then
+    awk 'held != "" { if ($0 ~ /still carries its template setup/) { skip = 1 } else { print held }
+                      held = "" }
+         skip { if ($0 == "") skip = 0; next }
+         /^> \[!NOTE\]$/ { held = $0; next }
+         { print }
+         END { if (held != "") print held }' "$d/README.md" > "$d/README.md.tmp" \
+      && mv "$d/README.md.tmp" "$d/README.md"
+  fi
+  edit "$d" README.md '/^> Setting the project up/,/^$/d'
+  edit "$d" README.md '/^TEMPLATE-SETUP\.md /d'
+  edit "$d" scripts/check-all.sh '/ scripts\/test-template-setup\.sh$/d'
+  # The step and its comment line by line, so an edited step never widens what goes.
+  edit "$d" .github/workflows/checks.yml '/^# - Template setup/d
+/^      # The setup promises a green project once every step is done/d
+/^      # every placeholder left behind; this holds only on the real scaffold/d
+/^      - name: Self-test the template setup against the scaffold$/d
+/^        run: bash scripts\/test-template-setup\.sh$/d'
+  rm -f "$d/scripts/test-template-setup.sh"
+}
+
+# close — close the setup in this repository, once step 1 has given it its own name: the
+# template's own tree is never closed.
+close() {
+  if grep -q '^# NUC — an Agentic' "$ROOT/README.md" 2>/dev/null; then
+    echo "test-template-setup: the README still carries the template's title — close the setup after step 1." >&2
+    exit 2
+  fi
+  close_setup "$ROOT"
+  echo "Template setup closed. Run scripts/check-all.sh: check-docs.sh names what the setup left open."
+  exit 0
 }
 
 case "${1:-}" in
   "") ;;
   --open) open_steps; exit 0 ;;
-  *) echo "test-template-setup: unknown argument '$1' — usage: scripts/test-template-setup.sh [--open]" >&2; exit 2 ;;
+  --close) close ;;
+  *) echo "test-template-setup: unknown argument '$1' — usage: scripts/test-template-setup.sh [--open|--close]" >&2; exit 2 ;;
 esac
 
 # --- case 1: the setup file deleted, nothing else done ----------------------------------------
@@ -217,6 +296,20 @@ done
 listed="$(grep -c "still reads '…'" <<< "$open")"
 if ((listed == ${#unwritten[@]})); then pass
 else fail "--open lists $listed sections of the specification, and ${#unwritten[@]} still read '…'"; fi
+# Steps 6 and 7: open on the scaffold, closed by a job of the project's own, by commands that
+# are all "none", and by a golden path named under Building blocks.
+for l in "step 6: .github/workflows/checks.yml has no job" "step 7: docs/ARCHITECTURE.md names no golden path"; do
+  if [[ "$open" == *"$l"* ]]; then pass; else fail "--open on the scaffold does not list: $l"; fi
+done
+d="$(copy steps-6-7)"
+awk '/^  shell:$/ { print "  build:"; print "    runs-on: ubuntu-latest" } { print }' \
+  "$d/.github/workflows/checks.yml" > "$d/checks.tmp" && mv "$d/checks.tmp" "$d/.github/workflows/checks.yml"
+if [[ -z "$(open_toolchain "$d")" ]]; then pass; else fail "--open lists step 6 beside a job of the project's own"; fi
+d="$(copy steps-6-none)"
+for field in Build Test Lint Run; do edit "$d" README.md "s/^- \*\*$field:\*\* TODO.*/- **$field:** none/"; done
+if [[ -z "$(open_toolchain "$d")" ]]; then pass; else fail "--open lists step 6 where the README runs nothing"; fi
+edit "$d" docs/ARCHITECTURE.md 's/^- \*\*<Part>\*\*.*/- **Greeter** — the golden path: one request answered end to end./'
+if [[ -z "$(open_golden_path "$d")" ]]; then pass; else fail "--open lists step 7 beside a golden path named under Building blocks"; fi
 # The argument: --open prints the listing and exits 0, an unknown one exits 2.
 if by_arg="$(bash "$ROOT/scripts/test-template-setup.sh" --open)"; then pass; else fail "--open does not exit 0"; fi
 if [[ "$by_arg" == "$open" ]]; then pass; else fail "--open prints something else than the listing"; fi
@@ -229,13 +322,7 @@ if ((rc == 2)); then pass; else fail "an unknown argument exits $rc, not 2"; fi
 # setup_steps <dir> — the steps of the setup, done in the copy as an agent would do them.
 setup_steps() {
   local d="$1" f doc
-  rm "$d/TEMPLATE-SETUP.md"
-  # The skill that walks the setup, and its pointer.
-  rm -rf "$d/.agents/skills/setup-project" "$d/.claude/skills/setup-project"
-  # The README's notes that point at the setup file, and its row in the Project Layout block.
-  edit "$d" README.md '/^> \[!NOTE\]$/,/^$/d'
-  edit "$d" README.md '/^> Setting the project up/,/^$/d'
-  edit "$d" README.md '/^TEMPLATE-SETUP\.md /d'
+  close_setup "$d"
   # Step 1: the project's identity.
   edit "$d" README.md 's/^# NUC — .*/# Fixture/'
   edit "$d" README.md 's/^\*\*NUC\*\* is named after.*/**Fixture** answers questions./'
@@ -385,6 +472,38 @@ ADR
   expect_pass "the small-project path passes the documentation checks" "$d" check-docs.sh
   expect_pass "the small-project path passes the traceability check" "$d" check-traceability.sh
 fi
+
+# --- case 4: --close, run by the copy's own script ---------------------------------------------
+
+# On the template's tree it refuses and removes nothing.
+d="$(copy close-refused)"
+bash "$d/scripts/test-template-setup.sh" --close >/dev/null 2>&1
+rc=$?
+if ((rc == 2)) && [[ -f "$d/TEMPLATE-SETUP.md" ]]; then pass
+else fail "--close on the template's own tree exits $rc or removes the setup file"; fi
+# Once step 1 has named the project it removes what close_setup lists, and nothing names the
+# setup file or this script any more.
+d="$(copy close)"
+edit "$d" README.md 's/^# NUC — .*/# Fixture/'
+printf '\n> [!NOTE]\n> **Fixture keeps this note.**\n' >> "$d/README.md"
+if bash "$d/scripts/test-template-setup.sh" --close >/dev/null 2>&1; then pass
+else fail "--close after step 1 does not exit 0"; fi
+for f in TEMPLATE-SETUP.md scripts/test-template-setup.sh .agents/skills/setup-project/SKILL.md; do
+  if [[ ! -e "$d/$f" ]]; then pass; else fail "--close leaves $f"; fi
+done
+if [[ ! -L "$d/.claude/skills/setup-project" ]]; then pass; else fail "--close leaves the skill's pointer"; fi
+left="$(grep -l -e 'TEMPLATE-SETUP\.md' -e 'test-template-setup\.sh' \
+  "$d/README.md" "$d/scripts/check-all.sh" "$d/.github/workflows/checks.yml")"
+if [[ -z "$left" ]]; then pass; else fail "--close leaves a mention of the setup in: $left"; fi
+if grep -q 'Fixture keeps this note' "$d/README.md"; then pass
+else fail "--close removes a NOTE block of the project's own"; fi
+# A setup file deleted by hand: --close still removes the rest.
+d="$(copy close-after-hand)"
+edit "$d" README.md 's/^# NUC — .*/# Fixture/'
+rm "$d/TEMPLATE-SETUP.md"
+bash "$d/scripts/test-template-setup.sh" --close >/dev/null 2>&1
+if [[ ! -e "$d/scripts/test-template-setup.sh" && ! -e "$d/.agents/skills/setup-project" ]]; then pass
+else fail "--close after the setup file was deleted by hand leaves the script or the skill"; fi
 
 # --- summary ---------------------------------------------------------------------------------
 

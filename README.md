@@ -17,8 +17,8 @@ explicit and reviewable.
 > [!NOTE]
 > **This project still carries its template setup.** The one-time steps that turn the scaffold
 > into your own project are in [`TEMPLATE-SETUP.md`](TEMPLATE-SETUP.md); ask your agent to run the
-> `setup-project` skill to be walked through them, one question at a time. Delete that file and
-> this note once you are through them.
+> `setup-project` skill to be walked through them, one question at a time. Once you are through
+> them, `scripts/test-template-setup.sh --close` removes that file and this note.
 
 ## Why NUC
 
@@ -66,8 +66,12 @@ goals live in [`docs/SPECIFICATION.md`](docs/SPECIFICATION.md), the vocabulary i
 
 ## Getting Started
 
-> Setting the project up for the first time? The one-time steps are in
-> [`TEMPLATE-SETUP.md`](TEMPLATE-SETUP.md). Delete this paragraph together with that file.
+> Setting the project up for the first time? Create the repository from the template, with
+> **Use this template** on GitHub or with
+> `gh repo create <owner>/<name> --template hivevm/nuc --public --clone`. A private repository
+> needs a paid GitHub plan for the rulesets of [Repository settings](#repository-settings).
+> The one-time steps are in [`TEMPLATE-SETUP.md`](TEMPLATE-SETUP.md); the close of the setup
+> removes this paragraph with that file.
 
 1. Open the repository in VS Code and choose **Reopen in Container**. The Dev Container and the
    preconfigured agent extensions build automatically, and the container enables the repository's
