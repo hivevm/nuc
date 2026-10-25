@@ -22,7 +22,9 @@ the conversation and states no rule of its own
   `main` by one pull request. The founding decisions of step 4 are commits of ADRs only
   ([`AGENTS.md` §3](../../../AGENTS.md#3-adr-rules), rule 3). Steps 5 to 7 follow once the
   human has reviewed them, and the hand-off names the commit of ADRs the human reviewed
-  (rule 4).
+  (rule 4). In a complex project the pull request lands steps 1 to 6, since the tickets of
+  step 7 are claimed on `main` ([ADR-0006](../../../docs/adr/0006-feature-layer.md)); step 7
+  follows as the first spec.
 - A later session resumes from the tree. The profile is read from the team and the work in the
   specification's *Constraints* and the assets in its *Threats*, or asked again while those are
   unwritten. [`scripts/test-template-setup.sh`](../../../scripts/test-template-setup.sh)

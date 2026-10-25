@@ -38,8 +38,8 @@ verifies.
     green checks.
   - **Steps.** Three, in this order on one branch, each handed to the human and confirmed
     before the next begins: the restated specification, whose `G-n` and `Q-n` run from 1; the
-    supersessions it calls for; and the restated record. One pull request lands them, merged by
-    a human.
+    supersessions it calls for; and the restated record. The record begins once the human has
+    decided each supersession. One pull request lands them, merged by a human.
   - **Order.** The record numbers the ADRs in force `0001..N` by what they govern. The document
     set and the ADR process come first, then the founding decisions in the order of the setup,
     then the rest in groups. An inherited ADR takes its place like any other, and may be merged

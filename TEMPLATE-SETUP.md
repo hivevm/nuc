@@ -141,8 +141,9 @@ place of steps 2 and 3: the project's own decisions and the inherited ADRs becom
    [`AGENTS.md` §5](AGENTS.md#5-quality-bar--definition-of-done) is handed, and a sensor that
    runs only in someone's head is a rule in prose.
 7. Lay down one golden path and one test pattern: a small, complete, idiomatic piece of the real
-   system and the test that verifies it, built on the founding decisions. Name both in
-   [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). The specification says *what*; this is where
+   system and the test that verifies it, built on the founding decisions. Name both in an entry
+   of the Building blocks of [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), with the words
+   "golden path", which `--open` looks for. The specification says *what*; this is where
    an agent learns *how* this project does it, and what it copies from is what you get more of.
    Where the project chose a shape, its rule lands here as a **structural test**, cited with a
    `Verifies:` marker ([ADR-0002](docs/adr/0002-decisions-verified-by-tests.md)), and the shape
@@ -227,7 +228,9 @@ entries.
   file watcher, is configured to leave `.scratch/` out.
 - **The work** is planned under `docs/plan/` from the start, through the
   [`plan-feature`](.agents/skills/plan-feature/SKILL.md) skill; the golden path of step 7 is the
-  tracer bullet of the first spec.
+  tracer bullet of the first spec. A ticket is claimed on `main`
+  ([ADR-0006](docs/adr/0006-feature-layer.md)), so the setup's pull request lands steps 1 to 6
+  first, and the founding ADRs reach `main` as `proposed`; step 7 follows as that spec.
 - **A second maintainer** makes the Code Owners review of the repository settings possible; keep
   it required. With several, a team is the code owner in
   [`.github/CODEOWNERS`](.github/CODEOWNERS), and the harness ADR says which of them decides the

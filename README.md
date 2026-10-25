@@ -22,8 +22,9 @@ explicit and reviewable.
 
 ## Why NUC
 
-NUC is a repository template, not a tool to install. A project starts from it with what a
-codebase built by several humans and agents over years needs on day one:
+NUC is a paved road for agentic coding: a repository template, not a tool to install, for how
+humans and agents decide, review, and enforce. It ships no toolchain. A project starts from it
+with what a codebase built by several humans and agents over years needs on day one:
 
 - **One rule file for every agent.** [`AGENTS.md`](AGENTS.md) and the Agent Skills under
   [`.agents/skills/`](.agents/skills/) are read by Claude Code, Codex, Gemini CLI, Cursor, and
@@ -265,7 +266,7 @@ configured once by a maintainer and worth re-checking after a repository move or
 - enable **private vulnerability reporting** (see [`SECURITY.md`](SECURITY.md)).
 
 [`scripts/sensor-repo-settings.sh`](scripts/sensor-repo-settings.sh) reads these settings
-through `gh` and reports each one that differs from this list. It runs on a maintainer's
+through `gh` and reports each one that differs from this list. It runs on a human's
 instruction, not in the checks, since only an admin of the repository can read all of them.
 
 ## Template

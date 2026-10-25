@@ -18,6 +18,9 @@
 #   3. The same, on the path 'No Dev Container?' of 'A small project': ADR-0004 superseded and
 #      what the container brings removed as the path lists it. check-docs.sh and
 #      check-traceability.sh pass. It runs while the path is open, before a project has begun it.
+#   4. --close, run by a copy's own script: it refuses on the template's tree, and after step 1,
+#      also once the setup file was deleted by hand, removes what close_setup lists and keeps a
+#      NOTE block of the project's own.
 #
 # A project partway through the setup has replaced some placeholders already. Case 1 asks only
 # for those still present, and an edit of case 2 that finds nothing to change does nothing, so
@@ -36,8 +39,9 @@
 # check-docs.sh names, to the sections that carry a '…', and to the two steps.
 #
 # With --close it tests nothing and closes the setup in this repository: it removes the setup
-# file and what exists only for it, as close_setup lists, this script included. Case 2 makes the same edits on its copy, and case 4 runs --close on a copy. It
-# refuses while the README carries the template's title, so the template's own tree stays.
+# file and what exists only for it, as close_setup lists, this script included. Case 2 makes the
+# same edits on its copy, and case 4 runs --close on a copy. It refuses while the README carries
+# the template's title, so the template's own tree stays.
 #
 # No '# Inputs:' line: it reads the whole tree, so scripts/check-all.sh runs it in its
 # --changed mode too.
@@ -126,12 +130,12 @@ open_toolchain() {
     || echo "  - step 6: .github/workflows/checks.yml has no job of the project's toolchain"
 }
 
-# open_golden_path <dir> — step 7: the Building blocks of the overview name no golden path, the
-# scaffold's sentence that says where it goes aside.
+# open_golden_path <dir> — step 7: no entry of the Building blocks of the overview names a golden
+# path. An entry is a list item, so the scaffold's sentence that says where it goes never counts.
 open_golden_path() {
   local doc="$1/docs/ARCHITECTURE.md"
   [[ -f "$doc" ]] || return 0
-  sed -n '/^## Building blocks/,/^## [^B]/p' "$doc" | grep -v 'are named here\.$' | grep -qi 'golden path' \
+  sed -n '/^## Building blocks/,/^## [^B]/p' "$doc" | grep -qiE '^- .*golden path' \
     || echo "  - step 7: docs/ARCHITECTURE.md names no golden path under Building blocks"
 }
 
