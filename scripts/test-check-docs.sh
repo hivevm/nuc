@@ -17,20 +17,17 @@
 # Section references and ADR numbers inside fixtures are assembled, never written literally, so
 # that check-docs.sh does not read this script's own fixtures as references into this repository.
 #
+# Inputs: scripts/check-docs.sh scripts/lib/
+#
 # Usage:
 #     scripts/test-check-docs.sh
 # Exit code 0 when every case passes, 1 otherwise.
 
 set -uo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source-path=SCRIPTDIR source=lib/selftest.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/selftest.sh"
 CHECK="$ROOT/scripts/check-docs.sh"
-
-work="$(mktemp -d)"
-trap 'rm -rf "$work"' EXIT
-
-failed=0
-passed=0
 
 # sed_in <file> <sed script> — edit a fixture file in place, the same way on GNU and BSD sed.
 sed_in() {
@@ -462,6 +459,20 @@ d="$(repo broken-link)"
 echo "See [the missing file](missing.md)." >> "$d/README.md"
 expect fail "a relative link to a file that does not exist" "$d" "broken relative link"
 
+d="$(repo anchor-missing)"
+echo "See [the rules](AGENTS.md#3-rules)." >> "$d/README.md"
+expect fail "a link to an anchor no heading carries" "$d" "has no matching anchor '#3-rules'"
+
+d="$(repo anchor-slug)"
+printf '\n## Bar & Done ##\n' >> "$d/AGENTS.md"
+echo "See [the bar](AGENTS.md#bar--done)." >> "$d/README.md"
+expect pass "an anchor slugged the way GitHub does, closing hashes dropped" "$d"
+
+d="$(repo anchor-last-line)"
+printf '\n## Last' >> "$d/AGENTS.md"
+echo "See [the last section](AGENTS.md#last)." >> "$d/README.md"
+expect pass "a heading on a last line without a newline anchors" "$d"
+
 d="$(repo index-status)"
 adr "$d" 1 "🟢 accepted"
 expect fail "an index status that disagrees with the ADR" "$d" "status for '0001-decision.md'"
@@ -612,9 +623,4 @@ expect fail "a Project Layout entry that no longer exists" "$d" "is not a direct
 
 # --- summary -------------------------------------------------------------------------------
 
-if ((failed)); then
-  echo "Documentation self-test FAILED ($failed of $((passed + failed)) cases)." >&2
-  exit 1
-fi
-echo "Documentation self-test passed ($passed cases)."
-exit 0
+summary "Documentation self-test"

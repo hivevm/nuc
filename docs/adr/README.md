@@ -14,7 +14,7 @@ verifies.
 
 - **File.** Copy [`template.md`](template.md) to `NNNN-short-title.md` with the next free number.
   The `# ADR-NNNN` heading matches the filename, and the numbers run `0001..N` without gaps.
-- **Index.** The tables below change in the same pull request as the ADR it describes, for
+- **Index.** The tables below change in the same commit as the ADR they describe, for
   additions, supersessions, and status flips alike. The status is shown via the legend's bullet
   and the ADR's `Applies to` header is mirrored verbatim in its own column. The index routes a
   reader from a change to the decisions that bind it, so a row says what its ADR governs without
@@ -23,26 +23,26 @@ verifies.
   **Superseded and rejected**, and a status flip moves the row.
 - **Numbers are permanent once on `main`, until a normalization.** Between two normalizations,
   never renumber, delete, or merge an ADR there: other ADRs, commits (`Implements ADR-NNNN`), and
-  code may reference a number. A proposed ADR whose number another pull request brought to
+  code may reference a number. A proposed ADR whose number another branch brought to
   `main` first takes the next free number before it merges, in its file name, heading, and index
   row and in every reference its own branch makes to it. Until a normalization, a superseded ADR
-  keeps its file and its body. Its `Status` line flips to `⚪ superseded by ADR-NNNN` in the pull
-  request that lands the superseding ADR, whose `Supersedes` field names it back.
+  keeps its file and its body. Its `Status` line flips to `⚪ superseded by ADR-NNNN` in the change
+  that lands the superseding ADR, whose `Supersedes` field names it back.
 - **Between normalizations, sprawl is curbed by supersession, never by editing.** One ADR may
   supersede several whose decisions have grown into one. Its `Supersedes` field names each, and
-  each flips its status in the same pull request, so the set an agent reads for a change shrinks
+  each flips its status in the same change, so the set an agent reads for a change shrinks
   while every number and every body stays.
 - **A normalization restates the record** ([`AGENTS.md` §3](../../AGENTS.md#3-adr-rules), rule
   5).
   - **Start.** The tree has no proposed ADR, no feature spec or ticket under `docs/plan/`, and
     green checks.
-  - **Steps.** Three pull requests, each landed by a human: the restated specification, whose
+  - **Steps.** Three branches, each merged by a human: the restated specification, whose
     `G-n` and `Q-n` run from 1; the supersessions it calls for; and the restated record.
   - **Order.** The record numbers the ADRs in force `0001..N` by what they govern. The document
     set and the ADR process come first, then the founding decisions in the order of the setup,
     then the rest in groups. An inherited ADR takes its place like any other, and may be merged
     with the project's own.
-  - **Clauses.** Every clause of an old ADR lives on in one new ADR. The pull request of the
+  - **Clauses.** Every clause of an old ADR lives on in one new ADR. The hand-off of the
     record lists each clause with the new ADR that carries it.
   - **Header.** A new ADR keeps the status of the ADRs it restates. Its `Deciders` name all of
     theirs, its `Date` is the latest of theirs, and it has no `Supersedes` field. In an
@@ -52,7 +52,7 @@ verifies.
     did not stand, becomes an entry under *Alternatives considered* in the new ADR that governs
     its topic.
   - **References.** Each step moves its references with a map, old to new, applied by the map
-    script of the `normalize` skill. The map stands in the pull request description and the
+    script of the `normalize` skill. The map stands in the hand-off and the
     commit body, and in no document. A commit older than the normalization cites the numbers it
     had then.
 - **Cite only what exists.** Every `ADR-NNNN` reference names a file already in this directory.
@@ -87,7 +87,7 @@ is the table a session reads.
 ### Superseded and rejected
 
 The record of what was decided against or replaced: read one when a change touches what it
-governed, to learn why the current decision stands. A row moves here in the pull request that
+governed, to learn why the current decision stands. A row moves here in the change that
 flips its status.
 
 None yet.

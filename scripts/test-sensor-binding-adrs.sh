@@ -8,23 +8,17 @@
 # path its prose only resembles, an ADR no longer in force, an ADR the change itself adds, a
 # change no ADR names, nothing to compare, and a base that does not resolve.
 #
+# Inputs: scripts/sensor-binding-adrs.sh scripts/lib/
+#
 # Usage:
 #     scripts/test-sensor-binding-adrs.sh
 # Exit code 0 when every case passes, 1 otherwise.
 
 set -uo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source-path=SCRIPTDIR source=lib/selftest.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/selftest.sh"
 SENSOR="$ROOT/scripts/sensor-binding-adrs.sh"
-
-work="$(mktemp -d)"
-trap 'rm -rf "$work"' EXIT
-
-failed=0
-passed=0
-
-# fixture <dir> — refuse an empty fixture path: 'git -C ""' would act on this repository.
-fixture() { [[ -n "${1:-}" && -d "$1/.git" ]] || { echo "fixture: '$1' is no fixture repository" >&2; exit 1; }; }
 
 # commit <dir> <message> — commit everything in the fixture.
 commit() {
@@ -171,9 +165,4 @@ expect 0 "a deleted file binds" "$d" "$(adr_id 4) (docs/adr/0004-fixture.md) —
 
 # --- summary ---------------------------------------------------------------------------------
 
-if ((failed)); then
-  echo "Binding ADRs sensor self-test FAILED ($failed of $((passed + failed)) cases)." >&2
-  exit 1
-fi
-echo "Binding ADRs sensor self-test passed ($passed cases)."
-exit 0
+summary "Binding ADRs sensor self-test"

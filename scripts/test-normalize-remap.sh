@@ -13,20 +13,17 @@
 # The identifiers in the fixtures are assembled at run time: a literal one would be a reference
 # that check-docs.sh and check-traceability.sh hold against this repository.
 #
+# Inputs: .agents/skills/normalize/ scripts/ docs/adr/ docs/SPECIFICATION.md
+#
 # Usage:
 #     scripts/test-normalize-remap.sh
 # Exit code 0 when every case passes, 1 otherwise.
 
 set -uo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source-path=SCRIPTDIR source=lib/selftest.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/selftest.sh"
 REMAP="$ROOT/.agents/skills/normalize/remap.sh"
-
-work="$(mktemp -d)"
-trap 'rm -rf "$work"' EXIT
-
-failed=0
-passed=0
 
 A="ADR"
 V="Verifies"
@@ -179,8 +176,4 @@ for i in "${!pids[@]}"; do
   ((rc == 0)) || sed 's/^/    /' "$work/${names[$i]}.log" >&2
 done
 
-if ((failed)); then
-  echo "Normalize map self-test FAILED ($failed of $((passed + failed)) cases)." >&2
-  exit 1
-fi
-echo "Normalize map self-test passed ($passed cases)."
+summary "Normalize map self-test"

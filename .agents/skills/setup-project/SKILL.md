@@ -17,25 +17,33 @@ the conversation and states no rule of its own
   answer.
 - What the human does not know yet is not invented: it goes into the specification's
   *Assumptions*, or stays an open question in the conversation until it is answered.
-- Commit after each step, so the walk can stop anywhere. Steps 1 to 3 go on a branch
-  `chore/setup` and its pull request; the founding decisions of step 4 on a branch and pull
-  request of ADRs only ([`AGENTS.md` §3](../../../AGENTS.md#3-adr-rules), rule 3); steps 5 to
-  8 once the human has reviewed those ADRs, on branches of their own. A later session resumes
-  from the tree: a title still `<Project Name>`, a criterion still `…`, an inherited ADR without
-  a decider of this project show where the walk stopped.
+- Commit after each step, so the walk can stop anywhere. The branches stack in the order of
+  the steps, each on the one before, since every step works inside what the earlier ones
+  wrote: steps 1 to 3 on `chore/setup`; the founding decisions of step 4 on a branch of ADRs
+  only ([`AGENTS.md` §3](../../../AGENTS.md#3-adr-rules), rule 3); steps 5 to 8, once the human
+  has reviewed those ADRs, on branches stacked on it. They reach `main` by pull requests in
+  that order, or, when the human instructs it, integrate first on `feat/setup` and reach
+  `main` by its one pull request
+  ([`AGENTS.md` §6](../../../AGENTS.md#6-project-rules)).
+- A later session resumes from the tree. The profile is read from the team and the work in the
+  specification's *Constraints* and the assets in its *Threats*, or asked again while those are
+  unwritten. [`scripts/test-template-setup.sh`](../../../scripts/test-template-setup.sh)
+  `--open` lists what is still open of steps 1, 3, and 5, and each inherited ADR without a
+  decider of this project; ADR-0004 stays among them until step 4. Read from the tree are the
+  *Problem*, *Mission*, *Vision*, and *Strategy* of the specification, whose scaffold carries no
+  `…` to find, and steps 6 to 8. The founding decisions already taken are the ADRs of step 4 on
+  their branch.
 - In an existing project, steps 2 and 3 run as the adoption of the
   [`normalize`](../normalize/SKILL.md) skill, and this walk resumes with step 4 for what no
   record of the project decides yet.
 
 ## 1. The profile
 
-Ask whether the project is small or complex, with the signals for each, and propose one:
-
-- **Small:** a tool, a library, or a one-person project; work that fits a session; one agent.
-  Each later step takes the path of [A small project](../../../TEMPLATE-SETUP.md#a-small-project).
-- **Complex:** several people or agents, work that spans sessions, assets worth protecting.
-  Each later step is taken in full, as
-  [A complex project](../../../TEMPLATE-SETUP.md#a-complex-project) says.
+Ask whether the project is small or complex, with the signals the first sentence of
+[A small project](../../../TEMPLATE-SETUP.md#a-small-project) and of
+[A complex project](../../../TEMPLATE-SETUP.md#a-complex-project) gives, and for a small one
+also work that fits a session and one agent; propose one. Each later step then takes the path
+that section says.
 
 The profile is a starting point, not a record: the harness and the toolchain grow when the work
 does.
@@ -45,7 +53,7 @@ does.
 Step 1: ask for the four values of the identity and apply them. Step 2: for each inherited ADR,
 in the order of its number, say in two sentences what it decides and what it costs this
 project, recommend accepting or superseding it in the light of the profile, and apply the
-human's answer.
+human's answer. ADR-0004, the Dev Container, waits for step 4, as the setup file says.
 
 ## 3. The specification
 
@@ -74,7 +82,8 @@ documents of `docs/` get the project's name in their title.
 
 Step 4, one decision at a time through [`propose-adr`](../propose-adr/SKILL.md), weighed against
 the specification just written: the simplest fitting concepts proposed, the human chooses, each
-choice an ADR at `proposed`, all of them in one pull request. For the harness, ask whether
+choice an ADR at `proposed`, all of them on one branch. ADR-0004 is taken up beside the
+environment, as the setup file says. For the harness, ask whether
 agents are to work tickets in parallel; if so, the ADR takes the catalogue's form *Parallel
 tickets under a cap* and names the command that starts each agent without a human.
 

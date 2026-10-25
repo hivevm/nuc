@@ -8,23 +8,17 @@
 # unchanged repository reports nothing; every other case is one thing the sensor reports, or one
 # it must stay silent on.
 #
+# Inputs: scripts/sensor-tests-kept.sh scripts/lib/
+#
 # Usage:
 #     scripts/test-sensor-tests-kept.sh
 # Exit code 0 when every case passes, 1 otherwise.
 
 set -uo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source-path=SCRIPTDIR source=lib/selftest.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/selftest.sh"
 SENSOR="$ROOT/scripts/sensor-tests-kept.sh"
-
-work="$(mktemp -d)"
-trap 'rm -rf "$work"' EXIT
-
-failed=0
-passed=0
-
-# fixture <dir> — refuse an empty fixture path: 'git -C ""' would act on this repository.
-fixture() { [[ -n "${1:-}" && -d "$1/.git" ]] || { echo "fixture: '$1' is no fixture repository" >&2; exit 1; }; }
 
 # commit <dir> <message> — stage everything and commit with a fixed identity.
 commit() {
@@ -136,9 +130,4 @@ expect 0 "no base and no main" "$d" "no main to compare with" ""
 
 # --- summary ---------------------------------------------------------------------------------
 
-if ((failed)); then
-  echo "Tests kept sensor self-test FAILED ($failed of $((passed + failed)) cases)." >&2
-  exit 1
-fi
-echo "Tests kept sensor self-test passed ($passed cases)."
-exit 0
+summary "Tests kept sensor self-test"

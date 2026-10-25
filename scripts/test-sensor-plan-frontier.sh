@@ -11,24 +11,18 @@
 # skill is exercised with it: a claim in one repository, and a claim on a remote that a second
 # clone's claim of the same ticket loses, also when the branch there points at main itself.
 #
+# Inputs: scripts/sensor-plan-frontier.sh .agents/skills/work-tickets/claim.sh scripts/lib/
+#
 # Usage:
 #     scripts/test-sensor-plan-frontier.sh
 # Exit code 0 when every case passes, 1 otherwise.
 
 set -uo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source-path=SCRIPTDIR source=lib/selftest.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/selftest.sh"
 SENSOR="$ROOT/scripts/sensor-plan-frontier.sh"
 CLAIM="$ROOT/.agents/skills/work-tickets/claim.sh"
-
-work="$(mktemp -d)"
-trap 'rm -rf "$work"' EXIT
-
-failed=0
-passed=0
-
-# fixture <dir> — refuse an empty fixture path: 'git -C ""' would act on this repository.
-fixture() { [[ -n "${1:-}" && -d "$1/.git" ]] || { echo "fixture: '$1' is no fixture repository" >&2; exit 1; }; }
 
 # repo <name> — an empty repository with one commit, printed as its path.
 repo() {
@@ -179,9 +173,4 @@ unset GIT_AUTHOR_DATE GIT_COMMITTER_DATE
 
 # --- summary ---------------------------------------------------------------------------------
 
-if ((failed)); then
-  echo "Plan frontier sensor self-test FAILED ($failed of $((passed + failed)) cases)." >&2
-  exit 1
-fi
-echo "Plan frontier sensor self-test passed ($passed cases)."
-exit 0
+summary "Plan frontier sensor self-test"

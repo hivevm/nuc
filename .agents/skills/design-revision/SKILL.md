@@ -15,7 +15,7 @@ session and states no rule of its own
 
 Take the feature spec and its merged tickets: once only its `spec.md` is left, the tickets are the
 files the history deleted from its directory (`git log --diff-filter=D -- docs/plan/<spec>/`).
-The modules those pull requests touched are the scope; the rest of the tree is context, not a
+The modules those tickets' merges touched are the scope; the rest of the tree is context, not a
 target. One session, one spec.
 
 Without a spec, when [`scripts/sensor-revision-due.sh`](../../../scripts/sensor-revision-due.sh)
@@ -24,7 +24,7 @@ revision. One session, one count.
 
 ## 2. Survey the modules
 
-For each module touched, look for what a pull request cannot see and a check does not:
+For each module touched, look for what a single change cannot see and a check does not:
 
 - a concept spread over several files that belongs in one;
 - logic written a second time;
@@ -61,7 +61,7 @@ ADRs it would move; never land it.
 
 ## 5. Go through the mistakes
 
-From the review findings and the history of the pull requests in scope, those of the spec's
+From the review findings and the history of the merges in scope, those of the spec's
 tickets or those of the counted changes, list what went wrong on the way. For each: could a
 check have caught it? Then it becomes a check. Could a convention have prevented it?
 Then it is an entry in [`docs/CONVENTIONS.md`](../../../docs/CONVENTIONS.md).

@@ -9,20 +9,18 @@
 # The marker text inside fixtures is assembled by 'mark', never written literally, so that the
 # check does not read this script's own fixtures as citations when it runs over the repository.
 #
+# No '# Inputs:' line: while TEMPLATE-SETUP.md exists, a case reads the whole tree, so
+# scripts/check-all.sh runs this self-test in its --changed mode too.
+#
 # Usage:
 #     scripts/test-check-traceability.sh
 # Exit code 0 when every case passes, 1 otherwise.
 
 set -uo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source-path=SCRIPTDIR source=lib/selftest.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/selftest.sh"
 CHECK="$ROOT/scripts/check-traceability.sh"
-
-work="$(mktemp -d)"
-trap 'rm -rf "$work"' EXIT
-
-failed=0
-passed=0
 
 # mark <ids...> — the marker line for the given identifiers.
 mark() { printf 'Verifies: %s\n' "$*"; }
@@ -241,9 +239,4 @@ fi
 
 # --- summary -------------------------------------------------------------------------------
 
-if ((failed)); then
-  echo "Traceability self-test FAILED ($failed of $((passed + failed)) cases)." >&2
-  exit 1
-fi
-echo "Traceability self-test passed ($passed cases)."
-exit 0
+summary "Traceability self-test"
