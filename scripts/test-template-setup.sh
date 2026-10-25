@@ -129,7 +129,7 @@ PLACEHOLDERS=(
   "README.md|^## Why NUC$|README.md: the Why NUC section still presents the template"
   "README.md|^Describe what this project does|README.md: the Overview is still the scaffold's sentence"
   "README.md|^TODO — show a minimal example|README.md: the Usage section is still TODO"
-  "README.md|github\.com/hivevm/nuc/actions/workflows/|README.md: the badge still points at the template's repository"
+  "README.md|^\[!\[[^]]*\]\([^)]*hivevm/nuc|README.md: a badge still points at the template's repository"
   ".devcontainer/devcontainer.json|\"name\": \"NUC DevContainer\"|devcontainer.json: the Dev Container still carries the template's name"
   "LICENSE|^Copyright .* Maintainer$|LICENSE: the copyright holder is still the placeholder"
   "SECURITY.md|TODO: add a security contact|SECURITY.md: the security contact is still the placeholder"
@@ -241,7 +241,7 @@ setup_steps() {
   edit "$d" README.md 's/^\*\*NUC\*\* is named after.*/**Fixture** answers questions./'
   edit "$d" README.md '/^## Why NUC$/,/^## Overview$/{/^## Overview$/!d}'
   edit "$d" .devcontainer/devcontainer.json 's/"name": "NUC DevContainer"/"name": "Fixture"/'
-  edit "$d" README.md '/github\.com\/hivevm\/nuc\/actions\/workflows\//d'
+  edit "$d" README.md '/^\[!\[.*hivevm\/nuc/d'
   edit "$d" LICENSE 's/^\(Copyright .*\) Maintainer$/\1 Fixture Owner/'
   edit "$d" .github/CODEOWNERS 's|^# \(/docs/[^ ]*\) @owner$|\1 @fixture|'
   edit "$d" .github/CODEOWNERS '/^# TODO: add a code owner/,/^# would enforce nothing/d'

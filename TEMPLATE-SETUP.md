@@ -31,9 +31,10 @@ place of steps 2 and 3: the project's own decisions and the inherited ADRs becom
      `NUC maintainer` in the `Deciders` lines of the ADRs: it names who decided, and it is how
      check 12 of [`scripts/check-docs.sh`](scripts/check-docs.sh) tells an inherited ADR from
      your own.
-   - **Repository.** The badge in [`README.md`](README.md) points at the template's repository,
-     `hivevm/nuc`. Repoint it to this project's `owner/name` (`git remote get-url origin` says it
-     where a remote exists), or delete the badge line.
+   - **Repository.** The badges of checks, release, and license in [`README.md`](README.md)
+     point at the template's repository, `hivevm/nuc`. Repoint them to this project's
+     `owner/name` (`git remote get-url origin` says it where a remote exists), or delete a badge
+     line. The release badge shows a release once the project cuts its first.
    - **Maintainer.** The copyright holder in [`LICENSE`](LICENSE), the code owner in
      [`.github/CODEOWNERS`](.github/CODEOWNERS) (a GitHub handle or team with write access; then
      uncomment its two rules and remove the TODO above them), the security contact in

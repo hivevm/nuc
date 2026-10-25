@@ -1,6 +1,8 @@
 # NUC — an Agentic, Specification-Oriented Starter Template
 
 [![Checks](https://github.com/hivevm/nuc/actions/workflows/checks.yml/badge.svg)](https://github.com/hivevm/nuc/actions/workflows/checks.yml)
+[![Release](https://img.shields.io/github/v/release/hivevm/nuc)](https://github.com/hivevm/nuc/releases/latest)
+[![License](https://img.shields.io/github/license/hivevm/nuc)](LICENSE)
 
 **NUC** is named after the small *nucleus colony* a full hive grows from in beekeeping. It is a
 starting point for building software **with coding agents** inside a ready-to-use Dev Container.
