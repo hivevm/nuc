@@ -230,7 +230,7 @@ configured once by a maintainer and worth re-checking after a repository move or
 
 ## Template
 
-- **Template release:** v0.2.0 — the release of [NUC](https://github.com/hivevm/nuc) this
+- **Template release:** v0.3.0 — the release of [NUC](https://github.com/hivevm/nuc) this
   repository carries; a project moves the line when it takes up a later one
   ([ADR-0005](docs/adr/0005-template-releases.md)).
 
