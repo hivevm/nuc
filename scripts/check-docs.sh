@@ -76,9 +76,9 @@
 #      While the setup file exists the decision is pending by design, and the check is silent.
 #  13. Template identity replaced: once TEMPLATE-SETUP.md is gone, none of the template's
 #      placeholders is left. Step 1 of the setup: the project name NUC in the README title, its
-#      intro, and the Dev Container name, the template's repository in the README badge, the
-#      copyright holder in LICENSE, the security contact in SECURITY.md, the reporting contact in
-#      CODE_OF_CONDUCT.md, and a CODEOWNERS with no active rule or with its TODO. Step 3: the
+#      intro, its Why NUC section, and the Dev Container name, the template's repository in the
+#      README badge, the copyright holder in LICENSE, the security contact in SECURITY.md, the
+#      reporting contact in CODE_OF_CONDUCT.md, and a CODEOWNERS with no active rule or with its TODO. Step 3: the
 #      '<Project Name>' title of the specification, the overview, the glossary, and the
 #      conventions, a criterion of the specification still reading '…' or '<Quality', and the
 #      scaffold's '<Part>', '<Term>', and '<Convention>' entries. Step 5: a 'TODO' as the Build,
@@ -911,6 +911,7 @@ check_template_identity() {
   }
   placeholder README.md '^# NUC — an Agentic' "the title is still the template's; give the project its name"
   placeholder README.md '^\*\*NUC\*\* is named after' "the intro still explains the template's name; say what the project is"
+  placeholder README.md '^## Why NUC$' "the Why NUC section still presents the template; delete it"
   placeholder README.md '^Describe what this project does' "the Overview is still the scaffold's sentence; describe the project"
   placeholder README.md '^TODO — show a minimal example' "the Usage section is still TODO; show how the project is used, or say there is nothing to use yet"
   # Anchored to the workflow path of the badge: the Template section links the template's

@@ -110,7 +110,7 @@ esac
 # TOKENS — what marks a placeholder of the scaffold; SCAFFOLD — the files that may carry one.
 # Both are the template's own: a project's files, and a TODO or an owner of its own, are not
 # read, so the scan holds while a project is partway through the setup.
-TOKENS='<Project Name>|TODO: add a |^- \*\*<[A-Z][a-z]+>\*\*|@owner$|\*\*NUC\*\*|NUC DevContainer|^Describe what this project|^TODO — show'
+TOKENS='<Project Name>|TODO: add a |^- \*\*<[A-Z][a-z]+>\*\*|@owner$|\*\*NUC\*\*|NUC DevContainer|^## Why NUC$|^Describe what this project|^TODO — show'
 SCAFFOLD='^(README|CONTRIBUTING|SECURITY|CODE_OF_CONDUCT|AGENTS)\.md$|^LICENSE$|^docs/[A-Z]+\.md$|^\.github/CODEOWNERS$|^\.devcontainer/devcontainer\.json$'
 
 # scaffold_tokens <dir> — every file of the tree that still carries a token, one per line.
@@ -126,6 +126,7 @@ scaffold_tokens() {
 PLACEHOLDERS=(
   "README.md|^# NUC — |README.md: the title is still the template's"
   "README.md|^\*\*NUC\*\* is named after|README.md: the intro still explains the template's name"
+  "README.md|^## Why NUC$|README.md: the Why NUC section still presents the template"
   "README.md|^Describe what this project does|README.md: the Overview is still the scaffold's sentence"
   "README.md|^TODO — show a minimal example|README.md: the Usage section is still TODO"
   "README.md|github\.com/hivevm/nuc/actions/workflows/|README.md: the badge still points at the template's repository"
@@ -238,6 +239,7 @@ setup_steps() {
   # Step 1: the project's identity.
   edit "$d" README.md 's/^# NUC — .*/# Fixture/'
   edit "$d" README.md 's/^\*\*NUC\*\* is named after.*/**Fixture** answers questions./'
+  edit "$d" README.md '/^## Why NUC$/,/^## Overview$/{/^## Overview$/!d}'
   edit "$d" .devcontainer/devcontainer.json 's/"name": "NUC DevContainer"/"name": "Fixture"/'
   edit "$d" README.md '/github\.com\/hivevm\/nuc\/actions\/workflows\//d'
   edit "$d" LICENSE 's/^\(Copyright .*\) Maintainer$/\1 Fixture Owner/'

@@ -18,6 +18,36 @@ explicit and reviewable.
 > `setup-project` skill to be walked through them, one question at a time. Delete that file and
 > this note once you are through them.
 
+## Why NUC
+
+NUC is a repository template, not a tool to install. A project starts from it with what a
+codebase built by several humans and agents over years needs on day one:
+
+- **One rule file for every agent.** [`AGENTS.md`](AGENTS.md) and the Agent Skills under
+  [`.agents/skills/`](.agents/skills/) are read by Claude Code, Codex, Gemini CLI, Cursor, and
+  others alike. No vendor's CLI or IDE is required.
+- **Intent and decisions on record.** The specification is the constitution. Every structural
+  choice is an ADR that a human accepts, and a normalization keeps the record readable as it
+  grows.
+- **Rules with teeth.** Git hooks and CI refuse what breaks the record: an accepted ADR no test
+  cites, a broken link, a placeholder left behind, a commit or push on `main`.
+- **Proportionate.** A small project takes a short path through the setup. A complex one grows
+  to tickets worked by agents in parallel, each in a worktree of its own.
+
+How it compares with other spec-driven approaches, as of October 2026:
+
+| | NUC | [Spec Kit](https://github.com/github/spec-kit) | [Kiro](https://kiro.dev) | [OpenSpec](https://github.com/Fission-AI/OpenSpec) | [BMAD Method](https://github.com/bmad-code-org/BMAD-METHOD) |
+|---|---|---|---|---|---|
+| Form | repository template | CLI and templates | IDE | CLI | agent personas |
+| Agents | any that reads `AGENTS.md` | many, by slash commands | its own | several | several |
+| Unit of work | specification, ADRs, tickets | spec, plan, tasks per feature | requirements, design, tasks per feature | change proposal with spec deltas | PRD, architecture, stories |
+| Decisions kept as | ADRs with a lifecycle | constitution and plans | design documents | specs, updated by each change | architecture document |
+| Enforced by | git hooks and CI checks | the agent's commands | IDE hooks | a validate command | the agent's workflow |
+
+Where another fits better: OpenSpec is lighter for small changes to existing code. Spec Kit and
+Kiro generate the spec, plan, and tasks of a feature by command. NUC asks for more setup in
+exchange for checks that hold for every agent and every human, and it assumes GitHub.
+
 ## Overview
 
 Describe what this project does, who it is for, and its main goals. The full problem statement and
