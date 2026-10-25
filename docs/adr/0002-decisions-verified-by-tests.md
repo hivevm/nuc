@@ -49,6 +49,13 @@ no test cites.
   fixture repositories. A sensor fails on nothing it counts until a project's decision turns it
   into a check. `scripts/check-all.sh`, the `checks.yml` workflow, and the README's required
   checks list the same ones.
+- **Sensors of the GitHub repository.** A sensor that reads what only the GitHub repository
+  holds, such as its rulesets and its security settings, may need the GitHub CLI `gh` as well,
+  authenticated through its web flow. It runs on a human's instruction, not in
+  `scripts/check-all.sh` or `checks.yml`: the workflow token cannot read every setting, and a
+  pre-push hook that depends on the network refuses work for a reason the work does not have.
+  Its self-test runs like any other, on fixture responses in place of the API, so it needs no
+  `gh` and stays in the three lists.
 
 `proposed` ADRs are out of the check's scope: their implementation and tests land while they are
 still proposed, and the acceptance lands with them ([`AGENTS.md` §3](../../AGENTS.md#3-adr-rules)).
@@ -72,6 +79,9 @@ project uses.
 - **A language-specific mechanism** (annotations, tags, ArchUnit-style rule classes). Stronger where
   it exists, but a template without a toolchain cannot prescribe one; a project can add one on top
   of the marker.
+- **Run the settings sensor in CI.** The workflow token reads the rules of a branch, but the
+  security settings only with admin rights, so CI would need a stored token
+  ([`AGENTS.md` §6](../../AGENTS.md#6-project-rules) forbids one) or report half of them.
 
 ## Sources / Prior art
 
@@ -103,4 +113,5 @@ above and lists the criteria without a test. It ships with a self-test that cite
 Check 9 of [`scripts/check-docs.sh`](../../scripts/check-docs.sh) holds the three lists of checks
 together and fails a workflow job that runs no script, and
 [`scripts/check-shell.sh`](../../scripts/check-shell.sh) lints every script. That a check stays
-free of further dependencies and runs after its self-test is review.
+free of further dependencies and runs after its self-test is review. That a sensor of the GitHub
+repository runs on instruction only, and its self-test without `gh`, is review.
