@@ -26,10 +26,11 @@ place of steps 2 and 3: the project's own decisions and the inherited ADRs becom
 
 1. Give the project its identity. An agent asks the human for four values and applies them:
    - **Project name.** Replace **NUC** in the title of [`README.md`](README.md) and in `"name"`
-     of `.devcontainer/devcontainer.json`, and rewrite the README's intro sentence, which explains
-     the template's name. Keep `NUC maintainer` in the `Deciders` lines of the ADRs: it names who
-     decided, and it is how check 12 of [`scripts/check-docs.sh`](scripts/check-docs.sh) tells an
-     inherited ADR from your own.
+     of `.devcontainer/devcontainer.json`, rewrite the README's intro sentence, which explains
+     the template's name, and delete its **Why NUC** section, which presents the template. Keep
+     `NUC maintainer` in the `Deciders` lines of the ADRs: it names who decided, and it is how
+     check 12 of [`scripts/check-docs.sh`](scripts/check-docs.sh) tells an inherited ADR from
+     your own.
    - **Repository.** The badge in [`README.md`](README.md) points at the template's repository,
      `hivevm/nuc`. Repoint it to this project's `owner/name` (`git remote get-url origin` says it
      where a remote exists), or delete the badge line.
