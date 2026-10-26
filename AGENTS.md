@@ -109,7 +109,7 @@ restates nothing. A rule this file does not state is not a rule of this project.
 - **Reply to the human in their own language.** Everything else is English: code, comments,
   commits, docs, ADRs, pull requests.
 - **Prefer small, reviewable changes.** Plan and explore before a larger one. Commits and pull
-  requests name the ADR they implement (`Implements ADR-NNNN`).
+  requests name the ADR they implement (`Implements ADR-NNNN`, a draft by its `ADR-draft-<slug>`).
 - **Cut work into vertical slices.** Each slice is a thin, tested path through every layer it
   touches. The first slice through new ground is the tracer bullet. The one exception is a wide
   mechanical refactor: expand, migrate in batches, contract, every step green.
