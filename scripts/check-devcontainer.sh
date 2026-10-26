@@ -20,10 +20,11 @@
 #      ('"ms-azuretools.vscode-containers": ["ui"]' inside the 'remote.extensionKind' object),
 #      which is how host containers are managed without the socket.
 #   5. Git settings: the postStartCommand of devcontainer.json runs 'git config core.hooksPath
-#      .githooks', 'git config merge.ff false', and 'git config pull.ff only'. The git hooks of
-#      the README and SECURITY.md hold in the container because it enables them on every start;
-#      this one is no part of ADR-0004. The value is read from its key to the next top-level
-#      key, whatever its form: a string, an array, or an object.
+#      .githooks', 'git config merge.ff false', 'git config pull.ff only', and 'git config
+#      merge.adr-index.driver' with the driver's command as the README writes it. The git hooks of
+#      the README and SECURITY.md hold in the container because it enables them on every start,
+#      the container's share of the local gate (ADR-0002, ADR-0004). The value is read from its
+#      key to the next top-level key, whatever its form: a string, an array, or an object.
 #
 # Only the default definition is read; a variant under a subdirectory of .devcontainer/ is not.
 # devcontainer.json allows comments, so full-line '//' comments are dropped before reading; a
@@ -40,13 +41,13 @@
 
 set -uo pipefail
 
+# shellcheck source-path=SCRIPTDIR source=lib/check.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/check.sh"
+
 ROOT="$(cd "${1:-$(dirname "${BASH_SOURCE[0]}")/..}" && pwd)"
 CONFIG=".devcontainer/devcontainer.json"
 LOCK=".devcontainer/devcontainer-lock.json"
 SETTINGS=".vscode/settings.json"
-
-errors=()
-add_error() { errors+=("$1"); }
 
 # uncommented <file> — the file without its full-line '//' comments.
 uncommented() { grep -vE '^[[:space:]]*//' "$1"; }
@@ -103,14 +104,6 @@ top_level_value() {
     }'
 }
 
-# _contains <needle> <haystack...> — true if needle equals one of the arguments.
-_contains() {
-  local needle="$1"; shift
-  local x
-  for x in "$@"; do [[ "$x" == "$needle" ]] && return 0; done
-  return 1
-}
-
 features=()
 if [[ ! -f "$ROOT/$CONFIG" ]]; then
   add_error "$CONFIG: not found — the Dev Container ADR-0004 governs has nothing to check"
@@ -148,7 +141,8 @@ else
   # 5. Git settings: the text from the postStartCommand key to the next top-level key, its
   # whitespace collapsed.
   post="$(top_level_value "$ROOT/$CONFIG" postStartCommand | tr '\t\n' '  ' | tr -s ' ')"
-  for setting in "core.hooksPath .githooks" "merge.ff false" "pull.ff only"; do
+  for setting in "core.hooksPath .githooks" "merge.ff false" "pull.ff only" \
+    "merge.adr-index.driver '.githooks/merge-adr-index %O %A %B %S %X %Y'"; do
     [[ "$post" == *"git config $setting"* ]] \
       || add_error "$CONFIG: postStartCommand does not run 'git config $setting' — the git hooks and the merge settings they rely on are enabled on every start (README, Git hooks)"
   done

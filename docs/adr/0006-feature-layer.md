@@ -70,8 +70,9 @@ unchanged, so the checks have nothing to decide.
 That push is the one the harness ADR may grant without an instruction per push
 ([`AGENTS.md` §6](../../AGENTS.md#6-project-rules)); a project whose sessions share a
 repository grants none. A ticket is claimable once it is on `main`, where the worker's branch
-starts and other clones read it, and a claim given up is released by a human deleting its
-branch. Sessions that run in parallel each work in a worktree or a container of
+starts and other clones read it. A claim given up is released by deleting its branch: a local
+one by the session that made it, one on a remote by a human, since the push the harness ADR
+grants only creates. Sessions that run in parallel each work in a worktree or a container of
 their own, as the harness ADR says, which also says how a claim is made among sessions that
 share neither a repository nor a remote. The branch that lands a ticket's work deletes its file. A
 feature spec closes when its tickets have merged and a fresh session has revisited the design

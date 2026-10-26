@@ -8,7 +8,8 @@
 # unchanged repository reports nothing; every other case is one thing the sensor reports, or one
 # it must stay silent on.
 #
-# Inputs: scripts/sensor-tests-kept.sh scripts/lib/
+# Verifies: ADR-0002
+# Inputs: scripts/sensor-tests-kept.sh scripts/lib/ .agents/skills/propose-adr/concepts/toolchain.md
 #
 # Usage:
 #     scripts/test-sensor-tests-kept.sh
@@ -46,7 +47,7 @@ expect() {
   local want="$1" name="$2" dir="$3" needle="$4" base="${5-base}"
   local out rc
   fixture "$dir"
-  out="$(cd "$dir" && bash "$SENSOR" "$base" 2>&1)"; rc=$?
+  out="$(bash "$SENSOR" --root "$dir" "$base" 2>&1)"; rc=$?
   if [[ $rc -eq "$want" && "$out" == *"$needle"* ]]; then
     passed=$((passed + 1))
     return
@@ -112,6 +113,33 @@ printf '#[ignore]\nfn y() {}\n' > "$d/tests/y_test.rs"
 printf '@Disabled\nvoid z() {}\n' > "$d/tests/ZTest.java"
 commit "$d" "three toolchains"
 expect 0 "the Go, Rust, and Java markers" "$d" "3 finding(s)"
+
+# The catalogue's table names the markers a diff rule catches, for a reader choosing a toolchain;
+# MARKERS above is what the sensor matches. Every marker the table names is one the sensor finds.
+d="$(repo catalogue-markers)"
+# shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
+mapfile -t named < <(awk -F'|' '/^\| / { print $7 }' "$ROOT/.agents/skills/propose-adr/concepts/toolchain.md" \
+  | grep -o 'diff rule ([^)]*)' | grep -oE '`[^`]+`' | tr -d '`')
+printf '%s\n' "${named[@]}" > "$d/tests/catalogue_test.txt"
+commit "$d" "every marker the catalogue names"
+expect 0 "every marker the catalogue's table names is one the sensor finds" "$d" "${#named[@]} finding(s)"
+
+# Called by its path from a subdirectory of another repository, the sensor reads the one it lives
+# in, as the checks do: the tag 'base' exists only there.
+# Verifies: ADR-0002
+d="$(repo own-repository)"
+mkdir -p "$d/scripts/lib" && cp "$SENSOR" "$d/scripts/" && cp "$ROOT/scripts/lib/git.sh" "$d/scripts/lib/"
+git -C "${d:?}" rm -q tests/a_test.py
+commit "$d" "drop a test"
+other="$work/other"
+mkdir -p "$other/sub" && git -C "$other" init -q -b main
+out="$(cd "$other/sub" && bash "$d/scripts/sensor-tests-kept.sh" base 2>&1)"; rc=$?
+if ((rc == 0)) && [[ "$out" == *"deleted test file: tests/a_test.py"* ]]; then
+  passed=$((passed + 1))
+else
+  failed=$((failed + 1)); echo "FAIL: a sensor called from another repository reads its own (exit $rc)" >&2
+  while IFS= read -r l; do printf '    %s\n' "$l"; done <<< "$out" >&2
+fi
 
 d="$(repo same-commit)"
 expect 0 "base and head the same commit" "$d" "base and head are the same commit"

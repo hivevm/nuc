@@ -1,4 +1,4 @@
-# ADR-NNNN: <short title of the decision>
+# ADR-draft-<slug>: <short title of the decision>
 
 - **Status:** 🟡 proposed
 - **Date:** YYYY-MM-DD

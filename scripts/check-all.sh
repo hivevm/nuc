@@ -3,8 +3,9 @@
 # Runs every consistency check this repository enforces, in one command.
 #
 # AGENTS.md §5 requires these checks to pass before pushing. This script is the local equivalent
-# of .github/workflows/checks.yml, in the same order; check 9 of check-docs.sh holds the two lists
-# and the required status checks named in README.md together.
+# of .github/workflows/checks.yml; check 9 of check-docs.sh holds the two lists, the required
+# status checks named in README.md, and the scripts under scripts/ together. A script that runs
+# on a human's instruction only is named on an '# On instruction:' line below.
 #
 # Every check runs even after an earlier one fails, so a single run reports everything that is
 # wrong instead of the first thing. The exit code is what a pre-push decision is made on.
@@ -23,9 +24,27 @@
 #
 # Usage:
 #     scripts/check-all.sh [--changed]        (or: bash scripts/check-all.sh [--changed])
-# Exit code 0 when every check passes, 1 when any of them fails, 2 on an unknown argument.
+# CHECK_ALL_JOBS=<n> runs at most n checks at once, 1 one after another; the default is the
+# number of processors.
+# Exit code 0 when every check passes, 1 when any of them fails, 2 on an unknown argument or a
+# CHECK_ALL_JOBS that is no number from 1 up.
 
 set -uo pipefail
+
+# The checks need bash 4.4 or later (ADR-0002). This guard runs first and is written for bash
+# 3.2, so an older bash, such as the one macOS ships, gets a message instead of a check failing
+# on a construct it lacks. CHECK_ALL_BASH_VERSION stands in for the version found, for the
+# self-test.
+bash_found="${CHECK_ALL_BASH_VERSION:-${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]}}"
+bash_major="${bash_found%%.*}" bash_minor="${bash_found#*.}"
+bash_minor="${bash_minor%%.*}"
+if ((bash_major < 4 || (bash_major == 4 && bash_minor < 4))); then
+  echo "check-all: the checks need bash 4.4 or later (ADR-0002); this is bash $bash_found — run them in the Dev Container, or install a current bash" >&2
+  exit 2
+fi
+
+# shellcheck source-path=SCRIPTDIR source=lib/git.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/git.sh"
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -42,11 +61,7 @@ esac
 changed=()
 if ((changed_mode)); then
   branch="$(git -C "$ROOT" symbolic-ref --short -q HEAD 2>/dev/null || true)"
-  base=""
-  for candidate in origin/main main; do
-    git -C "$ROOT" rev-parse -q --verify "$candidate^{commit}" >/dev/null || continue
-    base="$(git -C "$ROOT" merge-base HEAD "$candidate" 2>/dev/null)" && break
-  done
+  base="$(cd "$ROOT" && main_merge_base HEAD)"
   if [[ "$branch" == "main" || -z "$base" ]]; then
     changed_mode=0
   else
@@ -84,27 +99,73 @@ needs_run() {
   return 1
 }
 
-failed=()
+# The checks run side by side, as many at once as the machine has processors, or as
+# CHECK_ALL_JOBS says; 1 runs them one after another. Each writes to a file of its own, and the
+# files are printed in the order of the list below once all have finished, so the output reads as
+# a run one after another would. A check therefore depends on no other and writes nowhere another
+# reads: the self-tests build their fixtures in a directory of their own, and a run line added
+# for a project's build keeps to the same. A runner stopped by a signal stops the checks it
+# started and waits for them; what a check started in turn may outlive it.
+max_jobs="${CHECK_ALL_JOBS:-$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)}"
+if [[ ! "$max_jobs" =~ ^[1-9][0-9]*$ ]]; then
+  echo "check-all: CHECK_ALL_JOBS is '$max_jobs', not a number of checks from 1 up" >&2
+  exit 2
+fi
+out="$(mktemp -d)"
+labels=() running=0
+# stop — on every exit, a signal's included: stop every job the runner still has, the one started
+# an instant before included, wait for them, and remove their files.
+# shellcheck disable=SC2317 # run by the trap
+stop() {
+  local running_jobs
+  running_jobs="$(jobs -p)"
+  # shellcheck disable=SC2086 # one process id per word
+  [[ -n "$running_jobs" ]] && kill $running_jobs 2>/dev/null
+  wait
+  rm -rf "$out"
+}
+trap stop EXIT
 
-# announce <label> — print the heading a check's output follows.
-announce() { printf '\n==> %s\n' "$1"; }
-
-# run <label> <script> [args...] — run one check, recording a failure without aborting the run.
+# run <label> <script> [args...] — start one check, its output and exit code kept under $out. The
+# subshell passes a TERM on to the check and waits for it, so stop() returns once each has ended;
+# its trap stands before the check starts, so a TERM never finds the check without it.
 run() {
-  local label="$1" script="$2"
+  local label="$1" script="$2" i="${#labels[@]}"
   shift 2
-  announce "$label"
+  labels+=("$label")
   if ((changed_mode)) && ! needs_run "$script"; then
-    echo "skipped — neither it nor its inputs changed against main; CI runs it"
+    echo "skipped — neither it nor its inputs changed against main; CI runs it" > "$out/$i"
+    echo 0 > "$out/$i.rc"
     return
   fi
-  bash "$ROOT/$script" "$@" || failed+=("$label")
+  while ((running >= max_jobs)); do wait -n; running=$((running - 1)); done
+  {
+    check=""
+    trap '[[ -n "$check" ]] && kill "$check" 2>/dev/null && wait "$check"; exit 143' TERM
+    bash "$ROOT/$script" "$@" > "$out/$i" 2>&1 &
+    check=$!
+    wait "$check"
+    echo $? > "$out/$i.rc"
+  } &
+  running=$((running + 1))
 }
 
 run "Documentation self-test" scripts/test-check-docs.sh
 run "Documentation consistency" scripts/check-docs.sh
 run "Template setup self-test" scripts/test-template-setup.sh
 run "Normalize map self-test" scripts/test-normalize-remap.sh
+# The numbering script commits and runs on a human's instruction, before the pull request that
+# brings drafts to main (ADR-0002); its self-test runs here.
+# On instruction: scripts/number-adrs.sh
+run "Numbering script self-test" scripts/test-number-adrs.sh
+# The readiness script merges and commits on a human's instruction, as step 7 of the README's
+# Integration branches; its self-test runs here.
+# On instruction: scripts/ready-for-main.sh
+run "Readiness script self-test" scripts/test-ready-for-main.sh
+# The drop script moves main and deletes a branch on a human's instruction, as step 8 of the
+# README's Integration branches; its self-test runs here.
+# On instruction: scripts/drop-merged-branch.sh
+run "Drop script self-test" scripts/test-drop-merged-branch.sh
 run "Traceability self-test" scripts/test-check-traceability.sh
 run "Traceability" scripts/check-traceability.sh
 run "Dev Container self-test" scripts/test-check-devcontainer.sh
@@ -123,11 +184,21 @@ run "Review binding sensor self-test" scripts/test-sensor-review-binding.sh
 run "Review binding sensor" scripts/sensor-review-binding.sh
 # The repository settings sensor reads GitHub and runs on a human's instruction (ADR-0002); its
 # self-test runs here.
+# On instruction: scripts/sensor-repo-settings.sh
 run "Repository settings sensor self-test" scripts/test-sensor-repo-settings.sh
 run "Check runner self-test" scripts/test-check-all.sh
 run "Git hooks self-test" scripts/test-git-hooks.sh
 run "Shell lint self-test" scripts/test-check-shell.sh
 run "Shell lint" scripts/check-shell.sh
+
+wait
+
+failed=()
+for i in "${!labels[@]}"; do
+  printf '\n==> %s\n' "${labels[i]}"
+  cat "$out/$i"
+  [[ "$(cat "$out/$i.rc" 2>/dev/null)" == 0 ]] || failed+=("${labels[i]}")
+done
 
 printf '\n'
 if ((${#failed[@]})); then

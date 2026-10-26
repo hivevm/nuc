@@ -15,7 +15,8 @@
 # says.
 #
 # A repository without scripts/check-docs.sh has nothing to run, and the merge proceeds.
-# Bypassable with 'git merge --no-verify'. scripts/test-git-hooks.sh exercises this hook.
+# Bypassable with 'git merge --no-verify'; AGENTS.md, section 6 says who may.
+# scripts/test-git-hooks.sh exercises this hook.
 
 set -uo pipefail
 

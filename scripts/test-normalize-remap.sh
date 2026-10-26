@@ -13,7 +13,10 @@
 # The identifiers in the fixtures are assembled at run time: a literal one would be a reference
 # that check-docs.sh and check-traceability.sh hold against this repository.
 #
-# Inputs: .agents/skills/normalize/ scripts/ docs/adr/ docs/SPECIFICATION.md
+# Inputs: .agents/skills/normalize/
+# The cycle of the real tree runs every other self-test again, the costliest case of the local
+# gate. Before a push it runs only when the map script changes; a self-test that took up a
+# literal identifier fails it in CI, which runs it on every pull request.
 #
 # Usage:
 #     scripts/test-normalize-remap.sh

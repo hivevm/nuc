@@ -18,7 +18,9 @@
 #      weakening.
 #
 # Pure bash + git + awk. Usage:
-#     scripts/sensor-tests-kept.sh [base [head]]
+#     scripts/sensor-tests-kept.sh [--root <dir>] [base [head]]
+# It reads the repository it lives in, as the checks do; --root names another, as its self-test
+# does with each fixture.
 # Without a base, the merge base of head with origin/main (else main) is used; CI passes the
 # pull request's base. A base of zeros, which a push event reports for a new branch, counts as
 # none. With nothing to compare — on main without a remote, or base and head the same — it says
@@ -26,19 +28,19 @@
 
 set -uo pipefail
 
+# shellcheck source-path=SCRIPTDIR source=lib/git.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/git.sh"
+
+enter_root "Tests kept sensor" "${BASH_SOURCE[0]}" "$@"
+shift "$ROOT_TAKEN"
+
 MARKERS='@Disabled|@Ignore|enabled *= *false|t\.Skip[a-zA-Z]*\(|pytest\.mark\.skip|pytest\.skip\(|unittest\.skip|#\[ignore\]|(^|[^A-Za-z0-9_.])(it|test|describe|context)\.(skip|only)\(|(^|[^A-Za-z0-9_])(xit|xtest|xdescribe|fit|fdescribe|ftest)\(|Skip *= *"'
 
 base="${1:-}"
 head="${2:-HEAD}"
 
 [[ "$base" =~ ^0+$ ]] && base=""
-if [[ -z "$base" ]]; then
-  for candidate in origin/main main; do
-    if git rev-parse --verify -q "$candidate^{commit}" >/dev/null; then
-      base="$(git merge-base "$candidate" "$head" 2>/dev/null)" && break
-    fi
-  done
-fi
+[[ -n "$base" ]] || base="$(main_merge_base "$head")"
 if [[ -z "$base" ]]; then
   echo "Tests kept sensor: nothing to compare — no base given and no main to compare with."
   exit 0

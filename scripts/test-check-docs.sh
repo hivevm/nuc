@@ -34,6 +34,16 @@ sed_in() {
   sed "$2" "$1" > "$1.tmp" && mv "$1.tmp" "$1"
 }
 
+# layout <dir> <path...> — name each path in the Project Layout block of the fixture's README,
+# for a case that adds a top-level file for another reason (check 10).
+layout() {
+  local dir="$1"; shift
+  awk -v add="$(printf '%s\n' "$@")" '
+    { print }
+    $1 == "AGENTS.md" && !done { n = split(add, p, "\n"); for (i = 1; i <= n; i++) if (p[i] != "") print p[i] "  # added"; done = 1 }
+  ' "$dir/README.md" > "$dir/README.md.tmp" && mv "$dir/README.md.tmp" "$dir/README.md"
+}
+
 # insert_before <file> <line prefix> <text> — insert text, where "\n" starts a new line, before
 # the first line that starts with the prefix; awk reads "\n" the same way on every platform.
 insert_before() {
@@ -94,8 +104,13 @@ repo() {
     echo "## Project Layout"
     echo
     echo '```'
+    echo "README.md             # this file"
     echo "AGENTS.md             # the rule file"
     echo "docs/adr/             # decisions"
+    echo "scripts/              # the checks"
+    echo ".github/              # the workflows"
+    echo ".agents/skills/       # the skills"
+    echo ".claude/skills/       # their pointers"
     echo '```'
     echo
     echo "## Repository settings"
@@ -199,6 +214,7 @@ expect fail "skills only in the pointer directory, none for the other agents" "$
 
 d="$(repo no-skills)"
 rm -r "$d/.agents" "$d/.claude"
+sed_in "$d/README.md" '/^\.agents\/skills\/ /d; /^\.claude\/skills\/ /d'
 expect pass "a repository without skills has nothing to check" "$d"
 
 # --- cases: inherited ADRs after setup (check 12) ---------------------------------------
@@ -225,6 +241,7 @@ expect fail "an inherited ADR nobody here decided, with the setup file gone" "$d
 d="$(repo inherited-pending)"
 inherited "$d" "🟡 proposed" "NUC maintainer"
 echo "# Template setup" > "$d/TEMPLATE-SETUP.md"
+layout "$d" TEMPLATE-SETUP.md
 expect pass "an inherited ADR still proposed while the setup file exists" "$d"
 
 d="$(repo inherited-accepted)"
@@ -265,6 +282,7 @@ expect fail "an inherited ADR whose Deciders field wraps, the template's name on
 d="$(repo identity-pending)"
 sed_in "$d/README.md" 's/^# Fixture$/# NUC — an Agentic Fixture/'
 echo "# Template setup" > "$d/TEMPLATE-SETUP.md"
+layout "$d" TEMPLATE-SETUP.md
 expect pass "the template's title in the README while the setup file exists" "$d"
 
 d="$(repo identity-title)"
@@ -357,6 +375,7 @@ expect fail "a Lint command still TODO after setup" "$d" "README.md: a Build, Te
 d="$(repo identity-build-pending)"
 echo "- **Build:** TODO" >> "$d/README.md"
 echo "# Template setup" > "$d/TEMPLATE-SETUP.md"
+layout "$d" TEMPLATE-SETUP.md
 expect pass "a Build command still TODO while the setup file exists" "$d"
 
 d="$(repo identity-done)"
@@ -364,6 +383,7 @@ printf '# owners\n\n* @someone\n' > "$d/.github/CODEOWNERS"
 printf 'MIT License\n\nCopyright (c) 2026 Someone\n' > "$d/LICENSE"
 printf '# Specification — Fixture\n\n## Goals / Success Criteria\n\n1. **G-1** — When asked, the system shall answer.\n' > "$d/docs/SPECIFICATION.md"
 echo "- **Build:** \`make build\`" >> "$d/README.md"
+layout "$d" LICENSE
 expect pass "identity replaced after setup" "$d"
 
 # --- cases: prose width (check 15) ---------------------------------------------------------
@@ -400,6 +420,7 @@ expect pass "a fence inside a longer fence does not close it" "$d"
 d="$(repo width-generated)"
 words_of 120 > "$d/CHANGELOG.md"; echo >> "$d/CHANGELOG.md"
 echo "CHANGELOG.md linguist-generated" > "$d/.gitattributes"
+layout "$d" CHANGELOG.md .gitattributes
 expect pass "a file git marks as generated is not read" "$d"
 
 d="$(repo width-generated-unset)"
@@ -481,6 +502,17 @@ d="$(repo index-status)"
 adr "$d" 1 "🟢 accepted"
 expect fail "an index status that disagrees with the ADR" "$d" "status for '0001-decision.md'"
 
+# Verifies: ADR-0001
+d="$(repo header-not-a-list-item)"
+sed 's/^- \*\*Status:\*\*/**Status:**/' "$d/docs/adr/0001-decision.md" > "$d/adr.tmp" \
+  && mv "$d/adr.tmp" "$d/docs/adr/0001-decision.md"
+expect fail "a header field that is no list item" "$d" \
+  "0001-decision.md:3: a header field not written as the list item"
+d="$(repo header-field-quoted-in-body)"
+# shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
+echo 'A later ADR names this one in its `**Supersedes:**` field.' >> "$d/docs/adr/0001-decision.md"
+expect pass "a header field quoted in the body of an ADR" "$d"
+
 d="$(repo numbering-gap)"
 adr "$d" 3 "🟡 proposed"
 index_row 3 "🟡 proposed" >> "$d/docs/adr/README.md"
@@ -530,6 +562,10 @@ adr "$d" 1 "🔴 rejected"
 } > "$d/docs/adr/README.md"
 expect fail "a rejected row with no archive heading above it" "$d" "sits above the 'Superseded and rejected' heading"
 
+d="$(repo index-row-twice)"
+index_row 1 "🟡 proposed" >> "$d/docs/adr/README.md"
+expect fail "a row both sides of a union merge kept" "$d" "lists '0001-decision.md' twice"
+
 d="$(repo binding-row-below)"
 {
   echo "# Architecture Decision Records"
@@ -566,11 +602,11 @@ expect fail "a section reference that names no section" "$d" "matches no numbere
 words() { printf 'AGENTS.md, section %s' "$1"; }
 
 d="$(repo section-words)"
-echo "# Required by $(words 9)." > "$d/scripts/run.sh"
+mkdir -p "$d/scripts/lib" && echo "# Required by $(words 9)." > "$d/scripts/lib/run.sh"
 expect fail "a reference in words that names no section" "$d" "reference '$(words 9)' matches no numbered section"
 
 d="$(repo section-words-valid)"
-echo "# Required by $(words 2)." > "$d/scripts/run.sh"
+mkdir -p "$d/scripts/lib" && echo "# Required by $(words 2)." > "$d/scripts/lib/run.sh"
 expect pass "a reference in words to a section that exists" "$d"
 
 d="$(repo section-hook)"
@@ -580,6 +616,7 @@ expect fail "a section reference in a git hook" "$d" ".githooks/pre-commit:1: re
 
 d="$(repo section-json)"
 echo "{ \"de\": \"Siehe $(sect 9) BGB\" }" > "$d/messages.json"
+layout "$d" messages.json
 expect pass "the section sign in JSON is an ordinary character" "$d"
 
 d="$(repo section-json-words)"
@@ -593,6 +630,32 @@ expect fail "a reference to an ADR that does not exist" "$d" "matches no ADR fil
 d="$(repo check-lists)"
 echo 'run "Extra" scripts/check-extra.sh' >> "$d/scripts/check-all.sh"
 expect fail "a check the local runner has and CI does not" "$d" "CI and the local gate disagree"
+
+# Verifies: ADR-0002
+d="$(repo script-in-no-list)"
+echo 'echo new' > "$d/scripts/check-new.sh"
+expect fail "a script that neither list runs" "$d" "scripts/check-new.sh: no workflow and not scripts/check-all.sh runs it"
+d="$(repo script-on-instruction)"
+echo 'echo by hand' > "$d/scripts/sensor-by-hand.sh"
+echo '# On instruction: scripts/sensor-by-hand.sh' >> "$d/scripts/check-all.sh"
+expect pass "a script the local runner names as run on instruction" "$d"
+
+d="$(repo other-workflow)"
+printf 'on: [pull_request]\njobs:\n  again:\n    steps:\n      - run: bash scripts/check-docs.sh --strict\n' \
+  > "$d/.github/workflows/again.yml"
+expect pass "another workflow that runs a script the local runner runs, its job not required" "$d"
+d="$(repo other-workflow-required)"
+printf 'on: [pull_request]\njobs:\n  again:\n    steps:\n      - run: bash scripts/check-docs.sh\n' \
+  > "$d/.github/workflows/again.yml"
+# shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
+sed_in "$d/README.md" 's|^`docs`$|`docs`, `again`|'
+expect fail "a required check that is a job of another workflow than checks.yml" "$d" \
+  "required check 'again' is not a job of .github/workflows/checks.yml"
+d="$(repo other-workflow-inline)"
+printf 'on: [pull_request]\njobs:\n  again:\n    steps:\n      - run: echo inline\n' \
+  > "$d/.github/workflows/again.yml"
+expect fail "a job of another workflow that runs no script" "$d" \
+  "again.yml: job 'again' runs no script under scripts/"
 
 # build_job <dir> <run line> [local] — a toolchain job in the workflow, with a setup step before
 # its run line, listed among the required checks; with 'local', the local runner invokes the
@@ -624,6 +687,92 @@ expect fail "a toolchain job with its commands inline and nothing in the local r
 d="$(repo layout-stale)"
 sed_in "$d/README.md" 's|^docs/adr/ |docs/gone/ |'
 expect fail "a Project Layout entry that no longer exists" "$d" "is not a directory of this repository"
+
+# Verifies: ADR-0001
+d="$(repo layout-unnamed-top)"
+echo "notes" > "$d/NOTES.md"
+expect fail "a top-level file the Project Layout does not name" "$d" \
+  "Project Layout does not name 'NOTES.md', a top-level part"
+d="$(repo layout-glob)"
+echo "echo" > "$d/scripts/check-one.sh"
+echo 'run "One" scripts/check-one.sh' >> "$d/scripts/check-all.sh"
+echo "      - run: bash scripts/check-one.sh" >> "$d/.github/workflows/checks.yml"
+layout "$d" "scripts/check-*.sh" "scripts/sensor-*.sh"
+expect fail "a Project Layout pattern that matches nothing" "$d" "lists 'scripts/sensor-*.sh', which matches nothing"
+d="$(repo layout-plan-absent)"
+layout "$d" "docs/plan/"
+expect pass "docs/plan/ named while there is no open work" "$d"
+
+# --- cases: drafts (checks 1, 2, 5, 6, 8, and 16) ---------------------------------------
+
+# Verifies: ADR-0002
+DRAFT="draft"
+# draft_id <slug> — the draft identifier of a slug, assembled for the same reason as adr_id.
+draft_id() { printf 'ADR-%s-%s' "$DRAFT" "$1"; }
+
+# drafted <dir> — ADR 1 superseded by the draft 'next', with both index rows and a link to the
+# draft from the README.
+drafted() {
+  local dir="$1"
+  adr "$dir" 1 "⚪ superseded by [$(draft_id next)]($DRAFT-next.md)"
+  {
+    echo "# $(draft_id next): the next decision"
+    echo
+    echo "- **Status:** 🟡 proposed"
+    echo "- **Applies to:** everything"
+    echo "- **Supersedes:** [$(adr_id 1)](0001-decision.md)"
+    echo
+    echo "## Decision"
+    echo
+    echo "We will."
+  } > "$dir/docs/adr/$DRAFT-next.md"
+  {
+    echo "# Architecture Decision Records"
+    echo
+    echo "| ADR | Title | Applies to | Status |"
+    echo "|-----|-------|------------|--------|"
+    echo "| [$DRAFT-next]($DRAFT-next.md) | Next | everything | 🟡 proposed |"
+    echo
+    echo "## Superseded and rejected"
+    echo
+    echo "| ADR | Title | Applies to | Status |"
+    echo "|-----|-------|------------|--------|"
+    index_row 1 "⚪ superseded by $(draft_id next)"
+  } > "$dir/docs/adr/README.md"
+  echo "Decided in [$(draft_id next)](docs/adr/$DRAFT-next.md)." >> "$dir/README.md"
+}
+
+d="$(repo draft)"
+drafted "$d"
+GITHUB_BASE_REF=feat/topic expect pass "a draft, its index row, a link, and a supersession, landing on a feat/ branch" "$d"
+GITHUB_BASE_REF="" GITHUB_ACTIONS="" expect pass "a draft outside CI, where nothing names the branch" "$d"
+GITHUB_BASE_REF=main PULL_REQUEST_DRAFT=false \
+  expect fail "a draft in a pull request into main ready for review" "$d" "$DRAFT-next.md: a draft lands on main"
+GITHUB_BASE_REF=main PULL_REQUEST_DRAFT=true \
+  expect pass "a draft in a draft pull request into main, a feat/ branch under rework" "$d"
+GITHUB_BASE_REF="" GITHUB_ACTIONS=true GITHUB_REF_NAME=main PULL_REQUEST_DRAFT="" \
+  expect fail "a draft in a push to main" "$d" "$DRAFT-next.md: a draft lands on main"
+
+d="$(repo draft-ref-missing)"
+drafted "$d"
+echo "Also $(draft_id gone)." >> "$d/README.md"
+GITHUB_BASE_REF="" expect fail "a draft identifier with no draft file" "$d" "reference '$(draft_id gone)' matches no ADR file"
+
+d="$(repo draft-heading)"
+drafted "$d"
+sed_in "$d/docs/adr/$DRAFT-next.md" "1s/$(draft_id next)/$(draft_id other)/"
+GITHUB_BASE_REF="" expect fail "a draft whose heading names another draft" "$d" "$DRAFT-next.md: heading says '# $(draft_id other)'"
+
+d="$(repo draft-slug)"
+drafted "$d"
+adr "$d" 2 "🟡 proposed"
+mv "$d/docs/adr/0002-decision.md" "$d/docs/adr/$DRAFT-Next_one.md"
+GITHUB_BASE_REF="" expect fail "a draft whose slug is not lower case and hyphens" "$d" "$DRAFT-Next_one.md: a draft's slug"
+
+d="$(repo draft-link)"
+drafted "$d"
+echo "See [$(draft_id next)](docs/adr/0001-decision.md)." >> "$d/README.md"
+GITHUB_BASE_REF="" expect fail "a link that cites a draft and points at another ADR" "$d" "cites $(draft_id next) but points at '0001-decision.md'"
 
 # --- summary -------------------------------------------------------------------------------
 

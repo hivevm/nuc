@@ -67,10 +67,16 @@ the suite and is the first finding.
 ## 4. Hand back
 
 Findings, concrete and ranked, with file and line, and what the reviewer itself could not
-verify. No fixes applied. The implementer fixes them before the hand-off and records in its *Review*
-section who reviewed, the findings on both axes, what was fixed, and the commit the reviewer was
-handed, on its `Reviewed at:` line. The fixes come after that commit;
+verify. No fixes applied. The implementer fixes them before the hand-off. On a branch that
+integrates on a `feat/` branch, a fix that corrects one commit is a fixup of it
+(`git commit --fixup=<commit>`, its body saying what the finding was), so the rework folds it in
+by `git rebase -i --autosquash` ([Integration branches](../../../README.md#integration-branches),
+step 4) instead of by hand. A fix that spans commits, and every fix on a branch whose own pull
+request goes into `main`, which keeps what it merges, is a commit of its own. It records in its
+*Review* section who reviewed, the findings on both axes, what was fixed, and the commit the
+reviewer was handed, on its `Reviewed at:` line. The fixes come after that commit;
 [`scripts/sensor-review-binding.sh`](../../../scripts/sensor-review-binding.sh) lists them for the
-human who decides the merge, unless a second review sees them first and the line moves. A
-`feat/` branch reworked after its merges is reviewed as a whole at its head, and its pull
-request's description carries that line.
+human who decides the merge, unless a second review sees them first and the line moves. After a
+rework, the review is of the whole branch at its head
+([`AGENTS.md` §5](../../../AGENTS.md#5-quality-bar--definition-of-done)), and the pull request's
+description carries that line.

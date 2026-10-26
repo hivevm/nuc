@@ -2,7 +2,9 @@
 
 > **The single rule file of this project** ([ADR-0001](docs/adr/0001-agent-governance-model.md)).
 > Every working rule lives here. Where another document repeats one, this wording governs. The
-> file belongs to the template and is not edited per project. Project conventions go into
+> file belongs to the template and is not edited per project, except the ADR rules of
+> [§3](#3-adr-rules): a derived project changes them by an ADR on the ADR process, which edits
+> them in the change that lands it. Project conventions go into
 > [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md), into checks, and into ADRs. A procedure is a skill
 > under [`.agents/skills/`](.agents/skills/). It cites a rule here and states none of its own
 > ([ADR-0003](docs/adr/0003-procedures-as-skills.md)).
@@ -107,7 +109,7 @@ restates nothing. A rule this file does not state is not a rule of this project.
 - **Reply to the human in their own language.** Everything else is English: code, comments,
   commits, docs, ADRs, pull requests.
 - **Prefer small, reviewable changes.** Plan and explore before a larger one. Commits and pull
-  requests name the ADR they implement (`Implements ADR-NNNN`).
+  requests name the ADR they implement (`Implements ADR-NNNN`, a draft by its `ADR-draft-<slug>`).
 - **Cut work into vertical slices.** Each slice is a thin, tested path through every layer it
   touches. The first slice through new ground is the tracer bullet. The one exception is a wide
   mechanical refactor: expand, migrate in batches, contract, every step green.
@@ -167,7 +169,8 @@ restates nothing. A rule this file does not state is not a rule of this project.
   It reports on two axes: does the change do what was asked, and does it meet this bar,
   simplicity first. Findings are fixed before the change is handed off. Every existing test the
   diff changes or removes needs a reason. The hand-off names the commit the review saw, and a
-  sensor lists what landed after it. Skill: `review`.
+  sensor lists what landed after it. A rework replaces the commits a review saw, so after one
+  the review that binds is a review of the whole branch at its head. Skill: `review`.
 - **A feature spec closes only after a design revision.** A fresh session revisits the modules
   its tickets touched, the ADRs that bind them, and the criteria they serve. It files what it
   finds as tickets, checks, a `proposed` ADR, or a drafted specification change. With no spec
@@ -187,24 +190,33 @@ restates nothing. A rule this file does not state is not a rule of this project.
   Pushing, `gh`, and anything that rewrites or discards history (`reset`, `rebase`, `merge`,
   `restore`, `clean`) wait for an instruction. The instruction names the action and implies no
   next one. A standing instruction may cover one push only: the claim on a ticket across clones,
-  where the harness ADR grants it. A claim reserves a ticket by creating its branch, with an
-  empty commit and nothing else ([ADR-0006](docs/adr/0006-feature-layer.md)). The git hooks
+  where the harness ADR grants it. A claim reserves a ticket by creating its branch and
+  nothing else; across clones, with an empty commit. The session releases a local claim, a
+  human one on a remote ([ADR-0006](docs/adr/0006-feature-layer.md)). The git hooks
   under [`.githooks/`](.githooks/) enforce what a file can of this section and of
   [§5](#5-quality-bar--definition-of-done); what each refuses is under
   [Git hooks](README.md#git-hooks). **An agent never bypasses this repository's hooks:** no
-  `--no-verify`, no git run without them, no hand-moved `origin/main`. The one exception is the
-  push of a claim, which skips the pre-push hook. A human may bypass one, deliberately.
+  `--no-verify`, no git run without them, no hand-moved `origin/main`, no hand-written record of
+  a green tree. The one exception is the push of a claim, which skips the pre-push hook. A human
+  may bypass one, deliberately.
+- **A rule is enforced only by what every agent hits:** the git hooks, the checks, and the
+  repository settings. A tool's own configuration enforces none, because a gate one agent
+  honours and the next does not looks like a rule and is not one. It may close a path for its
+  agent as defence in depth ([ADR-0001](docs/adr/0001-agent-governance-model.md)).
 - **Authenticate `gh` through its web flow;** a human enters the one-time code. Never request,
   store, or hard-code personal access tokens.
 - **Changes reach `main` through a pull request,** merged as a merge commit. The local `main`
   only takes up the remote's, with `git merge --ff-only origin/main`. What no file can enforce
   is listed under [Repository settings](README.md#repository-settings).
-- **Branches may integrate first on a `feat/` branch** by a local merge, on the human's
-  instruction, after the review of [§5](#5-quality-bar--definition-of-done). Each integrated
-  branch is one merge commit (`--no-ff`), whose message is the hand-off of the change and fills
-  the sections of the [pull request template](.github/PULL_REQUEST_TEMPLATE.md). Until its pull
-  request merges, the `feat/` branch is the human's to rework: rebased, regrouped, or cut down,
-  and pushed again by the human with `--force-with-lease`. The steps are under
+- **Branches may integrate first on a `feat/` branch,** on the human's instruction, after the
+  review of [§5](#5-quality-bar--definition-of-done): by a local merge, or by a pull request
+  against the `feat/` branch, whose pipelines run what the local gate cannot, such as another
+  platform or a service. Each integrated branch is one merge commit, whose message is the
+  hand-off of the change and fills the sections of the
+  [pull request template](.github/PULL_REQUEST_TEMPLATE.md). Until the `feat/` branch's pull
+  request into `main` merges, all of it is the human's to rework, what pull requests merged into
+  it included: rebased, regrouped, or cut down, and pushed again by the human with
+  `--force-with-lease`. What has reached `main` is never rewritten. The steps are under
   [Integration branches](README.md#integration-branches).
 
 ## 7. Secrets

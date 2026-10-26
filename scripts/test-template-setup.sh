@@ -361,6 +361,10 @@ setup_steps() {
   for field in Build Test Lint Run; do
     edit "$d" README.md "s/^- \*\*$field:\*\* TODO.*/- **$field:** none/"
   done
+  # The project's first part at the top level, named in the Project Layout as the setup says.
+  mkdir -p "$d/src" && echo "echo fixture" > "$d/src/fixture.sh"
+  awk '{ print } /^README\.md / && !done { print "src/                  # the fixture'"'"'s code"; done = 1 }' \
+    "$d/README.md" > "$d/README.md.tmp" && mv "$d/README.md.tmp" "$d/README.md"
 }
 
 d="$(copy complete)"
@@ -461,7 +465,11 @@ ADR
          if (script in gone) next
        }
        { print }' "$d/job-scripts" "$d/scripts/check-all.sh" > "$d/check-all.new" \
-    && mv "$d/check-all.new" "$d/scripts/check-all.sh" && rm "$d/job-scripts"
+    && mv "$d/check-all.new" "$d/scripts/check-all.sh"
+  # The scripts only the job ran go with it, or check 9 finds them in neither list.
+  while IFS= read -r f; do rm -f "${d:?}/$f"; done < "$d/job-scripts"
+  rm "$d/job-scripts"
+  edit "$d" .github/workflows/checks.yml '/^# - Dev Container: /d'
   awk '/^  devcontainer:$/ { skip = 1; next } skip && /^  [a-z][a-z0-9-]*:$/ { skip = 0 } !skip' \
     "$d/.github/workflows/checks.yml" > "$d/checks.yml.new" && mv "$d/checks.yml.new" "$d/.github/workflows/checks.yml"
   # shellcheck disable=SC2016  # the backticks are Markdown, not a command substitution

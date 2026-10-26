@@ -9,6 +9,7 @@
 # A push case ships its own scripts/check-all.sh, green or red, so the test decides what the hook
 # finds.
 #
+# Verifies: ADR-0002
 # Inputs: .githooks/ scripts/lib/
 #
 # Usage:
@@ -105,6 +106,41 @@ d="$(repo green)"
 git -C "${d:?}" switch -q -c feature
 checks "$d" 0
 expect pass "a push while the checks are green" "$d" "" push -q origin feature
+out="$(g "$d" push -q origin feature 2>&1)"
+check "a push without a draft ADR says nothing of numbering" test -z "$(grep 'draft ADR' <<< "$out")"
+
+# A push that carries a draft ADR is told how many it carries and where they take their numbers;
+# the notice passes the push, and a file named like a draft that is no Markdown is no draft.
+mkdir -p "$d/docs/adr" && : > "$d/docs/adr/draft-x.md" && : > "$d/docs/adr/0001-y.md"
+: > "$d/docs/adr/draft-notes.txt"
+g "$d" add docs && g "$d" commit -q -m draft
+out="$(g "$d" push -q origin feature 2>&1)"; rc=$?
+check "a push that carries a draft ADR passes" test "$rc" -eq 0
+check "and counts the drafts and names the script that numbers them" \
+  grep -qF "feature carries 1 draft ADR(s); they take their numbers on the branch of the pull request into main, by scripts/ready-for-main.sh (README, Integration branches, step 7)." <<< "$out"
+
+# A tree the checks passed on passes again without them: the committed check script reads its
+# verdict from outside the tree, so the same tree can turn red. A rework that keeps the tree, an
+# amend here, passes on the record; local changes, an untracked file, or a new tree run them.
+d="$(repo green-tree)"
+git -C "${d:?}" switch -q -c feature
+mkdir -p "$d/scripts"
+# shellcheck disable=SC2016  # the command substitution is the fixture script's, not this one's
+printf '#!/usr/bin/env bash\necho "check output for the test"\nexit "$(cat "%s")"\n' "$work/verdict" \
+  > "$d/scripts/check-all.sh"
+g "$d" add scripts && g "$d" commit -q -m checks
+echo 0 > "$work/verdict"
+expect pass "a push of a clean tree while the checks are green" "$d" "" push -q origin feature
+echo 1 > "$work/verdict"
+g "$d" commit -q --amend -m regrouped
+expect pass "a reworked branch on a tree that passed before, while the checks are red" "$d" "" \
+  push -q --force origin feature
+touch "$d/untracked"
+expect refuse "the same tree with an untracked file is checked again" "$d" "the checks are red" \
+  push -q --force origin feature
+rm "$d/untracked"
+echo x > "$d/new" && g "$d" add new && g "$d" commit -q -m new
+expect refuse "a new tree is checked again" "$d" "the checks are red" push -q origin feature
 
 # In a linked worktree git hands the hook GIT_DIR, and 'git -c' adds GIT_CONFIG_PARAMETERS. The
 # checks build fixture repositories of their own; with either inherited, those land in the
@@ -226,6 +262,68 @@ expect pass "concluding a conflicted merge while the checks are green" "$d" "" c
 
 d="$(conflict conflict-main 0 main)"
 expect refuse "concluding a conflicted merge on main, though the checks are green" "$d" "on 'main'" commit -q --no-edit
+
+# edit_index <index> <rule> <row> <after> — set the rule above the table, append the row to it,
+# and set the line right below it.
+edit_index() {
+  awk -v rule="$2" -v row="$3" -v after="$4" '
+    /^Rule:/ { print "Rule: " rule "."; next }
+    /^After:/ { print row; print "After: " after "."; next }
+    { print }
+  ' "$1" > "$1.tmp" && mv "$1.tmp" "$1"
+}
+
+# indexed <name> <rule on feature> <rule on feat/x> <line below the table on feat/x> [driver] — a
+# fixture whose ADR index holds a rule, a row, and a line right below the table, with the
+# repository's .gitattributes and green checks; 'feature' and 'feat/x' each append a row and set
+# the rule as told, and feat/x the line below. The merge driver is configured as the README says,
+# unless the fifth argument is 'none'.
+indexed() {
+  local d index
+  d="$(merging "$1" 0 0)"
+  index="$d/docs/adr/README.md"
+  [[ "${5:-}" == none ]] \
+    || git -C "${d:?}" config merge.adr-index.driver "$HOOKS/merge-adr-index %O %A %B %S %X %Y"
+  cp "$ROOT/.gitattributes" "$d/.gitattributes"
+  mkdir -p "$d/docs/adr"
+  git -C "${d:?}" switch -q main
+  printf 'Rule: one.\n\n| ADR |\n|-----|\n| [0001](0001-a.md) |\nAfter: one.\n' > "$index"
+  g "$d" add -A
+  g "$d" commit -q --no-verify -m index
+  git -C "${d:?}" switch -q feature
+  g "$d" merge -q --no-verify -m main main
+  edit_index "$index" "$2" "| [0002](0002-b.md) |" one
+  g "$d" commit -q --no-verify -am row
+  git -C "${d:?}" switch -q -C feat/x main
+  edit_index "$index" "$3" "| [draft-c](draft-c.md) |" "$4"
+  g "$d" commit -q --no-verify -am row
+  echo "$d"
+}
+
+# rows <dir> — the rule, the rows, and the line below the table after the merge, on one line.
+rows() {
+  grep -E '^(\| \[|Rule:|After:)' "$1/docs/adr/README.md" | tr '\n' ' '
+}
+
+d="$(indexed index-rows one one one)"
+expect pass "the driver keeps the rows both sides appended to the index" "$d" "" merge -q -m m feature
+check "both rows stand in the index after the merge" \
+  test "$(rows "$d")" = "Rule: one. | [0001](0001-a.md) | | [draft-c](draft-c.md) | | [0002](0002-b.md) | After: one. "
+
+d="$(indexed index-prose-one two one one)"
+expect pass "the driver takes a rule one side changed" "$d" "" merge -q -m m feature
+check "the rule one side changed stands once" \
+  test "$(rows "$d")" = "Rule: two. | [0001](0001-a.md) | | [draft-c](draft-c.md) | | [0002](0002-b.md) | After: one. "
+
+d="$(indexed index-prose-both two three one)"
+expect refuse "the driver stops on a rule both sides changed" "$d" "CONFLICT (content): Merge conflict in docs/adr/README.md" merge -q -m m feature
+check "the conflict is marked in the index" grep -q '^<<<<<<< HEAD' "$d/docs/adr/README.md"
+
+d="$(indexed index-prose-adjacent one one two)"
+expect refuse "the driver stops on a line changed right below a row the other side appended" "$d" "CONFLICT (content): Merge conflict in docs/adr/README.md" merge -q -m m feature
+
+d="$(indexed index-no-driver one one one none)"
+expect refuse "without the driver configured the index merges as text" "$d" "CONFLICT (content): Merge conflict in docs/adr/README.md" merge -q -m m feature
 
 # moves <name> — a fixture whose remote has main, fetched as origin/main, and a branch 'ahead'
 # one commit past main that the remote does not have, with main checked out.

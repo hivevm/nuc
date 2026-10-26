@@ -182,6 +182,23 @@ adr "$d" 0002 "🟢 accepted"
 mark "G-1 $(adr_id 1) $(adr_id 2)" > "$d/tests/t.txt"
 expect fail "marker citing a superseded ADR" "$d" "'$(adr_id 1)', which is superseded or rejected"
 
+# Verifies: ADR-0002
+# A draft is cited by its draft identifier, assembled for the same reason as adr_id.
+draft_id() { printf 'ADR-%s-%s' draft "$1"; }
+
+d="$(repo draft-cited)"
+spec "$d" "**G-1** — it works."
+adr "$d" 0001 "🟢 accepted"
+printf '# %s: next\n\n- **Status:** 🟡 proposed\n' "$(draft_id next)" > "$d/docs/adr/draft-next.md"
+mark "$(adr_id 1) $(draft_id next) G-1" > "$d/tests/t.txt"
+expect pass "a marker citing a draft that exists" "$d"
+
+d="$(repo draft-unknown)"
+spec "$d" "**G-1** — it works."
+adr "$d" 0001 "🟢 accepted"
+mark "$(adr_id 1) $(draft_id gone) G-1" > "$d/tests/t.txt"
+expect fail "a marker citing a draft that does not exist" "$d" "'$(draft_id gone)', which does not exist"
+
 d="$(repo markdown-not-counted)"
 spec "$d" "**G-1** — it works."
 adr "$d" 0001 "🟢 accepted"

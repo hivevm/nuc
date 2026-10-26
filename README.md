@@ -63,7 +63,8 @@ goals live in [`docs/SPECIFICATION.md`](docs/SPECIFICATION.md), the vocabulary i
   [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
   extension, or any DevContainer-compatible IDE
 - Docker / Podman (rootless) available on the host
-- Outside the Dev Container: bash 4.4 or later for the checks; macOS ships 3.2
+- Outside the Dev Container: bash 4.4 or later for the checks, 3.2 for the git hooks
+  ([ADR-0002](docs/adr/0002-decisions-verified-by-tests.md)); macOS ships 3.2
 
 ## Getting Started
 
@@ -106,19 +107,34 @@ TODO — show a minimal example of using the project.
 TEMPLATE-SETUP.md     # one-time template setup; delete it when the project is yours
 README.md             # overview & setup for humans
 AGENTS.md             # single source of truth for coding agents
+CONTRIBUTING.md       # how to contribute, pointing at the rules
+SECURITY.md           # how to report a vulnerability, and what the configuration guarantees
+CODE_OF_CONDUCT.md    # the standards everyone taking part is held to
+LICENSE               # the license the project is released under
 docs/SPECIFICATION.md # the specification: problem, goals, success criteria
 docs/GLOSSARY.md      # the vocabulary everyone uses, kept current inline
 docs/CONVENTIONS.md   # how this project writes what no check decides, kept current inline
 docs/ARCHITECTURE.md  # the system as it currently stands
 docs/adr/             # Architecture Decision Records (+ template)
-scripts/              # checks and sensors, run by check-all.sh and in CI; the settings sensor by hand
+docs/plan/            # open work: feature specs and their tickets, deleted as they land
+scripts/check-all.sh  # runs the checks, sensors, and self-tests, as the hooks and CI do
+scripts/check-*.sh    # checks: each fails on what breaks a rule
+scripts/sensor-*.sh   # sensors: report for the reviewer; sensor-repo-settings.sh runs by hand
+scripts/test-*.sh     # self-tests of the checks, the sensors, the hooks, the setup, and the scripts
+                      # run by hand
+scripts/lib/          # what the scripts share: the ADR header, git, the ticket path, the self-tests
+scripts/*.sh          # run by hand, steps 7 and 8 of the integration branches: number-adrs.sh,
+                      # ready-for-main.sh, drop-merged-branch.sh
 .githooks/            # git hooks: nothing lands on main locally; checks before a merge and a push
-.github/              # CI workflows, Dependabot, issue & pull request templates, code owners
+.github/workflows/    # checks.yml runs the checks; review-binding.yml reads each pull request's hand-off
+.github/              # Dependabot, issue & pull request templates, code owners
 .devcontainer/        # Dev Container definition (base image + Features)
 .vscode/              # shared editor settings
 .editorconfig         # editor-neutral formatting baseline
-.gitattributes        # line-ending normalization (LF everywhere)
-.agents/skills/       # the procedures of AGENTS.md as Agent Skills, one directory each (ADR-0003)
+.gitattributes        # line-ending normalization (LF everywhere), the ADR index merged by its driver
+.gitignore            # what git leaves out, .scratch/ for session artifacts among it
+.agents/skills/       # the procedures of AGENTS.md as Agent Skills, one directory each (ADR-0003),
+                      # with the scripts and templates they carry (claim.sh, remap.sh, ticket.md)
 .claude/CLAUDE.md     # pointer for Claude Code to read AGENTS.md
 .claude/skills/       # pointers (one symlink per skill) for Claude Code to read .agents/skills/
 .claude/settings.json # Claude Code permissions: deny reading .env files (see SECURITY.md)
@@ -167,10 +183,9 @@ that directory holds one symlink per skill into `.agents/skills/`; a directory-l
 not followed. The symlinks are pointers of the same kind as `CLAUDE.md`, tracked upstream as
 [anthropics/claude-code#31005](https://github.com/anthropics/claude-code/issues/31005). Delete them
 when that lands, and add one for every skill added meanwhile; the documentation check fails on a
-skill without its pointer. A rule is enforced only by what every agent hits: the git hooks under
-[`.githooks/`](.githooks/), the checks, and the repository settings below. A tool's own
-configuration is not used to enforce one, because a gate that one agent honours and the next does
-not looks like a rule and is not one.
+skill without its pointer. What enforces a rule is what every agent hits
+([`AGENTS.md` §6](AGENTS.md#6-project-rules)): the git hooks under [`.githooks/`](.githooks/),
+the checks, and the repository settings below.
 
 Agents work tickets in parallel without any one vendor's mechanism: a dispatching session claims
 each ticket by its branch in a git worktree of its own and starts a fresh session there, with the
@@ -187,20 +202,23 @@ settings they rely on, on every start; outside it, run once per clone:
 git config core.hooksPath .githooks
 git config merge.ff false
 git config pull.ff only
+git config merge.adr-index.driver '.githooks/merge-adr-index %O %A %B %S %X %Y'
 ```
 
 `merge.ff false` makes every merge a merge commit, as a `feat/` branch keeps them
 ([`AGENTS.md` §6](AGENTS.md#6-project-rules)); a fast-forward would make no commit and run no
 hook. `pull.ff only` keeps a pull from then making a merge. Without the two settings the hooks
 still hold: a fast-forward skips the documentation check of `pre-merge-commit`, and the push
-still gates what it brought.
+still gates what it brought. The merge driver of the ADR index keeps the rows both sides add and
+stops on its prose ([`.githooks/merge-adr-index`](.githooks/merge-adr-index)); without it, every
+row two branches append conflicts.
 
 | Hook | Refuses | Bypassed by |
 |---|---|---|
 | `reference-transaction` | moving the local `main` to a commit `origin/main` lacks: by a commit, merge, cherry-pick, reset, or `git branch -f`. It lets through `git merge --ff-only origin/main`, a reset to it, `git fetch origin main:main`, a write of `main` where it already is, and a deletion. Needs git 2.28 or later. | running git without the hooks (`git -c core.hooksPath=/dev/null`), or moving `origin/main` by hand; not by `--no-verify` |
 | `pre-commit` | a commit on `main`; the conclusion of a conflicted merge while `scripts/check-all.sh --changed` is red | `--no-verify` |
 | `pre-merge-commit` | a merge on `main`; a merge into any other branch while `scripts/check-docs.sh` is red | `--no-verify` |
-| `pre-push` | a push to the remote's `main`, a deletion included; any other push while `scripts/check-all.sh --changed` is red, except one that only deletes | `--no-verify`, as the claim on a ticket does ([`AGENTS.md` §6](AGENTS.md#6-project-rules)) |
+| `pre-push` | a push to the remote's `main`, a deletion included; any other push while `scripts/check-all.sh --changed` is red, except one that only deletes, and one from a clean working tree whose tree the checks passed on before, as after a rework that only regroups | `--no-verify`, as the claim on a ticket does ([`AGENTS.md` §6](AGENTS.md#6-project-rules)); a tree written by hand into `checks-green-trees` of the git directory |
 
 With `--changed`, the self-tests of what the branch left untouched since `main` are skipped; CI
 runs every one before anything reaches `main`. A bypass is a deliberate act, not a default;
@@ -211,34 +229,46 @@ instead.
 ## Integration branches
 
 A change reaches `main` through a pull request. Several branches may integrate first on a
-`feat/` branch by local merges, which stays the human's to rework until its pull request merges
-([`AGENTS.md` §6](AGENTS.md#6-project-rules)). Each step waits for a human's instruction.
+`feat/` branch, by local merges or by pull requests against it, and it stays the human's to
+rework until its pull request into `main` merges ([`AGENTS.md` §6](AGENTS.md#6-project-rules)).
+Each step waits for a human's instruction.
 
 1. Start it at the remote's `main`: `git fetch origin`, then
    `git switch -c feat/<topic> origin/main`.
 2. Merge a reviewed branch into it with its hand-off as the message, written to a file since an
    editor strips its headings: `git merge --no-ff -F .scratch/<hand-off>.md <branch>`. The
-   documentation check gates the merge, and
-   the push of step 4 runs the rest. One that stops on a conflict is concluded, once resolved and
-   staged, with `git commit -F .scratch/<hand-off>.md`, and all the checks gate that commit.
-3. Rework it as often as needed: rebase it, regroup its commits, or drop what did not hold. A
-   rebase without `--rebase-merges` flattens the merges, and their hand-offs with them; any
-   rework replaces the commits their `Reviewed at:` lines name. The review that binds after a
-   rework is a review of the whole branch, named on that line in the pull request's description.
-   [`scripts/sensor-review-binding.sh`](scripts/sensor-review-binding.sh) reads it there first,
-   on every push to the pull request and again on every edit of the description
-   ([`review-binding.yml`](.github/workflows/review-binding.yml)).
-4. Test it in the pipelines: `git push -u origin feat/<topic>`, then open a draft pull request,
+   documentation check gates the merge, and the push of step 6 runs the rest. One that stops on a
+   conflict is concluded, once resolved and staged, with `git commit -F .scratch/<hand-off>.md`,
+   and all the checks gate that commit.
+3. Or merge it by a pull request against the `feat/` branch, so that its pipelines run first
+   ([`AGENTS.md` §6](AGENTS.md#6-project-rules)). With both branches pushed, on the branch:
+   `gh pr create --base feat/<topic> --body-file .scratch/<hand-off>.md`, and once it is green,
+   `gh pr merge <number> --merge --body-file .scratch/<hand-off>.md`, never by the web interface,
+   whose merge commit drops the hand-off. Then, on the `feat/` branch, `git fetch origin` and
+   `git merge --ff-only origin/feat/<topic>`.
+4. Rework it as often as needed: rebase it, regroup its commits, or drop what did not hold,
+   with `git rebase -i --autosquash --rebase-merges`. `--autosquash` folds in the fixups a review
+   leaves, as the `review` skill says; without `--rebase-merges` the merges flatten, and their
+   hand-offs with them. A pull request still open against the `feat/` branch is rebased onto the
+   rework.
+5. After a rework, review the whole branch at its head
+   ([`AGENTS.md` §5](AGENTS.md#5-quality-bar--definition-of-done)) and name that commit on the
+   `Reviewed at:` line of the pull request of step 6, which
+   [`review-binding.yml`](.github/workflows/review-binding.yml) reads on every push and edit.
+6. Test it in the pipelines: `git push -u origin feat/<topic>`, then open a draft pull request,
    `gh pr create --draft --base main`, which runs them on every push against what the merge
    into `main` would produce. A branch kept without a pull request, such as an experiment, runs
    them by hand: `gh workflow run checks.yml --ref feat/<topic>`. A rework already pushed goes out
    with `git push --force-with-lease`.
-5. Take up what the remote's `main` gained meanwhile, such as a Dependabot update, since the
-   ruleset merges only a branch up to date with it: `git merge origin/main` on the `feat/`
-   branch, gated like any merge. A rebase onto it is a rework, as in step 3.
-6. Once the pull request has merged as a merge commit, take it up and drop the branch:
-   `git switch main`, `git fetch origin`, `git merge --ff-only origin/main`, then
-   `git branch -d feat/<topic>` and `git push origin --delete feat/<topic>`.
+7. Make the pull request ready: [`scripts/ready-for-main.sh`](scripts/ready-for-main.sh) refuses
+   a fixup steps 4 to 6 left, takes up the remote's `main`, and numbers the draft ADRs
+   ([ADR-0002](docs/adr/0002-decisions-verified-by-tests.md)); then the push it names and
+   `gh pr ready`. What `main` gains later is taken up the same way, and an ADR it gains moves the
+   branch's numbers on ([mechanics](docs/adr/README.md#mechanics)).
+8. Once the pull request into `main` has merged as a merge commit, take it up and drop the branch:
+   on it, [`scripts/drop-merged-branch.sh`](scripts/drop-merged-branch.sh) refuses a branch
+   `origin/main` lacks, takes up the remote's `main`, and deletes the local branch; then the
+   `git push origin --delete feat/<topic>` it names.
 
 ## Repository settings
 
@@ -267,11 +297,11 @@ configured once by a maintainer and worth re-checking after a repository move or
 
 [`scripts/sensor-repo-settings.sh`](scripts/sensor-repo-settings.sh) reads these settings
 through `gh` and reports each one that differs from this list. It runs on a human's
-instruction, not in the checks, since only an admin of the repository can read all of them.
+instruction ([ADR-0002](docs/adr/0002-decisions-verified-by-tests.md)).
 
 ## Template
 
-- **Template release:** v0.4.0 — the release of [NUC](https://github.com/hivevm/nuc) this
+- **Template release:** v0.5.0 — the release of [NUC](https://github.com/hivevm/nuc) this
   repository carries; a project moves the line when it takes up a later one
   ([ADR-0005](docs/adr/0005-template-releases.md)).
 

@@ -23,7 +23,8 @@ CHECK="$ROOT/scripts/check-devcontainer.sh"
 
 # The postStartCommand that enables the git hooks and the merge settings, as the repository's own
 # writes it; config writes the value of post_start, none when it is empty.
-POST_START='{ "hooks": "git config core.hooksPath .githooks", "merge": "git config merge.ff false && git config pull.ff only" }'
+DRIVER="merge.adr-index.driver '.githooks/merge-adr-index %O %A %B %S %X %Y'"
+POST_START='{ "hooks": "git config core.hooksPath .githooks", "merge": "git config merge.ff false && git config pull.ff only", "index": "git config '"$DRIVER"'" }'
 post_start="$POST_START"
 
 # config <dir> <feature id> [extra json lines...] — write devcontainer.json with one Feature, the
@@ -180,19 +181,19 @@ rm -r "$d/.devcontainer"
 expect fail "no Dev Container at all" "$d" "devcontainer.json: not found"
 
 d="$(repo post-start-string)"
-post_start='"git config core.hooksPath .githooks && git config merge.ff false && git config pull.ff only"'
+post_start='"git config core.hooksPath .githooks && git config merge.ff false && git config pull.ff only && git config '"$DRIVER"'"'
 config "$d" "ghcr.io/devcontainers/features/github-cli:1"
 post_start="$POST_START"
 expect pass "the git settings in a postStartCommand string pass" "$d" "git hooks enabled"
 
 d="$(repo post-start-braces)"
 # shellcheck disable=SC2016  # the variable is devcontainer.json's, not the shell's
-post_start='{ "cd": "cd ${containerWorkspaceFolder}", "list": ["a]b"], "hooks": "git config core.hooksPath .githooks", "merge": "git config merge.ff false && git config pull.ff only" }'
+post_start='{ "cd": "cd ${containerWorkspaceFolder}", "list": ["a]b"], "hooks": "git config core.hooksPath .githooks", "merge": "git config merge.ff false && git config pull.ff only", "index": "git config '"$DRIVER"'" }'
 config "$d" "ghcr.io/devcontainers/features/github-cli:1"
 post_start="$POST_START"
 expect pass "a brace or bracket in an entry before the git settings" "$d" "git hooks enabled"
 
-for setting in "core.hooksPath .githooks" "merge.ff false" "pull.ff only"; do
+for setting in "core.hooksPath .githooks" "merge.ff false" "pull.ff only" "$DRIVER"; do
   d="$(repo "post-start-without-${setting%% *}")"
   post_start="${POST_START/"git config $setting"/}"
   config "$d" "ghcr.io/devcontainers/features/github-cli:1"
@@ -200,6 +201,13 @@ for setting in "core.hooksPath .githooks" "merge.ff false" "pull.ff only"; do
   expect fail "a postStartCommand without 'git config $setting'" "$d" \
     "postStartCommand does not run 'git config $setting'"
 done
+
+d="$(repo post-start-driver-args)"
+post_start="${POST_START/" %O %A %B %S %X %Y"/}"
+config "$d" "ghcr.io/devcontainers/features/github-cli:1"
+post_start="$POST_START"
+expect fail "the merge driver without the arguments git passes it" "$d" \
+  "postStartCommand does not run 'git config $DRIVER'"
 
 d="$(repo post-start-missing)"
 post_start=""
