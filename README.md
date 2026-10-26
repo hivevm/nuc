@@ -206,10 +206,9 @@ git config merge.adr-index.driver '.githooks/merge-adr-index %O %A %B %S %X %Y'
 ([`AGENTS.md` §6](AGENTS.md#6-project-rules)); a fast-forward would make no commit and run no
 hook. `pull.ff only` keeps a pull from then making a merge. Without the two settings the hooks
 still hold: a fast-forward skips the documentation check of `pre-merge-commit`, and the push
-still gates what it brought. The merge driver keeps the rows of both sides when two branches
-add to the ADR index, and stops on its prose like any text, as
-[`.githooks/merge-adr-index`](.githooks/merge-adr-index) says; without it the index merges as
-text, a conflict on every row two branches append.
+still gates what it brought. The merge driver of the ADR index keeps the rows both sides add and
+stops on its prose ([`.githooks/merge-adr-index`](.githooks/merge-adr-index)); without it, every
+row two branches append conflicts.
 
 | Hook | Refuses | Bypassed by |
 |---|---|---|
@@ -238,13 +237,12 @@ Each step waits for a human's instruction.
    documentation check gates the merge, and the push of step 6 runs the rest. One that stops on a
    conflict is concluded, once resolved and staged, with `git commit -F .scratch/<hand-off>.md`,
    and all the checks gate that commit.
-3. Or merge it by a pull request, where its pipelines are to run first on what the local gate
-   lacks, such as another platform or a service. With the `feat/` branch pushed as in step 6,
-   push the branch, then, on it:
+3. Or merge it by a pull request against the `feat/` branch, so that its pipelines run first
+   ([`AGENTS.md` §6](AGENTS.md#6-project-rules)). With both branches pushed, on the branch:
    `gh pr create --base feat/<topic> --body-file .scratch/<hand-off>.md`, and once it is green,
-   `gh pr merge <number> --merge --body-file .scratch/<hand-off>.md`. Not by the web interface,
-   whose merge commit carries no hand-off and so no `Reviewed at:` line. Then take it up:
-   `git fetch origin` and, on the `feat/` branch, `git merge --ff-only origin/feat/<topic>`.
+   `gh pr merge <number> --merge --body-file .scratch/<hand-off>.md`, never by the web interface,
+   whose merge commit drops the hand-off. Then, on the `feat/` branch, `git fetch origin` and
+   `git merge --ff-only origin/feat/<topic>`.
 4. Rework it as often as needed: rebase it, regroup its commits, or drop what did not hold,
    with `git rebase -i --autosquash --rebase-merges`. `--autosquash` folds in the fixups a review
    leaves, as the `review` skill says; without `--rebase-merges` the merges flatten, and their
@@ -252,22 +250,18 @@ Each step waits for a human's instruction.
    rework.
 5. After a rework, review the whole branch at its head
    ([`AGENTS.md` §5](AGENTS.md#5-quality-bar--definition-of-done)) and name that commit on the
-   `Reviewed at:` line of the description of the pull request step 6 opens, where
-   [`scripts/sensor-review-binding.sh`](scripts/sensor-review-binding.sh) reads it on every push
-   and every edit ([`review-binding.yml`](.github/workflows/review-binding.yml)).
+   `Reviewed at:` line of the pull request of step 6, which
+   [`review-binding.yml`](.github/workflows/review-binding.yml) reads on every push and edit.
 6. Test it in the pipelines: `git push -u origin feat/<topic>`, then open a draft pull request,
    `gh pr create --draft --base main`, which runs them on every push against what the merge
    into `main` would produce. A branch kept without a pull request, such as an experiment, runs
    them by hand: `gh workflow run checks.yml --ref feat/<topic>`. A rework already pushed goes out
    with `git push --force-with-lease`.
-7. Make the pull request ready with
-   [`scripts/ready-for-main.sh`](scripts/ready-for-main.sh). It refuses a fixup steps 4 to 6 have
-   not folded in, since `main` keeps what it merges; takes up the remote's `main` by a merge,
-   since the ruleset merges only a branch up to date with it; and numbers the draft ADRs, which
-   fail the documentation check once the pull request is ready
-   ([ADR-0002](docs/adr/0002-decisions-verified-by-tests.md)). It ends by naming the push, then
-   `gh pr ready`. What `main` gains later is taken up the same way; an ADR it gains moves the
-   branch's numbers on, as the [mechanics](docs/adr/README.md#mechanics) say.
+7. Make the pull request ready: [`scripts/ready-for-main.sh`](scripts/ready-for-main.sh) refuses
+   a fixup steps 4 to 6 left, takes up the remote's `main`, and numbers the draft ADRs
+   ([ADR-0002](docs/adr/0002-decisions-verified-by-tests.md)); then the push it names and
+   `gh pr ready`. What `main` gains later is taken up the same way, and an ADR it gains moves the
+   branch's numbers on ([mechanics](docs/adr/README.md#mechanics)).
 8. Once the pull request into `main` has merged as a merge commit, take it up and drop the branch:
    on it, [`scripts/drop-merged-branch.sh`](scripts/drop-merged-branch.sh) refuses a branch
    `origin/main` lacks, takes up the remote's `main`, and deletes the local branch; then the

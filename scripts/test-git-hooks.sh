@@ -117,7 +117,7 @@ g "$d" add docs && g "$d" commit -q -m draft
 out="$(g "$d" push -q origin feature 2>&1)"; rc=$?
 check "a push that carries a draft ADR passes" test "$rc" -eq 0
 check "and counts the drafts and names the script that numbers them" \
-  grep -qF "feature carries 1 draft ADR(s); they take their numbers on the branch of the pull request into main, by scripts/number-adrs.sh (README, Integration branches, step 7)." <<< "$out"
+  grep -qF "feature carries 1 draft ADR(s); they take their numbers on the branch of the pull request into main, by scripts/ready-for-main.sh (README, Integration branches, step 7)." <<< "$out"
 
 # A tree the checks passed on passes again without them: the committed check script reads its
 # verdict from outside the tree, so the same tree can turn red. A rework that keeps the tree, an

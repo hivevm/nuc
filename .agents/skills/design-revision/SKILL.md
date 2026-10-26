@@ -80,9 +80,10 @@ fallback for what no check can decide
 ([`AGENTS.md` §5](../../../AGENTS.md#5-quality-bar--definition-of-done)), so each names the
 mistake it prevents, or it is a candidate to drop. Each that stays is set against the older ones
 beside it, and an older one it makes needless is a candidate too. One an ADR decides is dropped
-only by superseding that ADR, so its candidate is a `proposed` ADR. The hand-off of the revision
-lists what was added and what it proposes to drop, with the lines each file gained and lost
-(`git diff --stat`), so the growth of the rule set is seen once per revision.
+only as that ADR may change ([`AGENTS.md` §3](../../../AGENTS.md#3-adr-rules), rule 5). The
+hand-off of the revision lists what was added and what it proposes to drop, with the lines each
+file gained and lost (`git diff --stat`), so the growth of the rule set is seen once per
+revision.
 
 ## 6. File, do not fix
 

@@ -25,10 +25,10 @@
 # section 6 says who may.
 #
 # A push that sends a draft ADR is told how many it carries and where they take their numbers:
-# on the branch of the pull request into main, by scripts/number-adrs.sh, as step 7 of the README's
-# Integration branches says. The notice passes or refuses nothing and asks for nothing: a branch
-# under rework carries drafts on purpose, and check 16 of scripts/check-docs.sh fails on a draft
-# in a pull request into main that is ready for review.
+# on the branch of the pull request into main, by scripts/ready-for-main.sh, as step 7 of the
+# README's Integration branches says. The notice passes or refuses nothing and asks for nothing:
+# a branch under rework carries drafts on purpose, and check 16 of scripts/check-docs.sh fails on
+# a draft in a pull request into main that is ready for review.
 # scripts/test-git-hooks.sh exercises this hook.
 
 set -uo pipefail
@@ -50,7 +50,7 @@ while read -r _ local_object remote_ref _; do
   # notice says so on every push that carries one, and decides nothing.
   drafts="$(git ls-tree --name-only "$local_object" docs/adr/ 2>/dev/null | grep -c '^docs/adr/draft-.*\.md$')"
   if ((drafts > 0)); then
-    echo "pre-push: ${remote_ref#refs/heads/} carries $drafts draft ADR(s); they take their numbers on the branch of the pull request into main, by scripts/number-adrs.sh (README, Integration branches, step 7)." >&2
+    echo "pre-push: ${remote_ref#refs/heads/} carries $drafts draft ADR(s); they take their numbers on the branch of the pull request into main, by scripts/ready-for-main.sh (README, Integration branches, step 7)." >&2
   fi
 done
 
