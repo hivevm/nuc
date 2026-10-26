@@ -32,7 +32,9 @@ holding one symlink per skill loads all of them.
 ## Decision
 
 We will keep the procedures of the rule file — developing an ADR, planning work larger than one
-session, working its tickets alone or in parallel, reviewing a change, revising the design — as
+session, working its tickets alone or in parallel, reviewing a change, revising the design,
+normalizing the record and, through the same skill, taking up the template or one of its
+releases — as
 Agent Skills under `.agents/skills/`, one directory with a `SKILL.md` each, reached by Claude Code
 through one symlink per skill under `.claude/skills/`. The walk through `TEMPLATE-SETUP.md` is a
 skill of the same kind, deleted together with that file. A skill carries the steps of one

@@ -92,8 +92,8 @@ by subtree, by patch, or by hand; which releases receive fixes, which
 - Negative / trade-offs: the line is moved by hand, and a release nobody cuts leaves `main` ahead
   of the last tag, which harms nothing but names nothing either; a derived project that never
   moves the line reads a state that grows old; tags do not travel, which is why the line exists.
-- Follow-ups: a procedure for taking up the files of a release, beyond the record that a
-  normalization takes up.
+- Follow-ups: none; taking up the files of a release, beyond the record, is a procedure of
+  the `normalize` skill ([ADR-0003](0003-procedures-as-skills.md)).
 
 ## Enforcement
 
