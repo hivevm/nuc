@@ -301,7 +301,7 @@ instruction ([ADR-0002](docs/adr/0002-decisions-verified-by-tests.md)).
 
 ## Template
 
-- **Template release:** v0.4.0 — the release of [NUC](https://github.com/hivevm/nuc) this
+- **Template release:** v0.5.0 — the release of [NUC](https://github.com/hivevm/nuc) this
   repository carries; a project moves the line when it takes up a later one
   ([ADR-0005](docs/adr/0005-template-releases.md)).
 
