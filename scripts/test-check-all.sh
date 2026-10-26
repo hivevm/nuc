@@ -120,6 +120,23 @@ expect_exit() {
 d="$(repo full)"
 expect "without --changed everything runs" "$d" "${scripts[*]}" ""
 
+# The bash floor (ADR-0002): below it the runner stops before any check and names both versions;
+# at it, the guard says nothing.
+# Verifies: ADR-0002
+d="$(repo old-bash)"
+out="$(CHECK_ALL_BASH_VERSION=3.2 bash "$d/scripts/check-all.sh" 2>&1)"; rc=$?
+if ((rc == 2)) && [[ "$out" == *"need bash 4.4 or later"* && "$out" == *"this is bash 3.2"* && "$out" != *"RAN "* ]]; then
+  passed=$((passed + 1))
+else
+  failed=$((failed + 1)); echo "FAIL: a bash below 4.4 stops the runner before any check (exit $rc)" >&2
+fi
+out="$(CHECK_ALL_BASH_VERSION=4.4 bash "$d/scripts/check-all.sh" 2>&1)"
+if [[ "$out" != *"need bash"* && "$out" == *"RAN "* ]]; then
+  passed=$((passed + 1))
+else
+  failed=$((failed + 1)); echo "FAIL: bash 4.4 passes the guard silently" >&2
+fi
+
 d="$(repo untouched)"
 expect "--changed on an unchanged branch runs the checks and the self-tests without a line or with a missing input" \
   "$d" "${checks[*]} $no_line $missing" "$by_file $by_dir $others" --changed

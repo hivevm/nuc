@@ -63,7 +63,8 @@ goals live in [`docs/SPECIFICATION.md`](docs/SPECIFICATION.md), the vocabulary i
   [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
   extension, or any DevContainer-compatible IDE
 - Docker / Podman (rootless) available on the host
-- Outside the Dev Container: bash 4.4 or later for the checks; macOS ships 3.2
+- Outside the Dev Container: bash 4.4 or later for the checks, 3.2 for the git hooks
+  ([ADR-0002](docs/adr/0002-decisions-verified-by-tests.md)); macOS ships 3.2
 
 ## Getting Started
 
