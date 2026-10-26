@@ -153,12 +153,14 @@ place of steps 2 and 3: the project's own decisions and the inherited ADRs becom
 
 Project-specific conventions belong in [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md), in checks,
 and in ADRs; on what may and may not be edited, see [`AGENTS.md` §3](AGENTS.md#3-adr-rules).
-Leave the **Dev Container**, **Coding Agents**, **Repository settings**, **Template**, and
-**Project Layout** sections of the README as-is; they describe the scaffold. A project without a
-Dev Container changes the first two as [A small project](#a-small-project) says. The Template
-section names the release this project was created from and is the one link to the template
-that stays. The Project Layout block only inventories the files, so a document you remove goes
-out of it too, this file included.
+Leave the **Dev Container**, **Coding Agents**, **Repository settings**, and **Template**
+sections of the README as-is; they describe the scaffold. A project without a Dev Container
+changes the first two as [A small project](#a-small-project) says. The Template section names the
+release this project was created from and is the one link to the template that stays. The
+**Project Layout** block inventories the top level, so a part you remove goes out of it, this
+file included, and a part you add goes in, such as the source tree and the toolchain's files of
+step 6; check 10 of [`scripts/check-docs.sh`](scripts/check-docs.sh) fails on one it does not
+name.
 
 ## A small project
 
@@ -176,9 +178,10 @@ README. What can go, and how:
     self-test, which cites the superseded ADR;
   - the `devcontainer` job and its bullet in the header of
     [`checks.yml`](.github/workflows/checks.yml), its `run` lines in
-    [`scripts/check-all.sh`](scripts/check-all.sh), and its name in the README's required checks;
-    check 9 holds the three lists together. Take it out of the required checks of the ruleset
-    on `main` as well, since the pull request that removes the job can merge only then;
+    [`scripts/check-all.sh`](scripts/check-all.sh), its name in the README's required checks, and
+    any script of the project's own that only the job ran; check 9 holds the three lists, the
+    header, and the scripts under `scripts/` together. Take it out of the required checks of the
+    ruleset on `main` as well, since the pull request that removes the job can merge only then;
   - the `remote.extensionKind` entry of [`.vscode/settings.json`](.vscode/settings.json) and the
     lock comment of [`.gitignore`](.gitignore);
   - in the README, the Dev Container section and the `.devcontainer/` row of the Project Layout,

@@ -3,8 +3,9 @@
 # Runs every consistency check this repository enforces, in one command.
 #
 # AGENTS.md §5 requires these checks to pass before pushing. This script is the local equivalent
-# of .github/workflows/checks.yml, in the same order; check 9 of check-docs.sh holds the two lists
-# and the required status checks named in README.md together.
+# of .github/workflows/checks.yml; check 9 of check-docs.sh holds the two lists, the required
+# status checks named in README.md, and the scripts under scripts/ together. A script that runs
+# on a human's instruction only is named on an '# On instruction:' line below.
 #
 # Every check runs even after an earlier one fails, so a single run reports everything that is
 # wrong instead of the first thing. The exit code is what a pre-push decision is made on.
@@ -122,6 +123,7 @@ run "Review binding sensor self-test" scripts/test-sensor-review-binding.sh
 run "Review binding sensor" scripts/sensor-review-binding.sh
 # The repository settings sensor reads GitHub and runs on a human's instruction (ADR-0002); its
 # self-test runs here.
+# On instruction: scripts/sensor-repo-settings.sh
 run "Repository settings sensor self-test" scripts/test-sensor-repo-settings.sh
 run "Check runner self-test" scripts/test-check-all.sh
 run "Git hooks self-test" scripts/test-git-hooks.sh

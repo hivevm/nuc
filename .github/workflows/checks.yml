@@ -2,29 +2,21 @@ name: Checks
 
 # Enforces the repository's rules as CI. Pure bash + coreutils — nothing is installed
 # (ShellCheck, used by the shell job, ships preinstalled on the GitHub-hosted runner image).
-# scripts/check-all.sh is the local equivalent; check 9 of scripts/check-docs.sh holds the two
-# lists and the required checks named in README.md together. Each job runs a check after its own
-# self-test, and each script's header says what it checks:
-# - Documentation: scripts/check-docs.sh, then the self-test of the normalize skill's map script,
-#   scripts/test-normalize-remap.sh (ADR-0001).
-# - Template setup, in the documentation job: scripts/test-template-setup.sh, until it closes.
-# - Traceability: scripts/check-traceability.sh (ADR-0002).
-# - Dev Container: scripts/check-devcontainer.sh (ADR-0004).
-# - Sensors: scripts/sensor-tests-kept.sh, sensor-binding-adrs.sh (ADR-0001),
-#   sensor-revision-due.sh and sensor-plan-frontier.sh (ADR-0006), sensor-action-refs.sh, and
-#   sensor-review-binding.sh, the last on a pull request only. The sensors report for the reviewer
-#   and fail on nothing they count, except the action references once a project runs that sensor
-#   with --require; their self-tests fail like any check's. The job checks out the full history
-#   because four sensors read it. An edit of a pull request's description runs none of these
-#   jobs: review-binding.yml runs the review binding sensor again on it. Of
-#   sensor-repo-settings.sh only the self-test runs here; the sensor reads GitHub and runs on a
-#   human's instruction (ADR-0002).
-# - Shell lint: scripts/check-shell.sh, after the self-tests of scripts/check-all.sh and of the
-#   git hooks.
-# - Build, test, lint: absent until the project has a toolchain. The catalogue entry Toolchain of
-#   the propose-adr skill says how the job is added; it is the one job of this workflow that
-#   installs something, with a timeout that fits the real build and 'submodules: recursive' on
-#   the checkout where the project uses submodules.
+# scripts/check-all.sh is the local equivalent; check 9 of scripts/check-docs.sh holds its list,
+# the jobs of this workflow, and the required checks named in README.md together. Each job runs
+# a check after its own self-test, and each script's header says what it checks and which ADR it
+# holds.
+#
+# The sensors report for the reviewer and fail on nothing they count, except the action
+# references once a project runs that sensor with --require; their self-tests fail like any
+# check's. The sensors job checks out the full history because three sensors read it. The review
+# binding sensor runs in review-binding.yml, the repository settings sensor on a human's
+# instruction (ADR-0002); this workflow runs the self-test of each.
+#
+# A build, test, and lint job is absent until the project has a toolchain. The catalogue entry
+# Toolchain of the propose-adr skill says how the job is added; it is the one job of this workflow
+# that installs something, with a timeout that fits the real build and 'submodules: recursive' on
+# the checkout where the project uses submodules.
 #
 # Every job is bounded by a timeout — a hung step would otherwise occupy a runner until the
 # platform's own six-hour limit — and every checkout runs with 'persist-credentials: false': the
@@ -147,21 +139,6 @@ jobs:
       # The repository settings sensor itself runs on a human's instruction (ADR-0002).
       - name: Self-test the repository settings sensor
         run: bash scripts/test-sensor-repo-settings.sh
-      # On a pull request only, against its head: the checkout is a synthetic merge of the two,
-      # and a push to main brings the merge of that pull request, not the hand-offs it carries.
-      # The description is the hand-off of the whole branch; it reaches the sensor through the
-      # environment and a file, never through the script's text.
-      - name: Write the pull request's description, the hand-off of the branch, to a file
-        if: github.event_name == 'pull_request'
-        run: printf '%s\n' "$HAND_OFF" > "$RUNNER_TEMP/hand-off.md"
-        env:
-          HAND_OFF: ${{ github.event.pull_request.body }}
-      - name: Report the merges whose review saw less than the branch, and commits mixing ADRs with other paths
-        if: github.event_name == 'pull_request'
-        run: bash scripts/sensor-review-binding.sh --hand-off "$RUNNER_TEMP/hand-off.md" "$BASE" "$HEAD_SHA"
-        env:
-          BASE: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
 
   shell:
     runs-on: ubuntu-latest

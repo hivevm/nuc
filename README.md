@@ -106,19 +106,31 @@ TODO — show a minimal example of using the project.
 TEMPLATE-SETUP.md     # one-time template setup; delete it when the project is yours
 README.md             # overview & setup for humans
 AGENTS.md             # single source of truth for coding agents
+CONTRIBUTING.md       # how to contribute, pointing at the rules
+SECURITY.md           # how to report a vulnerability, and what the configuration guarantees
+CODE_OF_CONDUCT.md    # the standards everyone taking part is held to
+LICENSE               # the license the project is released under
 docs/SPECIFICATION.md # the specification: problem, goals, success criteria
 docs/GLOSSARY.md      # the vocabulary everyone uses, kept current inline
 docs/CONVENTIONS.md   # how this project writes what no check decides, kept current inline
 docs/ARCHITECTURE.md  # the system as it currently stands
 docs/adr/             # Architecture Decision Records (+ template)
-scripts/              # checks and sensors, run by check-all.sh and in CI; the settings sensor by hand
+docs/plan/            # open work: feature specs and their tickets, deleted as they land
+scripts/check-all.sh  # runs the checks, sensors, and self-tests, as the hooks and CI do
+scripts/check-*.sh    # checks: each fails on what breaks a rule
+scripts/sensor-*.sh   # sensors: report for the reviewer; sensor-repo-settings.sh runs by hand
+scripts/test-*.sh     # self-tests of the checks, the sensors, the hooks, and the setup
+scripts/lib/          # what the scripts share: the ADR header, git, the ticket path, the self-tests
 .githooks/            # git hooks: nothing lands on main locally; checks before a merge and a push
-.github/              # CI workflows, Dependabot, issue & pull request templates, code owners
+.github/workflows/    # checks.yml runs the checks; review-binding.yml reads each pull request's hand-off
+.github/              # Dependabot, issue & pull request templates, code owners
 .devcontainer/        # Dev Container definition (base image + Features)
 .vscode/              # shared editor settings
 .editorconfig         # editor-neutral formatting baseline
 .gitattributes        # line-ending normalization (LF everywhere)
-.agents/skills/       # the procedures of AGENTS.md as Agent Skills, one directory each (ADR-0003)
+.gitignore            # what git leaves out, .scratch/ for session artifacts among it
+.agents/skills/       # the procedures of AGENTS.md as Agent Skills, one directory each (ADR-0003),
+                      # with the scripts and templates they carry (claim.sh, remap.sh, ticket.md)
 .claude/CLAUDE.md     # pointer for Claude Code to read AGENTS.md
 .claude/skills/       # pointers (one symlink per skill) for Claude Code to read .agents/skills/
 .claude/settings.json # Claude Code permissions: deny reading .env files (see SECURITY.md)

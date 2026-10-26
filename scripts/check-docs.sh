@@ -53,16 +53,20 @@
 #      (docs/adr/README.md), and check 1 cannot see a missing half: it only mirrors the index
 #      against whatever status the file carries. Every name of a Supersedes field counts, on
 #      whichever line it sits.
-#   9. Check-list agreement: the jobs in .github/workflows/checks.yml, the invocations in
-#      scripts/check-all.sh, and the required status checks named between the 'required-checks'
-#      markers in README.md list the same checks. A check that runs in only one of the three is a
-#      gate somebody believes in and does not have (AGENTS.md, section 5). A job of the workflow
-#      that runs no script under scripts/ fails too: its commands run in CI and never in the
-#      local gate.
+#   9. Check-list agreement: the jobs of .github/workflows/checks.yml and the required status
+#      checks named between the 'required-checks' markers in README.md list the same jobs, and
+#      the workflows under .github/workflows/ and scripts/check-all.sh run the same scripts. A
+#      check that runs in only one of them is a gate somebody believes in and does not have
+#      (AGENTS.md, section 5). A job that runs no script under scripts/ fails too: its commands
+#      run in CI and never in the local gate. So does a script under scripts/ that neither list
+#      runs, unless check-all.sh names it on an '# On instruction:' line.
 #  10. Project Layout integrity: every path listed in the 'Project Layout' block of README.md
 #      exists, a trailing '/' meaning a directory. The block is written by hand and nothing else
-#      tells a reader that one of its lines has gone stale. The reverse direction is deliberately
-#      not checked — the block is a tour of the parts a newcomer needs, not a file listing.
+#      tells a reader that one of its lines has gone stale. A path with a '*' matches at least one
+#      file, and docs/plan/ may be absent, since open work lives there only while there is some
+#      (ADR-0006). The reverse holds for the top level only: every tracked top-level file and
+#      directory is named, by itself or by a path under it. Below it the block is a tour of the
+#      parts a newcomer needs, not a file listing.
 #  11. Skill pointer integrity: every skill under .agents/skills/ (a directory with a SKILL.md)
 #      has a symlink of the same name under .claude/skills/ that resolves to it, and every entry
 #      under .claude/skills/ is such a symlink (ADR-0003). Claude Code reads only the pointer
@@ -724,27 +728,35 @@ check_check_lists() {
   # A job that runs no script under scripts/ — its commands written inline — is work CI does and
   # the local gate cannot: the toolchain job of a derived project, written that way, left the
   # pre-push hook without the build and the tests while the two lists still agreed.
-  local line job="" job_scripts=0 in_jobs=0
+  # Every workflow under .github/workflows/ counts for the scripts it runs; the jobs of checks.yml
+  # alone are the required checks.
+  local line job="" job_scripts=0 in_jobs=0 file rel is_checks
   local wf_jobs=() wf_scripts=()
   # job_done — report the job just parsed when none of its steps ran a script.
   job_done() {
     [[ -n "$job" ]] && ((job_scripts == 0)) \
-      && add_error "$rel_wf: job '$job' runs no script under scripts/ — the local gate cannot run what it does"
+      && add_error "$rel: job '$job' runs no script under scripts/ — the local gate cannot run what it does"
+    job=""
   }
-  while IFS= read -r line; do
-    [[ "$line" == "jobs:"* ]] && { in_jobs=1; continue; }
-    ((in_jobs)) || continue
-    if [[ "$line" =~ ^\ \ ([a-z][a-z0-9-]*):[[:space:]]*$ ]]; then
-      job_done
-      job="${BASH_REMATCH[1]}"
-      job_scripts=0
-      wf_jobs+=("$job")
-      continue
-    fi
-    [[ "$line" =~ run:[[:space:]]+bash[[:space:]]+(scripts/[A-Za-z0-9._-]+\.sh) ]] \
-      && { wf_scripts+=("${BASH_REMATCH[1]}"); job_scripts=$((job_scripts + 1)); }
-  done < "$wf"
-  job_done
+  for file in "$ROOT"/.github/workflows/*.yml "$ROOT"/.github/workflows/*.yaml; do
+    [[ -f "$file" ]] || continue
+    rel="${file#"$ROOT"/}" in_jobs=0 job="" job_scripts=0 is_checks=0
+    [[ "$file" == "$wf" ]] && is_checks=1
+    while IFS= read -r line; do
+      [[ "$line" == "jobs:"* ]] && { in_jobs=1; continue; }
+      ((in_jobs)) || continue
+      if [[ "$line" =~ ^\ \ ([a-z][a-z0-9-]*):[[:space:]]*$ ]]; then
+        job_done
+        job="${BASH_REMATCH[1]}"
+        job_scripts=0
+        ((is_checks)) && wf_jobs+=("$job")
+        continue
+      fi
+      [[ "$line" =~ run:[[:space:]]+bash[[:space:]]+(scripts/[A-Za-z0-9._-]+\.sh) ]] \
+        && { wf_scripts+=("${BASH_REMATCH[1]}"); job_scripts=$((job_scripts + 1)); }
+    done < "$file"
+    job_done
+  done
   if ((${#wf_jobs[@]} == 0)); then
     add_error "$rel_wf: no jobs found under 'jobs:' — the check lists cannot be compared"
     return
@@ -764,12 +776,25 @@ check_check_lists() {
   local s
   for s in "${wf_scripts[@]}"; do
     _contains "$s" "${all_scripts[@]}" \
-      || add_error "$rel_all: does not run '$s', which $rel_wf runs — CI and the local gate disagree"
+      || add_error "$rel_all: does not run '$s', which a workflow runs — CI and the local gate disagree"
   done
   for s in "${all_scripts[@]}"; do
     _contains "$s" "${wf_scripts[@]}" \
-      || add_error "$rel_wf: has no job running '$s', which $rel_all runs — CI and the local gate disagree"
+      || add_error "$rel_all: runs '$s', which no job of a workflow runs — CI and the local gate disagree"
   done
+
+  # Every script under scripts/ runs in the two lists, unless the local runner names it on a line
+  # '# On instruction: scripts/<name>.sh', as for a sensor that reads GitHub (ADR-0002). A script
+  # in neither list is a check nobody runs.
+  local on_instruction=() name
+  while IFS= read -r name; do on_instruction+=("$name"); done \
+    < <(sed -n 's/^#[[:space:]]*On instruction:[[:space:]]*\(scripts\/[A-Za-z0-9._-]*\.sh\).*/\1/p' "$all")
+  while IFS= read -r name; do
+    s="scripts/${name##*/}"
+    [[ "$s" == "$rel_all" ]] && continue
+    _contains "$s" "${all_scripts[@]}" "${on_instruction[@]}" \
+      || add_error "$s: no workflow and not $rel_all runs it — add it to both lists, or name it on an '# On instruction:' line of $rel_all"
+  done < <(find "$ROOT/scripts" -maxdepth 1 -type f -name '*.sh' | LC_ALL=C sort)
 
   # The README: the job names fenced by the 'required-checks' markers, which a maintainer copies
   # into the ruleset. Rulesets name checks by job name, so a name that is not a job is a required
@@ -791,7 +816,7 @@ check_check_lists() {
 
   for name in "${readme_names[@]}"; do
     _contains "$name" "${wf_jobs[@]}" \
-      || add_error "README.md: required check '$name' is not a job in $rel_wf — a ruleset would wait for a check that never reports"
+      || add_error "README.md: required check '$name' is not a job of $rel_wf — a ruleset would wait for a check that never reports"
   done
   for job in "${wf_jobs[@]}"; do
     _contains "$job" "${readme_names[@]}" \
@@ -813,7 +838,7 @@ check_project_layout() {
     return
   fi
 
-  local line path in_section=0 in_fence=0 entries=0
+  local line path in_section=0 in_fence=0 entries=0 listed=()
   while IFS= read -r line; do
     if ((!in_section)); then
       [[ "$line" == "## Project Layout" ]] && in_section=1
@@ -830,8 +855,13 @@ check_project_layout() {
     # Blank lines and the continuation lines of a wrapped comment carry no path.
     [[ -z "$path" || "$path" == "#"* ]] && continue
     entries=$((entries + 1))
-    if [[ "$path" == */ ]]; then
-      [[ -d "$ROOT/${path%/}" ]] \
+    listed+=("$path")
+    if [[ "$path" == *"*"* ]]; then
+      compgen -G "$ROOT/$path" >/dev/null \
+        || add_error "README.md: Project Layout lists '$path', which matches nothing in this repository"
+    elif [[ "$path" == */ ]]; then
+      # Open work lives under docs/plan/ only while there is some (ADR-0006).
+      [[ -d "$ROOT/${path%/}" || "$path" == "docs/plan/" ]] \
         || add_error "README.md: Project Layout lists '$path', which is not a directory of this repository"
     else
       [[ -f "$ROOT/$path" ]] \
@@ -841,7 +871,18 @@ check_project_layout() {
 
   if ((entries == 0)); then
     add_error "README.md: no paths found under '## Project Layout' — the inventory is unverifiable"
+    return
   fi
+
+  # The reverse: every top-level part of the tree is named, by itself or by a path under it.
+  local top covered
+  while IFS= read -r top; do
+    covered=0
+    for path in "${listed[@]}"; do
+      [[ "$path" == "$top" || "$path" == "$top/"* ]] && { covered=1; break; }
+    done
+    ((covered)) || add_error "README.md: Project Layout does not name '$top', a top-level part of this repository"
+  done < <(git -C "$ROOT" ls-files --cached 2>/dev/null | cut -d/ -f1 | LC_ALL=C sort -u)
 }
 
 # Check 11 (see the header). A pointer is resolved with 'cd -P', which every shell has, rather

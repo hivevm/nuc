@@ -34,6 +34,16 @@ sed_in() {
   sed "$2" "$1" > "$1.tmp" && mv "$1.tmp" "$1"
 }
 
+# layout <dir> <path...> — name each path in the Project Layout block of the fixture's README,
+# for a case that adds a top-level file for another reason (check 10).
+layout() {
+  local dir="$1"; shift
+  awk -v add="$(printf '%s\n' "$@")" '
+    { print }
+    $1 == "AGENTS.md" && !done { n = split(add, p, "\n"); for (i = 1; i <= n; i++) if (p[i] != "") print p[i] "  # added"; done = 1 }
+  ' "$dir/README.md" > "$dir/README.md.tmp" && mv "$dir/README.md.tmp" "$dir/README.md"
+}
+
 # insert_before <file> <line prefix> <text> — insert text, where "\n" starts a new line, before
 # the first line that starts with the prefix; awk reads "\n" the same way on every platform.
 insert_before() {
@@ -94,8 +104,13 @@ repo() {
     echo "## Project Layout"
     echo
     echo '```'
+    echo "README.md             # this file"
     echo "AGENTS.md             # the rule file"
     echo "docs/adr/             # decisions"
+    echo "scripts/              # the checks"
+    echo ".github/              # the workflows"
+    echo ".agents/skills/       # the skills"
+    echo ".claude/skills/       # their pointers"
     echo '```'
     echo
     echo "## Repository settings"
@@ -199,6 +214,7 @@ expect fail "skills only in the pointer directory, none for the other agents" "$
 
 d="$(repo no-skills)"
 rm -r "$d/.agents" "$d/.claude"
+sed_in "$d/README.md" '/^\.agents\/skills\/ /d; /^\.claude\/skills\/ /d'
 expect pass "a repository without skills has nothing to check" "$d"
 
 # --- cases: inherited ADRs after setup (check 12) ---------------------------------------
@@ -225,6 +241,7 @@ expect fail "an inherited ADR nobody here decided, with the setup file gone" "$d
 d="$(repo inherited-pending)"
 inherited "$d" "🟡 proposed" "NUC maintainer"
 echo "# Template setup" > "$d/TEMPLATE-SETUP.md"
+layout "$d" TEMPLATE-SETUP.md
 expect pass "an inherited ADR still proposed while the setup file exists" "$d"
 
 d="$(repo inherited-accepted)"
@@ -265,6 +282,7 @@ expect fail "an inherited ADR whose Deciders field wraps, the template's name on
 d="$(repo identity-pending)"
 sed_in "$d/README.md" 's/^# Fixture$/# NUC — an Agentic Fixture/'
 echo "# Template setup" > "$d/TEMPLATE-SETUP.md"
+layout "$d" TEMPLATE-SETUP.md
 expect pass "the template's title in the README while the setup file exists" "$d"
 
 d="$(repo identity-title)"
@@ -357,6 +375,7 @@ expect fail "a Lint command still TODO after setup" "$d" "README.md: a Build, Te
 d="$(repo identity-build-pending)"
 echo "- **Build:** TODO" >> "$d/README.md"
 echo "# Template setup" > "$d/TEMPLATE-SETUP.md"
+layout "$d" TEMPLATE-SETUP.md
 expect pass "a Build command still TODO while the setup file exists" "$d"
 
 d="$(repo identity-done)"
@@ -364,6 +383,7 @@ printf '# owners\n\n* @someone\n' > "$d/.github/CODEOWNERS"
 printf 'MIT License\n\nCopyright (c) 2026 Someone\n' > "$d/LICENSE"
 printf '# Specification — Fixture\n\n## Goals / Success Criteria\n\n1. **G-1** — When asked, the system shall answer.\n' > "$d/docs/SPECIFICATION.md"
 echo "- **Build:** \`make build\`" >> "$d/README.md"
+layout "$d" LICENSE
 expect pass "identity replaced after setup" "$d"
 
 # --- cases: prose width (check 15) ---------------------------------------------------------
@@ -400,6 +420,7 @@ expect pass "a fence inside a longer fence does not close it" "$d"
 d="$(repo width-generated)"
 words_of 120 > "$d/CHANGELOG.md"; echo >> "$d/CHANGELOG.md"
 echo "CHANGELOG.md linguist-generated" > "$d/.gitattributes"
+layout "$d" CHANGELOG.md .gitattributes
 expect pass "a file git marks as generated is not read" "$d"
 
 d="$(repo width-generated-unset)"
@@ -577,11 +598,11 @@ expect fail "a section reference that names no section" "$d" "matches no numbere
 words() { printf 'AGENTS.md, section %s' "$1"; }
 
 d="$(repo section-words)"
-echo "# Required by $(words 9)." > "$d/scripts/run.sh"
+mkdir -p "$d/scripts/lib" && echo "# Required by $(words 9)." > "$d/scripts/lib/run.sh"
 expect fail "a reference in words that names no section" "$d" "reference '$(words 9)' matches no numbered section"
 
 d="$(repo section-words-valid)"
-echo "# Required by $(words 2)." > "$d/scripts/run.sh"
+mkdir -p "$d/scripts/lib" && echo "# Required by $(words 2)." > "$d/scripts/lib/run.sh"
 expect pass "a reference in words to a section that exists" "$d"
 
 d="$(repo section-hook)"
@@ -591,6 +612,7 @@ expect fail "a section reference in a git hook" "$d" ".githooks/pre-commit:1: re
 
 d="$(repo section-json)"
 echo "{ \"de\": \"Siehe $(sect 9) BGB\" }" > "$d/messages.json"
+layout "$d" messages.json
 expect pass "the section sign in JSON is an ordinary character" "$d"
 
 d="$(repo section-json-words)"
@@ -604,6 +626,32 @@ expect fail "a reference to an ADR that does not exist" "$d" "matches no ADR fil
 d="$(repo check-lists)"
 echo 'run "Extra" scripts/check-extra.sh' >> "$d/scripts/check-all.sh"
 expect fail "a check the local runner has and CI does not" "$d" "CI and the local gate disagree"
+
+# Verifies: ADR-0002
+d="$(repo script-in-no-list)"
+echo 'echo new' > "$d/scripts/check-new.sh"
+expect fail "a script that neither list runs" "$d" "scripts/check-new.sh: no workflow and not scripts/check-all.sh runs it"
+d="$(repo script-on-instruction)"
+echo 'echo by hand' > "$d/scripts/sensor-by-hand.sh"
+echo '# On instruction: scripts/sensor-by-hand.sh' >> "$d/scripts/check-all.sh"
+expect pass "a script the local runner names as run on instruction" "$d"
+
+d="$(repo other-workflow)"
+printf 'on: [pull_request]\njobs:\n  again:\n    steps:\n      - run: bash scripts/check-docs.sh --strict\n' \
+  > "$d/.github/workflows/again.yml"
+expect pass "another workflow that runs a script the local runner runs, its job not required" "$d"
+d="$(repo other-workflow-required)"
+printf 'on: [pull_request]\njobs:\n  again:\n    steps:\n      - run: bash scripts/check-docs.sh\n' \
+  > "$d/.github/workflows/again.yml"
+# shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
+sed_in "$d/README.md" 's|^`docs`$|`docs`, `again`|'
+expect fail "a required check that is a job of another workflow than checks.yml" "$d" \
+  "required check 'again' is not a job of .github/workflows/checks.yml"
+d="$(repo other-workflow-inline)"
+printf 'on: [pull_request]\njobs:\n  again:\n    steps:\n      - run: echo inline\n' \
+  > "$d/.github/workflows/again.yml"
+expect fail "a job of another workflow that runs no script" "$d" \
+  "again.yml: job 'again' runs no script under scripts/"
 
 # build_job <dir> <run line> [local] — a toolchain job in the workflow, with a setup step before
 # its run line, listed among the required checks; with 'local', the local runner invokes the
@@ -635,6 +683,21 @@ expect fail "a toolchain job with its commands inline and nothing in the local r
 d="$(repo layout-stale)"
 sed_in "$d/README.md" 's|^docs/adr/ |docs/gone/ |'
 expect fail "a Project Layout entry that no longer exists" "$d" "is not a directory of this repository"
+
+# Verifies: ADR-0001
+d="$(repo layout-unnamed-top)"
+echo "notes" > "$d/NOTES.md"
+expect fail "a top-level file the Project Layout does not name" "$d" \
+  "Project Layout does not name 'NOTES.md', a top-level part"
+d="$(repo layout-glob)"
+echo "echo" > "$d/scripts/check-one.sh"
+echo 'run "One" scripts/check-one.sh' >> "$d/scripts/check-all.sh"
+echo "      - run: bash scripts/check-one.sh" >> "$d/.github/workflows/checks.yml"
+layout "$d" "scripts/check-*.sh" "scripts/sensor-*.sh"
+expect fail "a Project Layout pattern that matches nothing" "$d" "lists 'scripts/sensor-*.sh', which matches nothing"
+d="$(repo layout-plan-absent)"
+layout "$d" "docs/plan/"
+expect pass "docs/plan/ named while there is no open work" "$d"
 
 # --- summary -------------------------------------------------------------------------------
 
