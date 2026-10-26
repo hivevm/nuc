@@ -31,11 +31,12 @@ D="draft"
 id() { printf 'ADR-%04d' "$1"; }
 draft() { printf 'ADR-%s-%s' "$D" "$1"; }
 
-# g <dir> <git args...> — git in a fixture, with an identity of its own.
+# g <dir> <git args...> — git in a fixture, whose config carries the identity the script commits
+# with too.
 g() {
   local dir="$1"; shift
   fixture "$dir"
-  git -C "$dir" -c user.name=t -c user.email=t@t -c commit.gpgsign=false "$@"
+  git -C "$dir" "$@"
 }
 
 # adr <file> <identifier> [header line] — write one ADR.
@@ -53,6 +54,9 @@ repo() {
   adr "$dir/docs/adr/0001-first.md" "$(id 1)"
   printf '| ADR |\n|-----|\n| [0001](0001-first.md) |\n' > "$dir/docs/adr/README.md"
   cp "$ROOT/.gitattributes" "$dir/.gitattributes"
+  git -C "$dir" config user.name t
+  git -C "$dir" config user.email t@t
+  git -C "$dir" config commit.gpgsign false
   git -C "$dir" config merge.adr-index.driver "$ROOT/.githooks/merge-adr-index %O %A %B %S %X %Y"
   g "$dir" add -A && g "$dir" commit -q -m main
 
