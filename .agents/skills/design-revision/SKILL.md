@@ -70,13 +70,28 @@ Then the reverse: a convention or a check that prevented nothing during the work
 dropped, unless an ADR or a criterion cites it
 ([ADR-0002](../../../docs/adr/0002-decisions-verified-by-tests.md)).
 
+Then the rules added since the last revision: every rule written into
+[`AGENTS.md`](../../../AGENTS.md), the [README](../../../README.md), or the
+[record's mechanics](../../../docs/adr/README.md#mechanics), and every step written into a skill,
+read from the diff of those files since the commit that set the date of the `Last design
+revision` line, where [`scripts/sensor-revision-due.sh`](../../../scripts/sensor-revision-due.sh)
+starts its count, or from all history while the line reads `none yet`. A rule in prose is the
+fallback for what no check can decide
+([`AGENTS.md` §5](../../../AGENTS.md#5-quality-bar--definition-of-done)), so each names the
+mistake it prevents, or it is a candidate to drop. Each that stays is set against the older ones
+beside it, and an older one it makes needless is a candidate too. One an ADR decides is dropped
+only by superseding that ADR, so its candidate is a `proposed` ADR. The hand-off of the revision
+lists what was added and what it proposes to drop, with the lines each file gained and lost
+(`git diff --stat`), so the growth of the rule set is seen once per revision.
+
 ## 6. File, do not fix
 
 The conventions and the overview are corrected inline, as their documents ask. Everything else
 is filed before the revision ends rather than implemented here: a ticket per candidate the survey
-found, a ticket per check to write, a `proposed` ADR through `propose-adr` where a finding is a
-decision, a consolidating one included, and a drafted specification change as a ticket whose
-*Mode* is "with the human". The tickets go into `docs/plan/revision-<YYYY-MM-DD>/`, in the
-shape of the `plan-feature` skill's ticket template, without a spec. Move the `Last design
+found, a ticket per rule to drop, a ticket per check to write, a `proposed` ADR through
+`propose-adr` where a finding is a decision, a consolidating one included, and a drafted
+specification change as a ticket whose *Mode* is "with the human". The tickets go into
+`docs/plan/revision-<YYYY-MM-DD>/`, in the shape of the `plan-feature` skill's ticket template,
+without a spec. Move the `Last design
 revision` line of [`docs/ARCHITECTURE.md`](../../../docs/ARCHITECTURE.md) to today's date. Then
 delete the `spec.md` of a spec in scope: it is closed.
