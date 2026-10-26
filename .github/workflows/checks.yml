@@ -81,6 +81,10 @@ jobs:
         run: bash scripts/test-normalize-remap.sh
       - name: Self-test the numbering script of the drafts
         run: bash scripts/test-number-adrs.sh
+      - name: Self-test the readiness script of the pull request into main
+        run: bash scripts/test-ready-for-main.sh
+      - name: Self-test the drop script of a merged branch
+        run: bash scripts/test-drop-merged-branch.sh
 
   traceability:
     runs-on: ubuntu-latest

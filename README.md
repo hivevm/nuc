@@ -260,17 +260,18 @@ Each step waits for a human's instruction.
    into `main` would produce. A branch kept without a pull request, such as an experiment, runs
    them by hand: `gh workflow run checks.yml --ref feat/<topic>`. A rework already pushed goes out
    with `git push --force-with-lease`.
-7. Make the pull request ready, the fixups folded in by steps 4 to 6 first, since `main` keeps
-   what it merges. Take up the remote's `main`, since the ruleset merges only a branch up to date
-   with it: `git merge origin/main` on the `feat/` branch; a rebase onto it is a rework, as in
-   step 4. Number the draft ADRs the branch carries, which fail the documentation check once the
-   pull request is ready ([ADR-0002](docs/adr/0002-decisions-verified-by-tests.md)):
-   [`scripts/number-adrs.sh`](scripts/number-adrs.sh). Then `git push` and `gh pr ready`. What
-   `main` gains later is taken up the same way; an ADR it gains moves the branch's numbers on, as
-   the [mechanics](docs/adr/README.md#mechanics) say.
+7. Make the pull request ready with
+   [`scripts/ready-for-main.sh`](scripts/ready-for-main.sh). It refuses a fixup steps 4 to 6 have
+   not folded in, since `main` keeps what it merges; takes up the remote's `main` by a merge,
+   since the ruleset merges only a branch up to date with it; and numbers the draft ADRs, which
+   fail the documentation check once the pull request is ready
+   ([ADR-0002](docs/adr/0002-decisions-verified-by-tests.md)). It ends by naming the push, then
+   `gh pr ready`. What `main` gains later is taken up the same way; an ADR it gains moves the
+   branch's numbers on, as the [mechanics](docs/adr/README.md#mechanics) say.
 8. Once the pull request into `main` has merged as a merge commit, take it up and drop the branch:
-   `git switch main`, `git fetch origin`, `git merge --ff-only origin/main`, then
-   `git branch -d feat/<topic>` and `git push origin --delete feat/<topic>`.
+   on it, [`scripts/drop-merged-branch.sh`](scripts/drop-merged-branch.sh) refuses a branch
+   `origin/main` lacks, takes up the remote's `main`, and deletes the local branch; then the
+   `git push origin --delete feat/<topic>` it names.
 
 ## Repository settings
 

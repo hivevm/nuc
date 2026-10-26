@@ -158,6 +158,14 @@ run "Normalize map self-test" scripts/test-normalize-remap.sh
 # brings drafts to main (ADR-0002); its self-test runs here.
 # On instruction: scripts/number-adrs.sh
 run "Numbering script self-test" scripts/test-number-adrs.sh
+# The readiness script merges and commits on a human's instruction, as step 7 of the README's
+# Integration branches; its self-test runs here.
+# On instruction: scripts/ready-for-main.sh
+run "Readiness script self-test" scripts/test-ready-for-main.sh
+# The drop script moves main and deletes a branch on a human's instruction, as step 8 of the
+# README's Integration branches; its self-test runs here.
+# On instruction: scripts/drop-merged-branch.sh
+run "Drop script self-test" scripts/test-drop-merged-branch.sh
 run "Traceability self-test" scripts/test-check-traceability.sh
 run "Traceability" scripts/check-traceability.sh
 run "Dev Container self-test" scripts/test-check-devcontainer.sh
