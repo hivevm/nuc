@@ -129,7 +129,7 @@ bind() {
 # lines aside.
 adr_text() {
   git diff-tree -r --root --no-commit-id -p -U0 --no-color "$1" \
-    -- ':(glob)docs/adr/[0-9][0-9][0-9][0-9]-*.md' | awk '
+    -- ':(glob)docs/adr/[0-9][0-9][0-9][0-9]-*.md' ':(glob)docs/adr/draft-*.md' | awk '
     /^diff --git / { file = $NF; sub(/^b\//, "", file); next }
     /^(\+\+\+|---) / { next }
     /^[-+]/ && !/^[-+]- \*\*(Status|Date|Deciders):\*\*/ && !(file in seen) { seen[file]; print file }

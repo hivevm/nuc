@@ -5,8 +5,9 @@
 # Enforces — as CI, not just convention — the documentation rules from AGENTS.md and
 # docs/adr/README.md:
 #
-#   1. ADR index integrity: every docs/adr/NNNN-*.md file is listed in the index table in
-#      docs/adr/README.md, every index row points to an existing file, and the status and the
+#   1. ADR index integrity: every docs/adr/NNNN-*.md file and every draft docs/adr/draft-*.md
+#      (ADR-0002) is listed in the index table in
+#      docs/adr/README.md once, every index row points to an existing file, and the status and the
 #      'Applies to' cell shown in the index match the **Status:** and **Applies to:** lines
 #      inside each ADR — the index routes a reader from a change to the ADRs that bind it
 #      (AGENTS.md, section 2), so a row that misstates what its ADR governs misroutes them.
@@ -15,7 +16,9 @@
 #      row in the wrong one is either a dead decision read as binding or a binding one
 #      never read (docs/adr/README.md).
 #   2. ADR numbering integrity: the ADR files run 0001..N without gaps, and every file's
-#      '# ADR-NNNN' heading matches its filename (docs/adr/README.md).
+#      '# ADR-NNNN' heading matches its filename (docs/adr/README.md). A draft is outside the
+#      count: its slug is lower case letters and digits joined by hyphens, and its heading reads
+#      '# ADR-draft-<slug>' for the file 'draft-<slug>.md' (ADR-0002).
 #   3. Relative-link integrity: every relative Markdown link in every tracked .md file resolves
 #      to a file or directory that exists. Links inside fenced code blocks are illustrations,
 #      not claims about files on disk, and are skipped (here and in check 6); so is a target that
@@ -33,11 +36,12 @@
 #      another one appears. The headings there must themselves run 1..N in order: a gap or a
 #      repeat is a botched renumbering, and it is the only half of the renumbering hazard a check
 #      can see (AGENTS.md, section 3).
-#   5. ADR-reference integrity: every 'ADR-NNNN' reference (with actual digits) names an ADR
-#      file that exists in docs/adr/ — anticipated follow-ups are described by topic, never by
-#      a number that does not exist yet (docs/adr/README.md).
-#   6. ADR link agreement: a Markdown link whose text cites 'ADR-NNNN' points at that ADR's own
-#      file — the number and the file it links to must name the same decision
+#   5. ADR-reference integrity: every 'ADR-NNNN' reference (with actual digits) and every
+#      'ADR-draft-<slug>' reference (with an actual slug) names an ADR file that exists in
+#      docs/adr/ — anticipated follow-ups are described by topic, never by a number that does
+#      not exist yet (docs/adr/README.md).
+#   6. ADR link agreement: a Markdown link whose text cites an ADR points at that ADR's own
+#      file — the identifier and the file it links to must name the same decision
 #      (docs/adr/README.md).
 #   7. ADR header hygiene: every ADR's '**Status:**' line carries exactly one legend emoji and the
 #      word that belongs to it, and no ADR still contains the instruction paragraph from
@@ -49,7 +53,7 @@
 #      in another form would pass here and be skipped by the binding ADRs sensor.
 #   8. Supersession agreement: the '**Supersedes:**' field of the new ADR and the '⚪ superseded by
 #      ADR-NNNN' status line of every old one it names — one, or several it consolidates — name
-#      each other. Both are written in the same pull request but in two files
+#      each other, by number or by draft identifier. Both are written in the same pull request but in two files
 #      (docs/adr/README.md), and check 1 cannot see a missing half: it only mirrors the index
 #      against whatever status the file carries. Every name of a Supersedes field counts, on
 #      whichever line it sits.
@@ -101,6 +105,12 @@
 #      Superseded and rejected ADRs are not read, nor is a file .gitattributes marks
 #      'linguist-generated', such as a changelog a tool writes. Indented code blocks are read as
 #      prose.
+#  16. No draft on main: a change that lands on main carries no draft ADR — a draft takes its
+#      number on the branch whose pull request brings it there, by scripts/number-adrs.sh
+#      (ADR-0002). The branch a change lands on is the one CI names: the base of a pull request,
+#      else the branch a push runs on. A draft pull request passes, since it tests a feat/ branch
+#      still under rework, and so does a run outside CI, where nothing names the branch; the
+#      workflow says in PULL_REQUEST_DRAFT whether a pull request is a draft.
 #
 # Checks 5 and 6 read every text file of the repository, not a list of documentation extensions:
 # docs/adr/README.md states that code may reference an ADR number, so a verifier restricted to
@@ -207,21 +217,21 @@ check_adr_index() {
     return
   fi
 
-  # ADR files on disk (basenames), excluding the template.
+  # ADR files on disk (basenames), numbered and drafts; the template is neither.
   local disk_files=()
   local f
   while IFS= read -r f; do
-    [[ "$(basename "$f")" == "template.md" ]] && continue
     disk_files+=("$(basename "$f")")
-  done < <(find "$ADR_DIR" -maxdepth 1 -type f -name '[0-9][0-9][0-9][0-9]-*.md' | sort)
+  done < <(adr_files "$ADR_DIR")
 
   # Parse the index into parallel arrays: filename, 'Applies to' cell, and status emoji per row.
   # Columns are '| ADR | Title | Applies to | Status |'; the cell is compared verbatim.
   local indexed_files=() indexed_applies=() indexed_status=()
   local line number target filename applies status archive=0
+  local row_re='^\|[[:space:]]*\[([0-9]{4}|draft-[^]]+)\]\(([^)]+)\)'
   while IFS= read -r line; do
     [[ "$line" =~ ^#+[[:space:]]+Superseded\ and\ rejected[[:space:]]*$ ]] && { archive=1; continue; }
-    [[ "$line" =~ ^\|[[:space:]]*\[([0-9]{4})\]\(([^\)]+)\) ]] || continue
+    [[ "$line" =~ $row_re ]] || continue
     number="${BASH_REMATCH[1]}"
     target="${BASH_REMATCH[2]}"
     filename="${target%%#*}"
@@ -230,7 +240,10 @@ check_adr_index() {
     indexed_files+=("$filename")
     indexed_applies+=("$applies")
     indexed_status+=("$status")
-    if [[ "$filename" != "$number"-* ]]; then
+    if [[ "$number" == draft-* ]]; then
+      [[ "$filename" == "$number.md" ]] \
+        || add_error "ADR index: row for $number links to '$filename', not to '$number.md'"
+    elif [[ "$filename" != "$number"-* ]]; then
       add_error "ADR index: row for $number links to '$filename', which does not start with '$number-'"
     fi
     case "$status" in
@@ -244,6 +257,14 @@ check_adr_index() {
         ;;
     esac
   done < "$ADR_INDEX"
+
+  # A file listed twice is a row both sides of a merge changed (.githooks/merge-adr-index).
+  local -A seen_rows=()
+  for f in "${indexed_files[@]}"; do
+    [[ -v seen_rows["$f"] ]] \
+      && add_error "ADR index: lists '$f' twice — keep the row that matches the file, delete the other"
+    seen_rows["$f"]=1
+  done
 
   # Every file on disk must be listed.
   local d
@@ -296,6 +317,41 @@ check_adr_numbering() {
       add_error "$base: heading says '${heading:-<none>}', but the filename says ADR-$number"
     fi
   done < <(find "$ADR_DIR" -maxdepth 1 -type f -name '[0-9][0-9][0-9][0-9]-*.md' | sort)
+
+  # A draft stands outside the count; its slug and heading follow its file name (ADR-0002).
+  local key
+  while IFS= read -r f; do
+    base="$(basename "$f")"
+    key="$(adr_key "$f")"
+    if [[ ! "$key" =~ ^draft-$ADR_SLUG_RE$ ]]; then
+      add_error "$base: a draft's slug is lower case letters and digits joined by single hyphens"
+      continue
+    fi
+    heading="$(grep -m1 -oE "^# $ADR_REF_RE" "$f")"
+    if [[ "$heading" != "# ADR-$key" ]]; then
+      add_error "$base: heading says '${heading:-<none>}', but the filename says ADR-$key"
+    fi
+  done < <(find "$ADR_DIR" -maxdepth 1 -type f -name 'draft-*.md' | LC_ALL=C sort)
+}
+
+# Check 16 (see the header). lands_on — the branch CI says the change lands on: the base of a pull
+# request, else the branch a push or a run by hand runs on; nothing outside CI.
+lands_on() {
+  if [[ -n "${GITHUB_BASE_REF:-}" ]]; then
+    printf '%s\n' "$GITHUB_BASE_REF"
+  elif [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+    printf '%s\n' "${GITHUB_REF_NAME:-}"
+  fi
+}
+
+check_no_draft_on_main() {
+  [[ "$(lands_on)" == "main" ]] || return
+  # A draft pull request tests a feat/ branch still under rework; marking it ready runs this again.
+  [[ "${PULL_REQUEST_DRAFT:-}" == "true" ]] && return
+  local f
+  while IFS= read -r f; do
+    add_error "$(basename "$f"): a draft lands on main — give it its number first with scripts/number-adrs.sh (ADR-0002)"
+  done < <(find "$ADR_DIR" -maxdepth 1 -type f -name 'draft-*.md' | LC_ALL=C sort)
 }
 
 # status_word_for_emoji <emoji> — the status word that belongs to a legend emoji, empty for
@@ -350,14 +406,14 @@ check_adr_headers() {
     if [[ -n "$needle" ]] && grep -qF "$needle" "$f"; then
       add_error "$base: still carries the instruction paragraph from template.md — delete it"
     fi
-  done < <(find "$ADR_DIR" -maxdepth 1 -type f -name '[0-9][0-9][0-9][0-9]-*.md' | sort)
+  done < <(adr_files "$ADR_DIR")
 }
 
-# superseding_number <status line> — the four-digit number a '⚪ superseded by ADR-NNNN' status
-# line names, empty when it names none. The citation may be plain or a Markdown link, so the
-# bracket is optional (docs/adr/README.md asks for the link form).
+# superseding_number <status line> — the key, a four-digit number or 'draft-<slug>', that a
+# '⚪ superseded by ADR-NNNN' status line names, empty when it names none. The citation may be
+# plain or a Markdown link, so the bracket is optional (docs/adr/README.md asks for the link form).
 superseding_number() {
-  grep -oE 'superseded by \[?ADR-[0-9]{4}' <<<"$1" | grep -oE '[0-9]{4}$'
+  grep -oE "superseded by \\[?$ADR_REF_RE" <<<"$1" | sed -E 's/^.*ADR-//'
 }
 
 # A supersession is written into two files in one pull request: the new ADR's '**Supersedes:**'
@@ -382,19 +438,19 @@ check_adr_supersessions() {
   local f base nr line target target_file back succ succ_file
   while IFS= read -r f; do
     base="$(basename "$f")"
-    nr="${base%%-*}"
+    nr="$(adr_key "$f")"
     line="$(adr_field_line "$f" Status)"
 
     # Forward: every ADR this one claims to supersede — one, or several whose decisions it
     # consolidates — must carry the matching status line.
     while IFS= read -r target; do
-      target_file="$(find "$ADR_DIR" -maxdepth 1 -type f -name "${target#ADR-}-*.md" | head -n1)"
+      target_file="$(adr_file "$ADR_DIR" "${target#ADR-}")"
       if [[ -n "$target_file" ]]; then
         back="$(superseding_number "$(adr_field_line "$target_file" Status)")"
         [[ "$back" == "$nr" ]] || add_error \
           "$(basename "$target_file"): $base supersedes it, but its status line does not say 'superseded by ADR-$nr'"
       fi
-    done < <(supersedes_field "$f" | grep -oE 'ADR-[0-9]{4}')
+    done < <(supersedes_field "$f" | grep -oE "$ADR_REF_RE")
 
     # Backward: a superseded ADR names its successor, and the successor claims it.
     succ="$(superseding_number "$line")"
@@ -402,12 +458,13 @@ check_adr_supersessions() {
       [[ "$(printf '%s' "$line" | first_status_emoji)" == "⚪" ]] \
         && add_error "$base: status is ⚪ but the line names no superseding ADR"
     else
-      succ_file="$(find "$ADR_DIR" -maxdepth 1 -type f -name "$succ-*.md" | head -n1)"
-      if [[ -n "$succ_file" ]] && ! supersedes_field "$succ_file" | grep -q "ADR-$nr"; then
+      succ_file="$(adr_file "$ADR_DIR" "$succ")"
+      if [[ -n "$succ_file" ]] \
+         && ! supersedes_field "$succ_file" | grep -oE "$ADR_REF_RE" | grep -qxF "ADR-$nr"; then
         add_error "$(basename "$succ_file"): $base says it supersedes, but it carries no '**Supersedes:**' field naming ADR-$nr"
       fi
     fi
-  done < <(find "$ADR_DIR" -maxdepth 1 -type f -name '[0-9][0-9][0-9][0-9]-*.md' | sort)
+  done < <(adr_files "$ADR_DIR")
 }
 
 # Print the GitHub-style slug of every ATX heading in a Markdown file. One awk pass per file: a
@@ -668,10 +725,11 @@ check_adr_refs() {
     is_inactive_adr "$f" && continue
     while IFS=: read -r lineno match; do
       number="${match#ADR-}"
-      if ! compgen -G "$ADR_DIR/$number-*.md" > /dev/null; then
-        add_error "$rel:$lineno: reference '$match' matches no ADR file in docs/adr/"
-      fi
-    done < <(grep -noE 'ADR-[0-9]{4}' "$f")
+      case "$number" in
+        draft-*) [[ -f "$ADR_DIR/$number.md" ]] ;;
+        *) compgen -G "$ADR_DIR/$number-*.md" > /dev/null ;;
+      esac || add_error "$rel:$lineno: reference '$match' matches no ADR file in docs/adr/"
+    done < <(grep -noE "$ADR_REF_RE" "$f")
   done
 }
 
@@ -692,16 +750,18 @@ check_adr_link_targets() {
       # The text runs from the opening bracket to the first closing one, which it cannot contain.
       text="${linkexpr#\[}"
       text="${text%%]*}"
-      [[ "$text" =~ ADR-([0-9]{4}) ]] || continue
+      [[ "$text" =~ $ADR_REF_RE ]] || continue
       number="${BASH_REMATCH[1]}"
       link_target "$linkexpr"
       target="${LINK_TARGET%%#*}"
       base="${target##*/}"
       # Compare only against ADR filenames; anything else is not a claim about which ADR it is.
-      case "$base" in [0-9][0-9][0-9][0-9]-*.md) ;; *) continue ;; esac
-      if [[ "$base" != "$number"-* ]]; then
-        add_error "$rel: link '$linkexpr' cites ADR-$number but points at '$base'"
-      fi
+      case "$base" in [0-9][0-9][0-9][0-9]-*.md | draft-*.md) ;; *) continue ;; esac
+      if [[ "$number" == draft-* ]]; then
+        [[ "$base" == "$number.md" ]]
+      else
+        [[ "$base" == "$number"-* ]]
+      fi || add_error "$rel: link '$linkexpr' cites ADR-$number but points at '$base'"
     done < <(strip_code_fences "$f" | grep -oE '\[[^]]*\]\([^)]+\)')
   done
 }
@@ -939,7 +999,7 @@ check_inherited_adrs() {
     elif [[ "$status" == "🟡" ]]; then
       add_error "$base: inherited from the template and still proposed after setup — flip the status to accepted, or supersede it (docs/adr/README.md)"
     fi
-  done < <(find "$ADR_DIR" -maxdepth 1 -type f -name '[0-9][0-9][0-9][0-9]-*.md' | sort)
+  done < <(adr_files "$ADR_DIR")
 }
 
 # Check 13 (see the header). Each placeholder is a pattern in one file; the file is skipped when
@@ -1043,6 +1103,7 @@ check_template_release() {
 collect_text_files
 check_adr_index
 check_adr_numbering
+check_no_draft_on_main
 check_adr_headers
 check_adr_supersessions
 check_relative_links

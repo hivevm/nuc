@@ -20,7 +20,8 @@
 #      ('"ms-azuretools.vscode-containers": ["ui"]' inside the 'remote.extensionKind' object),
 #      which is how host containers are managed without the socket.
 #   5. Git settings: the postStartCommand of devcontainer.json runs 'git config core.hooksPath
-#      .githooks', 'git config merge.ff false', and 'git config pull.ff only'. The git hooks of
+#      .githooks', 'git config merge.ff false', 'git config pull.ff only', and 'git config
+#      merge.adr-index.driver' with the driver's command as the README writes it. The git hooks of
 #      the README and SECURITY.md hold in the container because it enables them on every start,
 #      the container's share of the local gate (ADR-0002, ADR-0004). The value is read from its
 #      key to the next top-level key, whatever its form: a string, an array, or an object.
@@ -140,7 +141,8 @@ else
   # 5. Git settings: the text from the postStartCommand key to the next top-level key, its
   # whitespace collapsed.
   post="$(top_level_value "$ROOT/$CONFIG" postStartCommand | tr '\t\n' '  ' | tr -s ' ')"
-  for setting in "core.hooksPath .githooks" "merge.ff false" "pull.ff only"; do
+  for setting in "core.hooksPath .githooks" "merge.ff false" "pull.ff only" \
+    "merge.adr-index.driver '.githooks/merge-adr-index %O %A %B %S %X %Y'"; do
     [[ "$post" == *"git config $setting"* ]] \
       || add_error "$CONFIG: postStartCommand does not run 'git config $setting' — the git hooks and the merge settings they rely on are enabled on every start (README, Git hooks)"
   done

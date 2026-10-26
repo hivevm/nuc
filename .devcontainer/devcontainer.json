@@ -32,7 +32,8 @@
   // are under "Git hooks" in the README.
   "postStartCommand": {
     "hooks": "git config core.hooksPath .githooks",
-    "merge": "git config merge.ff false && git config pull.ff only"
+    "merge": "git config merge.ff false && git config pull.ff only",
+    "index": "git config merge.adr-index.driver '.githooks/merge-adr-index %O %A %B %S %X %Y'"
   },
 
   // Runs inside the container once it is created. ShellCheck comes from the base image's signed

@@ -12,8 +12,14 @@ supersession. This section carries only the mechanics of the record;
 [`scripts/check-docs.sh`](../../scripts/check-docs.sh) names in its header which of them it
 verifies.
 
-- **File.** Copy [`template.md`](template.md) to `NNNN-short-title.md` with the next free number.
-  The `# ADR-NNNN` heading matches the filename, and the numbers run `0001..N` without gaps.
+- **File.** Copy [`template.md`](template.md) to `draft-<slug>.md`, the slug in lower case letters
+  and digits joined by hyphens. Until it reaches `main` the ADR is a draft: its heading and every
+  reference name it `ADR-draft-<slug>`, its index row links it as `draft-<slug>`, and no number
+  is taken ([ADR-0002](0002-decisions-verified-by-tests.md)). On the branch whose pull request
+  brings it to `main`, once that branch has taken up the current `main`,
+  [`scripts/number-adrs.sh`](../../scripts/number-adrs.sh) gives it the next free number. A
+  numbered ADR is `NNNN-short-title.md`, its `# ADR-NNNN` heading matches the filename, and the
+  numbers run `0001..N` without gaps.
 - **Index.** The tables below change in the same commit as the ADR they describe, for
   additions, supersessions, and status flips alike. The status is shown via the legend's bullet
   and the ADR's `Applies to` header is mirrored verbatim in its own column. The index routes a
@@ -23,11 +29,11 @@ verifies.
   **Superseded and rejected**, and a status flip moves the row.
 - **Numbers are permanent once on `main`, until a normalization.** Between two normalizations,
   never renumber, delete, or merge an ADR there: other ADRs, commits (`Implements ADR-NNNN`), and
-  code may reference a number. A proposed ADR whose number another branch brought to
-  `main` first takes the next free number before it merges, in its file name, heading, and index
-  row and in every reference its own branch makes to it. Until a normalization, a superseded ADR
-  keeps its file and its body. Its `Status` line flips to `⚪ superseded by ADR-NNNN` in the change
-  that lands the superseding ADR, whose `Supersedes` field names it back.
+  code may reference a number. No draft reaches `main`. A branch that already carries a numbered
+  proposed ADR whose number another branch brought to `main` first gives it the next free number
+  before it merges, in every reference its own branch makes to it. Until a normalization, a
+  superseded ADR keeps its file and its body. Its `Status` line flips to `⚪ superseded by
+  ADR-NNNN` in the change that lands the superseding ADR, whose `Supersedes` field names it back.
 - **Between normalizations, sprawl is curbed by supersession, never by editing.** One ADR may
   supersede several whose decisions have grown into one. Its `Supersedes` field names each, and
   each flips its status in the same change, so the set an agent reads for a change shrinks

@@ -128,7 +128,7 @@ scripts/lib/          # what the scripts share: the ADR header, git, the ticket 
 .devcontainer/        # Dev Container definition (base image + Features)
 .vscode/              # shared editor settings
 .editorconfig         # editor-neutral formatting baseline
-.gitattributes        # line-ending normalization (LF everywhere)
+.gitattributes        # line-ending normalization (LF everywhere), the ADR index merged by its driver
 .gitignore            # what git leaves out, .scratch/ for session artifacts among it
 .agents/skills/       # the procedures of AGENTS.md as Agent Skills, one directory each (ADR-0003),
                       # with the scripts and templates they carry (claim.sh, remap.sh, ticket.md)
@@ -199,13 +199,17 @@ settings they rely on, on every start; outside it, run once per clone:
 git config core.hooksPath .githooks
 git config merge.ff false
 git config pull.ff only
+git config merge.adr-index.driver '.githooks/merge-adr-index %O %A %B %S %X %Y'
 ```
 
 `merge.ff false` makes every merge a merge commit, as a `feat/` branch keeps them
 ([`AGENTS.md` §6](AGENTS.md#6-project-rules)); a fast-forward would make no commit and run no
 hook. `pull.ff only` keeps a pull from then making a merge. Without the two settings the hooks
 still hold: a fast-forward skips the documentation check of `pre-merge-commit`, and the push
-still gates what it brought.
+still gates what it brought. The merge driver keeps the rows of both sides when two branches
+add to the ADR index, and stops on its prose like any text, as
+[`.githooks/merge-adr-index`](.githooks/merge-adr-index) says; without it the index merges as
+text, a conflict on every row two branches append.
 
 | Hook | Refuses | Bypassed by |
 |---|---|---|
@@ -257,8 +261,11 @@ Each step waits for a human's instruction.
    with `git push --force-with-lease`.
 7. Make the pull request ready. Take up the remote's `main`, since the ruleset merges only a
    branch up to date with it: `git merge origin/main` on the `feat/` branch; a rebase onto it is a
-   rework, as in step 4. Then `git push` and `gh pr ready`. What `main` gains later is taken up the
-   same way.
+   rework, as in step 4. Number the draft ADRs the branch carries, which fail the documentation
+   check once the pull request is ready ([ADR-0002](docs/adr/0002-decisions-verified-by-tests.md)):
+   [`scripts/number-adrs.sh`](scripts/number-adrs.sh). Then `git push` and `gh pr ready`. What
+   `main` gains later is taken up the same way; an ADR it gains moves the branch's numbers on, as
+   the [mechanics](docs/adr/README.md#mechanics) say.
 8. Once the pull request into `main` has merged as a merge commit, take it up and drop the branch:
    `git switch main`, `git fetch origin`, `git merge --ff-only origin/main`, then
    `git branch -d feat/<topic>` and `git push origin --delete feat/<topic>`.

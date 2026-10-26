@@ -78,9 +78,9 @@ show() { if ((worktree)); then cat -- "$1"; else git show "$head:$1"; fi; }
 
 # The ADRs as the change has them: one that adds an ADR or flips one is read with its own record.
 if ((worktree)); then
-  adrs="$(find docs/adr -maxdepth 1 -type f -name '[0-9][0-9][0-9][0-9]-*.md' 2>/dev/null | LC_ALL=C sort)"
+  adrs="$(adr_files docs/adr 2>/dev/null)"
 else
-  adrs="$(git ls-tree -r --name-only "$head" -- docs/adr/ | grep -E '^docs/adr/[0-9]{4}-[^/]*\.md$')"
+  adrs="$(git ls-tree -r --name-only "$head" -- docs/adr/ | grep -E "^docs/adr/([0-9]{4}-[^/]*|draft-[^/]*)\\.md\$")"
 fi
 
 found=()
@@ -106,8 +106,7 @@ while IFS= read -r file; do
     done
   done
   ((${#hits[@]})) || continue
-  id="${file#docs/adr/}"
-  id="ADR-${id%%-*}"
+  id="ADR-$(adr_key "$file")"
   more=""
   ((${#hits[@]} > 3)) && more=", and $((${#hits[@]} - 3)) more"
   found+=("$id ($file) — ${hits[*]:0:3}$more")

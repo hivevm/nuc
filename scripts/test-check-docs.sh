@@ -562,6 +562,10 @@ adr "$d" 1 "🔴 rejected"
 } > "$d/docs/adr/README.md"
 expect fail "a rejected row with no archive heading above it" "$d" "sits above the 'Superseded and rejected' heading"
 
+d="$(repo index-row-twice)"
+index_row 1 "🟡 proposed" >> "$d/docs/adr/README.md"
+expect fail "a row both sides of a union merge kept" "$d" "lists '0001-decision.md' twice"
+
 d="$(repo binding-row-below)"
 {
   echo "# Architecture Decision Records"
@@ -698,6 +702,77 @@ expect fail "a Project Layout pattern that matches nothing" "$d" "lists 'scripts
 d="$(repo layout-plan-absent)"
 layout "$d" "docs/plan/"
 expect pass "docs/plan/ named while there is no open work" "$d"
+
+# --- cases: drafts (checks 1, 2, 5, 6, 8, and 16) ---------------------------------------
+
+# Verifies: ADR-0002
+DRAFT="draft"
+# draft_id <slug> — the draft identifier of a slug, assembled for the same reason as adr_id.
+draft_id() { printf 'ADR-%s-%s' "$DRAFT" "$1"; }
+
+# drafted <dir> — ADR 1 superseded by the draft 'next', with both index rows and a link to the
+# draft from the README.
+drafted() {
+  local dir="$1"
+  adr "$dir" 1 "⚪ superseded by [$(draft_id next)]($DRAFT-next.md)"
+  {
+    echo "# $(draft_id next): the next decision"
+    echo
+    echo "- **Status:** 🟡 proposed"
+    echo "- **Applies to:** everything"
+    echo "- **Supersedes:** [$(adr_id 1)](0001-decision.md)"
+    echo
+    echo "## Decision"
+    echo
+    echo "We will."
+  } > "$dir/docs/adr/$DRAFT-next.md"
+  {
+    echo "# Architecture Decision Records"
+    echo
+    echo "| ADR | Title | Applies to | Status |"
+    echo "|-----|-------|------------|--------|"
+    echo "| [$DRAFT-next]($DRAFT-next.md) | Next | everything | 🟡 proposed |"
+    echo
+    echo "## Superseded and rejected"
+    echo
+    echo "| ADR | Title | Applies to | Status |"
+    echo "|-----|-------|------------|--------|"
+    index_row 1 "⚪ superseded by $(draft_id next)"
+  } > "$dir/docs/adr/README.md"
+  echo "Decided in [$(draft_id next)](docs/adr/$DRAFT-next.md)." >> "$dir/README.md"
+}
+
+d="$(repo draft)"
+drafted "$d"
+GITHUB_BASE_REF=feat/topic expect pass "a draft, its index row, a link, and a supersession, landing on a feat/ branch" "$d"
+GITHUB_BASE_REF="" GITHUB_ACTIONS="" expect pass "a draft outside CI, where nothing names the branch" "$d"
+GITHUB_BASE_REF=main PULL_REQUEST_DRAFT=false \
+  expect fail "a draft in a pull request into main ready for review" "$d" "$DRAFT-next.md: a draft lands on main"
+GITHUB_BASE_REF=main PULL_REQUEST_DRAFT=true \
+  expect pass "a draft in a draft pull request into main, a feat/ branch under rework" "$d"
+GITHUB_BASE_REF="" GITHUB_ACTIONS=true GITHUB_REF_NAME=main PULL_REQUEST_DRAFT="" \
+  expect fail "a draft in a push to main" "$d" "$DRAFT-next.md: a draft lands on main"
+
+d="$(repo draft-ref-missing)"
+drafted "$d"
+echo "Also $(draft_id gone)." >> "$d/README.md"
+GITHUB_BASE_REF="" expect fail "a draft identifier with no draft file" "$d" "reference '$(draft_id gone)' matches no ADR file"
+
+d="$(repo draft-heading)"
+drafted "$d"
+sed_in "$d/docs/adr/$DRAFT-next.md" "1s/$(draft_id next)/$(draft_id other)/"
+GITHUB_BASE_REF="" expect fail "a draft whose heading names another draft" "$d" "$DRAFT-next.md: heading says '# $(draft_id other)'"
+
+d="$(repo draft-slug)"
+drafted "$d"
+adr "$d" 2 "🟡 proposed"
+mv "$d/docs/adr/0002-decision.md" "$d/docs/adr/$DRAFT-Next_one.md"
+GITHUB_BASE_REF="" expect fail "a draft whose slug is not lower case and hyphens" "$d" "$DRAFT-Next_one.md: a draft's slug"
+
+d="$(repo draft-link)"
+drafted "$d"
+echo "See [$(draft_id next)](docs/adr/0001-decision.md)." >> "$d/README.md"
+GITHUB_BASE_REF="" expect fail "a link that cites a draft and points at another ADR" "$d" "cites $(draft_id next) but points at '0001-decision.md'"
 
 # --- summary -------------------------------------------------------------------------------
 

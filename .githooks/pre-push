@@ -16,6 +16,12 @@
 # and proceeds without the checks; a deletion of the remote's main is still refused. A repository
 # without scripts/check-all.sh has nothing to run, and the push proceeds.
 # Bypassable with 'git push --no-verify'; AGENTS.md, section 6 says who may.
+#
+# A push that sends a draft ADR is told how many it carries and where they take their numbers:
+# on the branch of the pull request into main, by scripts/number-adrs.sh, as step 7 of the README's
+# Integration branches says. The notice passes or refuses nothing and asks for nothing: a branch
+# under rework carries drafts on purpose, and check 16 of scripts/check-docs.sh fails on a draft
+# in a pull request into main that is ready for review.
 # scripts/test-git-hooks.sh exercises this hook.
 
 set -uo pipefail
@@ -31,7 +37,14 @@ while read -r _ local_object remote_ref _; do
     exit 1
   fi
   refs=$((refs + 1))
-  [[ "$local_object" =~ ^0+$ ]] || sent=$((sent + 1))
+  [[ "$local_object" =~ ^0+$ ]] && continue
+  sent=$((sent + 1))
+  # A draft ADR takes its number on the branch of its pull request into main (ADR-0002); the
+  # notice says so on every push that carries one, and decides nothing.
+  drafts="$(git ls-tree --name-only "$local_object" docs/adr/ 2>/dev/null | grep -c '^docs/adr/draft-.*\.md$')"
+  if ((drafts > 0)); then
+    echo "pre-push: ${remote_ref#refs/heads/} carries $drafts draft ADR(s); they take their numbers on the branch of the pull request into main, by scripts/number-adrs.sh (README, Integration branches, step 7)." >&2
+  fi
 done
 
 # A push that only deletes sends nothing to check.
