@@ -130,9 +130,10 @@ place of steps 2 and 3: the project's own decisions and the inherited ADRs becom
 6. Add the toolchain of step 4 to the environment (the base image ships none). The build, test,
    and lint commands of the README run through **one script under [`scripts/`](scripts/)**, say
    `check-build.sh`. [`scripts/check-all.sh`](scripts/check-all.sh) invokes it with a `run` line,
-   and a job of [`checks.yml`](.github/workflows/checks.yml) runs it after setting up the
-   toolchain, the job named among the required checks in the README and added to those of the
-   ruleset on `main`. That is what makes the pre-push hook and CI refuse a red change
+   beside the other checks at once, so it must write nowhere they read, and a job of
+   [`checks.yml`](.github/workflows/checks.yml) runs it after setting up the toolchain, the job
+   named among the required checks in the README and added to those of the ruleset on `main`.
+   That is what makes the pre-push hook and CI refuse a red change
    ([`AGENTS.md` §5](AGENTS.md#5-quality-bar--definition-of-done)). Check 9 of
    [`scripts/check-docs.sh`](scripts/check-docs.sh) fails on a job whose commands are written
    inline instead, and while the three lists disagree. What is too slow to gate a push, such as

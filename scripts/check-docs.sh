@@ -142,23 +142,113 @@ ADR_DIR="$ROOT/docs/adr"
 ADR_INDEX="$ADR_DIR/README.md"
 
 
-# Print the first legend status emoji (🟢 🟡 🔴 ⚪) read from stdin, if any.
-first_status_emoji() { grep -oE '🟢|🟡|🔴|⚪' | head -n1; }
+# The helpers below set a variable rather than print: a check calls them once per ADR or per
+# index row, and a subshell each time made the script's cost grow with the record.
 
-# table_cell <n> — the n-th cell of a Markdown table row read from stdin, trimmed; cells are
-# counted from 1 after the leading pipe, so '| a | b |' has cell 1 'a' and cell 2 'b'.
-table_cell() {
-  awk -F'|' -v n="$1" '{ c = $(n + 1); gsub(/^[[:space:]]+|[[:space:]]+$/, "", c); print c }'
+# status_emoji <text> — sets EMOJI to the first legend status emoji (🟢 🟡 🔴 ⚪) in the text, empty
+# when there is none, and EMOJI_COUNT to how many the text carries.
+EMOJI="" EMOJI_COUNT=0
+status_emoji() {
+  local text="$1" e before at=-1 rest
+  EMOJI="" EMOJI_COUNT=0
+  for e in 🟢 🟡 🔴 ⚪; do
+    before="${text%%"$e"*}"
+    [[ "$before" == "$text" ]] && continue
+    if ((at < 0 || ${#before} < at)); then at=${#before}; EMOJI="$e"; fi
+    rest="${text//"$e"/}"
+    EMOJI_COUNT=$((EMOJI_COUNT + (${#text} - ${#rest}) / ${#e}))
+  done
 }
 
-# applies_to_of <adr file> — the content of its '**Applies to:**' header line, trimmed; empty
-# when the line is missing or blank.
-applies_to_of() {
-  adr_field_line "$1" 'Applies to' | sed -E 's/^.*\*\*Applies to:\*\*[[:space:]]*//; s/[[:space:]]+$//'
+# trim <text> — sets TRIMMED to the text without leading and trailing whitespace.
+TRIMMED=""
+trim() {
+  TRIMMED="${1#"${1%%[![:space:]]*}"}"
+  TRIMMED="${TRIMMED%"${TRIMMED##*[![:space:]]}"}"
 }
+
+# key_of <file> — sets KEY to what follows 'ADR-' in the identifier of the ADR file, as adr_key
+# prints it.
+KEY=""
+key_of() {
+  local base="${1##*/}"
+  case "$base" in
+    draft-*) KEY="${base%.md}" ;;
+    *) KEY="${base%%-*}" ;;
+  esac
+}
+
+# The header of every ADR, read by one awk pass over the record instead of a grep per field, per
+# ADR, and per check. Keyed by the ADR's path: the first line of each header field anywhere in the
+# file, as adr_field_line reads it (ADR_STATUS, ADR_APPLIES); the Supersedes and Deciders fields
+# with their continuation lines, since a header field wraps (ADR_SUPERSEDES, ADR_DECIDERS); the
+# first '# ADR-' heading (ADR_HEADING); every header field written in another form, as
+# adr_stray_fields reports it (ADR_STRAY); and whether the file still carries the template's
+# instruction paragraph (ADR_NEEDLE). ADR_LIST is every ADR file in the order adr_files gives, ADR_BY_KEY the file each
+# key names.
+ADR_LIST=()
+declare -A ADR_KNOWN=() ADR_BY_KEY=() ADR_STATUS=() ADR_APPLIES=() ADR_SUPERSEDES=() ADR_DECIDERS=() ADR_HEADING=() \
+  ADR_STRAY=() ADR_NEEDLE=()
+read_adr_headers() {
+  local file field value
+  [[ -d "$ADR_DIR" ]] || return 0
+  mapfile -t ADR_LIST < <(adr_files "$ADR_DIR")
+  ((${#ADR_LIST[@]})) || return 0
+  for file in "${ADR_LIST[@]}"; do
+    ADR_KNOWN["$file"]=1
+    key_of "$file"
+    [[ -v ADR_BY_KEY["$KEY"] ]] || ADR_BY_KEY["$KEY"]="$file"
+  done
+  while IFS=$'\x1f' read -r file field value; do
+    case "$field" in
+      Status) ADR_STATUS["$file"]="$value" ;;
+      "Applies to") ADR_APPLIES["$file"]="$value" ;;
+      Supersedes) ADR_SUPERSEDES["$file"]+="$value"$'\n' ;;
+      Deciders) ADR_DECIDERS["$file"]+="$value"$'\n' ;;
+      heading) ADR_HEADING["$file"]="$value" ;;
+      stray) ADR_STRAY["$file"]+="$value"$'\n' ;;
+      needle) ADR_NEEDLE["$file"]=1 ;;
+    esac
+  done < <(awk -v fields="$ADR_FIELDS" -v needle="$(instruction_needle)" '
+    function out(k, v) { printf "%s\037%s\037%s\n", FILENAME, k, v }
+    FNR == 1 { head = 1; cont = ""; split("", seen) }
+    {
+      if (head && /^## /) head = 0
+      if (head && $0 ~ ("\\*\\*(" fields "):\\*\\*") && $0 !~ /^- \*\*/) out("stray", FNR ":" $0)
+      if (needle != "" && !("needle" in seen) && index($0, needle)) { seen["needle"]; out("needle", 1) }
+      if (!("heading" in seen) && /^# ADR-/) { seen["heading"]; out("heading", $0) }
+      if (cont != "" && /^[[:space:]]+[^[:space:]]/) { out(cont, $0); next }
+      cont = ""
+      if (match($0, /^- \*\*[A-Za-z ]+:\*\*/)) {
+        name = substr($0, 5, RLENGTH - 7)
+        if (!(name in seen)) {
+          seen[name]; out(name, $0)
+          if (name == "Supersedes" || name == "Deciders") cont = name
+        }
+      }
+    }
+  ' "${ADR_LIST[@]}")
+}
+
+# adr_header <file> — sets HEADER_STATUS and HEADER_APPLIES to the Status and Applies to lines of
+# the file: from the cache for an ADR of the record, read from the file for one outside it, such as
+# a file an index row links that is no ADR.
+HEADER_STATUS="" HEADER_APPLIES=""
+adr_header() {
+  if [[ -v ADR_KNOWN["$1"] ]]; then
+    HEADER_STATUS="${ADR_STATUS["$1"]-}" HEADER_APPLIES="${ADR_APPLIES["$1"]-}"
+  else
+    HEADER_STATUS="$(adr_field_line "$1" Status)"
+    HEADER_APPLIES="$(adr_field_line "$1" 'Applies to')"
+  fi
+}
+
+# applies_to_of — sets TRIMMED to the content of the '**Applies to:**' line adr_header read,
+# trimmed; empty when the line is missing or blank.
+applies_to_of() { trim "${HEADER_APPLIES##*\*\*Applies to:\*\*}"; }
 
 # TEXT_FILES — every text file the repository consists of, absolute paths, sorted. Collected once
-# by collect_text_files below and then iterated by each check: building the list costs a grep per
+# by collect_text_files below and then iterated by each check: building the list reads every
 # file, so rebuilding it inside every check would multiply that cost by the number of checks, and
 # a repository of a few thousand files makes that difference visible in CI.
 #
@@ -169,11 +259,9 @@ applies_to_of() {
 # Outside a work tree (an exported tarball) git cannot answer, so fall back to a plain walk.
 TEXT_FILES=()
 collect_text_files() {
-  local f
+  local f paths=()
   while IFS= read -r f; do
-    [[ -f "$f" ]] || continue
-    grep -Iq . "$f" 2>/dev/null || continue
-    TEXT_FILES+=("$f")
+    [[ -f "$f" ]] && paths+=("$f")
   done < <(
     if git -C "$ROOT" rev-parse --is-inside-work-tree > /dev/null 2>&1; then
       git -C "$ROOT" ls-files --cached --others --exclude-standard \
@@ -182,6 +270,9 @@ collect_text_files() {
       find "$ROOT" -type f -not -path '*/.git/*'
     fi | sort
   )
+  # One grep for every file, in their order: -l names a file with a line, -I passes a binary one
+  # over.
+  ((${#paths[@]})) && mapfile -t TEXT_FILES < <(grep -Il -- . "${paths[@]}" 2>/dev/null)
   if ((${#TEXT_FILES[@]} == 0)); then
     add_error "no text files found under $ROOT — the file list is empty, so nothing was checked"
   fi
@@ -208,7 +299,9 @@ is_doc_file() {
 # the rejection. Verifying either one's references would demand that the tree still contain what
 # the project decided against, so the reference checks below skip them.
 is_inactive_adr() {
-  [[ "$1" == "$ADR_DIR"/* ]] && adr_field_line "$1" Status | grep -qE '⚪|🔴'
+  [[ "$1" == "$ADR_DIR"/* ]] || return 1
+  local status="${ADR_STATUS["$1"]-}"
+  [[ "$status" == *⚪* || "$status" == *🔴* ]]
 }
 
 check_adr_index() {
@@ -220,14 +313,13 @@ check_adr_index() {
   # ADR files on disk (basenames), numbered and drafts; the template is neither.
   local disk_files=()
   local f
-  while IFS= read -r f; do
-    disk_files+=("$(basename "$f")")
-  done < <(adr_files "$ADR_DIR")
+  for f in "${ADR_LIST[@]}"; do disk_files+=("${f##*/}"); done
 
   # Parse the index into parallel arrays: filename, 'Applies to' cell, and status emoji per row.
   # Columns are '| ADR | Title | Applies to | Status |'; the cell is compared verbatim.
   local indexed_files=() indexed_applies=() indexed_status=()
   local line number target filename applies status archive=0
+  local -a cells
   local row_re='^\|[[:space:]]*\[([0-9]{4}|draft-[^]]+)\]\(([^)]+)\)'
   while IFS= read -r line; do
     [[ "$line" =~ ^#+[[:space:]]+Superseded\ and\ rejected[[:space:]]*$ ]] && { archive=1; continue; }
@@ -235,8 +327,12 @@ check_adr_index() {
     number="${BASH_REMATCH[1]}"
     target="${BASH_REMATCH[2]}"
     filename="${target%%#*}"
-    applies="$(printf '%s' "$line" | table_cell 3)"
-    status="$(printf '%s' "$line" | first_status_emoji)"
+    # Cell 3 after the leading pipe, trimmed and compared verbatim.
+    IFS='|' read -r -a cells <<< "$line"
+    trim "${cells[3]-}"
+    applies="$TRIMMED"
+    status_emoji "$line"
+    status="$EMOJI"
     indexed_files+=("$filename")
     indexed_applies+=("$applies")
     indexed_status+=("$status")
@@ -269,7 +365,7 @@ check_adr_index() {
   # Every file on disk must be listed.
   local d
   for d in "${disk_files[@]}"; do
-    if ! _contains "$d" "${indexed_files[@]}"; then
+    if [[ ! -v seen_rows["$d"] ]]; then
       add_error "ADR index: file '$d' exists but is not listed in the index"
     fi
   done
@@ -284,13 +380,16 @@ check_adr_index() {
       add_error "ADR index: lists '$f', but no such ADR file exists"
       continue
     fi
-    file_status="$(adr_field_line "$ADR_DIR/$f" Status | first_status_emoji)"
+    adr_header "$ADR_DIR/$f"
+    status_emoji "$HEADER_STATUS"
+    file_status="$EMOJI"
     if [[ -z "$file_status" ]]; then
       add_error "$f: no '**Status:**' line with a status emoji found"
     elif [[ "$file_status" != "$status" ]]; then
       add_error "ADR index: status for '$f' is ${status:-<none>} in the index but $file_status in the file"
     fi
-    file_applies="$(applies_to_of "$ADR_DIR/$f")"
+    applies_to_of
+    file_applies="$TRIMMED"
     if [[ -z "$file_applies" ]]; then
       add_error "$f: no '**Applies to:**' line naming what the decision constrains"
     elif [[ "$file_applies" != "$applies" ]]; then
@@ -302,36 +401,39 @@ check_adr_index() {
 # ADR numbers run 0001..N without gaps, and each file's heading carries its own number.
 # Superseded ADRs stay on disk, so a gap can only ever mean a deleted ADR or a botched rename.
 check_adr_numbering() {
-  local f base number expected heading n=0
-  while IFS= read -r f; do
-    base="$(basename "$f")"
+  local f base number expected heading key n=0
+  for f in "${ADR_LIST[@]}"; do
+    base="${f##*/}"
+    [[ "$base" == draft-* ]] && continue
     number="${base%%-*}"
     n=$((n + 1))
-    expected="$(printf '%04d' "$n")"
+    printf -v expected '%04d' "$n"
     if [[ "$number" != "$expected" ]]; then
       add_error "ADR numbering: expected '$expected-*.md' at position $n, found '$base' — numbers must run 0001..N without gaps"
-      return
+      break
     fi
-    heading="$(grep -m1 -oE '^# ADR-[0-9]{4}' "$f")"
+    heading=""
+    [[ "${ADR_HEADING["$f"]-}" =~ ^#\ ADR-[0-9]{4} ]] && heading="${BASH_REMATCH[0]}"
     if [[ "$heading" != "# ADR-$number" ]]; then
       add_error "$base: heading says '${heading:-<none>}', but the filename says ADR-$number"
     fi
-  done < <(find "$ADR_DIR" -maxdepth 1 -type f -name '[0-9][0-9][0-9][0-9]-*.md' | sort)
+  done
 
   # A draft stands outside the count; its slug and heading follow its file name (ADR-0002).
-  local key
-  while IFS= read -r f; do
-    base="$(basename "$f")"
-    key="$(adr_key "$f")"
+  for f in "${ADR_LIST[@]}"; do
+    base="${f##*/}"
+    [[ "$base" == draft-* ]] || continue
+    key="${base%.md}"
     if [[ ! "$key" =~ ^draft-$ADR_SLUG_RE$ ]]; then
       add_error "$base: a draft's slug is lower case letters and digits joined by single hyphens"
       continue
     fi
-    heading="$(grep -m1 -oE "^# $ADR_REF_RE" "$f")"
+    heading=""
+    [[ "${ADR_HEADING["$f"]-}" =~ ^#\ $ADR_REF_RE ]] && heading="${BASH_REMATCH[0]}"
     if [[ "$heading" != "# ADR-$key" ]]; then
       add_error "$base: heading says '${heading:-<none>}', but the filename says ADR-$key"
     fi
-  done < <(find "$ADR_DIR" -maxdepth 1 -type f -name 'draft-*.md' | LC_ALL=C sort)
+  done
 }
 
 # Check 16 (see the header). lands_on — the branch CI says the change lands on: the base of a pull
@@ -354,17 +456,6 @@ check_no_draft_on_main() {
   done < <(find "$ADR_DIR" -maxdepth 1 -type f -name 'draft-*.md' | LC_ALL=C sort)
 }
 
-# status_word_for_emoji <emoji> — the status word that belongs to a legend emoji, empty for
-# anything else. The legend itself lives above the index in docs/adr/README.md.
-status_word_for_emoji() {
-  case "$1" in
-    🟢) printf 'accepted' ;;
-    🟡) printf 'proposed' ;;
-    🔴) printf 'rejected' ;;
-    ⚪) printf 'superseded' ;;
-  esac
-}
-
 # instruction_needle — the opening of the instruction paragraph in docs/adr/template.md: the first
 # line of its italic block, without the leading '*' and cut to a phrase. Reading the needle off the
 # template instead of hard-coding a sentence is what keeps the check alive when the paragraph is
@@ -378,93 +469,104 @@ instruction_needle() {
 
 # Every ADR's '**Status:**' line carries exactly one legend emoji plus the word that belongs to it,
 # and no ADR still carries the instruction paragraph from template.md. check_adr_index reads the
-# status through first_status_emoji, so on its own it would accept a line that kept a list of
-# alternatives ('🟡 proposed | 🟢 accepted | …') as whatever stands first, and a line whose word
+# status as the first emoji status_emoji finds, so on its own it would accept a line that kept a
+# list of alternatives ('🟡 proposed | 🟢 accepted | …') as whatever stands first, and a line whose word
 # and emoji disagree passes there on the strength of the emoji — while the word is what a reader
 # believes. A missing or emoji-less status line is left to check_adr_index, which reports it.
 check_adr_headers() {
-  local f base line count emoji expected word needle stray
-  needle="$(instruction_needle)"
-  while IFS= read -r f; do
-    base="$(basename "$f")"
+  local f base line expected word stray
+  for f in "${ADR_LIST[@]}"; do
+    base="${f##*/}"
     while IFS= read -r stray; do
       [[ -n "$stray" ]] || continue
       add_error "$base:${stray%%:*}: a header field not written as the list item '- **<Name>:** …' of template.md — every script reads only that form"
-    done < <(adr_stray_fields "$f")
-    line="$(adr_field_line "$f" Status)"
-    emoji="$(printf '%s' "$line" | first_status_emoji)"
-    if [[ -n "$emoji" ]]; then
-      count="$(printf '%s' "$line" | grep -oE '🟢|🟡|🔴|⚪' | wc -l | tr -d ' ')"
-      expected="$(status_word_for_emoji "$emoji")"
-      read -r word _ <<<"${line#*"$emoji"}"
-      if ((count > 1)); then
-        add_error "$base: status line carries $count status emoji — keep exactly one"
+    done <<< "${ADR_STRAY["$f"]-}"
+    line="${ADR_STATUS["$f"]-}"
+    status_emoji "$line"
+    if [[ -n "$EMOJI" ]]; then
+      case "$EMOJI" in
+        🟢) expected=accepted ;;
+        🟡) expected=proposed ;;
+        🔴) expected=rejected ;;
+        ⚪) expected=superseded ;;
+      esac
+      read -r word _ <<<"${line#*"$EMOJI"}"
+      if ((EMOJI_COUNT > 1)); then
+        add_error "$base: status line carries $EMOJI_COUNT status emoji — keep exactly one"
       elif [[ "$word" != "$expected" ]]; then
-        add_error "$base: status line reads '$emoji ${word:-<nothing>}', but $emoji means '$expected'"
+        add_error "$base: status line reads '$EMOJI ${word:-<nothing>}', but $EMOJI means '$expected'"
       fi
     fi
-    if [[ -n "$needle" ]] && grep -qF "$needle" "$f"; then
+    if [[ -v ADR_NEEDLE["$f"] ]]; then
       add_error "$base: still carries the instruction paragraph from template.md — delete it"
     fi
-  done < <(adr_files "$ADR_DIR")
+  done
 }
 
-# superseding_number <status line> — the key, a four-digit number or 'draft-<slug>', that a
-# '⚪ superseded by ADR-NNNN' status line names, empty when it names none. The citation may be
-# plain or a Markdown link, so the bracket is optional (docs/adr/README.md asks for the link form).
-superseding_number() {
-  grep -oE "superseded by \\[?$ADR_REF_RE" <<<"$1" | sed -E 's/^.*ADR-//'
+# superseding_key <status line> — sets SUCCESSOR to the key, a four-digit number or
+# 'draft-<slug>', that a '⚪ superseded by ADR-NNNN' status line names, empty when it names none.
+# The citation may be plain or a Markdown link, so the bracket is optional (docs/adr/README.md
+# asks for the link form).
+SUCCESSOR=""
+superseding_key() {
+  local re="superseded by \\[?$ADR_REF_RE"
+  SUCCESSOR=""
+  [[ "$1" =~ $re ]] && SUCCESSOR="${BASH_REMATCH[1]}"
+  return 0
+}
+
+# adr_refs <text> — sets REFS to every ADR identifier the text cites, in order.
+REFS=()
+adr_refs() {
+  local rest="$1"
+  REFS=()
+  while [[ "$rest" =~ $ADR_REF_RE ]]; do
+    REFS+=("${BASH_REMATCH[0]}")
+    rest="${rest#*"${BASH_REMATCH[0]}"}"
+  done
 }
 
 # A supersession is written into two files in one pull request: the new ADR's '**Supersedes:**'
 # field and the old ADR's status line (docs/adr/README.md). Nothing else compares
 # them — check_adr_index only mirrors the index against whatever status a file carries, so a half
 # performed flip passes it. Both directions are verified here; a cited number that names no file
-# is left to check_adr_refs, which reports it repository-wide.
-# header_field <adr file> <name> — the '**<name>:**' header field with its continuation lines:
-# a header field wraps at the line width like any other, and a name on the second line counts.
-header_field() {
-  awk -v field="- **$2:**" '
-    index($0, field) == 1                    { in_field = 1; print; next }
-    in_field && /^[[:space:]]+[^[:space:]]/  { print; next }
-    in_field                                 { exit }
-  ' "$1"
-}
-
-# supersedes_field <adr file> — the '**Supersedes:**' header field, wrapped lines included.
-supersedes_field() { header_field "$1" Supersedes; }
-
+# is left to check_adr_refs, which reports it repository-wide. A Supersedes field wraps at the
+# line width like any other header field, and a name on its second line counts.
 check_adr_supersessions() {
-  local f base nr line target target_file back succ succ_file
-  while IFS= read -r f; do
-    base="$(basename "$f")"
-    nr="$(adr_key "$f")"
-    line="$(adr_field_line "$f" Status)"
+  local f base nr line target target_file succ_file named
+  for f in "${ADR_LIST[@]}"; do
+    base="${f##*/}"
+    key_of "$f"
+    nr="$KEY"
+    line="${ADR_STATUS["$f"]-}"
 
     # Forward: every ADR this one claims to supersede — one, or several whose decisions it
     # consolidates — must carry the matching status line.
-    while IFS= read -r target; do
-      target_file="$(adr_file "$ADR_DIR" "${target#ADR-}")"
+    adr_refs "${ADR_SUPERSEDES["$f"]-}"
+    for target in "${REFS[@]}"; do
+      target_file="${ADR_BY_KEY["${target#ADR-}"]-}"
       if [[ -n "$target_file" ]]; then
-        back="$(superseding_number "$(adr_field_line "$target_file" Status)")"
-        [[ "$back" == "$nr" ]] || add_error \
-          "$(basename "$target_file"): $base supersedes it, but its status line does not say 'superseded by ADR-$nr'"
+        superseding_key "${ADR_STATUS["$target_file"]-}"
+        [[ "$SUCCESSOR" == "$nr" ]] || add_error \
+          "${target_file##*/}: $base supersedes it, but its status line does not say 'superseded by ADR-$nr'"
       fi
-    done < <(supersedes_field "$f" | grep -oE "$ADR_REF_RE")
+    done
 
     # Backward: a superseded ADR names its successor, and the successor claims it.
-    succ="$(superseding_number "$line")"
-    if [[ -z "$succ" ]]; then
-      [[ "$(printf '%s' "$line" | first_status_emoji)" == "⚪" ]] \
-        && add_error "$base: status is ⚪ but the line names no superseding ADR"
+    superseding_key "$line"
+    if [[ -z "$SUCCESSOR" ]]; then
+      status_emoji "$line"
+      [[ "$EMOJI" == "⚪" ]] && add_error "$base: status is ⚪ but the line names no superseding ADR"
     else
-      succ_file="$(adr_file "$ADR_DIR" "$succ")"
-      if [[ -n "$succ_file" ]] \
-         && ! supersedes_field "$succ_file" | grep -oE "$ADR_REF_RE" | grep -qxF "ADR-$nr"; then
-        add_error "$(basename "$succ_file"): $base says it supersedes, but it carries no '**Supersedes:**' field naming ADR-$nr"
+      succ_file="${ADR_BY_KEY["$SUCCESSOR"]-}"
+      if [[ -n "$succ_file" ]]; then
+        adr_refs "${ADR_SUPERSEDES["$succ_file"]-}"
+        named=0
+        for target in "${REFS[@]}"; do [[ "$target" == "ADR-$nr" ]] && named=1; done
+        ((named)) || add_error "${succ_file##*/}: $base says it supersedes, but it carries no '**Supersedes:**' field naming ADR-$nr"
       fi
     fi
-  done < <(adr_files "$ADR_DIR")
+  done
 }
 
 # Print the GitHub-style slug of every ATX heading in a Markdown file. One awk pass per file: a
@@ -514,15 +616,59 @@ anchor_resolves() {
   esac
 }
 
-# strip_code_fences <file> — the file with fenced code blocks (``` / ~~~, also inside
-# blockquotes) blanked out: links in fences are illustrations, not claims about files on disk.
-# Fenced lines become empty lines, so the output keeps the original line count.
-strip_code_fences() {
-  awk '
-    /^[[:space:]>]*(```|~~~)/ { in_fence = !in_fence; print ""; next }
-    in_fence                  { print ""; next }
-    { print }
-  ' "$1"
+# The Markdown of the repository, read by one awk pass over every file instead of a pipeline per
+# file and per check. Keyed by the file's path:
+#
+#   MD_LINKS  every '[text](target)' expression outside a fenced code block, one per line. A fence
+#             (``` or ~~~, also inside a blockquote) opens and closes on any line that starts with
+#             one: links in fences are illustrations, not claims about files on disk.
+#   MD_SECT   every line outside such a fence that carries the section sign, as '<line>:<text>'.
+#   MD_WIDE   every line longer than 100 bytes outside the front matter and a fence as check 15
+#             reads one, as '<line>:<text>': a fence there closes only on a line of the same
+#             character, at least as long, and nothing else. Bytes are at least the characters,
+#             so check 15 counts the characters of these lines alone.
+declare -A MD_LINKS=() MD_SECT=() MD_WIDE=()
+scan_markdown() {
+  local files=() f kind file line value
+  for f in "${TEXT_FILES[@]}"; do [[ "$f" == *.md ]] && files+=("$f"); done
+  ((${#files[@]})) || return 0
+  while IFS=$'\x1f' read -r kind file value; do
+    case "$kind" in
+      L) MD_LINKS["$file"]+="$value"$'\n' ;;
+      S) MD_SECT["$file"]+="$value"$'\n' ;;
+      W) MD_WIDE["$file"]+="$value"$'\n' ;;
+    esac
+  done < <(awk '
+    function out(k, v) { printf "%s\037%s\037%s\n", k, FILENAME, v }
+    FNR == 1 { fence = 0; wfence = ""; front = 0 }
+    {
+      if (/^[[:space:]>]*(```|~~~)/) fence = !fence
+      else if (!fence) {
+        rest = $0
+        while (match(rest, /\[[^]]*\]\([^)]+\)/)) {
+          out("L", substr(rest, RSTART, RLENGTH))
+          rest = substr(rest, RSTART + RLENGTH)
+        }
+        if (index($0, "§")) out("S", FNR ":" $0)
+      }
+
+      if (FNR == 1 && $0 == "---") { front = 1; next }
+      if (front) { if ($0 == "---") front = 0; next }
+      if (wfence != "") {
+        if (match($0, /^[[:space:]]*[`~]+[[:space:]]*$/)) {
+          run = $0; gsub(/[[:space:]]/, "", run)
+          if (length(run) >= 3 && index(run, wfence) == 1) wfence = ""
+        }
+        next
+      }
+      if (match($0, /^[[:space:]]*(```+|~~~+)/)) {
+        wfence = substr($0, RSTART, RLENGTH); sub(/^[[:space:]]+/, "", wfence)
+        if (length(wfence) >= 3) next
+        wfence = ""
+      }
+      if (length($0) > 100) out("W", FNR ":" $0)
+    }
+  ' "${files[@]}")
 }
 
 # link_target <linkexpr> — sets LINK_TARGET to the target of one '[text](target)' expression:
@@ -551,6 +697,7 @@ check_relative_links() {
     is_inactive_adr "$md" && continue
     dir="${md%/*}"
     while IFS= read -r linkexpr; do
+      [[ -n "$linkexpr" ]] || continue
       link_target "$linkexpr"
       target="$LINK_TARGET"
       case "$target" in
@@ -578,7 +725,7 @@ check_relative_links() {
         anchor_resolves "$target_file" "$frag" \
           || add_error "$rel: link '$target' has no matching anchor '#$frag' in ${target_file#"$ROOT"/}"
       fi
-    done < <(strip_code_fences "$md" | grep -oE '\[[^]]*\]\([^)]+\)')
+    done <<< "${MD_LINKS["$md"]-}"
   done
 }
 
@@ -647,11 +794,11 @@ check_section_refs() {
 
     case "$f" in
       *.md)
-        lineno=0
+        # Only the lines that carry the section sign, outside a fence (scan_markdown).
         while IFS= read -r line; do
-          lineno=$((lineno + 1))
-          # Most lines cite no section; only those that do are worth a process.
-          [[ "$line" == *§* ]] || continue
+          [[ -n "$line" ]] || continue
+          lineno="${line%%:*}"
+          line="${line#*:}"
           # Inline code spans hold literals, not citations: '`§1`' in a sentence about references
           # is the notation itself. Dropping them also strips the '`AGENTS.md`' inside a link text,
           # which leaves the link expression itself intact. A span runs from a backtick to the
@@ -701,7 +848,7 @@ check_section_refs() {
               add_error "$rel:$lineno: reference '§$n' matches no numbered section in AGENTS.md"
             fi
           done
-        done < <(strip_code_fences "$f")
+        done <<< "${MD_SECT["$f"]-}"
         ;;
       *)
         while IFS=: read -r lineno line; do
@@ -718,19 +865,18 @@ check_section_refs() {
 # must name an ADR file that already exists. Anticipated follow-up decisions are described by
 # topic, not by a reserved number (docs/adr/README.md).
 check_adr_refs() {
-  local f rel lineno match number
+  local f files=() lineno match
   for f in "${TEXT_FILES[@]}"; do
-    rel="${f#"$ROOT"/}"
     [[ "$f" == "$ADR_DIR/template.md" ]] && continue
     is_inactive_adr "$f" && continue
-    while IFS=: read -r lineno match; do
-      number="${match#ADR-}"
-      case "$number" in
-        draft-*) [[ -f "$ADR_DIR/$number.md" ]] ;;
-        *) compgen -G "$ADR_DIR/$number-*.md" > /dev/null ;;
-      esac || add_error "$rel:$lineno: reference '$match' matches no ADR file in docs/adr/"
-    done < <(grep -noE "$ADR_REF_RE" "$f")
+    files+=("$f")
   done
+  ((${#files[@]})) || return 0
+  # One grep over every file; --null ends each file name with a NUL, which no path carries.
+  while IFS= read -r -d '' f && IFS=: read -r lineno match; do
+    [[ -v ADR_BY_KEY["${match#ADR-}"] ]] \
+      || add_error "${f#"$ROOT"/}:$lineno: reference '$match' matches no ADR file in docs/adr/"
+  done < <(grep -Hno --null -E "$ADR_REF_RE" "${files[@]}")
 }
 
 # A Markdown link that cites 'ADR-NNNN' in its text must point at that ADR's own file. Both
@@ -747,6 +893,7 @@ check_adr_link_targets() {
     [[ "$f" == "$ADR_DIR/template.md" ]] && continue
     is_inactive_adr "$f" && continue
     while IFS= read -r linkexpr; do
+      [[ -n "$linkexpr" ]] || continue
       # The text runs from the opening bracket to the first closing one, which it cannot contain.
       text="${linkexpr#\[}"
       text="${text%%]*}"
@@ -762,7 +909,7 @@ check_adr_link_targets() {
       else
         [[ "$base" == "$number"-* ]]
       fi || add_error "$rel: link '$linkexpr' cites ADR-$number but points at '$base'"
-    done < <(strip_code_fences "$f" | grep -oE '\[[^]]*\]\([^)]+\)')
+    done <<< "${MD_LINKS["$f"]-}"
   done
 }
 
@@ -987,19 +1134,20 @@ check_skill_pointers() {
 check_inherited_adrs() {
   [[ -f "$ROOT/TEMPLATE-SETUP.md" ]] && return
   local f base deciders others status
-  while IFS= read -r f; do
-    deciders="$(header_field "$f" Deciders)"
-    grep -qF 'NUC maintainer' <<< "$deciders" || continue
-    status="$(adr_field_line "$f" Status | first_status_emoji)"
+  for f in "${ADR_LIST[@]}"; do
+    deciders="${ADR_DECIDERS["$f"]-}"
+    [[ "$deciders" == *"NUC maintainer"* ]] || continue
+    status_emoji "${ADR_STATUS["$f"]-}"
+    status="$EMOJI"
     [[ "$status" == "⚪" || "$status" == "🔴" ]] && continue
-    base="$(basename "$f")"
+    base="${f##*/}"
     others="$(sed -E 's/^- \*\*Deciders:\*\*//; s/NUC maintainer//g; s/(^|[[:space:],])and([[:space:],]|$)/ /g; s/[[:space:],]//g' <<< "$deciders" | tr -d '\n')"
     if [[ -z "$others" ]]; then
       add_error "$base: inherited from the template and not decided by this project — add your name to Deciders and accept it, or supersede it (docs/adr/README.md)"
     elif [[ "$status" == "🟡" ]]; then
       add_error "$base: inherited from the template and still proposed after setup — flip the status to accepted, or supersede it (docs/adr/README.md)"
     fi
-  done < <(adr_files "$ADR_DIR")
+  done
 }
 
 # Check 13 (see the header). Each placeholder is a pattern in one file; the file is skipped when
@@ -1038,31 +1186,34 @@ check_template_identity() {
   placeholder README.md '^- \*\*(Build|Test|Lint|Run):\*\* TODO' "a Build, Test, Lint, or Run command is still TODO; name the command the toolchain ADR chose"
 }
 
-# Check 15 (see the header). Characters are counted, not bytes, so an em dash is one column.
+# LINK_SPACE_RE — a space inside the text of a link; check 15 reads a link as one word.
+LINK_SPACE_RE='(\[[^] ]*) ([^]]*\]\()'
+
+# Check 15 (see the header). Characters are counted, not bytes, so an em dash is one column;
+# scan_markdown hands over only the lines longer than 100 bytes outside front matter and fences.
 check_prose_width() {
-  local f rel n line fence front indent body in_adr
+  local f rel n line indent body in_adr attr
   local LC_ALL=C.UTF-8
+  # A file git marks as generated is written by a tool, not wrapped by hand; asked once for all.
+  local -A generated=()
+  while IFS= read -r attr; do
+    case "$attr" in
+      *": linguist-generated: set" | *": linguist-generated: true")
+        generated["${attr%: linguist-generated: *}"]=1 ;;
+    esac
+  done < <(for f in "${!MD_WIDE[@]}"; do printf '%s\n' "${f#"$ROOT"/}"; done \
+             | git -C "$ROOT" check-attr --stdin linguist-generated 2>/dev/null)
   for f in "${TEXT_FILES[@]}"; do
-    [[ "$f" == *.md ]] || continue
+    [[ -v MD_WIDE["$f"] ]] || continue
     is_inactive_adr "$f" && continue
     rel="${f#"$ROOT"/}"
-    # A file git marks as generated is written by a tool, not wrapped by hand.
-    case "$(git -C "$ROOT" check-attr linguist-generated -- "$rel")" in
-      *": set" | *": true") continue ;;
-    esac
-    n=0 fence="" front=0 in_adr=0
+    [[ -v generated["$rel"] ]] && continue
+    in_adr=0
     [[ "$f" == "$ADR_DIR"/* ]] && in_adr=1
-    while IFS= read -r line || [[ -n "$line" ]]; do
-      n=$((n + 1))
-      if ((n == 1)) && [[ "$line" == "---" ]]; then front=1; continue; fi
-      if ((front)); then [[ "$line" == "---" ]] && front=0; continue; fi
-      # A fence closes on a line of the same character, at least as long, and nothing else.
-      if [[ -n "$fence" ]]; then
-        [[ "$line" =~ ^[[:space:]]*([\`~]{3,})[[:space:]]*$ && "${BASH_REMATCH[1]}" == "$fence"* ]] \
-          && fence=""
-        continue
-      fi
-      if [[ "$line" =~ ^[[:space:]]*(\`{3,}|~{3,}) ]]; then fence="${BASH_REMATCH[1]}"; continue; fi
+    while IFS= read -r line; do
+      [[ -n "$line" ]] || continue
+      n="${line%%:*}"
+      line="${line#*:}"
       ((${#line} > 100)) || continue
       # A table row, a heading, and an ADR header field are one line by their syntax.
       [[ "$line" =~ ^[[:space:]]*\| || "$line" =~ ^# ]] && continue
@@ -1070,10 +1221,13 @@ check_prose_width() {
       # A link is one word, whatever its text holds. A line without a space outside its links
       # cannot break; any other line can.
       indent="${line%%[! ]*}"
-      body="$(sed -E -e ':a' -e 's/(\[[^] ]*) ([^]]*\]\()/\1_\2/' -e 'ta' <<< "${line:${#indent}}")"
+      body="${line:${#indent}}"
+      while [[ "$body" =~ $LINK_SPACE_RE ]]; do
+        body="${body/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}_${BASH_REMATCH[2]}"}"
+      done
       [[ "$body" == *" "* ]] \
         && add_error "$rel:$n: ${#line} columns — wrap the prose at 100 (a link that does not fit stands on a line of its own)"
-    done < "$f"
+    done <<< "${MD_WIDE["$f"]}"
   done
 }
 
@@ -1101,6 +1255,8 @@ check_template_release() {
 }
 
 collect_text_files
+read_adr_headers
+scan_markdown
 check_adr_index
 check_adr_numbering
 check_no_draft_on_main

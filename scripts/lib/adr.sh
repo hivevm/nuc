@@ -37,15 +37,6 @@ adr_key() {
   esac
 }
 
-# adr_file <dir> <key> — the ADR file in the directory that the key names, or nothing.
-adr_file() {
-  case "$2" in
-    draft-*) [[ -f "$1/$2.md" ]] && printf '%s\n' "$1/$2.md" ;;
-    *) compgen -G "$1/$2-*.md" | head -n1 ;;
-  esac
-  return 0
-}
-
 # adr_stray_fields <file> — each header field written in another form than the list item, as
 # '<line number>:<line>'. The header ends at the first '## ' heading; the body may quote a field.
 adr_stray_fields() {

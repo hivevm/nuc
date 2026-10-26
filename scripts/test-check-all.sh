@@ -186,6 +186,60 @@ d="$(repo on-main)"
 git -C "${d:?}" switch -q main
 expect "--changed on main runs everything" "$d" "${scripts[*]}" "" --changed
 
+# The checks run side by side; their output follows the order of the list, the first check
+# finishing last included, and one at a time on CHECK_ALL_JOBS=1.
+d="$(repo order)"
+echo "sleep 0.5" >> "$d/${scripts[0]}"
+want="$(printf 'RAN %s\n' "${scripts[@]}")"
+for jobs in "" 1; do
+  got="$(CHECK_ALL_JOBS="$jobs" bash "$d/scripts/check-all.sh" 2>&1 | grep '^RAN ')"
+  check "the output follows the order of the list${jobs:+ on CHECK_ALL_JOBS=$jobs}" \
+    test "$got" = "$want"
+done
+
+# at_once <dir> <jobs> — the most checks the runner had running at once with CHECK_ALL_JOBS at
+# jobs: each stub notes a directory of its own while it runs, and how many there are.
+at_once() {
+  local s
+  mkdir -p "$1/running"
+  for s in "${scripts[@]}"; do
+    # shellcheck disable=SC2016 # the stub's variables, not this script's
+    printf 'mkdir "%s/running/$$"; ls "%s/running" | wc -l >> "%s/counts"; sleep 0.1; rmdir "%s/running/$$"\n' \
+      "$1" "$1" "$1" "$1" >> "$1/$s"
+  done
+  : > "$1/counts"
+  CHECK_ALL_JOBS="$2" bash "$1/scripts/check-all.sh" > /dev/null 2>&1
+  sort -n "$1/counts" | tail -n 1 | tr -d ' '
+}
+
+d="$(repo capped)"
+check "CHECK_ALL_JOBS=2 runs no more than two checks at once" test "$(at_once "$d" 2)" -le 2
+d="$(repo uncapped)"
+check "the checks run side by side" test "$(at_once "$d" "${#scripts[@]}")" -gt 2
+
+d="$(repo jobs-zero)"
+CHECK_ALL_JOBS=0 expect_exit "CHECK_ALL_JOBS=0 exits 2" 2 "$d"
+
+# A runner stopped by TERM stops the checks it started and waits for them: none finishes after
+# it, and one that cleans up on TERM has done so when the runner returns.
+d="$(repo stopped)"
+# shellcheck disable=SC2016 # the stub's variable, not this script's
+printf 'trap '\''sleep 0.3; touch "%s/cleaned"; exit 1'\'' TERM; sleep 5 & wait $!\n' "$d" \
+  >> "$d/${scripts[0]}"
+for s in "${scripts[@]}"; do
+  printf 'touch "%s/started"; sleep 1; touch "%s/finished"\n' "$d" "$d" >> "$d/$s"
+done
+bash "$d/scripts/check-all.sh" > /dev/null 2>&1 &
+runner=$!
+for _ in 1 2 3 4 5 6 7 8 9 10; do [[ -e "$d/started" ]] && break; sleep 0.1; done
+kill -TERM "$runner"
+wait "$runner"; rc=$?
+check "a runner stopped by TERM exits 143" test "$rc" -eq 143
+check "and had started a check" test -e "$d/started"
+check "and returns once a check that cleans up on TERM has done so" test -e "$d/cleaned"
+sleep 1.2
+check "and no check it started finishes after it" test ! -e "$d/finished"
+
 d="$(repo unknown)"
 expect_exit "an unknown argument exits 2" 2 "$d" --everything
 

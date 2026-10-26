@@ -119,6 +119,29 @@ check "a push that carries a draft ADR passes" test "$rc" -eq 0
 check "and counts the drafts and names the script that numbers them" \
   grep -qF "feature carries 1 draft ADR(s); they take their numbers on the branch of the pull request into main, by scripts/number-adrs.sh (README, Integration branches, step 7)." <<< "$out"
 
+# A tree the checks passed on passes again without them: the committed check script reads its
+# verdict from outside the tree, so the same tree can turn red. A rework that keeps the tree, an
+# amend here, passes on the record; local changes, an untracked file, or a new tree run them.
+d="$(repo green-tree)"
+git -C "${d:?}" switch -q -c feature
+mkdir -p "$d/scripts"
+# shellcheck disable=SC2016  # the command substitution is the fixture script's, not this one's
+printf '#!/usr/bin/env bash\necho "check output for the test"\nexit "$(cat "%s")"\n' "$work/verdict" \
+  > "$d/scripts/check-all.sh"
+g "$d" add scripts && g "$d" commit -q -m checks
+echo 0 > "$work/verdict"
+expect pass "a push of a clean tree while the checks are green" "$d" "" push -q origin feature
+echo 1 > "$work/verdict"
+g "$d" commit -q --amend -m regrouped
+expect pass "a reworked branch on a tree that passed before, while the checks are red" "$d" "" \
+  push -q --force origin feature
+touch "$d/untracked"
+expect refuse "the same tree with an untracked file is checked again" "$d" "the checks are red" \
+  push -q --force origin feature
+rm "$d/untracked"
+echo x > "$d/new" && g "$d" add new && g "$d" commit -q -m new
+expect refuse "a new tree is checked again" "$d" "the checks are red" push -q origin feature
+
 # In a linked worktree git hands the hook GIT_DIR, and 'git -c' adds GIT_CONFIG_PARAMETERS. The
 # checks build fixture repositories of their own; with either inherited, those land in the
 # repository being pushed and carry its credentials. This check script does what a self-test

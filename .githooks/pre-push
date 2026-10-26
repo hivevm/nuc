@@ -15,7 +15,14 @@
 # A push whose every ref is a deletion, such as that of a merged branch, sends nothing to check
 # and proceeds without the checks; a deletion of the remote's main is still refused. A repository
 # without scripts/check-all.sh has nothing to run, and the push proceeds.
-# Bypassable with 'git push --no-verify'; AGENTS.md, section 6 says who may.
+#
+# A tree the checks passed on before passes again without a second run: a rework that only
+# regroups the commits ends on the tree it started from. The checks read the working tree, so a
+# tree counts only when the working tree is clean, nothing changed and nothing untracked, and is
+# then the tree of HEAD. The hook keeps the last 50 green trees in 'checks-green-trees' of the
+# repository's git directory, shared by its worktrees.
+# Bypassable with 'git push --no-verify', or by writing a tree into that file by hand; AGENTS.md,
+# section 6 says who may.
 #
 # A push that sends a draft ADR is told how many it carries and where they take their numbers:
 # on the branch of the pull request into main, by scripts/number-adrs.sh, as step 7 of the README's
@@ -52,6 +59,19 @@ done
 
 root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
 
+# The tree of a clean working tree, and the record of green ones, read while git still knows this
+# repository by the variables unset below.
+green="" tree=""
+if [[ -n "$root" ]]; then
+  green="$(cd "$(git rev-parse --git-common-dir)" && pwd)/checks-green-trees"
+  [[ -z "$(git status --porcelain 2>/dev/null)" ]] \
+    && tree="$(git rev-parse -q --verify 'HEAD^{tree}' 2>/dev/null || true)"
+fi
+if [[ -n "$tree" && -f "$green" ]] && grep -qxF "$tree" "$green"; then
+  echo "pre-push: the checks passed on this tree before; not run again." >&2
+  exit 0
+fi
+
 # Git hands a hook the variables that bind it to this repository: GIT_DIR in a linked worktree,
 # GIT_CONFIG_PARAMETERS after 'git -c', credential helpers included. The checks build fixture
 # repositories of their own, and with these inherited every git command in a fixture would act on
@@ -64,6 +84,10 @@ if [[ -n "$root" && -f "$root/scripts/check-all.sh" ]]; then
     echo >&2
     echo "pre-push: refused — the checks are red, and they pass before anything is pushed (AGENTS.md, section 5). Fix them, then push again." >&2
     exit 1
+  fi
+  if [[ -n "$tree" ]]; then
+    { grep -vxF "$tree" "$green" 2>/dev/null | tail -n 49; echo "$tree"; } > "$green.$$" \
+      && mv "$green.$$" "$green"
   fi
 fi
 

@@ -196,8 +196,9 @@ restates nothing. A rule this file does not state is not a rule of this project.
   under [`.githooks/`](.githooks/) enforce what a file can of this section and of
   [§5](#5-quality-bar--definition-of-done); what each refuses is under
   [Git hooks](README.md#git-hooks). **An agent never bypasses this repository's hooks:** no
-  `--no-verify`, no git run without them, no hand-moved `origin/main`. The one exception is the
-  push of a claim, which skips the pre-push hook. A human may bypass one, deliberately.
+  `--no-verify`, no git run without them, no hand-moved `origin/main`, no hand-written record of
+  a green tree. The one exception is the push of a claim, which skips the pre-push hook. A human
+  may bypass one, deliberately.
 - **A rule is enforced only by what every agent hits:** the git hooks, the checks, and the
   repository settings. A tool's own configuration enforces none, because a gate one agent
   honours and the next does not looks like a rule and is not one. It may close a path for its

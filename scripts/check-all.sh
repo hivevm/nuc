@@ -24,7 +24,10 @@
 #
 # Usage:
 #     scripts/check-all.sh [--changed]        (or: bash scripts/check-all.sh [--changed])
-# Exit code 0 when every check passes, 1 when any of them fails, 2 on an unknown argument.
+# CHECK_ALL_JOBS=<n> runs at most n checks at once, 1 one after another; the default is the
+# number of processors.
+# Exit code 0 when every check passes, 1 when any of them fails, 2 on an unknown argument or a
+# CHECK_ALL_JOBS that is no number from 1 up.
 
 set -uo pipefail
 
@@ -96,21 +99,55 @@ needs_run() {
   return 1
 }
 
-failed=()
+# The checks run side by side, as many at once as the machine has processors, or as
+# CHECK_ALL_JOBS says; 1 runs them one after another. Each writes to a file of its own, and the
+# files are printed in the order of the list below once all have finished, so the output reads as
+# a run one after another would. A check therefore depends on no other and writes nowhere another
+# reads: the self-tests build their fixtures in a directory of their own, and a run line added
+# for a project's build keeps to the same. A runner stopped by a signal stops the checks it
+# started and waits for them; what a check started in turn may outlive it.
+max_jobs="${CHECK_ALL_JOBS:-$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)}"
+if [[ ! "$max_jobs" =~ ^[1-9][0-9]*$ ]]; then
+  echo "check-all: CHECK_ALL_JOBS is '$max_jobs', not a number of checks from 1 up" >&2
+  exit 2
+fi
+out="$(mktemp -d)"
+labels=() running=0
+# stop — on every exit, a signal's included: stop every job the runner still has, the one started
+# an instant before included, wait for them, and remove their files.
+# shellcheck disable=SC2317 # run by the trap
+stop() {
+  local running_jobs
+  running_jobs="$(jobs -p)"
+  # shellcheck disable=SC2086 # one process id per word
+  [[ -n "$running_jobs" ]] && kill $running_jobs 2>/dev/null
+  wait
+  rm -rf "$out"
+}
+trap stop EXIT
 
-# announce <label> — print the heading a check's output follows.
-announce() { printf '\n==> %s\n' "$1"; }
-
-# run <label> <script> [args...] — run one check, recording a failure without aborting the run.
+# run <label> <script> [args...] — start one check, its output and exit code kept under $out. The
+# subshell passes a TERM on to the check and waits for it, so stop() returns once each has ended;
+# its trap stands before the check starts, so a TERM never finds the check without it.
 run() {
-  local label="$1" script="$2"
+  local label="$1" script="$2" i="${#labels[@]}"
   shift 2
-  announce "$label"
+  labels+=("$label")
   if ((changed_mode)) && ! needs_run "$script"; then
-    echo "skipped — neither it nor its inputs changed against main; CI runs it"
+    echo "skipped — neither it nor its inputs changed against main; CI runs it" > "$out/$i"
+    echo 0 > "$out/$i.rc"
     return
   fi
-  bash "$ROOT/$script" "$@" || failed+=("$label")
+  while ((running >= max_jobs)); do wait -n; running=$((running - 1)); done
+  {
+    check=""
+    trap '[[ -n "$check" ]] && kill "$check" 2>/dev/null && wait "$check"; exit 143' TERM
+    bash "$ROOT/$script" "$@" > "$out/$i" 2>&1 &
+    check=$!
+    wait "$check"
+    echo $? > "$out/$i.rc"
+  } &
+  running=$((running + 1))
 }
 
 run "Documentation self-test" scripts/test-check-docs.sh
@@ -145,6 +182,15 @@ run "Check runner self-test" scripts/test-check-all.sh
 run "Git hooks self-test" scripts/test-git-hooks.sh
 run "Shell lint self-test" scripts/test-check-shell.sh
 run "Shell lint" scripts/check-shell.sh
+
+wait
+
+failed=()
+for i in "${!labels[@]}"; do
+  printf '\n==> %s\n' "${labels[i]}"
+  cat "$out/$i"
+  [[ "$(cat "$out/$i.rc" 2>/dev/null)" == 0 ]] || failed+=("${labels[i]}")
+done
 
 printf '\n'
 if ((${#failed[@]})); then
