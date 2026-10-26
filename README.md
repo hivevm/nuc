@@ -223,32 +223,43 @@ instead.
 ## Integration branches
 
 A change reaches `main` through a pull request. Several branches may integrate first on a
-`feat/` branch by local merges, which stays the human's to rework until its pull request merges
-([`AGENTS.md` §6](AGENTS.md#6-project-rules)). Each step waits for a human's instruction.
+`feat/` branch, by local merges or by pull requests against it, and it stays the human's to
+rework until its pull request into `main` merges ([`AGENTS.md` §6](AGENTS.md#6-project-rules)).
+Each step waits for a human's instruction.
 
 1. Start it at the remote's `main`: `git fetch origin`, then
    `git switch -c feat/<topic> origin/main`.
 2. Merge a reviewed branch into it with its hand-off as the message, written to a file since an
    editor strips its headings: `git merge --no-ff -F .scratch/<hand-off>.md <branch>`. The
-   documentation check gates the merge, and
-   the push of step 4 runs the rest. One that stops on a conflict is concluded, once resolved and
-   staged, with `git commit -F .scratch/<hand-off>.md`, and all the checks gate that commit.
-3. Rework it as often as needed: rebase it, regroup its commits, or drop what did not hold. A
-   rebase without `--rebase-merges` flattens the merges, and their hand-offs with them; any
-   rework replaces the commits their `Reviewed at:` lines name. The review that binds after a
-   rework is a review of the whole branch, named on that line in the pull request's description.
-   [`scripts/sensor-review-binding.sh`](scripts/sensor-review-binding.sh) reads it there first,
-   on every push to the pull request and again on every edit of the description
-   ([`review-binding.yml`](.github/workflows/review-binding.yml)).
-4. Test it in the pipelines: `git push -u origin feat/<topic>`, then open a draft pull request,
+   documentation check gates the merge, and the push of step 6 runs the rest. One that stops on a
+   conflict is concluded, once resolved and staged, with `git commit -F .scratch/<hand-off>.md`,
+   and all the checks gate that commit.
+3. Or merge it by a pull request, where its pipelines are to run first on what the local gate
+   lacks, such as another platform or a service. With the `feat/` branch pushed as in step 6,
+   push the branch, then, on it:
+   `gh pr create --base feat/<topic> --body-file .scratch/<hand-off>.md`, and once it is green,
+   `gh pr merge <number> --merge --body-file .scratch/<hand-off>.md`. Not by the web interface,
+   whose merge commit carries no hand-off and so no `Reviewed at:` line. Then take it up:
+   `git fetch origin` and, on the `feat/` branch, `git merge --ff-only origin/feat/<topic>`.
+4. Rework it as often as needed: rebase it, regroup its commits, or drop what did not hold,
+   with `git rebase -i --rebase-merges`; without `--rebase-merges` the merges flatten, and their
+   hand-offs with them. A pull request still open against the `feat/` branch is rebased onto the
+   rework.
+5. After a rework, review the whole branch at its head
+   ([`AGENTS.md` §5](AGENTS.md#5-quality-bar--definition-of-done)) and name that commit on the
+   `Reviewed at:` line of the description of the pull request step 6 opens, where
+   [`scripts/sensor-review-binding.sh`](scripts/sensor-review-binding.sh) reads it on every push
+   and every edit ([`review-binding.yml`](.github/workflows/review-binding.yml)).
+6. Test it in the pipelines: `git push -u origin feat/<topic>`, then open a draft pull request,
    `gh pr create --draft --base main`, which runs them on every push against what the merge
    into `main` would produce. A branch kept without a pull request, such as an experiment, runs
    them by hand: `gh workflow run checks.yml --ref feat/<topic>`. A rework already pushed goes out
    with `git push --force-with-lease`.
-5. Take up what the remote's `main` gained meanwhile, such as a Dependabot update, since the
-   ruleset merges only a branch up to date with it: `git merge origin/main` on the `feat/`
-   branch, gated like any merge. A rebase onto it is a rework, as in step 3.
-6. Once the pull request has merged as a merge commit, take it up and drop the branch:
+7. Make the pull request ready. Take up the remote's `main`, since the ruleset merges only a
+   branch up to date with it: `git merge origin/main` on the `feat/` branch; a rebase onto it is a
+   rework, as in step 4. Then `git push` and `gh pr ready`. What `main` gains later is taken up the
+   same way.
+8. Once the pull request into `main` has merged as a merge commit, take it up and drop the branch:
    `git switch main`, `git fetch origin`, `git merge --ff-only origin/main`, then
    `git branch -d feat/<topic>` and `git push origin --delete feat/<topic>`.
 

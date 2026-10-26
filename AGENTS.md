@@ -207,12 +207,15 @@ restates nothing. A rule this file does not state is not a rule of this project.
 - **Changes reach `main` through a pull request,** merged as a merge commit. The local `main`
   only takes up the remote's, with `git merge --ff-only origin/main`. What no file can enforce
   is listed under [Repository settings](README.md#repository-settings).
-- **Branches may integrate first on a `feat/` branch** by a local merge, on the human's
-  instruction, after the review of [§5](#5-quality-bar--definition-of-done). Each integrated
-  branch is one merge commit (`--no-ff`), whose message is the hand-off of the change and fills
-  the sections of the [pull request template](.github/PULL_REQUEST_TEMPLATE.md). Until its pull
-  request merges, the `feat/` branch is the human's to rework: rebased, regrouped, or cut down,
-  and pushed again by the human with `--force-with-lease`. The steps are under
+- **Branches may integrate first on a `feat/` branch,** on the human's instruction, after the
+  review of [§5](#5-quality-bar--definition-of-done): by a local merge, or by a pull request
+  against the `feat/` branch, whose pipelines run what the local gate cannot, such as another
+  platform or a service. Each integrated branch is one merge commit, whose message is the
+  hand-off of the change and fills the sections of the
+  [pull request template](.github/PULL_REQUEST_TEMPLATE.md). Until the `feat/` branch's pull
+  request into `main` merges, all of it is the human's to rework, what pull requests merged into
+  it included: rebased, regrouped, or cut down, and pushed again by the human with
+  `--force-with-lease`. What has reached `main` is never rewritten. The steps are under
   [Integration branches](README.md#integration-branches).
 
 ## 7. Secrets
