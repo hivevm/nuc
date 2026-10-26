@@ -246,7 +246,8 @@ Each step waits for a human's instruction.
    whose merge commit carries no hand-off and so no `Reviewed at:` line. Then take it up:
    `git fetch origin` and, on the `feat/` branch, `git merge --ff-only origin/feat/<topic>`.
 4. Rework it as often as needed: rebase it, regroup its commits, or drop what did not hold,
-   with `git rebase -i --rebase-merges`; without `--rebase-merges` the merges flatten, and their
+   with `git rebase -i --autosquash --rebase-merges`. `--autosquash` folds in the fixups a review
+   leaves, as the `review` skill says; without `--rebase-merges` the merges flatten, and their
    hand-offs with them. A pull request still open against the `feat/` branch is rebased onto the
    rework.
 5. After a rework, review the whole branch at its head
@@ -259,10 +260,11 @@ Each step waits for a human's instruction.
    into `main` would produce. A branch kept without a pull request, such as an experiment, runs
    them by hand: `gh workflow run checks.yml --ref feat/<topic>`. A rework already pushed goes out
    with `git push --force-with-lease`.
-7. Make the pull request ready. Take up the remote's `main`, since the ruleset merges only a
-   branch up to date with it: `git merge origin/main` on the `feat/` branch; a rebase onto it is a
-   rework, as in step 4. Number the draft ADRs the branch carries, which fail the documentation
-   check once the pull request is ready ([ADR-0002](docs/adr/0002-decisions-verified-by-tests.md)):
+7. Make the pull request ready, the fixups folded in by steps 4 to 6 first, since `main` keeps
+   what it merges. Take up the remote's `main`, since the ruleset merges only a branch up to date
+   with it: `git merge origin/main` on the `feat/` branch; a rebase onto it is a rework, as in
+   step 4. Number the draft ADRs the branch carries, which fail the documentation check once the
+   pull request is ready ([ADR-0002](docs/adr/0002-decisions-verified-by-tests.md)):
    [`scripts/number-adrs.sh`](scripts/number-adrs.sh). Then `git push` and `gh pr ready`. What
    `main` gains later is taken up the same way; an ADR it gains moves the branch's numbers on, as
    the [mechanics](docs/adr/README.md#mechanics) say.
