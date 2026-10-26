@@ -152,6 +152,21 @@ out="$(bash "$SCRIPT" --root "$d" 2>&1)"; rc=$?
 check "an untracked file refuses" test "$rc" -eq 1
 check "the refusal names the working tree" grep -qF "the working tree has changes" <<< "$out"
 
+d="$(repo detached)"
+g "$d" switch -q --detach
+out="$(bash "$SCRIPT" --root "$d" 2>&1)"; rc=$?
+check "a detached HEAD refuses" test "$rc" -eq 1
+check "the refusal names the detached HEAD" grep -qF "HEAD is detached" <<< "$out"
+
+# An origin that has no main: an empty one, and no origin/main left from an earlier fetch.
+d="$(repo nomain)"
+git init -q --bare -b main "$work/nomain-empty.git"
+g "$d" remote set-url origin "$work/nomain-empty.git"
+g "$d" update-ref -d refs/remotes/origin/main
+out="$(bash "$SCRIPT" --root "$d" 2>&1)"; rc=$?
+check "an origin without main refuses" test "$rc" -eq 1
+check "the refusal names origin's main" grep -qF "origin has no main" <<< "$out"
+
 d="$(repo noremote)"
 g "$d" remote remove origin
 out="$(bash "$SCRIPT" --root "$d" 2>&1)"; rc=$?

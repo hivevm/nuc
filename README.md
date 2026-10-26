@@ -120,8 +120,11 @@ docs/plan/            # open work: feature specs and their tickets, deleted as t
 scripts/check-all.sh  # runs the checks, sensors, and self-tests, as the hooks and CI do
 scripts/check-*.sh    # checks: each fails on what breaks a rule
 scripts/sensor-*.sh   # sensors: report for the reviewer; sensor-repo-settings.sh runs by hand
-scripts/test-*.sh     # self-tests of the checks, the sensors, the hooks, and the setup
+scripts/test-*.sh     # self-tests of the checks, the sensors, the hooks, the setup, and the scripts
+                      # run by hand
 scripts/lib/          # what the scripts share: the ADR header, git, the ticket path, the self-tests
+scripts/*.sh          # run by hand, steps 7 and 8 of the integration branches: number-adrs.sh,
+                      # ready-for-main.sh, drop-merged-branch.sh
 .githooks/            # git hooks: nothing lands on main locally; checks before a merge and a push
 .github/workflows/    # checks.yml runs the checks; review-binding.yml reads each pull request's hand-off
 .github/              # Dependabot, issue & pull request templates, code owners

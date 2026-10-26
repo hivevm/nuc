@@ -131,6 +131,28 @@ out="$(bash "$SCRIPT" --root "$d" 2>&1)"; rc=$?
 check "an untracked file refuses" test "$rc" -eq 1
 check "the refusal names the working tree" grep -qF "the working tree has changes" <<< "$out"
 
+d="$(repo detached)"
+g "$d" switch -q --detach
+out="$(bash "$SCRIPT" --root "$d" 2>&1)"; rc=$?
+check "a detached HEAD refuses" test "$rc" -eq 1
+check "the refusal names the detached HEAD" grep -qF "HEAD is detached" <<< "$out"
+
+d="$(repo merging)"
+g "$d" fetch -q origin
+g "$d" merge -q --no-commit --no-ff origin/main > /dev/null 2>&1
+out="$(bash "$SCRIPT" --root "$d" 2>&1)"; rc=$?
+check "a merge in progress refuses" test "$rc" -eq 1
+check "the refusal names the merge in progress" grep -qF "a merge is in progress" <<< "$out"
+
+# An origin that has no main: an empty one, and no origin/main left from an earlier fetch.
+d="$(repo nomain)"
+git init -q --bare -b main "$work/nomain-empty.git"
+g "$d" remote set-url origin "$work/nomain-empty.git"
+g "$d" update-ref -d refs/remotes/origin/main
+out="$(bash "$SCRIPT" --root "$d" 2>&1)"; rc=$?
+check "an origin without main refuses" test "$rc" -eq 1
+check "the refusal names origin's main" grep -qF "origin has no main" <<< "$out"
+
 d="$(repo noremote)"
 g "$d" remote remove origin
 out="$(bash "$SCRIPT" --root "$d" 2>&1)"; rc=$?
