@@ -71,6 +71,7 @@ verify. No fixes applied. The implementer fixes them before the hand-off and rec
 section who reviewed, the findings on both axes, what was fixed, and the commit the reviewer was
 handed, on its `Reviewed at:` line. The fixes come after that commit;
 [`scripts/sensor-review-binding.sh`](../../../scripts/sensor-review-binding.sh) lists them for the
-human who decides the merge, unless a second review sees them first and the line moves. A
-`feat/` branch reworked after its merges is reviewed as a whole at its head, and its pull
-request's description carries that line.
+human who decides the merge, unless a second review sees them first and the line moves. After a
+rework, the review is of the whole branch at its head
+([`AGENTS.md` §5](../../../AGENTS.md#5-quality-bar--definition-of-done)), and the pull request's
+description carries that line.

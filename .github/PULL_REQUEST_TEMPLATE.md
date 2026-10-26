@@ -10,8 +10,8 @@
 
 ## Related
 
-- Ticket:  <!-- the file under docs/plan/ this deletes, or the report it resolves (ADR-0006) -->
-- Implements / relates to ADR-
+- Ticket:  <!-- the file under docs/plan/ this deletes (ADR-0006), or the request it answers -->
+- Implements:  <!-- the ADR this implements or relates to, as ADR-NNNN, or none -->
 - ADRs reviewed at:  <!-- the commit of ADRs only the human reviewed before the implementation,
      or none (AGENTS.md [§3](../AGENTS.md#3-adr-rules), rule 4) -->
 

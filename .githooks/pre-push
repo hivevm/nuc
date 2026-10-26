@@ -15,7 +15,8 @@
 # A push whose every ref is a deletion, such as that of a merged branch, sends nothing to check
 # and proceeds without the checks; a deletion of the remote's main is still refused. A repository
 # without scripts/check-all.sh has nothing to run, and the push proceeds.
-# Bypassable with 'git push --no-verify'. scripts/test-git-hooks.sh exercises this hook.
+# Bypassable with 'git push --no-verify'; AGENTS.md, section 6 says who may.
+# scripts/test-git-hooks.sh exercises this hook.
 
 set -uo pipefail
 

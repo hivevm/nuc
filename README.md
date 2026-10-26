@@ -180,10 +180,9 @@ that directory holds one symlink per skill into `.agents/skills/`; a directory-l
 not followed. The symlinks are pointers of the same kind as `CLAUDE.md`, tracked upstream as
 [anthropics/claude-code#31005](https://github.com/anthropics/claude-code/issues/31005). Delete them
 when that lands, and add one for every skill added meanwhile; the documentation check fails on a
-skill without its pointer. A rule is enforced only by what every agent hits: the git hooks under
-[`.githooks/`](.githooks/), the checks, and the repository settings below. A tool's own
-configuration is not used to enforce one, because a gate that one agent honours and the next does
-not looks like a rule and is not one.
+skill without its pointer. What enforces a rule is what every agent hits
+([`AGENTS.md` §6](AGENTS.md#6-project-rules)): the git hooks under [`.githooks/`](.githooks/),
+the checks, and the repository settings below.
 
 Agents work tickets in parallel without any one vendor's mechanism: a dispatching session claims
 each ticket by its branch in a git worktree of its own and starts a fresh session there, with the
@@ -280,7 +279,7 @@ configured once by a maintainer and worth re-checking after a repository move or
 
 [`scripts/sensor-repo-settings.sh`](scripts/sensor-repo-settings.sh) reads these settings
 through `gh` and reports each one that differs from this list. It runs on a human's
-instruction, not in the checks, since only an admin of the repository can read all of them.
+instruction ([ADR-0002](docs/adr/0002-decisions-verified-by-tests.md)).
 
 ## Template
 

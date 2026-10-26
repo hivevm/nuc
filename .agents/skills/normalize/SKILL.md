@@ -26,7 +26,9 @@ Run in a fresh session. Name the entry point with the human:
   [`README.md`](../../../README.md) names and at the new tag, and the release notes. What changed
   between the two tags is what enters. Where the project has normalized before, the maps in the
   commit bodies of its normalizations, read in order, say which of its ADRs restates which
-  template ADR.
+  template ADR. `AGENTS.md` is taken up as the release has it, except the ADR rules of
+  [§3](../../../AGENTS.md#3-adr-rules) that an ADR of the project on the ADR process changed:
+  those keep the project's wording, as its opening note says.
 
 An adoption or a template release brings the template's git hooks and its repository settings
 with its files:
@@ -42,7 +44,8 @@ with its files:
   for an adoption all of it, for a release what changed in the template's section between the
   two tags, such as the merge method or a required check.
   [`scripts/sensor-repo-settings.sh`](../../../scripts/sensor-repo-settings.sh), run on the
-  maintainer's instruction since it calls `gh`, reports what differs once the new README is in.
+  maintainer's instruction ([ADR-0002](../../../docs/adr/0002-decisions-verified-by-tests.md)),
+  reports what differs once the new README is in.
   A ruleset that still requires a check the workflow no longer runs blocks the merge; one that
   lacks a new check lets the merge through while that check fails.
 
@@ -106,8 +109,8 @@ Hand the change to the [`review`](../review/SKILL.md) skill with the old record 
 commit, the map, and the clause table: the reviewer walks the table, reads each clause against the
 new ADR that carries it, and reports any decision that moved and any clause the table misses.
 Commit with the map in the commit body, and hand the branch to the human with both maps, the
-cut, the clause table, and the review in its hand-off. One pull request lands the branch, and
-only a human merges it.
+cut, the clause table, and the review in its hand-off. One pull request lands the branch
+([`AGENTS.md` §6](../../../AGENTS.md#6-project-rules)).
 
 In the template, the release that lands a normalization is a major, and its notes carry the map
 ([ADR-0005](../../../docs/adr/0005-template-releases.md)). In a derived project that took up a
