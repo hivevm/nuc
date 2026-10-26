@@ -35,21 +35,16 @@
 
 set -uo pipefail
 
+# shellcheck source-path=SCRIPTDIR source=lib/adr.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/adr.sh"
+# shellcheck source-path=SCRIPTDIR source=lib/check.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/check.sh"
+
 ROOT="$(cd "${1:-$(dirname "${BASH_SOURCE[0]}")/..}" && pwd)"
 SPEC="docs/SPECIFICATION.md"
 ADR_DIR="docs/adr"
-ID_RE='ADR-[0-9]{4}|[GQ]-[0-9]+'
+ID_RE="$ADR_ID_RE"
 
-errors=()
-add_error() { errors+=("$1"); }
-
-# _contains <needle> <haystack...> — true if needle equals one of the arguments.
-_contains() {
-  local needle="$1"; shift
-  local x
-  for x in "$@"; do [[ "$x" == "$needle" ]] && return 0; done
-  return 1
-}
 
 # ---------------------------------------------------------------------------------------------
 # 1. Criteria: identifiers read off the specification.
@@ -100,7 +95,7 @@ for f in "$ROOT/$ADR_DIR"/[0-9][0-9][0-9][0-9]-*.md; do
   name="$(basename "$f")"
   id="ADR-${name:0:4}"
   known_adrs+=("$id")
-  status_line="$(grep -m1 -F '**Status:**' "$f")"
+  status_line="$(adr_field_line "$f" Status)"
   case "$status_line" in
     *🟢*)
       accepted+=("$id")

@@ -8,6 +8,7 @@
 # path its prose only resembles, an ADR no longer in force, an ADR the change itself adds, a
 # change no ADR names, nothing to compare, and a base that does not resolve.
 #
+# Verifies: ADR-0002
 # Inputs: scripts/sensor-binding-adrs.sh scripts/lib/
 #
 # Usage:
@@ -63,7 +64,7 @@ expect() {
   local want="$1" name="$2" dir="$3" needle="$4" base="${5-base}"
   local out rc
   fixture "$dir"
-  out="$(cd "$dir" && bash "$SENSOR" "$base" ${HEADREF:+"$HEADREF"} 2>&1)"; rc=$?
+  out="$(bash "$SENSOR" --root "$dir" "$base" ${HEADREF:+"$HEADREF"} 2>&1)"; rc=$?
   if [[ $rc -eq "$want" && "$out" == *"$needle"* ]]; then
     passed=$((passed + 1))
     return
@@ -77,7 +78,7 @@ expect() {
 reject() {
   local name="$1" dir="$2" needle="$3" out
   fixture "$dir"
-  out="$(cd "$dir" && bash "$SENSOR" base 2>&1)"
+  out="$(bash "$SENSOR" --root "$dir" base 2>&1)"
   if [[ "$out" != *"$needle"* ]]; then
     passed=$((passed + 1))
     return

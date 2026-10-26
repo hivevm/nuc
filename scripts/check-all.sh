@@ -27,6 +27,9 @@
 
 set -uo pipefail
 
+# shellcheck source-path=SCRIPTDIR source=lib/git.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/git.sh"
+
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 changed_mode=0
@@ -42,11 +45,7 @@ esac
 changed=()
 if ((changed_mode)); then
   branch="$(git -C "$ROOT" symbolic-ref --short -q HEAD 2>/dev/null || true)"
-  base=""
-  for candidate in origin/main main; do
-    git -C "$ROOT" rev-parse -q --verify "$candidate^{commit}" >/dev/null || continue
-    base="$(git -C "$ROOT" merge-base HEAD "$candidate" 2>/dev/null)" && break
-  done
+  base="$(cd "$ROOT" && main_merge_base HEAD)"
   if [[ "$branch" == "main" || -z "$base" ]]; then
     changed_mode=0
   else

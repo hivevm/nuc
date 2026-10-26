@@ -10,6 +10,7 @@
 # ShellCheck is not on PATH the lint skips ShellCheck, and so does this test with the cases that
 # need it.
 #
+# Verifies: ADR-0002
 # Inputs: scripts/check-shell.sh scripts/lib/
 #
 # Usage:

@@ -21,9 +21,9 @@
 #      which is how host containers are managed without the socket.
 #   5. Git settings: the postStartCommand of devcontainer.json runs 'git config core.hooksPath
 #      .githooks', 'git config merge.ff false', and 'git config pull.ff only'. The git hooks of
-#      the README and SECURITY.md hold in the container because it enables them on every start;
-#      this one is no part of ADR-0004. The value is read from its key to the next top-level
-#      key, whatever its form: a string, an array, or an object.
+#      the README and SECURITY.md hold in the container because it enables them on every start,
+#      the container's share of the local gate (ADR-0002, ADR-0004). The value is read from its
+#      key to the next top-level key, whatever its form: a string, an array, or an object.
 #
 # Only the default definition is read; a variant under a subdirectory of .devcontainer/ is not.
 # devcontainer.json allows comments, so full-line '//' comments are dropped before reading; a
@@ -40,13 +40,13 @@
 
 set -uo pipefail
 
+# shellcheck source-path=SCRIPTDIR source=lib/check.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/check.sh"
+
 ROOT="$(cd "${1:-$(dirname "${BASH_SOURCE[0]}")/..}" && pwd)"
 CONFIG=".devcontainer/devcontainer.json"
 LOCK=".devcontainer/devcontainer-lock.json"
 SETTINGS=".vscode/settings.json"
-
-errors=()
-add_error() { errors+=("$1"); }
 
 # uncommented <file> — the file without its full-line '//' comments.
 uncommented() { grep -vE '^[[:space:]]*//' "$1"; }
@@ -101,14 +101,6 @@ top_level_value() {
         if (capture && !is_key) printf "%s", c
       }
     }'
-}
-
-# _contains <needle> <haystack...> — true if needle equals one of the arguments.
-_contains() {
-  local needle="$1"; shift
-  local x
-  for x in "$@"; do [[ "$x" == "$needle" ]] && return 0; done
-  return 1
 }
 
 features=()

@@ -60,6 +60,7 @@ repo() {
   local dir="$work/$1" s
   mkdir -p "$dir/scripts" "$dir/src" "$dir/lib"
   cp "$RUNNER" "$dir/scripts/check-all.sh"
+  mkdir -p "$dir/scripts/lib" && cp "$ROOT/scripts/lib/git.sh" "$dir/scripts/lib/git.sh"
   for s in "${checks[@]}"; do stub "$dir" "$s" ""; done
   for s in "${tests[@]}"; do
     case "$s" in

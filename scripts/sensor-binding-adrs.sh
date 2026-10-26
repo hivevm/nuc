@@ -14,7 +14,9 @@
 # implementing session and the reviewer of AGENTS.md section 5 start from the same list.
 #
 # Pure bash + git. Usage:
-#     scripts/sensor-binding-adrs.sh [base [head]]
+#     scripts/sensor-binding-adrs.sh [--root <dir>] [base [head]]
+# It reads the repository it lives in, as the checks do; --root names another, as its self-test
+# does with each fixture.
 # Without a base, the merge base of head with origin/main (else main) is used; CI passes the
 # pull request's base. A base of zeros, which a push event reports for a new branch, counts as
 # none. Without a head, the change is the working tree, uncommitted and untracked files
@@ -25,23 +27,24 @@
 
 set -uo pipefail
 
+# shellcheck source-path=SCRIPTDIR source=lib/adr.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/adr.sh"
+# shellcheck source-path=SCRIPTDIR source=lib/git.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/git.sh"
+
+enter_root "Binding ADRs sensor" "${BASH_SOURCE[0]}" "$@"
+shift "$ROOT_TAKEN"
+
 base="${1:-}"
 head="${2:-}"
 worktree=0
 if [[ -z "$head" ]]; then
   head=HEAD
   worktree=1
-  cd "$(git rev-parse --show-toplevel)" || exit 2
 fi
 
 [[ "$base" =~ ^0+$ ]] && base=""
-if [[ -z "$base" ]]; then
-  for candidate in origin/main main; do
-    if git rev-parse --verify -q "$candidate^{commit}" >/dev/null; then
-      base="$(git merge-base "$candidate" "$head" 2>/dev/null)" && break
-    fi
-  done
-fi
+[[ -n "$base" ]] || base="$(main_merge_base "$head")"
 if [[ -z "$base" ]]; then
   echo "Binding ADRs sensor: nothing to compare — no base given and no main to compare with."
   exit 0
@@ -84,9 +87,9 @@ found=()
 while IFS= read -r file; do
   [[ -n "$file" ]] || continue
   text="$(show "$file")"
-  status="$(grep -m1 -E '^- \*\*Status:\*\*' <<< "$text")"
+  status="$(adr_field_line - Status <<< "$text")"
   [[ "$status" == *"🟢"* || "$status" == *"🟡"* ]] || continue
-  applies="$(grep -m1 -E '^- \*\*Applies to:\*\*' <<< "$text")"
+  applies="$(adr_field_line - 'Applies to' <<< "$text")"
   paths=()
   # shellcheck disable=SC2016  # the backticks are Markdown to match, not a command substitution
   while IFS= read -r token; do

@@ -11,6 +11,7 @@
 # skill is exercised with it: a claim in one repository, and a claim on a remote that a second
 # clone's claim of the same ticket loses, also when the branch there points at main itself.
 #
+# Verifies: ADR-0002
 # Inputs: scripts/sensor-plan-frontier.sh .agents/skills/work-tickets/claim.sh scripts/lib/
 #
 # Usage:
@@ -103,6 +104,12 @@ ticket "$d" docs/plan/s/01-first.md "None (can start immediately)" "unattended"
 ticket "$d" docs/plan/s/02-second.md "[01-first](01-first.md)" "unattended"
 expect 1 "a blocker written as a link fails rather than freeing its ticket" "$d" "docs/plan/s/02-second.md: '## Blocked by' names '- [01-first](01-first.md)'"
 
+# Verifies: ADR-0006
+d="$(repo name-with-space)"
+ticket "$d" "docs/plan/x/01-a b.md" "None (can start immediately)" "unattended"
+expect 1 "a ticket whose name the claim refuses fails rather than reaching the frontier" "$d" \
+  "docs/plan/x/01-a b.md: a name the claim refuses"
+
 # --- claims: the skill's claim script, in one repository and across two clones -------------
 
 # claim <dir> <ticket> [remote] — run the claim script in a fixture, or in its subdirectory
@@ -142,6 +149,12 @@ mkdir -p "$d/docs/plan/s/sub"
 SUBDIR=docs/plan/s/sub expect_claim 0 "a local claim succeeds from a subdirectory" "$d" docs/plan/s/01-first.md
 expect_claim 2 "a second local claim is refused" "$d" docs/plan/s/01-first.md
 expect 0 "a local claim takes the ticket off the frontier" "$d" "- docs/plan/s/01-first.md — ticket/s/01-first"
+# A local claim is the branch and nothing else: it points at main, with no commit of its own.
+if [[ "$(git -C "$d" rev-parse ticket/s/01-first)" == "$(git -C "$d" rev-parse main)" ]]; then
+  passed=$((passed + 1))
+else
+  failed=$((failed + 1)); echo "FAIL: a local claim creates a commit" >&2
+fi
 expect_claim 1 "a path that is no ticket is refused" "$d" docs/plan/s/spec.md
 
 seed="$(repo seed)"

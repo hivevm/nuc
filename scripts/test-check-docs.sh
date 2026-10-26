@@ -481,6 +481,17 @@ d="$(repo index-status)"
 adr "$d" 1 "🟢 accepted"
 expect fail "an index status that disagrees with the ADR" "$d" "status for '0001-decision.md'"
 
+# Verifies: ADR-0001
+d="$(repo header-not-a-list-item)"
+sed 's/^- \*\*Status:\*\*/**Status:**/' "$d/docs/adr/0001-decision.md" > "$d/adr.tmp" \
+  && mv "$d/adr.tmp" "$d/docs/adr/0001-decision.md"
+expect fail "a header field that is no list item" "$d" \
+  "0001-decision.md:3: a header field not written as the list item"
+d="$(repo header-field-quoted-in-body)"
+# shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
+echo 'A later ADR names this one in its `**Supersedes:**` field.' >> "$d/docs/adr/0001-decision.md"
+expect pass "a header field quoted in the body of an ADR" "$d"
+
 d="$(repo numbering-gap)"
 adr "$d" 3 "🟡 proposed"
 index_row 3 "🟡 proposed" >> "$d/docs/adr/README.md"

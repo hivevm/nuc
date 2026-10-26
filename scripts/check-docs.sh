@@ -44,7 +44,9 @@
 #      docs/adr/template.md — recognized by a needle read off that template, so rewording it
 #      cannot silently disable the check. Check 1 compares index and file emoji-to-emoji, so a
 #      leftover list of alternatives and a word contradicting its emoji both survive it — and the
-#      word is what a reader believes (docs/adr/README.md).
+#      word is what a reader believes (docs/adr/README.md). Every header field is the list item
+#      '- **<Name>:** …' of template.md, since scripts/lib/adr.sh reads only that form: a field
+#      in another form would pass here and be skipped by the binding ADRs sensor.
 #   8. Supersession agreement: the '**Supersedes:**' field of the new ADR and the '⚪ superseded by
 #      ADR-NNNN' status line of every old one it names — one, or several it consolidates — name
 #      each other. Both are written in the same pull request but in two files
@@ -116,12 +118,15 @@
 
 set -uo pipefail
 
+# shellcheck source-path=SCRIPTDIR source=lib/adr.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/adr.sh"
+# shellcheck source-path=SCRIPTDIR source=lib/check.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/check.sh"
+
 ROOT="$(cd "${1:-$(dirname "${BASH_SOURCE[0]}")/..}" && pwd)"
 ADR_DIR="$ROOT/docs/adr"
 ADR_INDEX="$ADR_DIR/README.md"
 
-errors=()
-add_error() { errors+=("$1"); }
 
 # Print the first legend status emoji (🟢 🟡 🔴 ⚪) read from stdin, if any.
 first_status_emoji() { grep -oE '🟢|🟡|🔴|⚪' | head -n1; }
@@ -135,15 +140,7 @@ table_cell() {
 # applies_to_of <adr file> — the content of its '**Applies to:**' header line, trimmed; empty
 # when the line is missing or blank.
 applies_to_of() {
-  grep -m1 -F '**Applies to:**' "$1" | sed -E 's/^.*\*\*Applies to:\*\*[[:space:]]*//; s/[[:space:]]+$//'
-}
-
-# _contains <needle> <haystack...> — true if needle equals one of the arguments.
-_contains() {
-  local needle="$1"; shift
-  local item
-  for item in "$@"; do [[ "$item" == "$needle" ]] && return 0; done
-  return 1
+  adr_field_line "$1" 'Applies to' | sed -E 's/^.*\*\*Applies to:\*\*[[:space:]]*//; s/[[:space:]]+$//'
 }
 
 # TEXT_FILES — every text file the repository consists of, absolute paths, sorted. Collected once
@@ -197,7 +194,7 @@ is_doc_file() {
 # the rejection. Verifying either one's references would demand that the tree still contain what
 # the project decided against, so the reference checks below skip them.
 is_inactive_adr() {
-  [[ "$1" == "$ADR_DIR"/* ]] && grep -m1 -F '**Status:**' "$1" | grep -qE '⚪|🔴'
+  [[ "$1" == "$ADR_DIR"/* ]] && adr_field_line "$1" Status | grep -qE '⚪|🔴'
 }
 
 check_adr_index() {
@@ -262,7 +259,7 @@ check_adr_index() {
       add_error "ADR index: lists '$f', but no such ADR file exists"
       continue
     fi
-    file_status="$(grep -m1 -F '**Status:**' "$ADR_DIR/$f" | first_status_emoji)"
+    file_status="$(adr_field_line "$ADR_DIR/$f" Status | first_status_emoji)"
     if [[ -z "$file_status" ]]; then
       add_error "$f: no '**Status:**' line with a status emoji found"
     elif [[ "$file_status" != "$status" ]]; then
@@ -326,11 +323,15 @@ instruction_needle() {
 # and emoji disagree passes there on the strength of the emoji — while the word is what a reader
 # believes. A missing or emoji-less status line is left to check_adr_index, which reports it.
 check_adr_headers() {
-  local f base line count emoji expected word needle
+  local f base line count emoji expected word needle stray
   needle="$(instruction_needle)"
   while IFS= read -r f; do
     base="$(basename "$f")"
-    line="$(grep -m1 -F '**Status:**' "$f")"
+    while IFS= read -r stray; do
+      [[ -n "$stray" ]] || continue
+      add_error "$base:${stray%%:*}: a header field not written as the list item '- **<Name>:** …' of template.md — every script reads only that form"
+    done < <(adr_stray_fields "$f")
+    line="$(adr_field_line "$f" Status)"
     emoji="$(printf '%s' "$line" | first_status_emoji)"
     if [[ -n "$emoji" ]]; then
       count="$(printf '%s' "$line" | grep -oE '🟢|🟡|🔴|⚪' | wc -l | tr -d ' ')"
@@ -378,14 +379,14 @@ check_adr_supersessions() {
   while IFS= read -r f; do
     base="$(basename "$f")"
     nr="${base%%-*}"
-    line="$(grep -m1 -F '**Status:**' "$f")"
+    line="$(adr_field_line "$f" Status)"
 
     # Forward: every ADR this one claims to supersede — one, or several whose decisions it
     # consolidates — must carry the matching status line.
     while IFS= read -r target; do
       target_file="$(find "$ADR_DIR" -maxdepth 1 -type f -name "${target#ADR-}-*.md" | head -n1)"
       if [[ -n "$target_file" ]]; then
-        back="$(superseding_number "$(grep -m1 -F '**Status:**' "$target_file")")"
+        back="$(superseding_number "$(adr_field_line "$target_file" Status)")"
         [[ "$back" == "$nr" ]] || add_error \
           "$(basename "$target_file"): $base supersedes it, but its status line does not say 'superseded by ADR-$nr'"
       fi
@@ -888,7 +889,7 @@ check_inherited_adrs() {
   while IFS= read -r f; do
     deciders="$(header_field "$f" Deciders)"
     grep -qF 'NUC maintainer' <<< "$deciders" || continue
-    status="$(grep -m1 -F '**Status:**' "$f" | first_status_emoji)"
+    status="$(adr_field_line "$f" Status | first_status_emoji)"
     [[ "$status" == "⚪" || "$status" == "🔴" ]] && continue
     base="$(basename "$f")"
     others="$(sed -E 's/^- \*\*Deciders:\*\*//; s/NUC maintainer//g; s/(^|[[:space:],])and([[:space:],]|$)/ /g; s/[[:space:],]//g' <<< "$deciders" | tr -d '\n')"
