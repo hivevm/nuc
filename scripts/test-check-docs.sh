@@ -594,6 +594,68 @@ d="$(repo consolidation-wrapped-half)"
 consolidation "$d" no wrap
 expect fail "a wrapped Supersedes field, the name on the second line not flipped" "$d" "0002-decision.md: 0003-decision.md supersedes it"
 
+# proposed_supersession <dir> <old status> — ADR 2, proposed, supersedes ADR 1, whose status line
+# and index row read as given.
+proposed_supersession() {
+  local dir="$1" old="$2"
+  adr "$dir" 1 "$old"
+  adr "$dir" 2 "🟡 proposed"
+  insert_before "$dir/docs/adr/0002-decision.md" "- **Applies to:**" \
+    "- **Supersedes:** [$(adr_id 1)](0001-decision.md)"
+  {
+    echo "# Architecture Decision Records"
+    echo
+    echo "### Binding"
+    echo
+    echo "| ADR | Title | Applies to | Status |"
+    echo "|-----|-------|------------|--------|"
+    [[ "$old" == ⚪* ]] || index_row 1 "$old"
+    index_row 2 "🟡 proposed"
+    echo
+    echo "### Superseded and rejected"
+    echo
+    echo "| ADR | Title | Applies to | Status |"
+    echo "|-----|-------|------------|--------|"
+    [[ "$old" == ⚪* ]] && index_row 1 "$old"
+  } > "$dir/docs/adr/README.md"
+}
+
+# Verifies: ADR-0001
+d="$(repo supersession-proposed)"
+proposed_supersession "$d" "🟢 accepted"
+expect pass "a proposed supersession, the old ADR still accepted" "$d"
+d="$(repo supersession-flipped-early)"
+proposed_supersession "$d" "⚪ superseded by $(adr_id 2)"
+expect fail "an old ADR flipped while its successor is only proposed" "$d" \
+  "0001-decision.md: superseded by $(adr_id 2), which is not accepted"
+
+# A chain: ADR 1 superseded by ADR 2, which ADR 3, accepted, supersedes in its turn.
+d="$(repo supersession-chain)"
+adr "$d" 1 "⚪ superseded by $(adr_id 2)"
+adr "$d" 2 "⚪ superseded by $(adr_id 3)"
+adr "$d" 3 "🟢 accepted"
+insert_before "$d/docs/adr/0002-decision.md" "- **Applies to:**" \
+  "- **Supersedes:** [$(adr_id 1)](0001-decision.md)"
+insert_before "$d/docs/adr/0003-decision.md" "- **Applies to:**" \
+  "- **Supersedes:** [$(adr_id 2)](0002-decision.md)"
+{
+  echo "# Architecture Decision Records"
+  echo
+  echo "### Binding"
+  echo
+  echo "| ADR | Title | Applies to | Status |"
+  echo "|-----|-------|------------|--------|"
+  index_row 3 "🟢 accepted"
+  echo
+  echo "### Superseded and rejected"
+  echo
+  echo "| ADR | Title | Applies to | Status |"
+  echo "|-----|-------|------------|--------|"
+  index_row 1 "⚪ superseded by $(adr_id 2)"
+  index_row 2 "⚪ superseded by $(adr_id 3)"
+} > "$d/docs/adr/README.md"
+expect pass "a chain of supersessions, the last successor accepted" "$d"
+
 d="$(repo section-ref)"
 echo "Cited in [\`AGENTS.md\` $(sect 9)](AGENTS.md#9-nowhere)." >> "$d/README.md"
 expect fail "a section reference that names no section" "$d" "matches no numbered section"
@@ -710,11 +772,11 @@ DRAFT="draft"
 # draft_id <slug> — the draft identifier of a slug, assembled for the same reason as adr_id.
 draft_id() { printf 'ADR-%s-%s' "$DRAFT" "$1"; }
 
-# drafted <dir> — ADR 1 superseded by the draft 'next', with both index rows and a link to the
-# draft from the README.
+# drafted <dir> — the draft 'next', proposed to supersede ADR 1, which stays accepted until the
+# draft is, with both index rows and a link to the draft from the README.
 drafted() {
   local dir="$1"
-  adr "$dir" 1 "⚪ superseded by [$(draft_id next)]($DRAFT-next.md)"
+  adr "$dir" 1 "🟢 accepted"
   {
     echo "# $(draft_id next): the next decision"
     echo
@@ -731,13 +793,8 @@ drafted() {
     echo
     echo "| ADR | Title | Applies to | Status |"
     echo "|-----|-------|------------|--------|"
+    index_row 1 "🟢 accepted"
     echo "| [$DRAFT-next]($DRAFT-next.md) | Next | everything | 🟡 proposed |"
-    echo
-    echo "## Superseded and rejected"
-    echo
-    echo "| ADR | Title | Applies to | Status |"
-    echo "|-----|-------|------------|--------|"
-    index_row 1 "⚪ superseded by $(draft_id next)"
   } > "$dir/docs/adr/README.md"
   echo "Decided in [$(draft_id next)](docs/adr/$DRAFT-next.md)." >> "$dir/README.md"
 }

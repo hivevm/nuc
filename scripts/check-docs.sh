@@ -51,12 +51,14 @@
 #      word is what a reader believes (docs/adr/README.md). Every header field is the list item
 #      '- **<Name>:** …' of template.md, since scripts/lib/adr.sh reads only that form: a field
 #      in another form would pass here and be skipped by the binding ADRs sensor.
-#   8. Supersession agreement: the '**Supersedes:**' field of the new ADR and the '⚪ superseded by
-#      ADR-NNNN' status line of every old one it names — one, or several it consolidates — name
-#      each other, by number or by draft identifier. Both are written in the same pull request but in two files
-#      (docs/adr/README.md), and check 1 cannot see a missing half: it only mirrors the index
-#      against whatever status the file carries. Every name of a Supersedes field counts, on
-#      whichever line it sits.
+#   8. Supersession agreement: once the new ADR is accepted, its '**Supersedes:**' field and the
+#      '⚪ superseded by ADR-NNNN' status line of every old one it names — one, or several it
+#      consolidates — name each other; the field names a draft by its identifier. While it is
+#      proposed or rejected, no old one names it as its successor: only a human changes a status,
+#      and the human flips the old lines when accepting the new one (docs/adr/README.md). A new
+#      ADR superseded in its turn counts as accepted, so a chain stays whole. Check 1 cannot
+#      see a missing half: it only mirrors the index against whatever status the file carries.
+#      Every name of a Supersedes field counts, on whichever line it sits.
 #   9. Check-list agreement: the jobs of .github/workflows/checks.yml and the required status
 #      checks named between the 'required-checks' markers in README.md list the same jobs, and
 #      the workflows under .github/workflows/ and scripts/check-all.sh run the same scripts. A
@@ -526,26 +528,31 @@ adr_refs() {
   done
 }
 
-# A supersession is written into two files in one pull request: the new ADR's '**Supersedes:**'
-# field and the old ADR's status line (docs/adr/README.md). Nothing else compares
-# them — check_adr_index only mirrors the index against whatever status a file carries, so a half
-# performed flip passes it. Both directions are verified here; a cited number that names no file
-# is left to check_adr_refs, which reports it repository-wide. A Supersedes field wraps at the
-# line width like any other header field, and a name on its second line counts.
+# A supersession is written into two files: the new ADR's '**Supersedes:**' field, from the
+# proposal on, and the old ADR's status line, which the human flips when accepting the new one
+# (docs/adr/README.md). Nothing else compares them — check_adr_index only mirrors the index
+# against whatever status a file carries, so a half performed flip passes it. Both directions
+# are verified here; a cited number that names no file is left to check_adr_refs, which reports
+# it repository-wide. A Supersedes field wraps at the line width like any other header field,
+# and a name on its second line counts.
 check_adr_supersessions() {
-  local f base nr line target target_file succ_file named
+  local f base nr line target target_file succ_file named accepted
   for f in "${ADR_LIST[@]}"; do
     base="${f##*/}"
     key_of "$f"
     nr="$KEY"
     line="${ADR_STATUS["$f"]-}"
 
-    # Forward: every ADR this one claims to supersede — one, or several whose decisions it
-    # consolidates — must carry the matching status line.
+    # Forward: once this one is accepted, every ADR it claims to supersede — one, or several
+    # whose decisions it consolidates — must carry the matching status line. One superseded in
+    # its turn was accepted before, and its own successor keeps the line it flipped.
+    status_emoji "$line"
+    accepted=0
+    [[ "$EMOJI" == "🟢" || "$EMOJI" == "⚪" ]] && accepted=1
     adr_refs "${ADR_SUPERSEDES["$f"]-}"
     for target in "${REFS[@]}"; do
       target_file="${ADR_BY_KEY["${target#ADR-}"]-}"
-      if [[ -n "$target_file" ]]; then
+      if [[ -n "$target_file" ]] && ((accepted)); then
         superseding_key "${ADR_STATUS["$target_file"]-}"
         [[ "$SUCCESSOR" == "$nr" ]] || add_error \
           "${target_file##*/}: $base supersedes it, but its status line does not say 'superseded by ADR-$nr'"
@@ -564,6 +571,10 @@ check_adr_supersessions() {
         named=0
         for target in "${REFS[@]}"; do [[ "$target" == "ADR-$nr" ]] && named=1; done
         ((named)) || add_error "${succ_file##*/}: $base says it supersedes, but it carries no '**Supersedes:**' field naming ADR-$nr"
+        # A successor superseded in its turn was accepted before: a chain of supersessions.
+        status_emoji "${ADR_STATUS["$succ_file"]-}"
+        [[ "$EMOJI" == "🟢" || "$EMOJI" == "⚪" ]] || add_error \
+          "$base: superseded by ADR-$SUCCESSOR, which is not accepted — the status line flips when the human accepts ADR-$SUCCESSOR"
       fi
     fi
   done
