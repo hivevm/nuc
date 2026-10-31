@@ -83,7 +83,10 @@ copy() {
 stage() { fixture "$1"; git -C "${1:?}" add -A; }
 
 # edit <dir> <file> <sed script> — apply one edit of the setup to the copy, where the file exists.
-edit() { [[ ! -f "$1/$2" ]] || { sed "$3" "$1/$2" > "$1/$2.tmp" && mv "$1/$2.tmp" "$1/$2"; }; }
+# The file is written in place, so it keeps its mode, a script its executable bit.
+edit() {
+  [[ ! -f "$1/$2" ]] || { sed "$3" "$1/$2" > "$1/$2.tmp" && cat "$1/$2.tmp" > "$1/$2" && rm "$1/$2.tmp"; }
+}
 
 # run_check <dir> <script> — run one check against the copy; prints its output and exit code.
 run_check() { fixture "$1"; bash "$ROOT/scripts/$2" "$1" 2>&1; }
@@ -155,7 +158,7 @@ close_setup() {
          /^> \[!NOTE\]$/ { held = $0; next }
          { print }
          END { if (held != "") print held }' "$d/README.md" > "$d/README.md.tmp" \
-      && mv "$d/README.md.tmp" "$d/README.md"
+      && cat "$d/README.md.tmp" > "$d/README.md" && rm "$d/README.md.tmp"
   fi
   edit "$d" README.md '/^> Setting the project up/,/^$/d'
   edit "$d" README.md '/^TEMPLATE-SETUP\.md /d'
@@ -465,7 +468,7 @@ ADR
          if (script in gone) next
        }
        { print }' "$d/job-scripts" "$d/scripts/check-all.sh" > "$d/check-all.new" \
-    && mv "$d/check-all.new" "$d/scripts/check-all.sh"
+    && cat "$d/check-all.new" > "$d/scripts/check-all.sh" && rm "$d/check-all.new"
   # The scripts only the job ran go with it, or check 9 finds them in neither list.
   while IFS= read -r f; do rm -f "${d:?}/$f"; done < "$d/job-scripts"
   rm "$d/job-scripts"
@@ -509,6 +512,8 @@ left="$(grep -l -e 'TEMPLATE-SETUP\.md' -e 'test-template-setup\.sh' \
 if [[ -z "$left" ]]; then pass; else fail "--close leaves a mention of the setup in: $left"; fi
 if grep -q 'Fixture keeps this note' "$d/README.md"; then pass
 else fail "--close removes a NOTE block of the project's own"; fi
+if [[ -x "$d/scripts/check-all.sh" ]]; then pass
+else fail "--close drops the executable bit of scripts/check-all.sh"; fi
 # A setup file deleted by hand: --close still removes the rest.
 d="$(copy close-after-hand)"
 edit "$d" README.md 's/^# NUC — .*/# Fixture/'
