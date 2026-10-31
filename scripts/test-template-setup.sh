@@ -18,7 +18,8 @@
 #   3. The same, on the path 'No Dev Container?' of 'A small project': ADR-0004 superseded and
 #      what the container brings removed as the path lists it. check-docs.sh and
 #      check-traceability.sh pass. It runs while the path is open, before a project has begun it.
-#   4. --close, run by a copy's own script: it refuses on the template's tree, and after step 1,
+#   4. --close, run by a copy's own script: it refuses on a copy that carries the template's title
+#      (the template's own README, or that title put back where step 1 removed it), and after step 1,
 #      also once the setup file was deleted by hand, removes what close_setup lists and keeps a
 #      NOTE block of the project's own.
 #
@@ -490,8 +491,13 @@ fi
 
 # --- case 4: --close, run by the copy's own script ---------------------------------------------
 
-# On the template's tree it refuses and removes nothing.
+# On the template's tree it refuses and removes nothing. On the template the copy keeps its own
+# README, so the refusal is tested against the title it ships. A derived project has replaced the
+# title at step 1, which also removed the template's badges, so its copy is given the title back.
 d="$(copy close-refused)"
+grep -q '^\[!\[.*hivevm/nuc/' "$d/README.md" \
+  || edit "$d" README.md '1i\
+# NUC — an Agentic, Specification-Oriented Starter Template'
 bash "$d/scripts/test-template-setup.sh" --close >/dev/null 2>&1
 rc=$?
 if ((rc == 2)) && [[ -f "$d/TEMPLATE-SETUP.md" ]]; then pass
