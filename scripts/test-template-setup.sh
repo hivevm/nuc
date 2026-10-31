@@ -215,7 +215,7 @@ PLACEHOLDERS=(
   "README.md|^## Why NUC$|README.md: the Why NUC section still presents the template"
   "README.md|^Describe what this project does|README.md: the Overview is still the scaffold's sentence"
   "README.md|^TODO — show a minimal example|README.md: the Usage section is still TODO"
-  "README.md|^\[!\[[^]]*\]\([^)]*hivevm/nuc|README.md: a badge still points at the template's repository"
+  "README.md|^\[!\[[^]]*\]\([^)]*hivevm/nuc([/)?#&]|\.svg|$)|README.md: a badge still points at the template's repository"
   ".devcontainer/devcontainer.json|\"name\": \"NUC DevContainer\"|devcontainer.json: the Dev Container still carries the template's name"
   "LICENSE|^Copyright .* Maintainer$|LICENSE: the copyright holder is still the placeholder"
   "SECURITY.md|TODO: add a security contact|SECURITY.md: the security contact is still the placeholder"
