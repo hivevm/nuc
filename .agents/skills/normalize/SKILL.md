@@ -24,8 +24,9 @@ Run in a fresh session. Name the entry point with the human:
 - **A template release:** a derived project takes up a later release. The inputs add the
   template's ADRs and specification scaffold at the tag the `Template release` line of
   [`README.md`](../../../README.md) names and at the new tag, and the release notes. What changed
-  between the two tags is what enters. A template ADR the release corrected in place enters
-  through the restatement, never as an edit of the project's accepted ADR outside it
+  between the two tags is what enters. A template ADR the release corrected in place enters by
+  the normalization, a correction that changes a decision as one of its
+  [supersessions](#3-the-supersessions), never as an edit of an accepted ADR outside a normalization
   ([ADR-0005](../../../docs/adr/0005-template-releases.md)). Where the project has normalized
   before, the maps in the commit bodies of its normalizations, read in order, say which of its
   ADRs restates which template ADR. `AGENTS.md` is taken up as the release has it, except the
