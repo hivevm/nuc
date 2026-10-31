@@ -746,6 +746,87 @@ d="$(repo build-job-inline)"
 build_job "$d" "make test"
 expect fail "a toolchain job with its commands inline and nothing in the local runner" "$d" "job 'build' runs no script under scripts/"
 
+# release <dir> [script] — a workflow that publishes, its steps inline, and with a script, a
+# step that runs it.
+release() {
+  printf 'on: [push]\njobs:\n  publish:\n    steps:\n      - run: make dist\n' \
+    > "$1/.github/workflows/release.yml"
+  [[ -z "${2:-}" ]] || echo "      - run: bash $2" >> "$1/.github/workflows/release.yml"
+}
+
+d="$(repo not-a-gate)"
+release "$d"
+echo '# Not a gate: .github/workflows/release.yml' >> "$d/scripts/check-all.sh"
+expect pass "a publishing workflow the local runner names as no gate, its steps inline" "$d"
+d="$(repo not-a-gate-unnamed)"
+release "$d"
+expect fail "a publishing workflow not named as no gate" "$d" \
+  "release.yml: job 'publish' runs no script under scripts/"
+d="$(repo not-a-gate-missing)"
+echo '# Not a gate: .github/workflows/gone.yml' >> "$d/scripts/check-all.sh"
+expect fail "a '# Not a gate:' line that names no workflow" "$d" \
+  "'# Not a gate: .github/workflows/gone.yml' names no workflow"
+d="$(repo not-a-gate-other-file)"
+echo '# Not a gate: README.md' >> "$d/scripts/check-all.sh"
+expect fail "a '# Not a gate:' line that names a file outside .github/workflows/" "$d" \
+  "'# Not a gate: README.md' names no workflow"
+d="$(repo not-a-gate-checks)"
+echo '# Not a gate: .github/workflows/checks.yml' >> "$d/scripts/check-all.sh"
+expect fail "a '# Not a gate:' line that names the required checks' workflow" "$d" \
+  "names the workflow of the required checks"
+d="$(repo not-a-gate-script)"
+echo 'echo sign' > "$d/scripts/sign.sh"
+release "$d" scripts/sign.sh
+echo '# Not a gate: .github/workflows/release.yml' >> "$d/scripts/check-all.sh"
+expect fail "a script a workflow that is no gate runs, and the local runner does not" "$d" \
+  "does not run 'scripts/sign.sh', which a workflow runs"
+
+# matrix_job <dir> <required names> — a toolchain job with a matrix in the workflow and the
+# local runner, and the README's required checks extended by the names given.
+# With 'flow', the strategy is written in flow style; with 'outputs', the job computes a matrix
+# as an output and has none of its own.
+matrix_job() {
+  local dir="$1" names="$2" style="${3:-}"
+  {
+    echo "  build:"
+    case "$style" in
+      flow) echo "    strategy: { fail-fast: false, matrix: { os: [ubuntu-latest, macos-latest] } }" ;;
+      outputs) echo "    outputs:"; echo "      matrix: \${{ steps.m.outputs.matrix }}" ;;
+      *) echo "    strategy:"; echo "      matrix:"; echo "        os: [ubuntu-latest, macos-latest]" ;;
+    esac
+    echo "    steps:"
+    echo "      - run: bash scripts/check-build.sh"
+  } >> "$dir/.github/workflows/checks.yml"
+  echo 'echo build' > "$dir/scripts/check-build.sh"
+  echo 'run "Build, test, lint" scripts/check-build.sh' >> "$dir/scripts/check-all.sh"
+  sed_in "$dir/README.md" "s|^\`docs\`\$|\`docs\`, $names|"
+}
+
+# Verifies: ADR-0002
+d="$(repo matrix-runs)"
+# shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
+matrix_job "$d" '`build (ubuntu-latest)`, `build (macos-latest)`'
+expect pass "a job with a matrix named by its check runs" "$d"
+d="$(repo matrix-bare)"
+# shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
+matrix_job "$d" '`build`'
+expect fail "a job with a matrix named by its bare name" "$d" \
+  "required check 'build' is a job with a matrix"
+d="$(repo matrix-flow)"
+# shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
+matrix_job "$d" '`build (ubuntu-latest)`, `build (macos-latest)`' flow
+expect pass "a strategy in flow style named by its check runs" "$d"
+d="$(repo matrix-output)"
+# shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
+matrix_job "$d" '`build`' outputs
+expect pass "a job that computes a matrix as an output, named by its name" "$d"
+d="$(repo matrix-none)"
+build_job "$d" "bash scripts/check-build.sh" local
+# shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
+sed_in "$d/README.md" 's|`build`|`build (ubuntu-latest)`|'
+expect fail "a check run named for a job without a matrix" "$d" \
+  "names a check run of 'build', which has no matrix"
+
 d="$(repo layout-stale)"
 sed_in "$d/README.md" 's|^docs/adr/ |docs/gone/ |'
 expect fail "a Project Layout entry that no longer exists" "$d" "is not a directory of this repository"

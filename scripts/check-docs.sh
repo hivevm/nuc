@@ -64,8 +64,11 @@
 #      the workflows under .github/workflows/ and scripts/check-all.sh run the same scripts. A
 #      check that runs in only one of them is a gate somebody believes in and does not have
 #      (AGENTS.md, section 5). A job that runs no script under scripts/ fails too: its commands
-#      run in CI and never in the local gate. So does a script under scripts/ that neither list
-#      runs, unless check-all.sh names it on an '# On instruction:' line.
+#      run in CI and never in the local gate; a workflow check-all.sh names on a '# Not a gate:'
+#      line, one that publishes rather than checks, is exempt, while the scripts it runs still
+#      count. So does a script under scripts/ that neither list runs, unless check-all.sh names
+#      it on an '# On instruction:' line. A job with a matrix reports one check run per entry, so
+#      the README names it by those, '<job> (<values>)', and never by its bare name.
 #  10. Project Layout integrity: every path listed in the 'Project Layout' block of README.md
 #      exists, a trailing '/' meaning a directory. The block is written by hand and nothing else
 #      tells a reader that one of its lines has gone stale. A path with a '*' matches at least one
@@ -947,19 +950,32 @@ check_check_lists() {
   # the local gate cannot: the toolchain job of a derived project, written that way, left the
   # pre-push hook without the build and the tests while the two lists still agreed.
   # Every workflow under .github/workflows/ counts for the scripts it runs; the jobs of checks.yml
-  # alone are the required checks.
-  local line job="" job_scripts=0 in_jobs=0 file rel is_checks
-  local wf_jobs=() wf_scripts=()
+  # alone are the required checks. A workflow that publishes rather than checks, such as a
+  # release, builds and uploads with commands of its own that no push could run; the local runner
+  # names it on a line '# Not a gate: .github/workflows/<file>', and its jobs may then run no
+  # script, while the scripts they do run still count. checks.yml is the gate and cannot be named.
+  local not_gate=() name
+  while IFS= read -r name; do
+    if [[ "$ROOT/$name" == "$wf" ]]; then
+      add_error "$rel_all: '# Not a gate: $name' names the workflow of the required checks"
+    elif [[ ! "$name" =~ ^\.github/workflows/[A-Za-z0-9._-]+\.ya?ml$ || ! -f "$ROOT/$name" ]]; then
+      add_error "$rel_all: '# Not a gate: $name' names no workflow of this repository"
+    fi
+    not_gate+=("$name")
+  done < <(sed -n 's/^#[[:space:]]*Not a gate:[[:space:]]*\([^[:space:]]*\).*/\1/p' "$all")
+  local line job="" job_scripts=0 in_jobs=0 file rel is_checks is_gate key=""
+  local wf_jobs=() wf_scripts=() matrix_jobs=()
   # job_done — report the job just parsed when none of its steps ran a script.
   job_done() {
-    [[ -n "$job" ]] && ((job_scripts == 0)) \
+    [[ -n "$job" ]] && ((is_gate && job_scripts == 0)) \
       && add_error "$rel: job '$job' runs no script under scripts/ — the local gate cannot run what it does"
     job=""
   }
   for file in "$ROOT"/.github/workflows/*.yml "$ROOT"/.github/workflows/*.yaml; do
     [[ -f "$file" ]] || continue
-    rel="${file#"$ROOT"/}" in_jobs=0 job="" job_scripts=0 is_checks=0
+    rel="${file#"$ROOT"/}" in_jobs=0 job="" job_scripts=0 is_checks=0 is_gate=1
     [[ "$file" == "$wf" ]] && is_checks=1
+    _contains "$rel" "${not_gate[@]}" && is_gate=0
     while IFS= read -r line; do
       [[ "$line" == "jobs:"* ]] && { in_jobs=1; continue; }
       ((in_jobs)) || continue
@@ -968,7 +984,17 @@ check_check_lists() {
         job="${BASH_REMATCH[1]}"
         job_scripts=0
         ((is_checks)) && wf_jobs+=("$job")
+        key=""
         continue
+      fi
+      # A job with a matrix reports one check run per entry, '<job> (<values>)', never '<job>'.
+      # The matrix is the one under the job's 'strategy:', in block or in flow style; a 'matrix'
+      # elsewhere, such as an output that computes one, is no strategy of this job.
+      [[ "$line" =~ ^\ {4}([a-z][a-z-]*): ]] && key="${BASH_REMATCH[1]}"
+      if ((is_checks)) && [[ -n "$job" ]] \
+        && { [[ "$key" == strategy && "$line" =~ ^\ {6}matrix: ]] \
+          || [[ "$line" =~ ^\ {4}strategy:.*[{,][[:space:]]*matrix: ]]; }; then
+        _contains "$job" "${matrix_jobs[@]}" || matrix_jobs+=("$job")
       fi
       [[ "$line" =~ run:[[:space:]]+bash[[:space:]]+(scripts/[A-Za-z0-9._-]+\.sh) ]] \
         && { wf_scripts+=("${BASH_REMATCH[1]}"); job_scripts=$((job_scripts + 1)); }
@@ -1014,10 +1040,12 @@ check_check_lists() {
       || add_error "$s: no workflow and not $rel_all runs it — add it to both lists, or name it on an '# On instruction:' line of $rel_all"
   done < <(find "$ROOT/scripts" -maxdepth 1 -type f -name '*.sh' | LC_ALL=C sort)
 
-  # The README: the job names fenced by the 'required-checks' markers, which a maintainer copies
-  # into the ruleset. Rulesets name checks by job name, so a name that is not a job is a required
-  # check that never reports and blocks every pull request.
-  local in_block=0 name readme_names=()
+  # The README: the check names fenced by the 'required-checks' markers, which a maintainer copies
+  # into the ruleset. Rulesets name checks as they report: a job by its name, a job with a matrix
+  # by one check run per entry, '<job> (<values>)'. A name that does not report is a required
+  # check that never arrives and blocks every pull request. Which values a matrix has is the
+  # workflow's; the check holds only the form.
+  local in_block=0 readme_names=() readme_jobs=() base
   while IFS= read -r line; do
     [[ "$line" == *"required-checks begin"* ]] && { in_block=1; continue; }
     [[ "$line" == *"required-checks end"* ]] && { in_block=0; continue; }
@@ -1025,7 +1053,7 @@ check_check_lists() {
     # shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
     while IFS= read -r name; do
       readme_names+=("$name")
-    done < <(grep -oE '`[a-z][a-z0-9-]*`' <<< "$line" | tr -d '`')
+    done < <(grep -oE '`[a-z][a-z0-9-]*( \([^`()]+\))?`' <<< "$line" | tr -d '`')
   done < "$readme"
   if ((${#readme_names[@]} == 0)); then
     add_error "README.md: no job names between the 'required-checks' markers — the required status checks are unverifiable"
@@ -1033,11 +1061,18 @@ check_check_lists() {
   fi
 
   for name in "${readme_names[@]}"; do
-    _contains "$name" "${wf_jobs[@]}" \
-      || add_error "README.md: required check '$name' is not a job of $rel_wf — a ruleset would wait for a check that never reports"
+    base="${name%% (*}"
+    readme_jobs+=("$base")
+    if ! _contains "$base" "${wf_jobs[@]}"; then
+      add_error "README.md: required check '$name' is not a job of $rel_wf — a ruleset would wait for a check that never reports"
+    elif [[ "$name" == "$base" ]] && _contains "$base" "${matrix_jobs[@]}"; then
+      add_error "README.md: required check '$name' is a job with a matrix, which reports as '$name (<values>)' — name each check run"
+    elif [[ "$name" != "$base" ]] && ! _contains "$base" "${matrix_jobs[@]}"; then
+      add_error "README.md: required check '$name' names a check run of '$base', which has no matrix and reports as '$base'"
+    fi
   done
   for job in "${wf_jobs[@]}"; do
-    _contains "$job" "${readme_names[@]}" \
+    _contains "$job" "${readme_jobs[@]}" \
       || add_error "README.md: job '$job' of $rel_wf is missing from the required checks — it would run without gating a merge"
   done
 }
