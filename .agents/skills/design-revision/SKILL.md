@@ -94,5 +94,7 @@ found, a ticket per rule to drop, a ticket per check to write, a `proposed` ADR 
 specification change as a ticket whose *Mode* is "with the human". The tickets go into
 `docs/plan/revision-<YYYY-MM-DD>/`, in the shape of the `plan-feature` skill's ticket template,
 without a spec. Move the `Last design
-revision` line of [`docs/ARCHITECTURE.md`](../../../docs/ARCHITECTURE.md) to today's date. Then
+revision` line of [`docs/ARCHITECTURE.md`](../../../docs/ARCHITECTURE.md) to today's date; where
+it reads today's date already, add this revision's ordinal of the day after it, `(2)` for the
+second. Then
 delete the `spec.md` of a spec in scope: it is closed.
