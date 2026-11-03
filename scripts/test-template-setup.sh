@@ -162,7 +162,7 @@ close_setup() {
       && cat "$d/README.md.tmp" > "$d/README.md" && rm "$d/README.md.tmp"
   fi
   edit "$d" README.md '/^> Setting the project up/,/^$/d'
-  edit "$d" README.md '/^TEMPLATE-SETUP\.md /d'
+  edit "$d" CONTRIBUTING.md '/^TEMPLATE-SETUP\.md /d'
   edit "$d" scripts/check-all.sh '/ scripts\/test-template-setup\.sh$/d'
   # The step and its comment line by line, so an edited step never widens what goes.
   edit "$d" .github/workflows/checks.yml '/^# - Template setup/d
@@ -234,7 +234,7 @@ PLACEHOLDERS=(
   "README.md|^- \*\*(Build|Test|Lint|Run):\*\* TODO|README.md: a Build, Test, Lint, or Run command is still TODO"
   "docs/adr/0001-agent-governance-model.md|^- \*\*Deciders:\*\* NUC maintainer$|inherited from the template and not decided by this project"
   "README.md|\(TEMPLATE-SETUP\.md\)|README.md: broken relative link -> 'TEMPLATE-SETUP.md'"
-  "README.md|^TEMPLATE-SETUP\.md |README.md: Project Layout lists 'TEMPLATE-SETUP.md'"
+  "CONTRIBUTING.md|^TEMPLATE-SETUP\.md |CONTRIBUTING.md: Project Layout lists 'TEMPLATE-SETUP.md'"
   ".agents/skills/setup-project/SKILL.md|\(\.\./\.\./\.\./TEMPLATE-SETUP\.md\)|.agents/skills/setup-project/SKILL.md: broken relative link -> '../../../TEMPLATE-SETUP.md'"
 )
 
@@ -368,7 +368,7 @@ setup_steps() {
   # The project's first part at the top level, named in the Project Layout as the setup says.
   mkdir -p "$d/src" && echo "echo fixture" > "$d/src/fixture.sh"
   awk '{ print } /^README\.md / && !done { print "src/                  # the fixture'"'"'s code"; done = 1 }' \
-    "$d/README.md" > "$d/README.md.tmp" && mv "$d/README.md.tmp" "$d/README.md"
+    "$d/CONTRIBUTING.md" > "$d/CONTRIBUTING.md.tmp" && mv "$d/CONTRIBUTING.md.tmp" "$d/CONTRIBUTING.md"
 }
 
 d="$(copy complete)"
@@ -477,12 +477,12 @@ ADR
   awk '/^  devcontainer:$/ { skip = 1; next } skip && /^  [a-z][a-z0-9-]*:$/ { skip = 0 } !skip' \
     "$d/.github/workflows/checks.yml" > "$d/checks.yml.new" && mv "$d/checks.yml.new" "$d/.github/workflows/checks.yml"
   # shellcheck disable=SC2016  # the backticks are Markdown, not a command substitution
-  edit "$d" README.md 's/`devcontainer`, //'
+  edit "$d" CONTRIBUTING.md 's/`devcontainer`, //'
   edit "$d" .vscode/settings.json '/^  \/\/ Manage the \*host/,/^  }$/d'
   edit "$d" .gitignore '/^# Dev Container:/,/(ADR-0004)\.$/d'
-  edit "$d" README.md '/^## Dev Container$/,/^## Coding Agents$/{/^## Coding Agents$/!d;}'
-  edit "$d" README.md '/^\.devcontainer\/ /d'
-  edit "$d" README.md '/^This Dev Container preinstalls/,/^$/d'
+  edit "$d" CONTRIBUTING.md '/^## Dev Container$/,/^## Coding Agents$/{/^## Coding Agents$/!d;}'
+  edit "$d" CONTRIBUTING.md '/^\.devcontainer\/ /d'
+  edit "$d" CONTRIBUTING.md '/^This Dev Container preinstalls/,/^$/d'
   edit "$d" SECURITY.md '/^- \*\*The Dev Container has no access/,/^- \*\*Nothing leaves/{/^- \*\*Nothing leaves/!d;}'
   stage "$d"
   expect_pass "the small-project path passes the documentation checks" "$d" check-docs.sh
