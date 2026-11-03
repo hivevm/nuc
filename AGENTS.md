@@ -141,7 +141,9 @@ restates nothing. A rule this file does not state is not a rule of this project.
   first* names. A degraded session hands off.
 - **Session artifacts are not tracked.** Session plans, handoff notes, and scratch files live under
   `.scratch/` (gitignored) or outside the tree. What has to outlive the session becomes a ticket,
-  a `proposed` ADR, or a change to one of the six documents of ADR-0001.
+  a `proposed` ADR, or a change to one of the six documents of ADR-0001. An agent's own memory
+  keeps how the human works, not the state of the work, which the tree and its history hold:
+  every session loads that memory first.
 - **Research before a decision that is costly to reverse,** external sources included. Cite them
   in the ADR. Below that bar, research what you are actually unsure of. Never pass off recalled
   interfaces, versions, or defaults as verified.

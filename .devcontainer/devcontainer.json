@@ -2,8 +2,8 @@
   "name": "NUC DevContainer",
 
   "image": "mcr.microsoft.com/devcontainers/base:debian",
-  "workspaceFolder": "/workspace",
-  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+  // No workspaceFolder or workspaceMount: the default, /workspaces/<directory name>, keeps each
+  // project under a path of its own, and an agent keys its memory by the path (ADR-0004).
 
   "remoteUser": "vscode",
   "containerEnv": {

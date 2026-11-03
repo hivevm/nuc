@@ -25,6 +25,10 @@
 #      the README and SECURITY.md hold in the container because it enables them on every start,
 #      the container's share of the local gate (ADR-0002, ADR-0004). The value is read from its
 #      key to the next top-level key, whatever its form: a string, an array, or an object.
+#   6. Mount path: 'workspaceFolder' and the target of 'workspaceMount', where the file sets them,
+#      are '/workspaces/${localWorkspaceFolderBasename}', the default of Dev Containers, so that
+#      every project sits under a path of its own and an agent's memory, keyed by that path,
+#      stays with it (ADR-0004).
 #
 # Only the default definition is read; a variant under a subdirectory of .devcontainer/ is not.
 # devcontainer.json allows comments, so full-line '//' comments are dropped before reading; a
@@ -146,6 +150,23 @@ else
     [[ "$post" == *"git config $setting"* ]] \
       || add_error "$CONFIG: postStartCommand does not run 'git config $setting' — the git hooks and the merge settings they rely on are enabled on every start (README, Git hooks)"
   done
+
+  # 6. Mount path: a key the file leaves out takes the default, which is the path itself.
+  # shellcheck disable=SC2016  # the variable is devcontainer.json's, not the shell's
+  own='/workspaces/${localWorkspaceFolderBasename}'
+  folder="$(top_level_value "$ROOT/$CONFIG" workspaceFolder)"
+  [[ -z "$folder" || "$folder" == *"\"$own\""* ]] \
+    || add_error "$CONFIG: workspaceFolder is not '$own' — a path every project shares gives every project one agent memory (ADR-0004)"
+  # The target is one of the mount's comma-separated options, under any of its names.
+  mount="$(top_level_value "$ROOT/$CONFIG" workspaceMount | tr -d '" \t\n')"
+  mount_own=0
+  [[ -z "$mount" ]] && mount_own=1
+  IFS=',' read -ra options <<< "$mount"
+  for option in "${options[@]}"; do
+    case "${option#:}" in target="$own" | dst="$own" | destination="$own") mount_own=1 ;; esac
+  done
+  ((mount_own)) \
+    || add_error "$CONFIG: workspaceMount does not target '$own' — a path every project shares gives every project one agent memory (ADR-0004)"
 fi
 
 # 4. Host side: the pair has to sit inside the 'remote.extensionKind' object, so the text is
@@ -163,5 +184,5 @@ if ((${#errors[@]})); then
   exit 1
 fi
 
-echo "Dev Container check passed (${#features[@]} Features pinned and locked, no host socket, git hooks enabled)."
+echo "Dev Container check passed (${#features[@]} Features pinned and locked, no host socket, git hooks enabled, a path of its own)."
 exit 0
