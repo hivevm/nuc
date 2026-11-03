@@ -31,21 +31,25 @@ over speed and cleverness:
 
 ## 2. Start here
 
-Before any non-trivial work, read:
+Before any non-trivial work, read the decisions that bind it, and of the rest only what the work
+needs.
 
-1. [`docs/SPECIFICATION.md`](docs/SPECIFICATION.md): problem, goals, success criteria, in the
-   vocabulary of [`docs/GLOSSARY.md`](docs/GLOSSARY.md).
-2. [`docs/adr/README.md`](docs/adr/README.md): the ADR index. **Accepted ADRs are binding.** Read
-   every one whose *Applies to* names what your change touches.
-   [`scripts/sensor-binding-adrs.sh`](scripts/sensor-binding-adrs.sh) lists those that name one
-   of its paths. An *Applies to* written in prose you match yourself. Of each binding ADR, read
-   the header, the *Decision*, and the *Enforcement*. Read the rest when the change questions,
-   revises, or supersedes it. A `proposed` ADR binds the work that implements it. Rejected and
-   superseded ADRs explain *why*; they are not rules.
-3. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): the system as it stands today. Where it and an
-   accepted ADR disagree, the ADR is right.
+1. **The ADRs.** Run [`scripts/sensor-binding-adrs.sh`](scripts/sensor-binding-adrs.sh)
+   `--sections`, with a `--path` for each path the work will touch while nothing has changed yet.
+   Read what it prints, from the index [`docs/adr/README.md`](docs/adr/README.md) and the ADRs.
+   **Accepted ADRs are binding.** Match an *Applies to* written in prose against the work yourself,
+   and read the header, *Decision*, and *Enforcement* of each that binds it. Read the rest of an ADR
+   when the change questions, revises, or supersedes it, and the mechanics of the index when the
+   change writes one. A `proposed` ADR binds the work that implements it. Rejected and superseded
+   ADRs explain *why*; they are not rules.
+2. [`docs/SPECIFICATION.md`](docs/SPECIFICATION.md): problem, goals, success criteria, in the
+   vocabulary of [`docs/GLOSSARY.md`](docs/GLOSSARY.md). Read it when the work serves or moves a
+   goal (`G-n`, `Q-n`), plans a feature, or decides an ADR.
+3. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): the system as it stands today. Read it when the
+   work changes the structure or has to find its way in it. Where it and an accepted ADR
+   disagree, the ADR is right.
 
-Scaffold text in those documents is the first work: a placeholder title, an empty section, a
+Scaffold text in what the work reads is the first work: a placeholder title, an empty section, a
 `TODO`. Say so, and elaborate it with the human before implementing.
 
 ## 3. ADR rules
