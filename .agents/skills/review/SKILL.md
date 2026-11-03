@@ -1,6 +1,6 @@
 ---
 name: review
-description: Review a change in a fresh context before it is handed off for its merge. Use when a change is ready to hand off, when the human asks for a review, or when you are the second session or subagent given a diff to judge. The session that wrote the change never runs this on its own work.
+description: Review a change in a fresh context before its hand-off. Use when a change is ready to hand off, when the human asks for a review, or when you are the session or subagent given a diff to judge — never on your own work.
 ---
 
 # Review a change

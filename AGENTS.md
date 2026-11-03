@@ -196,15 +196,13 @@ restates nothing. A rule this file does not state is not a rule of this project.
   Pushing, `gh`, and anything that rewrites or discards history (`reset`, `rebase`, `merge`,
   `restore`, `clean`) wait for an instruction. The instruction names the action and implies no
   next one. A standing instruction may cover one push only: the claim on a ticket across clones,
-  where the harness ADR grants it. A claim reserves a ticket by creating its branch and
-  nothing else; across clones, with an empty commit. The session releases a local claim, a
-  human one on a remote ([ADR-0006](docs/adr/0006-feature-layer.md)). The git hooks
-  under [`.githooks/`](.githooks/) enforce what a file can of this section and of
-  [§5](#5-quality-bar--definition-of-done); what each refuses is under
-  [Git hooks](README.md#git-hooks). **An agent never bypasses this repository's hooks:** no
-  `--no-verify`, no git run without them, no hand-moved `origin/main`, no hand-written record of
-  a green tree. The one exception is the push of a claim, which skips the pre-push hook. A human
-  may bypass one, deliberately.
+  where the harness ADR grants it. The session releases a local claim, a human one on a remote
+  ([ADR-0006](docs/adr/0006-feature-layer.md)). The git hooks under [`.githooks/`](.githooks/)
+  enforce what a file can of this section and of [§5](#5-quality-bar--definition-of-done); what
+  each refuses is under [Git hooks](README.md#git-hooks). **An agent never bypasses this
+  repository's hooks:** no `--no-verify`, no git run without them, no hand-moved `origin/main`, no
+  hand-written record of a green tree. The one exception is the push of a claim, which skips the
+  pre-push hook. A human may bypass one, deliberately.
 - **A rule is enforced only by what every agent hits:** the git hooks, the checks, and the
   repository settings. A tool's own configuration enforces none, because a gate one agent
   honours and the next does not looks like a rule and is not one. It may close a path for its
@@ -216,14 +214,12 @@ restates nothing. A rule this file does not state is not a rule of this project.
   is listed under [Repository settings](README.md#repository-settings).
 - **Branches may integrate first on a `feat/` branch,** on the human's instruction, after the
   review of [§5](#5-quality-bar--definition-of-done): by a local merge, or by a pull request
-  against the `feat/` branch, whose pipelines run what the local gate cannot, such as another
-  platform or a service. Each integrated branch is one merge commit, whose message is the
+  against the `feat/` branch. Each integrated branch is one merge commit, whose message is the
   hand-off of the change and fills the sections of the
   [pull request template](.github/PULL_REQUEST_TEMPLATE.md). Until the `feat/` branch's pull
-  request into `main` merges, all of it is the human's to rework, what pull requests merged into
-  it included: rebased, regrouped, or cut down, and pushed again by the human with
-  `--force-with-lease`. What has reached `main` is never rewritten. The steps are under
-  [Integration branches](README.md#integration-branches).
+  request into `main` merges, all of it is the human's to rework and push again, what pull
+  requests merged into it included. What has reached `main` is never rewritten. The steps are
+  under [Integration branches](README.md#integration-branches).
 
 ## 7. Secrets
 

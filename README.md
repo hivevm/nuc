@@ -240,7 +240,8 @@ Each step waits for a human's instruction.
    documentation check gates the merge, and the push of step 6 runs the rest. One that stops on a
    conflict is concluded, once resolved and staged, with `git commit -F .scratch/<hand-off>.md`,
    and all the checks gate that commit.
-3. Or merge it by a pull request against the `feat/` branch, so that its pipelines run first
+3. Or merge it by a pull request against the `feat/` branch, so that its pipelines run what the
+   local gate cannot, such as another platform or a service
    ([`AGENTS.md` §6](AGENTS.md#6-project-rules)). With both branches pushed, on the branch:
    `gh pr create --base feat/<topic> --body-file .scratch/<hand-off>.md`, and once it is green,
    `gh pr merge <number> --merge --body-file .scratch/<hand-off>.md`, never by the web interface,

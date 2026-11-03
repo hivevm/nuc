@@ -1,6 +1,6 @@
 ---
 name: plan-feature
-description: Plan work larger than one agent session in the tree under docs/plan/ — a feature spec cut into tracer-bullet tickets, files deleted when their work lands. Use when a request will not fit one session, or when the human asks for a spec, tickets, or a plan.
+description: Plan work larger than one agent session under docs/plan/ as a feature spec cut into tracer-bullet tickets. Use when a request will not fit one session, or when the human asks for a spec, tickets, or a plan.
 ---
 
 # Plan a feature

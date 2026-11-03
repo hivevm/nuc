@@ -1,6 +1,6 @@
 ---
 name: setup-project
-description: Set a project up from this template interactively, one question at a time — the profile (small or complex), the identity, the inherited ADRs, the specification written with the human section by section, the founding decisions, and the remaining steps of TEMPLATE-SETUP.md. Use when TEMPLATE-SETUP.md exists and the human starts or initialises a project, or asks to write its specification from the beginning. Deleted together with TEMPLATE-SETUP.md.
+description: Set a project up from this template interactively, one question at a time, through the steps of TEMPLATE-SETUP.md. Use when TEMPLATE-SETUP.md exists and the human starts or initialises a project, or asks to write its specification from the beginning.
 ---
 
 # Set the project up

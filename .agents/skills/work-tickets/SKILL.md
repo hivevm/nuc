@@ -1,6 +1,6 @@
 ---
 name: work-tickets
-description: Work the tickets under docs/plan/ — one ticket in a session of its own, or several at once, each claimed by its branch in a worktree of its own and worked by a fresh agent session. Use when a session is to pick up a ticket, when the human asks to work the plan or to run agents in parallel, or when you are started in a worktree with a ticket path.
+description: Work the tickets under docs/plan/, each claimed by its branch and worked in a fresh session, alone or several in parallel worktrees. Use when a session is to pick up a ticket, when the human asks to work the plan or to run agents in parallel, or when you are started in a worktree with a ticket path.
 ---
 
 # Work tickets

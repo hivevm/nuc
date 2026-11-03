@@ -1,6 +1,6 @@
 ---
 name: design-revision
-description: Revisit the design of what recent work touched — the tickets of a feature spec, or the changes counted since the last revision — survey the modules for entropy, check the architecture overview against the tree, read the ADRs that bind the modules and the criteria the work served against the system, turn the mistakes made on the way into checks, and drop what nothing justified. Use when a feature spec's tickets have all merged, when scripts/sensor-revision-due.sh reports the revision DUE, or when the human asks for a retro or an architecture review.
+description: Revisit the design of what recent work touched — its modules, the architecture overview, and the ADRs and criteria that bind them. Use when a feature spec's tickets have all merged, when scripts/sensor-revision-due.sh reports the revision DUE, or when the human asks for a retro or an architecture review.
 ---
 
 # Revise the design

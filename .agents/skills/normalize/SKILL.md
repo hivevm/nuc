@@ -1,6 +1,6 @@
 ---
 name: normalize
-description: Normalize the project on a human's instruction — restate the specification, then rewrite the ADRs in force as a new series in reading order, inherited ones included, with superseded and rejected ADRs deleted and every reference moved by a map. Use when the human asks to normalize, consolidate, or renumber the record, when an existing project takes up this template, or when a derived project takes up a template release.
+description: Restate the specification and rewrite the ADRs in force as a new series, dead ADRs deleted and references moved by a map. Use only on a human's instruction to normalize, consolidate, or renumber the record, or when an existing project takes up this template or a template release.
 ---
 
 # Normalize the project
