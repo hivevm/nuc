@@ -9,9 +9,9 @@
 # overview adds the line with this date, its ordinal included; the history, not the clock, says
 # where the count starts, so a commit made later on the same day counts and a change of the number
 # alone does not reset it. A second revision on one day writes its ordinal after the date, '(2)',
-# which the count then starts from. A date not yet committed counts nothing. When the revision is due, the directories those
-# commits touched are listed with the number of changes each, the scope the design-revision
-# skill takes; a path that no longer exists is no scope and is left out. It reports and never
+# which the count then starts from. A date not yet committed counts nothing. When the revision
+# is due, the directories those commits touched are listed with the number of changes each, the
+# scope the design-revision skill takes; a path that no longer exists is no scope and is left out. It reports and never
 # fails on the count; it fails when the line is missing or unreadable, because then it measures
 # nothing.
 #
