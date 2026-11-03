@@ -22,6 +22,10 @@ Without a spec, when [`scripts/sensor-revision-due.sh`](../../../scripts/sensor-
 says the revision is due, the scope is the directories it lists: the changes since the last
 revision. One session, one count.
 
+When the sensor says the revision is due as a spec's revision begins, that revision takes the
+directories it lists too: moving the line resets the count, and changes no spec covered would
+otherwise go unrevised.
+
 ## 2. Survey the modules
 
 For each module touched, look for what a single change cannot see and a check does not:
