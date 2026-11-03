@@ -7,8 +7,8 @@
 > ([ADR-0001](adr/0001-agent-governance-model.md)).
 >
 > **Last design revision:** 2026-10-25, due after 20 changes. The revision that took the count
-> moves the date; the number is this project's to set; a sensor counts the changes outside `docs/` since
-> the commit that set the date and says when the next is due
+> moves the date; the number is this project's to set; a sensor counts the changes outside
+> `docs/` since the commit that set the date and says when the next is due
 > ([ADR-0006](adr/0006-feature-layer.md)).
 
 ## Context
