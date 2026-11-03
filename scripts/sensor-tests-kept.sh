@@ -38,7 +38,7 @@ shift "$ROOT_TAKEN"
 # MARKERS — per toolchain of the catalogue entry Toolchain, the extensions of its files and the
 # skip and focus markers read in them, one 'extensions<TAB>regex' a line.
 MARKERS="$(cat <<'TABLE'
-java kt kts groovy scala	@Disabled|@Ignore|enabled *= *false
+java kt kts groovy gradle scala	@Disabled|@Ignore|enabled *= *false
 js jsx mjs cjs ts tsx mts cts vue svelte	(^|[^A-Za-z0-9_.])(it|test|describe|context)\.(skip|only)\(|(^|[^A-Za-z0-9_.])(xit|xtest|xdescribe|fit|fdescribe|ftest)\(
 py	pytest\.mark\.skip|pytest\.skip\(|unittest\.skip
 go	t\.Skip[a-zA-Z]*\(
@@ -86,7 +86,7 @@ done < <(git diff --name-status -M --diff-filter=DR "$base" "$head")
 # and are left out.
 while IFS= read -r hit; do
   findings+=("skip or focus marker added: $hit")
-done < <(git diff -U0 --no-color "$base" "$head" -- . \
+done < <(git -c core.quotePath=false diff -U0 --no-color "$base" "$head" -- . \
            ':(exclude)scripts/sensor-tests-kept.sh' ':(exclude)scripts/test-sensor-tests-kept.sh' \
            ':(exclude).agents/skills/propose-adr/concepts/toolchain.md' \
          | MARKERS="$MARKERS" awk '
@@ -99,7 +99,8 @@ done < <(git diff -U0 --no-color "$base" "$head" -- . \
                }
              }
              /^\+\+\+ / {
-               file = substr($0, 7)
+               # A path with a space ends in a tab, which is no part of it.
+               file = substr($0, 7); sub(/\t$/, "", file)
                ext = tolower(file); sub(/^.*\//, "", ext)
                ext = (ext ~ /\./) ? ext : ""; sub(/^.*\./, "", ext)
                re = (ext in markers) ? markers[ext] : ""

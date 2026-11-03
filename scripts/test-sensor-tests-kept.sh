@@ -137,7 +137,7 @@ while IFS='|' read -r _ toolchain _ _ _ _ skipped _; do
   esac
   printf '%s\n' "${markers[@]}" >> "$d/$file"
   named=$((named + ${#markers[@]}))
-done < <(grep '^| ' "$ROOT/.agents/skills/propose-adr/concepts/toolchain.md" | tail -n +3)
+done < <(grep '^| ' "$ROOT/.agents/skills/propose-adr/concepts/toolchain.md" | grep -v '^| Toolchain |')
 commit "$d" "every marker the catalogue names, each in a file of its toolchain"
 if ((${#unknown[@]})); then
   failed=$((failed + 1)); echo "FAIL: catalogue rows with a diff rule and no file here:${unknown[*]}" >&2
@@ -158,6 +158,14 @@ commit "$d" "fit in Rust and as a method, a focus and an ignore where they are m
 expect 0 "a marker is read only in the files of its toolchain" "$d" "2 finding(s)"
 expect 0 "a focus marker in TypeScript is reported" "$d" "src/b.spec.ts:2: fit("
 expect 0 "an ignore in Rust is reported" "$d" "tests/y_test.rs:1: #[ignore]"
+
+# The extension of a path git quotes or ends with a tab, a name with a space or a letter beyond
+# ASCII, is read as the path's own.
+d="$(repo marker-in-an-odd-path)"
+printf '#[ignore]\nfn y() {}\n' > "$d/tests/a b_test.rs"
+printf '#[ignore]\nfn z() {}\n' > "$d/tests/ü_test.rs"
+commit "$d" "ignores in paths with a space and beyond ASCII"
+expect 0 "a marker in a path with a space or beyond ASCII is reported" "$d" "2 finding(s)"
 
 # Called by its path from a subdirectory of another repository, the sensor reads the one it lives
 # in, as the checks do: the tag 'base' exists only there.
