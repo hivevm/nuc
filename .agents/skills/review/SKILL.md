@@ -53,8 +53,10 @@ Beyond these inputs the reviewer opens a file only where a finding needs it: a f
 touches, or one that calls or reads what it changed. It reads the rest of an ADR only where the
 diff questions its *Decision*, and it runs no check whose output it was handed. A second review
 that sees the fixes is handed the commits after the one the first review saw and the findings
-they answer, and judges those, unless a rework replaced the commits the first review saw; then it
-reviews the whole branch at its head, as the hand-back below says.
+they answer, and judges those; where the agent can continue a session, it continues the first
+review's, which has read the change already and wrote none of the fixes. That holds unless a
+rework replaced the commits the first review saw; then it reviews the whole branch at its head,
+as the hand-back below says.
 
 ## 2. Report on two axes, kept apart
 

@@ -135,14 +135,15 @@ restates nothing. A rule this file does not state is not a rule of this project.
 
   The harness ADR is the project's founding decision on who decides, which agents work, and how
   much agent work may be open at once.
-- **Keep the context lean.** Subagents return conclusions, not file dumps, and are briefed with
-  paths, not with the files' content. Alignment, implementation, and review each start in a fresh
-  session with only what they need. Never start one by compacting the old session. The
-  implementing session loads what its ticket's *Read first* names. Read a file by the sections the
-  work needs, and whole where a rule or a procedure names it so, or where the work judges the file
-  as a whole. Run a command whose output is longer than the work reads through a filter for what
-  it is run for, and read its exit status, and a failure, unfiltered. A degraded session hands
-  off.
+- **Keep the context lean.** Besides a review, delegate to a subagent only work that is independent
+  of the rest or a search whose answer is a conclusion; a lookup whose target is known costs less
+  done directly. Subagents return conclusions, not file dumps, and are briefed with paths, not with
+  the files' content. Alignment, implementation, and review each start in a fresh session with only
+  what they need. Never start one by compacting the old session. The implementing session loads what
+  its ticket's *Read first* names. Read a file by the sections the work needs, and whole where a
+  rule or a procedure names it so, or where the work judges the file as a whole. Run a command whose
+  output is longer than the work reads through a filter for what it is run for, and read its exit
+  status, and a failure, unfiltered. A degraded session hands off.
 - **Session artifacts are not tracked.** Session plans, handoff notes, and scratch files live under
   `.scratch/` (gitignored) or outside the tree. What has to outlive the session becomes a ticket,
   a `proposed` ADR, or a change to one of the six documents of ADR-0001. An agent's own memory
