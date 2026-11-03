@@ -32,16 +32,29 @@ The reviewer runs in a context that did not write the change and is handed only:
   [`propose-adr`](../propose-adr/concepts/README.md), that entry's *Does not fit* and *The rule a
   test decides*: what the tests decide is checked there, and the rest is checked here;
 - the output of the sensors the toolchain ADR names, and of
-  [`scripts/check-all.sh`](../../../scripts/check-all.sh), whose tests-kept sensor lists the
-  test files deleted and the skip markers added since the base;
+  [`scripts/check-all.sh`](../../../scripts/check-all.sh) `--verbose`, whose tests-kept sensor
+  lists the test files deleted and the skip markers added since the base;
 - for a normalization, its map and its clause table, and the record at the base commit
   ([`AGENTS.md` §3](../../../AGENTS.md#3-adr-rules), rule 5).
+
+A light review ([`AGENTS.md` §5](../../../AGENTS.md#5-quality-bar--definition-of-done)) is
+handed the diff, the task, the doubts, and that output, and nothing else. It judges whether every
+path of the diff is one that section names, and whether the diff does what the task says, and
+reads nothing beyond it; a path outside them is its one finding, and the change goes to a full
+review.
 
 The reviewer is the harness's inferential sensor: it judges what the computational ones, the
 tests and checks, cannot decide.
 
 If the implementer's reasoning, plan, or conversation is offered, decline it. The review holds
 the diff against the standards, not against the story of how it came to be.
+
+Beyond these inputs the reviewer opens a file only where a finding needs it: a file the diff
+touches, or one that calls or reads what it changed. It reads the rest of an ADR only where the
+diff questions its *Decision*, and it runs no check whose output it was handed. A second review
+that sees the fixes is handed the commits after the one the first review saw and the findings
+they answer, and judges those, unless a rework replaced the commits the first review saw; then it
+reviews the whole branch at its head, as the hand-back below says.
 
 ## 2. Report on two axes, kept apart
 

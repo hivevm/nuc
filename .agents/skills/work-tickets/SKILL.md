@@ -43,7 +43,11 @@ Two roles: the **dispatcher** claims tickets and starts the sessions that work t
 
 ## 2. Work one ticket
 
-1. Read the ticket and what its *Read first* names, and nothing else up front.
+1. Read the ticket and what its *Read first* names, and nothing else up front. Check the paths it
+   touches against the tree first, since a path goes stale where the behaviour it serves does
+   not, and correct them in the ticket file; then read the ADRs that bind them through
+   [`scripts/sensor-binding-adrs.sh`](../../../scripts/sensor-binding-adrs.sh) `--sections`,
+   with a `--path` for each, the rest by the sections it names.
 2. Turn each acceptance criterion into a failing test at the seam the ticket names, then make it
    pass, along the golden path of [`docs/ARCHITECTURE.md`](../../../docs/ARCHITECTURE.md).
 3. Stop where the *Mode* says. A session past its stop writes what it found and where it stands

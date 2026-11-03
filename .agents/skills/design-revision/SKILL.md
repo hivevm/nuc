@@ -51,9 +51,13 @@ described: each is a finding, because a stale overview is believed.
 
 ## 4. Read the record and the constitution against the system
 
-Take the ADRs in force whose *Applies to* names a touched module, through the index in
-[`docs/adr/README.md`](../../../docs/adr/README.md). Read each in full, because the revision weighs
-its forces against the system. Decisions that have grown into one, each ADR true on its own
+Take the ADRs in force whose *Applies to* names a touched module:
+[`scripts/sensor-binding-adrs.sh`](../../../scripts/sensor-binding-adrs.sh) `--sections`, with a
+`--path` for each, prints their header, *Decision*, and *Enforcement*, and the *Applies to* written
+in prose to match. Read in full each whose *Decision* the survey of step 2 or the system
+questions, and each whose *Context* names what the work touched, because the revision weighs its
+forces against the system; one the system still bears out, its forces untouched, stands on those
+three parts. Decisions that have grown into one, each ADR true on its own
 and the set said in one sentence, are a candidate for one superseding ADR that consolidates
 them ([mechanics](../../../docs/adr/README.md#mechanics)).
 
