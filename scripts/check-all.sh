@@ -2,11 +2,11 @@
 #
 # Runs every consistency check this repository enforces, in one command.
 #
-# AGENTS.md §5 requires these checks to pass before pushing. This script is the local equivalent
-# of .github/workflows/checks.yml; check 9 of check-docs.sh holds the two lists, the required
-# status checks named in README.md, and the scripts under scripts/ together. A script that runs
-# on a human's instruction only is named on an '# On instruction:' line below, and a workflow
-# that publishes rather than checks, such as a release, on a '# Not a gate:' line.
+# AGENTS.md §5 requires these checks to pass before pushing. This script is the local equivalent of
+# .github/workflows/checks.yml; check 9 of check-docs.sh holds the two lists, the required status
+# checks named in CONTRIBUTING.md, and the scripts under scripts/ together. A script that runs on a
+# human's instruction only is named on an '# On instruction:' line below, and a workflow that
+# publishes rather than checks, such as a release, on a '# Not a gate:' line.
 #
 # Every check runs even after an earlier one fails, so a single run reports everything that is
 # wrong instead of the first thing. The exit code is what a pre-push decision is made on.
@@ -170,12 +170,12 @@ run "Normalize map self-test" scripts/test-normalize-remap.sh
 # brings drafts to main (ADR-0002); its self-test runs here.
 # On instruction: scripts/number-adrs.sh
 run "Numbering script self-test" scripts/test-number-adrs.sh
-# The readiness script merges and commits on a human's instruction, as step 7 of the README's
-# Integration branches; its self-test runs here.
+# The readiness script merges and commits on a human's instruction, as step 7 of
+# Integration branches in CONTRIBUTING.md; its self-test runs here.
 # On instruction: scripts/ready-for-main.sh
 run "Readiness script self-test" scripts/test-ready-for-main.sh
 # The drop script moves main and deletes a branch on a human's instruction, as step 8 of the
-# README's Integration branches; its self-test runs here.
+# Integration branches of CONTRIBUTING.md; its self-test runs here.
 # On instruction: scripts/drop-merged-branch.sh
 run "Drop script self-test" scripts/test-drop-merged-branch.sh
 run "Traceability self-test" scripts/test-check-traceability.sh

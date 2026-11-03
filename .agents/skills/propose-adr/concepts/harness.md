@@ -69,7 +69,7 @@ review of the repository settings.
 ## Sensors
 
 The review skill, the inferential sensor; the git hooks under `.githooks/`; the required checks
-and the Code Owners review listed under *Repository settings* in the README;
+and the Code Owners review listed under *Repository settings* in `CONTRIBUTING.md`;
 [`scripts/sensor-plan-frontier.sh`](../../../../scripts/sensor-plan-frontier.sh), which lists
 the tickets that may be claimed, for the dispatching session.
 

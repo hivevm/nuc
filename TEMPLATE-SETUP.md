@@ -3,7 +3,8 @@
 This repository is a scaffold. Work through this file to turn it into your own project. Then
 close the setup with `scripts/test-template-setup.sh --close`, and run
 [`scripts/check-all.sh`](scripts/check-all.sh). The close removes this file and what exists only
-for it: the notes and the layout row of [`README.md`](README.md), the
+for it: the notes of [`README.md`](README.md), the layout row of
+[`CONTRIBUTING.md`](CONTRIBUTING.md), the
 [`setup-project`](.agents/skills/setup-project/SKILL.md) skill, and the setup's own self-test.
 Documents that mention the setup in passing, such as the ADRs, keep their sentence.
 Its function `close_setup` in [`scripts/test-template-setup.sh`](scripts/test-template-setup.sh)
@@ -45,7 +46,7 @@ place of steps 2 and 3: the project's own decisions and the inherited ADRs becom
    Check 13 of [`scripts/check-docs.sh`](scripts/check-docs.sh) fails on any of these placeholders
    still present once this file is gone.
 
-   Then work through [**Repository settings**](README.md#repository-settings), before the
+   Then work through [**Repository settings**](CONTRIBUTING.md#repository-settings), before the
    setup's pull request is opened. They are the rules only the GitHub repository can enforce. Until
    they are set, nothing on GitHub keeps a change from reaching `main` without a pull request and
    its checks. The jobs they name as required checks exist from the start. Without a second
@@ -132,7 +133,7 @@ place of steps 2 and 3: the project's own decisions and the inherited ADRs becom
    `check-build.sh`. [`scripts/check-all.sh`](scripts/check-all.sh) invokes it with a `run` line,
    beside the other checks at once, so it must write nowhere they read, and a job of
    [`checks.yml`](.github/workflows/checks.yml) runs it after setting up the toolchain, the job
-   named among the required checks in the README and added to those of the ruleset on `main`.
+   named among the required checks of `CONTRIBUTING.md` and added to those of the ruleset on `main`.
    That is what makes the pre-push hook and CI refuse a red change
    ([`AGENTS.md` §5](AGENTS.md#5-quality-bar--definition-of-done)). Check 9 of
    [`scripts/check-docs.sh`](scripts/check-docs.sh) fails on a job whose commands are written
@@ -152,16 +153,16 @@ place of steps 2 and 3: the project's own decisions and the inherited ADRs becom
    golden path shows that no check decides and a reader could not guess, the why behind a shape,
    is the first entry in [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md).
 
-Project-specific conventions belong in [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md), in checks,
-and in ADRs; on what may and may not be edited, see [`AGENTS.md` §3](AGENTS.md#3-adr-rules).
-Leave the **Dev Container**, **Coding Agents**, **Repository settings**, and **Template**
-sections of the README as-is; they describe the scaffold. A project without a Dev Container
-changes the first two as [A small project](#a-small-project) says. The Template section names the
-release this project was created from and is the one link to the template that stays. The
-**Project Layout** block inventories the top level, so a part you remove goes out of it, this
-file included, and a part you add goes in, such as the source tree and the toolchain's files of
-step 6; check 10 of [`scripts/check-docs.sh`](scripts/check-docs.sh) fails on one it does not
-name.
+Project-specific conventions belong in [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md), in checks, and
+in ADRs; on what may and may not be edited, see [`AGENTS.md` §3](AGENTS.md#3-adr-rules). Leave the
+**Dev Container**, **Coding Agents**, and **Repository settings** sections of `CONTRIBUTING.md` and
+the **Template** section of the README as-is; they describe the scaffold. A project without a Dev
+Container changes the first two as [A small project](#a-small-project) says. The Template section
+names the release this project was created from and is the one link to the template that stays. The
+**Project Layout** block of `CONTRIBUTING.md` inventories the top level, so a part you remove goes
+out of it, this file included, and a part you add goes in, such as the source tree and the
+toolchain's files of step 6; check 10 of [`scripts/check-docs.sh`](scripts/check-docs.sh) fails on
+one it does not name.
 
 ## A small project
 
@@ -179,17 +180,17 @@ README. What can go, and how:
     self-test, which cites the superseded ADR;
   - the `devcontainer` job and its bullet in the header of
     [`checks.yml`](.github/workflows/checks.yml), its `run` lines in
-    [`scripts/check-all.sh`](scripts/check-all.sh), its name in the README's required checks, and
-    any script of the project's own that only the job ran; check 9 holds the three lists, the
-    header, and the scripts under `scripts/` together. Take it out of the required checks of the
-    ruleset on `main` as well, since the pull request that removes the job can merge only then;
+    [`scripts/check-all.sh`](scripts/check-all.sh), its name in the required checks of
+    `CONTRIBUTING.md`, and any script of the project's own that only the job ran; check 9 holds the
+    three lists, the header, and the scripts under `scripts/` together. Take it out of the required
+    checks of the ruleset on `main` as well, since the pull request that removes the job can merge
+    only then;
   - the `remote.extensionKind` entry of [`.vscode/settings.json`](.vscode/settings.json) and the
     lock comment of [`.gitignore`](.gitignore);
-  - in the README, the Dev Container section and the `.devcontainer/` row of the Project Layout,
-    with Prerequisites, Getting Started, the first paragraph of Git hooks, and the first paragraph
-    of Coding Agents rewritten for the host; the first bullet of Agent execution in
-    [`SECURITY.md`](SECURITY.md); and the Dev Container in the workflow of
-    [`CONTRIBUTING.md`](CONTRIBUTING.md).
+  - in `CONTRIBUTING.md`, the Dev Container section and the `.devcontainer/` row of the Project
+    Layout, with the first paragraph of Git hooks, the first paragraph of Coding Agents, and the
+    Dev Container in the workflow rewritten for the host; in the README, Prerequisites and
+    Getting Started; and the first bullet of Agent execution in [`SECURITY.md`](SECURITY.md).
 
   The link, layout, list, and traceability checks fail on a file, a job, or a link left behind;
   the prose is the reviewer's to read. This file names what the path removes without linking it,

@@ -76,9 +76,9 @@ dropped, unless an ADR or a criterion cites it
 ([ADR-0002](../../../docs/adr/0002-decisions-verified-by-tests.md)).
 
 Then the rules added since the last revision: every rule written into
-[`AGENTS.md`](../../../AGENTS.md), the [README](../../../README.md), or the
-[record's mechanics](../../../docs/adr/README.md#mechanics), and every step written into a skill,
-read from the diff of those files since the commit that set the date of the `Last design
+[`AGENTS.md`](../../../AGENTS.md), the mechanics of [`CONTRIBUTING.md`](../../../CONTRIBUTING.md),
+or the [record's mechanics](../../../docs/adr/README.md#mechanics), and every step written into a
+skill, read from the diff of those files since the commit that set the date of the `Last design
 revision` line, where [`scripts/sensor-revision-due.sh`](../../../scripts/sensor-revision-due.sh)
 starts its count, or from all history while the line reads `none yet`. A rule in prose is the
 fallback for what no check can decide

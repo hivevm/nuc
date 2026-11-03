@@ -199,7 +199,7 @@ restates nothing. A rule this file does not state is not a rule of this project.
   where the harness ADR grants it. The session releases a local claim, a human one on a remote
   ([ADR-0006](docs/adr/0006-feature-layer.md)). The git hooks under [`.githooks/`](.githooks/)
   enforce what a file can of this section and of [§5](#5-quality-bar--definition-of-done); what
-  each refuses is under [Git hooks](README.md#git-hooks). **An agent never bypasses this
+  each refuses is under [Git hooks](CONTRIBUTING.md#git-hooks). **An agent never bypasses this
   repository's hooks:** no `--no-verify`, no git run without them, no hand-moved `origin/main`, no
   hand-written record of a green tree. The one exception is the push of a claim, which skips the
   pre-push hook. A human may bypass one, deliberately.
@@ -211,7 +211,7 @@ restates nothing. A rule this file does not state is not a rule of this project.
   store, or hard-code personal access tokens.
 - **Changes reach `main` through a pull request,** merged as a merge commit. The local `main`
   only takes up the remote's, with `git merge --ff-only origin/main`. What no file can enforce
-  is listed under [Repository settings](README.md#repository-settings).
+  is listed under [Repository settings](CONTRIBUTING.md#repository-settings).
 - **Branches may integrate first on a `feat/` branch,** on the human's instruction, after the
   review of [§5](#5-quality-bar--definition-of-done): by a local merge, or by a pull request
   against the `feat/` branch. Each integrated branch is one merge commit, whose message is the
@@ -219,7 +219,7 @@ restates nothing. A rule this file does not state is not a rule of this project.
   [pull request template](.github/PULL_REQUEST_TEMPLATE.md). Until the `feat/` branch's pull
   request into `main` merges, all of it is the human's to rework and push again, what pull
   requests merged into it included. What has reached `main` is never rewritten. The steps are
-  under [Integration branches](README.md#integration-branches).
+  under [Integration branches](CONTRIBUTING.md#integration-branches).
 
 ## 7. Secrets
 
