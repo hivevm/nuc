@@ -13,7 +13,9 @@ what the reviewer is given and the order in which it reports; it states no rule 
 
 The reviewer runs in a context that did not write the change and is handed only:
 
-- the diff;
+- the diff, its commits in the shape they are to merge in, since a rework after the review, the
+  fold of fixups included, replaces what it saw and calls for a review of the whole branch at
+  its head;
 - the task: the ticket or the request, with its acceptance criteria;
 - [`AGENTS.md` §1](../../../AGENTS.md#1-principles) and
   [§5](../../../AGENTS.md#5-quality-bar--definition-of-done);
@@ -54,9 +56,9 @@ touches, or one that calls or reads what it changed. It reads the rest of an ADR
 diff questions its *Decision*, and it runs no check whose output it was handed. A second review
 that sees the fixes is handed the commits after the one the first review saw and the findings
 they answer, and judges those; where the agent can continue a session, it continues the first
-review's, which has read the change already and wrote none of the fixes. That holds unless a
-rework replaced the commits the first review saw; then it reviews the whole branch at its head,
-as the hand-back below says.
+review's, which has read the change already and wrote none of the fixes. A later change gets a
+review session of its own. That holds unless a rework replaced the commits the first review saw;
+then it reviews the whole branch at its head, as the hand-back below says.
 
 ## 2. Report on two axes, kept apart
 
@@ -82,10 +84,12 @@ the suite and is the first finding.
 
 ## 4. Hand back
 
-Findings, concrete and ranked, with file and line, and what the reviewer itself could not verify. No
-fixes applied. The implementer fixes them before the hand-off. On a branch that integrates on a
-`feat/` branch, a fix that corrects one commit is a fixup of it (`git commit --fixup=<commit>`, its
-body saying what the finding was), so the rework folds it in by `git rebase -i --autosquash`
+Findings, concrete and ranked, with file and line, and what the reviewer itself could not verify:
+each finding that must be fixed before the hand-off with its scenario, a lesser one a line, and no
+account of what is in order. No fixes applied. The implementer fixes the first kind before the
+hand-off, and a lesser one it fixes or names in the hand-off's *Doubts*. On a branch that integrates
+on a `feat/` branch, a fix that corrects one commit is a fixup of it (`git commit --fixup=<commit>`,
+its body saying what the finding was), so the rework folds it in by `git rebase -i --autosquash`
 ([Integration branches](../../../CONTRIBUTING.md#integration-branches), step 4) instead of by hand.
 A fix that spans commits, and every fix on a branch whose own pull request goes into `main`, which
 keeps what it merges, is a commit of its own. It records in its *Review* section who reviewed, the

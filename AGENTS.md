@@ -136,14 +136,16 @@ restates nothing. A rule this file does not state is not a rule of this project.
   The harness ADR is the project's founding decision on who decides, which agents work, and how
   much agent work may be open at once.
 - **Keep the context lean.** Besides a review, delegate to a subagent only work that is independent
-  of the rest or a search whose answer is a conclusion; a lookup whose target is known costs less
-  done directly. Subagents return conclusions, not file dumps, and are briefed with paths, not with
-  the files' content. Alignment, implementation, and review each start in a fresh session with only
-  what they need. Never start one by compacting the old session. The implementing session loads what
-  its ticket's *Read first* names. Read a file by the sections the work needs, and whole where a
-  rule or a procedure names it so, or where the work judges the file as a whole. Run a command whose
-  output is longer than the work reads through a filter for what it is run for, and read its exit
-  status, and a failure, unfiltered. A degraded session hands off.
+  of the rest or a search whose answer is a conclusion. Subagents return conclusions, not file
+  dumps, and are briefed with paths, not with the files' content. Alignment, implementation, and
+  review each start in a fresh session with only what they need. Never start one by compacting the
+  old session. The implementing session loads what its ticket's *Read first* names. Read a file by
+  the sections the work needs, and whole where a rule or a procedure names it so, or where the work
+  judges the file as a whole. Run a command whose output is longer than the work reads through a
+  filter for what it is run for, and read its exit status, and a failure, unfiltered. A degraded
+  session hands off, and so does one whose topic is done, with a note under `.scratch/` of what the
+  next session needs, not an account of this one: every turn resends the whole session. A review's
+  topic lasts until the fixes it asked for are judged.
 - **Session artifacts are not tracked.** Session plans, handoff notes, and scratch files live under
   `.scratch/` (gitignored) or outside the tree. What has to outlive the session becomes a ticket,
   a `proposed` ADR, or a change to one of the six documents of ADR-0001. An agent's own memory
@@ -176,16 +178,16 @@ restates nothing. A rule this file does not state is not a rule of this project.
 - **Never weaken the suite to make it pass. A flaky test is a defect, not noise:** no retries, no
   re-running until green.
 - **Review in a fresh context before handing off.** The session that wrote a change never reviews
-  it. The reviewer gets the diff, the task, the doubts, and the standards, never the reasoning.
-  It reports on two axes: does the change do what was asked, and does it meet this bar,
-  simplicity first. Findings are fixed before the change is handed off. Every existing test the
-  diff changes or removes needs a reason. The hand-off names the commit the review saw, and a
-  sensor lists what landed after it. A rework replaces the commits a review saw, so after one
-  the review that binds is a review of the whole branch at its head. The review scales with the
-  change ([§1](#1-principles)): one that only touches `.github/ISSUE_TEMPLATE/` or documents under
-  `docs/` other than those ADR-0001 names and `docs/plan/`, its checks green, gets a light review
-  of the diff, the task, the doubts, and the check output, since no rule, check, or decision rests
-  on them; every other change gets the full one. Skill: `review`.
+  it. The reviewer gets the diff, the task, the doubts, and the standards, never the reasoning. It
+  reports on two axes: does the change do what was asked, and does it meet this bar, simplicity
+  first. A finding that must be fixed is fixed before the change is handed off; a lesser one is
+  fixed or named in the hand-off's doubts. Every existing test the diff changes or removes needs a
+  reason. The hand-off names the commit the review saw, and a sensor lists what landed after it. A
+  rework replaces the commits a review saw, so after one the review that binds is a review of the
+  whole branch at its head. The review scales with the change ([§1](#1-principles)): one that only
+  touches `.github/ISSUE_TEMPLATE/` or documents under `docs/` other than those ADR-0001 names and
+  `docs/plan/`, its checks green, gets a light review of the diff, the task, the doubts, and the
+  check output; every other change gets the full one. Skill: `review`.
 - **A feature spec closes only after a design revision.** A fresh session revisits the modules
   its tickets touched, the ADRs that bind them, and the criteria they serve. It files what it
   finds as tickets, checks, a `proposed` ADR, or a drafted specification change. With no spec
