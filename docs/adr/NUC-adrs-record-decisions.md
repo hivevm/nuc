@@ -130,6 +130,8 @@ template's `NUC-` ADRs are a fixed base that a project extends or narrows but ne
     - A map moves the references to the new identifiers. It stands in the hand-off and the commit
       body, in no document.
     - It leaves the `NUC-` files as they are.
+    - The migration from numbered identifiers to category identifiers is a normalization. It gives
+      every numbered ADR its category identifier.
 
 **Out of scope:**
 
