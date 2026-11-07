@@ -28,41 +28,33 @@ document anyway, and the overview is the one document that says how the system s
 We will revise the design of what recent work touched when a feature spec closes, and after a
 number of changes without a spec.
 
-1. **Closing a spec.** A feature spec closes only after a design revision. The revision runs once
-   the spec's last ticket has merged.
-2. **What a revision covers.** A fresh session runs the revision. It revisits these parts of what
-   the work touched:
-   - the modules;
-   - the accepted ADRs that bind them;
-   - the criteria of the specification they serve.
-3. **What a revision files.** The revision files what it finds before it ends. It lists the
-   backlog entries that touch the modules it revisits. The revision that closes a spec deletes the
-   spec's `spec.md`.
-4. **Due without a spec.** The revision also comes due on a count of changes, without a spec.
-   `docs/ARCHITECTURE.md` carries the line that holds the count:
+1. **Closing a spec.** A feature spec closes only after a design revision, run once its last
+   ticket has merged. That revision deletes the spec's `spec.md`.
+2. **Scope.** A fresh session revisits the modules the work touched, the accepted ADRs that bind
+   them, and the criteria of the specification they serve.
+3. **Filing.** The revision files what it finds before it ends. It lists the backlog entries that
+   touch its modules.
+4. **Count.** Without a spec, a revision comes due after a number of changes.
+   `docs/ARCHITECTURE.md` holds the count on this line:
    `**Last design revision:** <YYYY-MM-DD [(<n>)] or none yet>, due after <N> changes.`
-5. **Ordinal.** A second revision on one day writes its ordinal after the date, such as `(2)`. So
-   its commit sets a line of its own to count from.
-6. **Change.** A change is a commit that touches a path outside `docs/`. Merge commits do not
-   count. The count starts at the commit that set the date of the line.
-7. **Number.** The number of changes ships as 20. The project may set it on the line. The sensor
-   must not hold the number.
-8. **Reported, not enforced.** The count is reported. A due revision must not block a merge. Once
-   the number is reached, a revision runs over the modules those changes touched. That revision
-   moves the date of the line.
+   - A change is a commit that touches a path outside `docs/`. Merge commits do not count.
+   - The count starts at the commit that set the date of the line.
+   - A second revision on one day writes its ordinal after the date, such as `(2)`.
+   - The number ships as 20. The project may set it on the line. The sensor must not hold it.
+5. **Reported.** The count is reported and must not block a merge. Once it is reached, a revision
+   runs over the modules those changes touched and moves the date.
 
 **Out of scope:**
 
 - the order of work of a revision, which the `design-revision` skill carries;
-- the form of a ticket a revision files, which
-  [NUC-large-work-is-planned](NUC-large-work-is-planned.md) decides;
-- a revision that the human asks for outside both triggers, which needs no rule.
+- the form of the tickets it files, which [NUC-large-work-is-planned](NUC-large-work-is-planned.md)
+  decides.
 
 ## Latitude
 
 A project may choose:
 
-- the number of changes after which the revision is due, on the line of the overview (clause 7);
+- the number of changes after which the revision is due, on the line of the overview (clause 4);
 - revisions beyond the two triggers, whenever the human asks for one.
 
 The catalogue has no entry for these choices, and none of them needs an ADR.
@@ -104,14 +96,12 @@ The catalogue has no entry for these choices, and none of them needs an ADR.
 
 ## Enforcement
 
-`scripts/sensor-revision-due.sh`, in the job `sensors`, reads the `Last design revision` line of
-the overview (clause 4). It counts the changes since the commit that set its date (clauses 5 and
-6) and reports the count. Once the number is reached, it lists the top-level directories and files
-the changes touched, with the changes each. It fails when the line is missing or unreadable,
-because then it measures nothing. It never fails on the count (clause 8). Its self-test cites this
-ADR.
+`scripts/sensor-revision-due.sh`, in the job `sensors`, reads the line of the overview (clause 4).
+It reports the count since the line's date. Once the revision is due, it lists the top-level
+paths the changes touched. It fails only on a missing or unreadable line (clause 5). Its
+self-test cites this ADR.
 
-**Not mechanically decidable:** the review holds these judgements:
+**Not mechanically decidable:** the review holds whether:
 
-- whether a spec was deleted without its design revision (clauses 1 and 3);
-- whether a due revision ran at all, and moved the date (clause 8).
+- a spec closed without its revision (clause 1);
+- a due revision ran and moved the date (clause 5).
