@@ -19,8 +19,10 @@ Two roles: the **dispatcher** claims tickets and starts the sessions that work t
 A project that plans in its host's issues, as its harness ADR records
 ([NUC-large-work-is-planned §9](../../../docs/adr/NUC-large-work-is-planned.md)), reads its
 frontier from the host's list of open, unblocked, unassigned ticket issues instead of the sensor,
-claims a ticket by assigning its issue instead of creating its branch, and closes the issue where
-these steps delete the ticket file. The rest of this skill holds as written.
+and claims a ticket by assigning its issue instead of creating its branch, only where the harness
+ADR grants that write. Where these steps delete the ticket file, the pull request names the issue
+with a closing keyword (`Closes #<n>`), and the human's merge closes it; no session closes an issue
+itself. The rest of this skill holds as written.
 
 ## 1. Read the frontier and claim
 

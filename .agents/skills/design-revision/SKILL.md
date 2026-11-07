@@ -13,9 +13,10 @@ in a fresh session and states no rule of its own
 
 A project that plans in its host's issues, as its harness ADR records
 ([NUC-large-work-is-planned §9](../../../docs/adr/NUC-large-work-is-planned.md)), takes the
-spec's closed ticket issues as its tickets in step 1, files what it finds as issues in step 6,
-and closes the spec's issue where step 6 deletes `spec.md`. The rest of this skill holds as
-written.
+spec's closed ticket issues as its tickets in step 1, and files what it finds as issues in
+step 6. Where step 6 deletes `spec.md`, the revision's pull request names the spec's issue with a
+closing keyword (`Closes #<n>`), and the human's merge closes it; the session never closes it
+itself. The rest of this skill holds as written.
 
 ## 1. Scope
 
