@@ -6,9 +6,9 @@
 # AGENTS.md and one ADR, a branch changes them, and the sensor runs against main. The cases are a
 # table of what the change adds and what the sensor must and must not print: a long sentence in
 # the Decision and in the Enforcement, one in the Context, one held in a code span, a soft modal
-# verb in AGENTS.md, named in italics, in a block quote, in fenced code, and on a line the change did not add, a
-# sentence that ends early, a change outside the rules, the working tree with an untracked ADR,
-# and a base that does not resolve.
+# verb in AGENTS.md, named in italics, after an italic that wraps, in a block quote, in fenced
+# code, and on a line the change did not add, a sentence that ends early, a change outside the
+# rules, the working tree with an untracked ADR, and a base that does not resolve.
 #
 # Inputs: scripts/sensor-plain-rules.sh scripts/lib/
 #
@@ -105,6 +105,11 @@ expect "a soft modal verb on a line not added: not listed" "$r" "" "AGENTS.md:8"
 r="$(repo italics)"
 after "$r" AGENTS.md "## 1. Rules" "- **Plain.** Say *must*; *should* leaves the reader guessing."
 expect "a soft modal verb named in italics: not listed" "$r" "no long sentence" "" main
+
+r="$(repo wrapped-italics)"
+after "$r" AGENTS.md "## 1. Rules" "$(printf -- '- **Cache.** A session writes the cache with *write\n  mode*, and it should flush before the *next* run.')"
+expect "an italic wrapped over two lines: a real verb after it is listed" "$r" \
+  'AGENTS.md:6: the soft modal verb "should"' "" main
 
 r="$(repo quote)"
 after "$r" AGENTS.md "## 1. Rules" "> A quote that should not count."

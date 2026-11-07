@@ -6,7 +6,8 @@
 # of an ADR (ADR_RULE_SECTIONS in scripts/lib/adr.sh). It lists each sentence over 25 words that
 # holds an added line, by the line it starts on, and each soft modal verb on an added line:
 # should, could, might, ideally. Code spans, words in italics, which a rule uses to name a word,
-# link targets, block quotes, fenced code, tables, and headings do not count. A paragraph or a list item ends a sentence; so do '.', '!', and '?' before a
+# link targets, block quotes, fenced code, tables, and headings do not count; an italic may wrap
+# to the next line. A paragraph or a list item ends a sentence; so do '.', '!', and '?' before a
 # space or the end. It reports for the reviewer and never fails on what it counts.
 #
 # Pure bash + git + awk. Usage:
@@ -85,16 +86,32 @@ for f in "${files[@]}"; do
       }
       count = 0; start = 0; split("", seen)
     }
-    /^[[:space:]]*(```|~~~)/ { flush(); fence = !fence; next }
-    fence { next }
-    /^## / { flush(); if (mode == "adr") inside = ($0 ~ sections); next }
+    function para() { flush(); ital = 0 }
+    # plain <text> — the text without the words in single-star italics, each replaced by a space. A
+    # star opens before a non-space and closes after one; bold is no italic; ital carries a line.
+    function plain(s,  out, i, c, prev) {
+      gsub(/\*\*/, "\001", s); out = ""; prev = " "
+      for (i = 1; i <= length(s); i++) {
+        c = substr(s, i, 1)
+        if (c == "*" && !ital && substr(s, i + 1, 1) ~ /[^[:space:]]/) { ital = 1; out = out " " }
+        else if (c == "*" && ital && prev ~ /[^[:space:]]/) { ital = 0; out = out " " }
+        else if (!ital) out = out c
+        prev = c
+      }
+      gsub(/\001/, "**", out)
+      return out
+    }
+    !fence && match($0, /^[[:space:]]*(```|~~~)/) { para(); fence = substr($0, RLENGTH - 2, 3); next }
+    fence && index($0, fence) && $0 ~ /^[[:space:]]*(```|~~~)/ { fence = ""; next }
+    fence != "" { next }
+    /^## / { para(); if (mode == "adr") inside = ($0 ~ sections); next }
     mode == "adr" && !inside { next }
-    /^#/ || /^[[:space:]]*[>|]/ || /^[[:space:]]*$/ { flush(); next }
-    /^[[:space:]]*([-*+]|[0-9]+\.)[[:space:]]/ { flush() }
+    /^#/ || /^[[:space:]]*[>|]/ || /^[[:space:]]*$/ { para(); next }
+    /^[[:space:]]*([-*+]|[0-9]+\.)[[:space:]]/ { para() }
     {
       text = $0
       gsub(/`[^`]*`/, "", text)
-      gsub(/\*\*/, "\001", text); gsub(/\*[^*]+\*/, "", text); gsub(/\001/, "**", text)
+      text = plain(text)
       gsub(/\]\([^)]*\)/, "]", text)
       if (index(added, "," NR ",")) {
         low = tolower(text)
@@ -104,7 +121,7 @@ for f in "${files[@]}"; do
       }
       w = split(text, words, /[[:space:]]+/)
       for (i = 1; i <= w; i++) {
-        if (words[i] !~ /[A-Za-z0-9]/) continue
+        if (words[i] !~ /[A-Za-z0-9]/) { if (count && words[i] ~ /^[.!?]/) flush(); continue }
         if (!count) start = NR
         count++; seen[NR] = 1
         if (words[i] ~ /[.!?][)*_"]*$/) flush()
