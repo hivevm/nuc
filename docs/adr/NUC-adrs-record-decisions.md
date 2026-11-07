@@ -3,7 +3,7 @@
 - **Status:** 🟡 proposed
 - **Date:** 2026-11-07
 - **Deciders:** NUC maintainer
-- **Applies to:** every ADR under `docs/adr/`, the ADR index `docs/adr/README.md`, the ADR template `docs/adr/template.md`, the blob list `docs/adr/NUC.blobs`, the record checks of `scripts/check-docs.sh`, the ADR readers of `scripts/lib/adr.sh`, `scripts/sensor-binding-adrs.sh`, and the skills `propose-adr` and `normalize`
+- **Applies to:** every ADR under `docs/adr/`, the ADR index `docs/adr/README.md`, the ADR template `docs/adr/template.md`, the blob list `docs/adr/NUC.blobs`, the record checks of `scripts/check-docs.sh`, the ADR readers of `scripts/lib/adr.sh`, `scripts/sensor-binding-adrs.sh`, `scripts/test-normalize-remap.sh`, the map script `.agents/skills/normalize/remap.sh`, and the skills `propose-adr` and `normalize`
 
 ## Context
 
@@ -137,8 +137,10 @@ template's `NUC-` ADRs are a fixed base that a project extends or narrows but ne
 
 **Out of scope:**
 
-- the vocabulary of the glossary, which belongs to the document set;
-- the rule that a change to the specification is a decision, which belongs to the document set;
+- the vocabulary of the glossary, which [NUC-documents-are-fixed §6](NUC-documents-are-fixed.md)
+  decides;
+- the rule that a change to the specification is a decision, which
+  [NUC-documents-are-fixed §2](NUC-documents-are-fixed.md) decides;
 - which test cites a decision and how, which belongs to the ADR on tests;
 - the order of work of a proposal or a normalization, which the skills `propose-adr` and
   `normalize` carry;
@@ -219,10 +221,20 @@ A project may choose:
 `scripts/sensor-review-binding.sh` lists each commit that changes the text of an ADR and another
 path (clause 4).
 
-**Not mechanically decidable:** clauses 1 to 4 and 11 hold four judgements. The review holds
-them:
+`scripts/sensor-binding-adrs.sh` lists the ADRs in force whose *Applies to* names a path a change
+touches (clause 5). A session may name the paths before its first change. With `--sections` it
+prints the header, the *Decision*, and the *Enforcement* of each ADR it lists. It also prints the
+*Applies to* of every other ADR in force that is not paths alone. It fails nothing, and its
+self-test cites this ADR.
+
+The self-test of the map script of `normalize`, `scripts/test-normalize-remap.sh`, cites this ADR
+(clause 17). It holds that a map moves every reference exactly once, a swap included.
+
+**Not mechanically decidable:** clauses 1 to 4, 11, and 17 hold five judgements. The review
+holds them:
 
 - whether a decision needs an ADR;
 - whether an ADR holds one decision;
 - whether a narrowing contradicts its clause;
-- whether the human reviewed the proposal before the implementation.
+- whether the human reviewed the proposal before the implementation;
+- whether a normalization changed no decision.
