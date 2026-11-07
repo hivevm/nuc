@@ -29,7 +29,8 @@
 # map of criteria is one pass. The script never edits a criterion in docs/SPECIFICATION.md, nor
 # docs/adr/, whose record the normalization writes. With --record, for the migration to identifiers
 # (NUC-adrs-record-decisions §17), it edits docs/adr/ too, the index and the headings among it, but
-# never a NUC- file, and renames each numbered ADR file that the map moves to one identifier.
+# never a NUC- file or the blob list, and renames each numbered ADR file that the map moves to one
+# identifier, refusing a name that exists or that two of them take.
 #
 # The files are the ones git tracks plus new ones it does not ignore, as check-docs.sh reads
 # them. A file is written only when the map changes its text, and then keeps every other byte,
@@ -230,12 +231,21 @@ function resolve(tok, to,  n, parts, i, dedupe) {
 END { if (held) printf "%s%s", last, (open_end ? "" : "\n") }
 AWK
 
+# With --record, each numbered ADR the map moves to one identifier takes its file name. A name that
+# exists or that two of them take is refused before anything is written.
+declare -A target=()
+while ((record)) && read -r old new rest; do
+  [[ "$old" =~ $num_re && "$new" =~ $new_re && -z "$rest" && -f "docs/adr/$old" ]] || continue
+  [[ -e "docs/adr/$new.md" || -n "${target[$new]:-}" ]] && { echo "remap: $old: docs/adr/$new.md is taken" >&2; exit 1; }
+  target[$new]="$old"
+done < <(grep -vE '^[[:space:]]*(#|$)' "$map")
+
 changed=0
 while IFS= read -r f; do
   [[ -f "$f" && ! -L "$f" && "$top/$f" != "$map" ]] || continue
   grep -Iq . "$f" 2>/dev/null || continue
   adr_on=1 crit_on=1 all_crit=0
-  [[ "$f" == docs/adr/* && ( $record -eq 0 || "$f" == docs/adr/NUC-* ) ]] && adr_on=0
+  [[ "$f" == docs/adr/* && ( $record -eq 0 || "$f" == docs/adr/NUC[-.]* ) ]] && adr_on=0
   [[ "$f" == docs/SPECIFICATION.md ]] && crit_on=0
   [[ "$f" == *.md ]] && all_crit=1
   # A file whose last byte is no newline keeps it so, and awk reads bytes, not characters of the
@@ -252,13 +262,11 @@ while IFS= read -r f; do
   fi
 done < <(git ls-files --cached --others --exclude-standard | sort -u)
 
-# With --record, each numbered ADR the map moves to one identifier takes its file name.
-while ((record)) && read -r old new rest; do
-  [[ "$old" =~ $num_re && "$new" =~ $new_re && -z "$rest" && -f "docs/adr/$old" ]] || continue
-  changed=1
+for new in "${!target[@]}"; do
+  changed=1 old="${target[$new]}"
   if ((check)); then echo "docs/adr/$old -> docs/adr/$new.md" >> "$moves"
   else git mv -- "docs/adr/$old" "docs/adr/$new.md" 2>/dev/null || mv -- "docs/adr/$old" "docs/adr/$new.md"; echo "docs/adr/$new.md"; fi
-done < <(grep -vE '^[[:space:]]*(#|$)' "$map")
+done
 ((check)) && cat "$moves"
 if [[ -s "$left" ]]; then
   echo "remap: references left to rewrite by hand:" >&2

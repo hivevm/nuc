@@ -154,6 +154,14 @@ check "--record leaves a NUC- file as it was" "grep -qxF 'Not $(old 7).' '$d/doc
 cp "$d/docs/adr/$(id seven).md" "$work/seven.before"
 (cd "$d" && bash "$REMAP" --record "$work/map-record") > "$work/out" 2>&1
 check "a second run with --record changes nothing" "cmp -s '$d/docs/adr/$(id seven).md' '$work/seven.before'"
+# A rename onto an existing file, a NUC- one among them, or two renames onto one file are refused.
+printf 'c\n' > "$d/docs/adr/0009-c.md"; printf 'd\n' > "$d/docs/adr/0010-d.md"
+for m in "0009-c.md $base" "0009-c.md $(id nine)|0010-d.md $(id nine)"; do
+  tr '|' '\n' <<< "$m" > "$work/map-record"
+  (cd "$d" && bash "$REMAP" --record --check "$work/map-record") > "$work/out" 2>&1; rc=$?
+  (cd "$d" && bash "$REMAP" --record "$work/map-record") >> "$work/out" 2>&1; rc=$rc$?
+  check "--record refuses a rename onto a taken name: $m" "[[ $rc == 11 ]] && grep -qxF c '$d/docs/adr/0009-c.md' && grep -qxF d '$d/docs/adr/0010-d.md' && grep -qF 'Not $(old 7).' '$d/docs/adr/$base.md'"
+done
 
 # A split: references are left for the hand and listed, but a marker that already names one of
 # the successors drops the old identifier.
