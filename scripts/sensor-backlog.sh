@@ -8,7 +8,8 @@
 # the branch's merge base with main, so a branch cut before main deleted an entry does not bring
 # the entry back. Each line carries the entry's title, its first '# ' heading. Main is origin/main
 # when it exists, else main, else HEAD. A project whose backlog is the issue tracker of its host
-# has no docs/backlog/, and the sensor says there is nothing to report. It reports and never fails.
+# has no docs/backlog/, and the sensor says there is nothing to report. An entry not yet committed
+# is not listed: ADR-0006 has each created in a commit of its own. It reports and never fails.
 #
 # Pure bash + git. Usage:
 #     scripts/sensor-backlog.sh [repository root]
@@ -56,7 +57,7 @@ while IFS= read -r branch; do
     [[ "$path" == *.md && ! -v on_main["$path"] ]] || continue
     lines+=("- $path — $(title "$branch" "$path") (on $branch)")
     n_branch=$((n_branch + 1))
-  done < <(g diff --name-only --diff-filter=A "$base" "$branch" -- "$DIR/")
+  done < <(g diff --no-renames --name-only --diff-filter=A "$base" "$branch" -- "$DIR/")
 done < <(g for-each-ref --format='%(refname:short)' refs/heads/)
 
 if ((n_main + n_branch == 0)); then

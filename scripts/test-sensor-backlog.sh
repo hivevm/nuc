@@ -6,8 +6,8 @@
 # entries under docs/backlog/ on main or on branches, runs the sensor against it, and asserts the
 # exit code and a line a reader would meet. The cases form a table: a repository without a
 # backlog, an entry on main, an entry only on an unmerged branch, an entry a merged branch added,
-# an entry main deleted that an older branch still carries, a branch that deletes nothing, and a
-# root that is no repository. The frontier sensor is run beside it: an entry is no ticket.
+# an entry main deleted that an older branch still carries, and a root that is no repository. The
+# frontier sensor is run beside it, over a plan with one ticket: an entry is no ticket.
 #
 # Inputs: scripts/sensor-backlog.sh scripts/sensor-plan-frontier.sh scripts/lib/
 #
@@ -100,10 +100,13 @@ expect 0 "an entry main deleted: an older branch does not bring it back" "$r" \
 
 r="$(repo with-plan)"
 entry "$r" not-a-ticket "Not a ticket"
+mkdir -p "$r/docs/plan/s"
+printf '# Ticket: fixture\n\n## Blocked by\n\n- None (can start immediately)\n\n## Mode\n\nwith the human\n' \
+  > "$r/docs/plan/s/01-real.md"
 expect 0 "an entry is no ticket: the frontier sensor ignores it" "$r" "not-a-ticket.md"
 out="$(bash "$FRONTIER" "$r" 2>&1)"; rc=$?
-check "an entry is no ticket: the frontier sensor reads no entry" \
-  test "$rc" -eq 0 -a "${out/not-a-ticket/}" == "$out"
+check "an entry is no ticket: the frontier sensor reads the ticket and no entry" \
+  test "$rc" -eq 0 -a "${out/not-a-ticket/}" == "$out" -a "${out/01-real/}" != "$out"
 
 mkdir -p "$work/plain"
 expect 2 "a root that is no repository: exit 2" "$work/plain" "is no git repository"
