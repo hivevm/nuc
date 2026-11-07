@@ -21,7 +21,9 @@
 #   4. --close, run by a copy's own script: it refuses on a copy that carries the template's title
 #      (the template's own README, or that title put back where step 1 removed it), and after step 1,
 #      also once the setup file was deleted by hand, removes what close_setup lists and keeps a
-#      NOTE block of the project's own.
+#      NOTE block of the project's own. Of the files under docs/plan/ and docs/backlog/ it removes
+#      the template's and keeps a ticket the project wrote, after a 'Use this template' commit
+#      and in an adoption; and the setup file's opening paragraph names the two directories.
 #
 # A project partway through the setup has replaced some placeholders already. Case 1 asks only
 # for those still present, and an edit of case 2 that finds nothing to change does nothing, so
@@ -145,8 +147,9 @@ open_golden_path() {
 }
 
 # close_setup <dir> — the close of the setup in the tree: the setup file, the README's notes
-# that point at it and its row in the Project Layout block, the setup skill and its pointer, and
-# this script with its 'run' line and its step in the docs job. The same edits make case 2.
+# that point at it and its row in the Project Layout block, the setup skill and its pointer,
+# this script with its 'run' line and its step in the docs job, and the template's own plan and
+# backlog. The same edits make case 2.
 close_setup() {
   local d="$1"
   rm -f "$d/TEMPLATE-SETUP.md"
@@ -172,6 +175,28 @@ close_setup() {
 /^      - name: Self-test the template setup against the scaffold$/d
 /^        run: bash scripts\/test-template-setup\.sh$/d'
   rm -f "$d/scripts/test-template-setup.sh"
+  close_template_work "$d"
+}
+
+# close_template_work <dir> — the template's own plan and backlog, the files under docs/plan/ and
+# docs/backlog/ the template's tree brought: those the commit that added the setup file added,
+# and where no commit holds that file, those git does not track. A file the project wrote there
+# stays. A directory left empty goes.
+close_template_work() {
+  local d="$1" first f
+  local -a brought
+  first="$(git -C "$d" log --diff-filter=A --format=%H -- TEMPLATE-SETUP.md 2>/dev/null | tail -n 1)"
+  if [[ -n "$first" ]]; then
+    mapfile -d '' -t brought < <(git -C "$d" diff-tree --root -r -z --no-commit-id --name-only \
+      --diff-filter=A "$first" -- docs/plan docs/backlog)
+  else
+    mapfile -d '' -t brought < <(git -C "$d" ls-files -z --others --exclude-standard -- docs/plan docs/backlog)
+  fi
+  for f in "${brought[@]}"; do rm -f "${d:?}/$f"; done
+  for f in docs/plan docs/backlog; do
+    [[ -d "$d/$f" ]] && find "$d/$f" -depth -type d -empty -delete
+  done
+  return 0
 }
 
 # close — close the setup in this repository, once step 1 has given it its own name: the
@@ -543,6 +568,37 @@ rm "$d/TEMPLATE-SETUP.md"
 bash "$d/scripts/test-template-setup.sh" --close >/dev/null 2>&1
 if [[ ! -e "$d/scripts/test-template-setup.sh" && ! -e "$d/.agents/skills/setup-project" ]]; then pass
 else fail "--close after the setup file was deleted by hand leaves the script or the skill"; fi
+# The template's plan and backlog go, the project's own stay. A repository created with 'Use this
+# template' starts with one commit of the template's tree; the copy is given a ticket and a
+# backlog entry of the template's, so the case holds while the template's own plan is empty.
+d="$(copy close-plan)"
+edit "$d" README.md 's/^# NUC — .*/# Fixture/'
+mkdir -p "$d/docs/plan/template-work" "$d/docs/backlog"
+printf '# Ticket: the template'"'"'s\n' > "$d/docs/plan/template-work/01-the-templates.md"
+printf '# The template'"'"'s entry\n' > "$d/docs/backlog/the-templates-entry.md"
+git -C "$d" add -A && git -C "$d" -c user.name=t -c user.email=t@t commit -qm template
+mkdir -p "$d/docs/plan/own"
+printf '# Ticket: the project'"'"'s\n' > "$d/docs/plan/own/01-the-projects.md"
+bash "$d/scripts/test-template-setup.sh" --close >/dev/null 2>&1
+left="$(cd "$d" && find docs/plan docs/backlog -type f 2>/dev/null | grep -vxF docs/plan/own/01-the-projects.md)"
+if [[ -z "$left" ]]; then pass; else fail "--close leaves the template's plan or backlog: $left"; fi
+if [[ -f "$d/docs/plan/own/01-the-projects.md" ]]; then pass
+else fail "--close removes a ticket the project added after the template's commit"; fi
+# An adoption copies the template's files into a project with a plan of its own: the project's
+# ticket is committed, the template's files are not yet.
+d="$(copy close-adoption)"
+edit "$d" README.md 's/^# NUC — .*/# Fixture/'
+mkdir -p "$d/docs/plan/template-work" "$d/docs/plan/own"
+printf '# Ticket: the template'"'"'s\n' > "$d/docs/plan/template-work/01-the-templates.md"
+printf '# Ticket: the project'"'"'s\n' > "$d/docs/plan/own/01-the-projects.md"
+git -C "$d" add docs/plan/own && git -C "$d" -c user.name=t -c user.email=t@t commit -qm project
+bash "$d/scripts/test-template-setup.sh" --close >/dev/null 2>&1
+if [[ ! -e "$d/docs/plan/template-work" && -f "$d/docs/plan/own/01-the-projects.md" ]]; then pass
+else fail "--close in an adoption does not remove the template's uncommitted ticket alone"; fi
+# The setup file says so where it lists what the close removes: its opening paragraph.
+opening="$(awk 'NR > 2 && /^$/ { exit } NR > 2' "$ROOT/TEMPLATE-SETUP.md")"
+if [[ "$opening" == *docs/plan/* && "$opening" == *docs/backlog/* ]]; then pass
+else fail "TEMPLATE-SETUP.md's opening paragraph does not name the template's plan and backlog"; fi
 
 # --- summary ---------------------------------------------------------------------------------
 
