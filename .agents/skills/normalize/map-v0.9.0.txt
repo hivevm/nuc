@@ -3,15 +3,17 @@
 # remap.sh, whose header gives the form of a line; the release notes point here.
 #
 # The six lines below are the map. An ADR whose clauses went to one NUC- ADR moves; one whose
-# clauses went to several is a split, whose references remap.sh lists and leaves. Place each left
-# reference by hand at the NUC- clause that carries what it cites, from the table after the map.
+# clauses went to several is a split, whose references remap.sh lists and leaves. Each split names
+# every NUC- ADR that is the home of one of its clauses in the table after the map; a pointer in a
+# home, such as an Out of scope that names another ADR, counts for nothing. Place each left
+# reference by hand at the NUC- clause that carries what it cites, from that table.
 
-0001-agent-governance-model.md       NUC-documents-are-fixed NUC-adrs-record-decisions NUC-main-only-via-pr
-0002-decisions-verified-by-tests.md  NUC-decisions-cite-tests NUC-checks-are-bash
+0001-agent-governance-model.md       NUC-documents-are-fixed NUC-adrs-record-decisions NUC-main-only-via-pr NUC-releases-are-semver-tags
+0002-decisions-verified-by-tests.md  NUC-decisions-cite-tests NUC-checks-are-bash NUC-adrs-record-decisions NUC-main-only-via-pr
 0003-procedures-as-skills.md         NUC-procedures-are-skills
-0004-dev-container-runtime.md        NUC-container-hides-host-daemon
-0005-template-releases.md            NUC-releases-are-semver-tags
-0006-feature-layer.md                NUC-large-work-is-planned NUC-design-is-revised
+0004-dev-container-runtime.md        NUC-container-hides-host-daemon NUC-checks-are-bash
+0005-template-releases.md            NUC-releases-are-semver-tags NUC-adrs-record-decisions
+0006-feature-layer.md                NUC-large-work-is-planned NUC-design-is-revised NUC-main-only-via-pr
 
 # The clause table: each clause of an old ADR, shortened to a line, with its home. A row reads
 # 'number | old clause | home'. In a home, bN is the Nth bullet of the clause; OoS is the Out of
@@ -251,7 +253,7 @@
 #   3 | rule 6: glossary | NUC-documents-are-fixed §5
 #   3 | rule 7: specification change | NUC-documents-are-fixed §2
 #   6 | commit on a branch, never on main | NUC-main-only-via-pr §1
-#   6 | a human decides what leaves the machine; the claim push | NUC-main-only-via-pr §2
+#   6 | a human decides what leaves the machine; the claim push | NUC-main-only-via-pr §2; the claim itself NUC-large-work-is-planned §4
 #   6 | gh authenticated through its web flow | NUC-main-only-via-pr §3
 #   6 | changes reach main through a pull request, as a merge commit | NUC-main-only-via-pr §4
 #   6 | branches may integrate first on a feat/ branch | NUC-main-only-via-pr §5
