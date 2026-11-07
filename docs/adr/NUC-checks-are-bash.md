@@ -34,8 +34,9 @@ git hooks and CI run alike.
    that publishes rather than checks is no gate, and `scripts/check-all.sh` names it so. Its jobs
    may run their own commands, and the scripts it runs count.
 6. **Local gate.** The git hooks run the checks before a commit, a merge, and a push. They refuse
-   what `NUC-main-only-via-pr` keeps from `main`. With `--changed`, `scripts/check-all.sh` runs a
-   self-test only where its `# Inputs:` line names a changed path. CI must run every self-test.
+   what [NUC-main-only-via-pr §6](NUC-main-only-via-pr.md) keeps from `main`. With `--changed`,
+   `scripts/check-all.sh` runs a self-test only where its `# Inputs:` line names a changed path. CI
+   must run every self-test.
 7. **Sensors of the GitHub repository.** A sensor that reads what only the GitHub repository holds
    may need the GitHub CLI, signed in through its web flow. It runs only on a human's instruction,
    never in `scripts/check-all.sh` or `checks.yml`. Its self-test runs on fixture responses
@@ -72,7 +73,7 @@ The catalogue has no entry for the binary, and choosing it needs an ADR that nar
   take the binary under clause 8.
 - **Run the sensor of the repository settings in CI.** The workflow token reads the rules of a
   branch, but the security settings only with admin rights. CI would need a stored token, which
-  `NUC-main-only-via-pr` forbids, or would report half of them.
+  [NUC-main-only-via-pr §3](NUC-main-only-via-pr.md) forbids, or would report half of them.
 - **A pre-push hook that reads the GitHub repository.** It refuses work for a reason the work
   does not have, whenever the network fails.
 
