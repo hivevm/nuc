@@ -48,9 +48,8 @@ ROOT="$(cd "${1:-$(dirname "${BASH_SOURCE[0]}")/..}" && pwd)"
 SPEC="docs/SPECIFICATION.md"
 ADR_DIR="docs/adr"
 ID_RE="$ADR_ID_RE"
-# The ADR that decides the checks, which each self-test of a sensor cites. A 'NUC-' identifier is
-# never moved: no normalization maps the base (NUC-adrs-record-decisions §17), so the check
-# reads it here as check-docs.sh and check-devcontainer.sh read theirs.
+# The ADR that decides the checks, which each self-test of a sensor cites: a NUC- identifier no
+# normalization moves (NUC-adrs-record-decisions §17).
 CHECKS_ADR="NUC-checks-are-bash"
 
 
@@ -157,6 +156,9 @@ done < <(git -C "$ROOT" ls-files --cached --others --exclude-standard -z)
 
 while IFS= read -r -d '' rel; do
   [[ "$rel" =~ ^scripts/sensor-([^/]+)\.sh$ && -f "$ROOT/$rel" ]] || continue
+  if [[ ! -f "$ROOT/$ADR_DIR/$CHECKS_ADR.md" ]]; then
+    add_error "$CHECKS_ADR, which the self-test of each sensor cites, is not in $ADR_DIR/"; break
+  fi
   self_test="scripts/test-sensor-${BASH_REMATCH[1]}.sh"
   if [[ ! -f "$ROOT/$self_test" ]]; then
     add_error "$rel has no self-test $self_test — each sensor runs after one that cites $CHECKS_ADR"
