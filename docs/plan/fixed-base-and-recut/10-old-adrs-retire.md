@@ -11,6 +11,11 @@ checks, and the sensors drop the form `ADR-NNNN`.
 The remap script runs idempotently, has a `--check` mode, and takes its map as a reviewed data file.
 The map stands in the hand-off and the commit body, not in a document.
 
+Some references need a rewrite, not a remap. The setup path for a project without a Dev Container
+superseded ADR-0004. Under clause 1 of `NUC-container-hides-host-daemon`, such a project deletes
+`.devcontainer/` and supersedes nothing, and no project ADR may supersede a `NUC-` ADR. The setup
+file, the `setup-project` skill, and case 3 of `scripts/test-template-setup.sh` change with it.
+
 ## Acceptance criteria
 
 - [ ] Given the clause tables of tickets 03 to 09, when they are joined, then each clause of
