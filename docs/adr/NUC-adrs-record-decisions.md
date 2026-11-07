@@ -132,7 +132,7 @@ template's `NUC-` ADRs are a fixed base that a project extends or narrows but ne
 - the glossary and the change of the specification
   ([NUC-documents-are-fixed §5](NUC-documents-are-fixed.md) and
   [NUC-documents-are-fixed §2](NUC-documents-are-fixed.md));
-- which test cites a decision (the ADR on tests);
+- which test cites a decision ([NUC-decisions-cite-tests](NUC-decisions-cite-tests.md));
 - the order of work of a proposal or a normalization (the skills `propose-adr` and `normalize`);
 - what a project picks for each role (its role ADR).
 
