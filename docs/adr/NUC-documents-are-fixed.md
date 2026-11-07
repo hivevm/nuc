@@ -3,7 +3,7 @@
 - **Status:** 🟡 proposed
 - **Date:** 2026-11-07
 - **Deciders:** NUC maintainer
-- **Applies to:** `docs/SPECIFICATION.md`, `AGENTS.md`, `docs/ARCHITECTURE.md`, `docs/GLOSSARY.md`, `docs/CONVENTIONS.md`, `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `.github/CODEOWNERS`, `.github/ISSUE_TEMPLATE/`, `.github/PULL_REQUEST_TEMPLATE.md`, every per-agent pointer file and configuration, checks 3 and 4 of `scripts/check-docs.sh`, `scripts/sensor-plain-rules.sh`, and `scripts/lib/rules.sh`
+- **Applies to:** `docs/SPECIFICATION.md`, `AGENTS.md`, `docs/ARCHITECTURE.md`, `docs/GLOSSARY.md`, `docs/CONVENTIONS.md`, `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `.github/CODEOWNERS`, `.github/ISSUE_TEMPLATE/`, `.github/PULL_REQUEST_TEMPLATE.md`, every per-agent pointer file, checks 3 and 4 of `scripts/check-docs.sh`, `scripts/sensor-plain-rules.sh`, and `scripts/lib/rules.sh`
 
 ## Context
 
@@ -33,77 +33,63 @@ when the section moves, and a check catches the broken link.
 
 ## Decision
 
-We will keep what a repository knows in six documents with one role each, and its working rules
-in one rule file.
+We will keep what a repository knows in six fixed documents with one role each, and its working
+rules in one rule file.
 
-1. **The set.** These six documents carry what a repository knows, each in one role:
+1. **The set.** Every repository must keep these six documents, each in its one role:
    - [`docs/SPECIFICATION.md`](../SPECIFICATION.md), the specification: what the project is for;
-   - [`docs/adr/`](.), the record: the decisions derived from the specification;
+   - [`docs/adr/`](.), the record: the decisions, kept as
+     [NUC-adrs-record-decisions](NUC-adrs-record-decisions.md) decides;
    - [`AGENTS.md`](../../AGENTS.md), the rule file: the working rules;
    - [`docs/ARCHITECTURE.md`](../ARCHITECTURE.md), the overview: the system as it stands;
    - [`docs/GLOSSARY.md`](../GLOSSARY.md), the glossary: the vocabulary;
    - [`docs/CONVENTIONS.md`](../CONVENTIONS.md), the conventions: the judgement calls on code and
      tests.
 
-   No other document may carry a rule.
+   No other document may carry a rule. A project may drop only the further documents of clause 7.
 2. **Specification.** A change to the specification is a decision, not an edit.
-   - Only a human may land the change.
-   - The change must name every accepted ADR whose basis it moves.
-   - The human reconsiders each named ADR in the same review and supersedes each one it
-     invalidates.
-   - An agent may draft specification text. It must not land the change. It must not judge alone
-     that no ADR is affected.
-   - A change to a passage that no ADR derives from names no ADR.
-3. **Record.** [NUC-adrs-record-decisions](NUC-adrs-record-decisions.md) decides how the record is
-   kept.
-4. **Rule file.** The rule file is vendor-neutral and the one source of working rules for humans
-   and agents alike.
-   - A repository must have exactly one rule file.
-   - Another document must cite a working rule by a link to its section anchor. It must not
-     restate the rule.
+   - Only a human may land the change. An agent may draft it but must not judge alone that no
+     ADR is affected.
+   - The change must name every accepted ADR whose basis it moves. A passage no ADR derives from
+     names none.
+   - The human reconsiders each named ADR in the same review and supersedes each it invalidates.
+   - A project must narrow a `NUC-` clause the change invalidates by an ADR of its own, or fork
+     the template ([NUC-adrs-record-decisions §11](NUC-adrs-record-decisions.md)).
+3. **Rule file.** A repository must have exactly one rule file. It is vendor-neutral and the one
+   source of working rules.
+   - Another document must cite a working rule by a link to its section anchor and must not
+     restate it.
    - A working rule that the rule file neither states nor links is not a rule of the project.
-5. **Overview.** The overview names the system's parts, their responsibilities, and how they fit
-   together.
-   - It must hold no rule and no decision.
-   - It must cite the ADR behind each structural choice.
-   - A change to the structure must update the overview in the same change.
-   - Where the overview and an accepted ADR disagree, the ADR is right.
-6. **Glossary.** The glossary defines the terms specific to the domain and decides nothing.
-   - An entry names one term in bold and says in one or two sentences what it is.
-   - An entry lists under _Avoid:_ the synonyms the term displaces, where there are any.
-   - Whoever resolves a term, an agent included, must add it in the same change that settles it.
-   - Code, comments, and documents must use the glossary's terms. A missing entry is a gap to
-     close in the glossary, not a word to invent.
-   - The specification must use the glossary's terms and must define none of its own.
-7. **Conventions.** The conventions say how the project writes code and tests where no check
-   decides it.
-   - An entry says in a sentence or two what is done and why.
-   - Whoever settles a convention, an agent included, must update the file in the same change as
-     the review or code that settled it.
-   - A convention that a check is able to decide must become the check, not an entry.
-   - A convention that constrains future choices must become an ADR, not an entry.
+4. **Overview.** The overview must hold no rule and no decision. It must cite the ADR behind each
+   structural choice. A change to the structure must update it in the same change. Where it and an
+   accepted ADR disagree, the ADR is right.
+5. **Glossary.** The glossary defines the domain's terms and decides nothing.
+   - An entry names one term in bold, says in one or two sentences what it is, and lists under
+     _Avoid:_ the synonyms it displaces.
+   - Whoever settles a term, an agent included, must add it in the same change.
+   - Code, comments, and documents must use its terms. A missing entry is a gap to close there,
+     not a word to invent.
+   - The specification must define no term of its own.
+6. **Conventions.** An entry of the conventions says in a sentence or two how the project writes
+   code or tests where no check decides it, and why.
+   - Whoever settles a convention, an agent included, must add it in the same change.
+   - A convention that a check is able to decide must become the check.
+   - A convention that constrains future choices must become an ADR.
    - The reviewer must receive the conventions. The implementer reads them when the work needs
      them.
-8. **Other documents.** Every other document must point at the rule file and must hold no rule of
-   its own. Examples are `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, the setup file while it
-   exists, the issue and pull request templates, the per-agent pointer files, and the catalogue of
+7. **Further documents.** Every other document must point at the rule file and hold no rule.
+   Examples are `README.md`, `CONTRIBUTING.md`, the per-agent pointer files, and the catalogue of
    `propose-adr`.
-9. **Mechanics.** A document may hold the mechanics that the rule file or a `NUC-` ADR delegates
-   to it.
-   - The mechanics of the record stand in [`docs/adr/README.md`](README.md) and its
-     [`template.md`](template.md).
-   - The mechanics of integration stand in the sections *Git hooks*, *Integration branches*, and
-     *Repository settings* of [`CONTRIBUTING.md`](../../CONTRIBUTING.md).
-   - Mechanics say how a rule is carried out. They must add no rule.
-   - `README.md` serves those who use the project and must hold no mechanics.
-10. **Per-agent configuration.** A per-agent configuration may close a path for its one agent as
-    defence in depth. It enforces no rule, and no rule may rest on it.
+8. **Mechanics.** A document may hold the mechanics that the rule file or a `NUC-` ADR delegates
+   to it. Examples are [`docs/adr/README.md`](README.md), [`template.md`](template.md), and
+   sections of [`CONTRIBUTING.md`](../../CONTRIBUTING.md). Mechanics say how a rule is carried
+   out and must add no rule. `README.md` must hold no mechanics.
 
 **Out of scope:**
 
-- how the record is kept, which [NUC-adrs-record-decisions](NUC-adrs-record-decisions.md)
+- what the rule file says, beyond clause 3;
+- what enforces a rule, and what a per-agent configuration may do, which `NUC-main-only-via-pr §7`
   decides;
-- what the rule file says, beyond clause 4;
 - the order of work of a setup, which the setup file and its skill carry.
 
 ## Latitude
@@ -115,8 +101,8 @@ A project may choose:
 - the notation and depth of the overview; the catalogue has no entry, and the choice needs no ADR;
 - a context map and one vocabulary per bounded context, for a repository with more than one; the
   catalogue has no entry, and the choice needs no ADR;
-- which of the other documents of clause 8 it keeps; the catalogue has no entry, and the choice
-  needs no ADR.
+- which further documents of clause 7 it keeps, while it keeps all six of clause 1; the catalogue
+  has no entry, and the choice needs no ADR.
 
 ## Alternatives considered
 
@@ -184,25 +170,21 @@ A project may choose:
 
 ## Enforcement
 
-[`scripts/check-docs.sh`](../../scripts/check-docs.sh) holds clause 4, and its self-test cites
-this ADR:
+[`scripts/check-docs.sh`](../../scripts/check-docs.sh) holds clause 3, and its self-test cites
+this ADR. Check 3 fails on a relative link that does not resolve. Check 4 fails on a section
+reference that names no section of the rule file.
 
-- check 3 fails on a relative link between documents that does not resolve;
-- check 4 fails on a section reference that names no section of the rule file.
-
-[`scripts/sensor-plain-rules.sh`](../../scripts/sensor-plain-rules.sh) holds clause 6, and its
+[`scripts/sensor-plain-rules.sh`](../../scripts/sensor-plain-rules.sh) holds clause 5, and its
 self-test cites this ADR. It reports each word an _Avoid:_ list names on a line a change adds to
-the rule file, or to the *Decision* or *Enforcement* of an ADR. It names the term to use instead.
-It skips a word in a code span or in italics. It fails nothing.
+the rules, and fails nothing.
 
-[`.github/CODEOWNERS`](../../.github/CODEOWNERS) routes a change to the specification to the
-owner's review once the file names an owner and the repository requires the review (clause 2).
-*Repository settings* in [`CONTRIBUTING.md`](../../CONTRIBUTING.md) names the setting.
+[`.github/CODEOWNERS`](../../.github/CODEOWNERS) routes a specification change to the owner's
+review once the repository requires it (clause 2).
 
-**Not mechanically decidable:** five judgements rest with the review:
+**Not mechanically decidable:** the review judges these:
 
-- whether another document holds a rule (clauses 1, 8, and 9);
+- whether another document holds a rule (clauses 1, 7, and 8);
 - whether a specification change names every ADR it moves (clause 2);
-- whether the overview matches the system (clause 5);
-- whether the glossary's terms are the ones in use, beyond what the sensor reports (clause 6);
-- whether a convention stands where a check is able to decide it (clause 7).
+- whether the overview matches the system (clause 4);
+- whether the glossary's terms are the ones in use (clause 5);
+- whether a convention belongs in a check (clause 6).

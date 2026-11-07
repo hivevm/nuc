@@ -34,117 +34,103 @@ Each choice the template leaves open must stay visible as a choice.
 We will record each architecture decision as one ADR named by a category key and a slug. The
 template's `NUC-` ADRs are a fixed base that a project extends or narrows but never edits.
 
-1. **When.** An agent must create an ADR before an architecture-relevant decision. Such a
-   decision picks a dependency or framework, a public interface, a persistence or synchronization
-   strategy, or a protocol or data format. It is anything that constrains future technology
-   choices. One ADR records one decision. A cross-cutting ADR may record an integration, where the
-   decision is the interplay. The catalogue of `propose-adr` may have an entry for the decision
-   that no ADR in force decides. Then the agent must propose the entry's fitting concepts first.
-2. **Calibration.** An ADR records a decision of one of these kinds:
-   - it is costly to reverse;
-   - it constrains future choices;
-   - a reader without the conversation would take it for a mistake.
-
-   The last kind needs an ADR however cheap it is to reverse. These need no ADR:
-   - implementing within an ADR in force;
-   - a bug fix, an interface-preserving refactoring, a test, documentation, or formatting;
-   - tooling used only in development.
-
-   An agent that is unsure must write a short proposed ADR instead of deciding silently.
-3. **Proposal.** An agent submits an ADR with the status proposed, in commits that change ADRs
-   only. It must hand those commits to the human before anything is implemented against them.
-   - The commits go on the branch of the work they belong to, or on a branch of their own.
-   - Several ADRs that the same human decides may travel together. Each stays one decision.
-   - An ADR that the human sends back must leave the work's branch for a branch of its own.
-     Nothing may be implemented against it until it is settled.
-4. **Implementation.** After the human's review, the agent may implement while the ADR is still
-   proposed. The implementation follows the ADR's commits, on the same branch or a stacked one. A
-   commit that changes the text of an ADR must change nothing else. Findings return as revisions,
-   each a commit of ADRs only. The hand-off must name the commit of ADRs that the human reviewed.
+1. **When.** An agent must create an ADR before an architecture-relevant decision.
+   - Such a decision constrains future technology choices, such as a dependency, a public
+     interface, a persistence strategy, or a data format.
+   - One ADR records one decision, or an integration whose decision is the interplay.
+   - When the catalogue of `propose-adr` has an entry for a decision no ADR in force decides, the
+     agent must propose the entry's fitting concepts first.
+2. **Calibration.** An ADR records a decision that is costly to reverse or constrains future
+   choices. It also records one a reader without the conversation takes for a mistake, however
+   cheap to reverse.
+   - Implementing within an ADR in force needs no ADR. Nor do a bug fix, an interface-preserving
+     refactoring, a test, documentation, formatting, or development-only tooling.
+   - An agent that is unsure must write a short proposed ADR instead of deciding silently.
+3. **Proposal.** An agent must submit an ADR as proposed, in commits of ADRs only, and hand them
+   to the human before anything is implemented against them.
+   - The commits go on the work's branch or on a branch of their own.
+   - ADRs that one human decides may travel together.
+   - An ADR the human sends back must move to a branch of its own. Nothing may be implemented
+     against it until it is settled.
+4. **Implementation.** After the human's review, the agent may implement while the ADR is
+   proposed, after its commits, on the same branch or a stacked one.
+   - A commit that changes the text of an ADR must change nothing else.
+   - Findings return as revisions, each a commit of ADRs only.
+   - The hand-off must name the commit of ADRs that the human reviewed.
 5. **Status.** Only a human may change the status of an ADR. The flip to accepted changes the
-   header line only and may land with the implementation. An accepted ADR binds every human and
-   agent. Nobody may violate or work around it.
+   header line only and may land with the implementation. An accepted ADR binds everyone, and
+   nobody may violate or work around it.
 6. **Immutability.** Outside a normalization, nobody may rewrite or delete an accepted project
    ADR. A project changes one only by superseding it. The template repository corrects its own
    `NUC-` ADRs in place, and a release ships the correction.
-7. **Authority.** Authority runs from the specification to the accepted ADRs to the task. When
-   the specification and an ADR conflict, the specification wins. An agent must raise the
-   conflict and must not choose silently.
-8. **Identifier.** An ADR's identifier is its category key, a hyphen, and its slug, such as
+7. **Authority.** Authority runs from the specification to the accepted ADRs to the task. When the
+   specification and an ADR conflict, the specification wins. An agent must raise the conflict
+   instead of choosing silently.
+8. **Identifier.** An identifier is a category key, a hyphen, and a slug, such as
    `SEC-host-socket-closed`.
-   - The category key is two to five capital letters. The slug is two to five lower-case words
-     or numbers joined by hyphens, and it states the decision.
-   - The file is `docs/adr/<identifier>.md`. Its heading starts with `# <identifier>:` and the
-     title.
-   - The author picks the identifier when the file is created. No ADR has a draft state, and no
-     step numbers ADRs.
+   - The key is two to five capital letters. The slug is two to five lower-case words or numbers
+     joined by hyphens, and it states the decision.
+   - The file is `docs/adr/<identifier>.md`, headed `# <identifier>:` and the title.
+   - The author picks the identifier when creating the file. No ADR has a draft state, and no step
+     numbers ADRs.
    - The identifier must not change once the ADR is on `main`, even when its title changes.
-   - No identifier may be used twice, including the identifiers of deleted ADRs in the history.
-     A successor takes a new slug.
-   - The date in the header gives the order of ADRs.
+   - No identifier may be used twice, deleted ADRs included. A successor takes a new slug.
+   - The date in the header orders the ADRs.
 9. **Categories.** The fixed categories are these:
    - `NUC`: the template's own ADRs, reserved to the template repository;
    - `SEC`: security;
    - `OPS`: build, release, deployment, and operation;
    - `API`: interfaces the system offers and consumes, adapters among them.
 
-   A project must define every further category in the category list of the ADR index, each
-   with one line on what it holds. The checks read that list.
+   A project must define every further category, with one line on what it holds, in the category
+   list of the ADR index.
 10. **Clauses.** The *Decision* of an ADR states its rules as numbered clauses. A citation of a
-    clause is the identifier, a section sign, and the number, such as `SEC-host-socket-closed §3`.
-    A clause keeps its number. A removed clause leaves its number unused.
+    clause adds a section sign and the number, such as `SEC-host-socket-closed §3`. A clause keeps
+    its number, and a removed clause leaves its number unused.
 11. **Fixed base.** The `NUC-` ADRs lie in `docs/adr/` next to the project's ADRs.
     - A derived project must not edit a `NUC-` file, and no project ADR may supersede one.
-    - A project ADR may extend or narrow a `NUC-` clause. It names the clause in the header field
-      `Extends:` or `Narrows:`.
-    - A project that must contradict a `NUC-` clause forks the template. A fork removes the blob
+    - A project ADR may extend or narrow a `NUC-` clause, named in its `Extends:` or `Narrows:`
+      field.
+    - A project that must contradict a `NUC-` clause forks the template. The fork removes the blob
       list and names the release it forked in the **Template** section of its README.
-    - A project takes up a release by replacing the `NUC-` files and the blob list.
-    - A project accepts the base by naming the release it carries.
+    - A project takes up a release by replacing the `NUC-` files and the blob list. It accepts the
+      base by naming the release it carries.
 12. **Blob list.** The blob list `docs/adr/NUC.blobs` names each `NUC-` file with its git blob
     identifier. A change to a `NUC-` file rewrites the list in the same commit. In every
     repository, each `NUC-` file must match its line in the list.
-13. **Roles.** Some choices are required project ADRs. Such an ADR carries the header field
-    `Role:` with the role it fills. The required roles are `harness` and `toolchain`. Once the
-    template setup is done, each required role must have exactly one accepted ADR. The template
-    refers to a role, never to a project's identifier.
+13. **Roles.** The required roles are `harness` and `toolchain`. A project ADR that fills one
+    carries the header field `Role:` naming it. Once the template setup is done, each role must
+    have exactly one accepted ADR. The template refers to a role, never to a project's identifier.
 14. **Supersession.** A project ADR that replaces others names each in its `Supersedes:` field
-    from its proposal on. When a human accepts it, the status of each old ADR flips to superseded
-    by the new identifier, in the same change. Until a normalization, a superseded ADR keeps its
-    file and its body. One ADR may supersede several whose decisions have grown into one.
-15. **Index.** The ADR index lists the project's ADRs, grouped by category, and the category
-    list.
-    - It links the `NUC-` base in one line and lists no `NUC-` ADR.
-    - Each row shows the status by the legend's emoji and mirrors the ADR's `Applies to` field
-      verbatim.
-    - Accepted and proposed ADRs stand under **Binding**. Superseded and rejected ADRs stand
-      under **Superseded and rejected**.
+    from its proposal on. One ADR may supersede several whose decisions have grown into one. When
+    a human accepts it, each old ADR's status flips to superseded by the new identifier, in the
+    same change. A superseded ADR keeps its file and body until a normalization.
+15. **Index.** The ADR index lists the category list and the project's ADRs by category. It links
+    the `NUC-` base in one line and lists no `NUC-` ADR.
+    - Each row shows the status by the legend's emoji and mirrors the ADR's `Applies to` verbatim.
+    - Accepted and proposed ADRs stand under **Binding**, superseded and rejected ones under
+      **Superseded and rejected**.
     - A row changes in the same commit as its ADR.
-16. **Citations.** Every citation of an ADR must name a file that exists in `docs/adr/`. An
-    anticipated follow-up is described by its topic. In Markdown, a citation of an ADR is a link
-    to its own file.
-    - An identifier in a Markdown code span is an example or a planned identifier. It is not a
-      citation.
-    - A citation is a link, or an identifier outside a code span.
+16. **Citations.** Every citation of an ADR must name a file in `docs/adr/`, and in Markdown it
+    links that file. An anticipated follow-up is described by its topic. An identifier in a
+    Markdown code span is an example or a plan, not a citation.
 17. **Normalization.** A normalization restates the record, only on a human's instruction.
-    - It restates the specification first. It supersedes the ADRs the restatement invalidates
-      next. Then it rewrites the project ADRs in force as a new set.
-    - It changes no decision. It deletes superseded and rejected ADRs.
+    - It restates the specification, then supersedes the ADRs that invalidates, then rewrites the
+      project ADRs in force as a new set.
+    - It changes no decision, and it deletes superseded and rejected ADRs.
     - A merged or split ADR takes a new identifier. The others keep theirs.
-    - A map moves the references from the old identifiers to the new ones. The map stands in
-      the hand-off and the commit body, in no document.
-    - A normalization leaves the `NUC-` files as they are.
+    - A map moves the references to the new identifiers. It stands in the hand-off and the commit
+      body, in no document.
+    - It leaves the `NUC-` files as they are.
 
 **Out of scope:**
 
-- the vocabulary of the glossary, which [NUC-documents-are-fixed §6](NUC-documents-are-fixed.md)
-  decides;
-- the rule that a change to the specification is a decision, which
-  [NUC-documents-are-fixed §2](NUC-documents-are-fixed.md) decides;
-- which test cites a decision and how, which belongs to the ADR on tests;
-- the order of work of a proposal or a normalization, which the skills `propose-adr` and
-  `normalize` carry;
-- what a project picks for each role, which its role ADR decides.
+- the glossary and the change of the specification
+  ([NUC-documents-are-fixed §5](NUC-documents-are-fixed.md) and
+  [NUC-documents-are-fixed §2](NUC-documents-are-fixed.md));
+- which test cites a decision (the ADR on tests);
+- the order of work of a proposal or a normalization (the skills `propose-adr` and `normalize`);
+- what a project picks for each role (its role ADR).
 
 ## Latitude
 
@@ -206,32 +192,24 @@ A project may choose:
 
 `scripts/check-docs.sh` holds these clauses, and its self-test cites this ADR:
 
-- the file name, the heading, and the form of each identifier (clause 8);
-- a category in the fixed set or in the category list (clause 9);
-- an identifier unique in the tree and in the history of deleted ADRs (clause 8);
-- every citation names an existing ADR and links its own file (clause 16);
-- the index lists every project ADR once, in the right table, with its status and `Applies to`
-  (clause 15);
-- the `Supersedes:` field and the status lines agree (clause 14);
-- no project ADR supersedes a `NUC-` ADR, and each `Extends:` or `Narrows:` names an existing
-  clause (clause 11);
-- each `NUC-` file matches the blob list (clause 12);
-- after the setup, each required role has exactly one accepted ADR (clause 13).
+- each identifier's form, file, heading, category, and uniqueness across the history (clauses 8
+  and 9);
+- the supersessions, the index rows, and the citations against the ADRs (clauses 14 to 16);
+- the fixed base: no supersession of a `NUC-` ADR, existing `Extends:` and `Narrows:` clauses,
+  and the blob list (clauses 11 and 12);
+- one accepted ADR per required role after the setup (clause 13).
 
-`scripts/sensor-review-binding.sh` lists each commit that changes the text of an ADR and another
-path (clause 4).
+These scripts fail nothing:
 
-`scripts/sensor-binding-adrs.sh` lists the ADRs in force whose *Applies to* names a path a change
-touches (clause 5). A session may name the paths before its first change. With `--sections` it
-prints the header, the *Decision*, and the *Enforcement* of each ADR it lists. It also prints the
-*Applies to* of every other ADR in force that is not paths alone. It fails nothing, and its
-self-test cites this ADR.
+- `scripts/sensor-review-binding.sh` lists each commit that changes the text of an ADR and another
+  path (clause 4).
+- `scripts/sensor-binding-adrs.sh` lists the ADRs in force whose *Applies to* names a path the
+  change touches or the session names (clause 5). With `--sections` it prints the parts a session
+  reads. Its self-test cites this ADR.
+- `scripts/test-normalize-remap.sh` cites this ADR. It holds that a map moves every reference
+  exactly once, a swap included (clause 17).
 
-The self-test of the map script of `normalize`, `scripts/test-normalize-remap.sh`, cites this ADR
-(clause 17). It holds that a map moves every reference exactly once, a swap included.
-
-**Not mechanically decidable:** clauses 1 to 4, 11, and 17 hold five judgements. The review
-holds them:
+**Not mechanically decidable:** the review judges these (clauses 1 to 4, 11, 17):
 
 - whether a decision needs an ADR;
 - whether an ADR holds one decision;
