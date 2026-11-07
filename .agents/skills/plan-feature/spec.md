@@ -41,7 +41,7 @@
 <!-- Modules touched and the interfaces that change, schema and contract changes, clarifications
      from the human, in the project vocabulary, without file paths or code snippets. Any decision
      that is architecture-relevant is an ADR, not a bullet here
-     (AGENTS.md [§3](../../../AGENTS.md#3-adr-rules)). -->
+     ([NUC-adrs-record-decisions §1](../../../docs/adr/NUC-adrs-record-decisions.md)). -->
 
 -
 
@@ -60,6 +60,8 @@
 
 ## ADR impact
 
-<!-- Which ADRs in force bind this work (by number, from the Binding table of
-     docs/adr/README.md), and whether it needs a new `proposed` ADR before implementation starts
-     (AGENTS.md [§3](../../../AGENTS.md#3-adr-rules)). "None" is an answer; write why. -->
+<!-- Which ADRs in force bind this work (by identifier, the `NUC-` ones included, as
+     scripts/sensor-binding-adrs.sh lists them), and whether it needs a new `proposed` ADR before
+     implementation starts
+     ([NUC-adrs-record-decisions §2](../../../docs/adr/NUC-adrs-record-decisions.md)). "None" is an
+     answer; write why. -->

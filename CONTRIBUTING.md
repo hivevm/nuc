@@ -14,22 +14,22 @@ Read what [`AGENTS.md` §2](AGENTS.md#2-start-here) names before any non-trivial
 check decides it.
 
 Authority runs **specification → accepted ADRs → task**
-([`AGENTS.md` §3](AGENTS.md#3-adr-rules)).
+([NUC-adrs-record-decisions §7](docs/adr/NUC-adrs-record-decisions.md)).
 
 ## Workflow
 
 1. **Settle scope and intent first** when they are not yet agreed
    ([`AGENTS.md` §4](AGENTS.md#4-working-style)).
 2. **Follow [`AGENTS.md`](AGENTS.md)**: when a decision needs an ADR and how it is reviewed
-   ([§3](AGENTS.md#3-adr-rules)), when a change counts as done
-   ([§5](AGENTS.md#5-quality-bar--definition-of-done)), and the git and project rules
-   ([§6](AGENTS.md#6-project-rules)). Run [`scripts/check-all.sh`](scripts/check-all.sh) locally
-   before pushing ([§5](AGENTS.md#5-quality-bar--definition-of-done)). It runs the same checks CI
-   runs on every pull request, and the repository's git hooks run them for you
-   ([Git hooks](#git-hooks)). They need bash 4.4 or later and coreutils,
-   already in the Dev Container.
-   Only the shell lint additionally needs [ShellCheck](https://www.shellcheck.net), which the Dev
-   Container installs; elsewhere it skips itself where that is missing, and CI runs it always.
+   ([NUC-adrs-record-decisions](docs/adr/NUC-adrs-record-decisions.md)), when a change counts as
+   done ([§5](AGENTS.md#5-quality-bar--definition-of-done)), and the rules of integration
+   ([NUC-main-only-via-pr](docs/adr/NUC-main-only-via-pr.md)). Run
+   [`scripts/check-all.sh`](scripts/check-all.sh) locally before pushing
+   ([§5](AGENTS.md#5-quality-bar--definition-of-done)). It runs the same checks CI runs on every
+   pull request, and the repository's git hooks run them for you ([Git hooks](#git-hooks)). They
+   need bash 4.4 or later and coreutils, already in the Dev Container. Only the shell lint
+   additionally needs [ShellCheck](https://www.shellcheck.net), which the Dev Container installs;
+   elsewhere it skips itself where that is missing, and CI runs it always.
 3. **Open a pull request** against `main` and fill in the PR template.
 
 ## Project Layout
@@ -65,7 +65,7 @@ scripts/*.sh          # run by hand, steps 7 and 8 of the integration branches: 
 .editorconfig         # editor-neutral formatting baseline
 .gitattributes        # line-ending normalization (LF everywhere), the ADR index merged by its driver
 .gitignore            # what git leaves out, .scratch/ for session artifacts among it
-.agents/skills/       # the procedures of AGENTS.md as Agent Skills, one directory each (ADR-0003),
+.agents/skills/       # the procedures of AGENTS.md as Agent Skills, one directory each,
                       # with the scripts and templates they carry (claim.sh, remap.sh, ticket.md)
 .claude/CLAUDE.md     # pointer for Claude Code to read AGENTS.md
 .claude/skills/       # pointers (one symlink per skill) for Claude Code to read .agents/skills/
@@ -111,10 +111,11 @@ The procedures those rules name (proposing an ADR, planning a feature, working i
 alone or in parallel, reviewing a change, revising the design, normalizing the record) are Agent
 Skills under [`.agents/skills/`](.agents/skills/), the open format and the directory Codex,
 Gemini CLI, and Cursor read
-([ADR-0003](docs/adr/0003-procedures-as-skills.md)). An agent invokes one by name (`/review`) or
-picks it up when the task matches its description. Claude Code reads `.claude/skills/` only, so
-that directory holds one symlink per skill into `.agents/skills/`; a directory-level symlink is
-not followed. The symlinks are pointers of the same kind as `CLAUDE.md`, tracked upstream as
+([NUC-procedures-are-skills §1](docs/adr/NUC-procedures-are-skills.md)). An agent invokes one by
+name (`/review`) or picks it up when the task matches its description. Claude Code reads
+`.claude/skills/` only, so that directory holds one symlink per skill into `.agents/skills/`; a
+directory-level symlink is not followed. The symlinks are pointers of the same kind as `CLAUDE.md`,
+tracked upstream as
 [anthropics/claude-code#31005](https://github.com/anthropics/claude-code/issues/31005). Delete them
 when that lands, and add one for every skill added meanwhile; the documentation check fails on a
 skill without its pointer. What enforces a rule is what every agent hits
@@ -224,16 +225,16 @@ or transfer:
   proposed in parallel under one identifier, and blocks force pushes and branch deletion;
 - enable **require a review from Code Owners** on that ruleset, so the two artifacts only a human
   decides, [`docs/SPECIFICATION.md`](docs/SPECIFICATION.md) and everything under
-  [`docs/adr/`](docs/adr/) ([`AGENTS.md` §3](AGENTS.md#3-adr-rules)), cannot be merged without the
-  owner named in [`.github/CODEOWNERS`](.github/CODEOWNERS), which has to carry a real handle or
-  team for the requirement to mean anything;
+  [`docs/adr/`](docs/adr/) ([NUC-adrs-record-decisions §5](docs/adr/NUC-adrs-record-decisions.md)),
+  cannot be merged without the owner named in [`.github/CODEOWNERS`](.github/CODEOWNERS), which has
+  to carry a real handle or team for the requirement to mean anything;
 - enable **secret scanning with push protection**, the only mechanical backstop behind the secrets
   rule ([`AGENTS.md` §7](AGENTS.md#7-secrets)), which is otherwise carried by review alone;
 - enable **private vulnerability reporting** (see [`SECURITY.md`](SECURITY.md)).
 
 [`scripts/sensor-repo-settings.sh`](scripts/sensor-repo-settings.sh) reads these settings
 through `gh` and reports each one that differs from this list. It runs on a human's
-instruction ([ADR-0002](docs/adr/0002-decisions-verified-by-tests.md)).
+instruction ([NUC-checks-are-bash §7](docs/adr/NUC-checks-are-bash.md)).
 
 ## Reporting security issues
 

@@ -5,16 +5,17 @@ description: Develop and submit an Architecture Decision Record, with a catalogu
 
 # Propose an ADR
 
-The rule is [`AGENTS.md` §3](../../../AGENTS.md#3-adr-rules); the mechanics of the record are in
-[`docs/adr/README.md`](../../../docs/adr/README.md). This skill is the order of work. It states no
-rule of its own ([NUC-procedures-are-skills §3](../../../docs/adr/NUC-procedures-are-skills.md)).
+The rule is [NUC-adrs-record-decisions](../../../docs/adr/NUC-adrs-record-decisions.md); the
+mechanics of the record are in [`docs/adr/README.md`](../../../docs/adr/README.md). This skill is
+the order of work. It states no rule of its own
+([NUC-procedures-are-skills §3](../../../docs/adr/NUC-procedures-are-skills.md)).
 
 ## 1. Calibrate
 
-Decide with rule 2 of [`AGENTS.md` §3](../../../AGENTS.md#3-adr-rules) whether this needs an ADR
-at all. The rule's third case, what a reader without this conversation would take for a mistake,
-is the deliberate deviation from the obvious path; record it, or the next session "fixes" it.
-When no ADR is needed, say so and stop here.
+Decide with [NUC-adrs-record-decisions §2](../../../docs/adr/NUC-adrs-record-decisions.md) whether
+this needs an ADR at all. The rule's third case, what a reader without this conversation would take
+for a mistake, is the deliberate deviation from the obvious path; record it, or the next session
+"fixes" it. When no ADR is needed, say so and stop here.
 
 ## 2. Interrogate the request
 
@@ -47,7 +48,8 @@ in the record.
    ([mechanics](../../../docs/adr/README.md#mechanics)). Complete the header and delete the
    instruction paragraph.
 2. One decision per ADR: one "We will …" sentence. A second one is a second ADR, unless the
-   decision is the interplay of an integration ([§3](../../../AGENTS.md#3-adr-rules), rule 1).
+   decision is the interplay of an integration
+   ([NUC-adrs-record-decisions §1](../../../docs/adr/NUC-adrs-record-decisions.md)).
 3. **Alternatives:** every one the interrogation surfaced, each with why not. For a concept of
    the catalogue, its entry's sections carry over: *Fits when* and *Does not fit* into the
    Context, *Alternatives* and *Sources* as they stand, checked against this project, and *The
@@ -59,7 +61,7 @@ in the record.
    never by an identifier that does not exist yet.
 6. **Enforcement:** the test that will cite this ADR with a `Verifies:` marker, or a paragraph
    starting `**Not mechanically decidable:**` with the reason
-   ([ADR-0002](../../../docs/adr/0002-decisions-verified-by-tests.md)).
+   ([NUC-decisions-cite-tests §4](../../../docs/adr/NUC-decisions-cite-tests.md)).
 7. Add the index row in [`docs/adr/README.md`](../../../docs/adr/README.md), status and *Applies
    to* mirrored verbatim. For a supersession, name the old ADR in `Supersedes` and leave its
    status line: the human flips it when accepting this one
@@ -68,5 +70,6 @@ in the record.
 
 ## 4. Submit
 
-Commit on a branch and hand the ADR to the human as rule 3 of
-[`AGENTS.md` §3](../../../AGENTS.md#3-adr-rules) asks. What follows is rule 4.
+Commit on a branch and hand the ADR to the human as
+[NUC-adrs-record-decisions §3](../../../docs/adr/NUC-adrs-record-decisions.md) asks. What follows is
+[NUC-adrs-record-decisions §4](../../../docs/adr/NUC-adrs-record-decisions.md).

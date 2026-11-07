@@ -1053,7 +1053,7 @@ check_check_lists() {
   done
 
   # Every script under scripts/ runs in the two lists, unless the local runner names it on a line
-  # '# On instruction: scripts/<name>.sh', as for a sensor that reads GitHub (ADR-0002). A script
+  # '# On instruction: scripts/<name>.sh', as for a sensor that reads GitHub (NUC-checks-are-bash §7). A script
   # in neither list is a check nobody runs.
   local on_instruction=() name
   while IFS= read -r name; do on_instruction+=("$name"); done \

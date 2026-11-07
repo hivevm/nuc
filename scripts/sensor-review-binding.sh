@@ -37,7 +37,7 @@
 # bound to nothing, it leaves them listed.
 #
 # The review of an ADR comes before its implementation, and the commits keep the two apart
-# (AGENTS.md, section 3, rules 3 and 4). Every commit between the base and the head, those of the
+# (NUC-adrs-record-decisions §3, §4). Every commit between the base and the head, those of the
 # merged branches included, that changes the text of an ADR and a path outside docs/adr/ is
 # listed too. Its Status, Date, and Deciders lines are not its text here: the flip to accepted,
 # which moves the date, may land with the implementation, and a human adds the project's decider.
@@ -141,7 +141,7 @@ done < <(git rev-list --no-merges --reverse "$base..$head")
 # report_mixed — list the commits that change ADR text together with other paths.
 report_mixed() {
   ((${#mixed[@]})) || return 0
-  echo "Review binding sensor: ${#mixed[@]} commit$( ((${#mixed[@]} == 1)) || echo s) mixing ADR text with other paths, which AGENTS.md section 3 keeps in commits apart:"
+  echo "Review binding sensor: ${#mixed[@]} commit$( ((${#mixed[@]} == 1)) || echo s) mixing ADR text with other paths, which NUC-adrs-record-decisions §4 keeps in commits apart:"
   printf '  - %s\n' "${mixed[@]}"
 }
 

@@ -3,15 +3,16 @@
 Established answers to the decisions most projects face early, kept here so that a session
 proposing one starts from known answers instead of recalled ones. An entry is knowledge, not a
 decision: nothing here binds a project. A concept binds once the project records it as its own
-ADR through the `propose-adr` skill ([`AGENTS.md` §3](../../../../AGENTS.md#3-adr-rules)),
-together with the test that decides its rule
-([ADR-0002](../../../../docs/adr/0002-decisions-verified-by-tests.md)).
+ADR through the `propose-adr` skill
+([NUC-adrs-record-decisions §1](../../../../docs/adr/NUC-adrs-record-decisions.md)), together with
+the test that decides its rule
+([NUC-decisions-cite-tests §3](../../../../docs/adr/NUC-decisions-cite-tests.md)).
 
 What the template ships is one candidate among the others, such as no prescribed shape or no
 container access. Choosing it is recorded like any other choice, in the mini-ADR of
 [`template.md`](../../../../docs/adr/template.md): without the record, the next session finds
 no ADR that decides the question and proposes the concepts again
-([`AGENTS.md` §3](../../../../AGENTS.md#3-adr-rules), rule 2).
+([NUC-adrs-record-decisions §2](../../../../docs/adr/NUC-adrs-record-decisions.md)).
 
 ## Harness and toolchain
 
