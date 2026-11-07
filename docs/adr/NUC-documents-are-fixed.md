@@ -189,6 +189,9 @@ an ADR and to `AGENTS.md`, a renamed file by the lines its rename changes:
   or of `AGENTS.md`, which a take-up replaces as the release has them, it only reports them.
 - `scripts/check-all.sh` and the `checks.yml` workflow run it with `--require`.
 
+Check 10 of `scripts/check-docs.sh` holds the Project Layout of `CONTRIBUTING.md` against the
+tree (clause 8).
+
 [`.github/CODEOWNERS`](../../.github/CODEOWNERS) routes a specification change to the owner's
 review once the repository requires it (clause 2).
 

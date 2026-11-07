@@ -49,8 +49,9 @@ release it carries in its README.
    - It moves the release line and runs the checks.
 
    The project's ADRs keep their identifiers. A take-up needs no normalization.
-7. **Re-cut.** A release that merges, splits, or removes a `NUC-` ADR is a major. Its notes must
-   carry the map from each old identifier and clause to its new home.
+7. **Re-cut.** A release that merges, splits, or removes a `NUC-` ADR is a major. Before `v1.0.0`
+   it may be a minor, per clause 3. Its notes must carry the map from each old identifier and
+   clause to its new home.
 
 **Out of scope:**
 

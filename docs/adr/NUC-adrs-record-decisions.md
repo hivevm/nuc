@@ -99,13 +99,16 @@ template's `NUC-` ADRs are a fixed base that a project extends or narrows but ne
     - A derived project must not edit a `NUC-` file, and no project ADR may supersede one.
     - A project ADR may extend or narrow a `NUC-` clause, named in its `Extends:` or `Narrows:`
       field.
+    - A derived project must not edit `AGENTS.md` either. It narrows a rule there by an ADR of its
+      own.
     - A project that must contradict a `NUC-` clause forks the template. The fork removes the blob
-      list and names the release it forked in the **Template** section of its README.
-    - A project takes up a release by replacing the `NUC-` files and the blob list. It accepts the
-      base by naming the release it carries.
-12. **Blob list.** The blob list `docs/adr/NUC.blobs` names each `NUC-` file with its git blob
-    identifier. A change to a `NUC-` file rewrites the list in the same commit. In every
-    repository, each `NUC-` file must match its line in the list.
+      list and names the release it forked in the **Template** section of its README. It writes
+      `, forked` after the version on the release line.
+    - A project takes up a release by replacing the `NUC-` files, `AGENTS.md`, and the blob list.
+      It accepts the base by naming the release it carries.
+12. **Blob list.** The blob list `docs/adr/NUC.blobs` names each `NUC-` file and `AGENTS.md` with
+    its git blob identifier. A change to one of these files rewrites the list in the same commit.
+    In every repository, each of them must match its line in the list.
 13. **Roles.** The required roles are `harness` and `toolchain`. A project ADR that fills one
     carries the header field `Role:` naming it. Once the template setup is done, each role must
     have exactly one accepted ADR. The template refers to a role, never to a project's identifier.
@@ -182,9 +185,6 @@ A project may choose:
 - adr-tools by Nat Pryce: a numbering script and supersession links between numbered records.
 - The Git object model (Pro Git, chapter "Git Internals – Git Objects"): a blob's identifier is
   the hash of its stored content, the same on every platform.
-- The template's own record before this ADR: [`AGENTS.md` §3](../../AGENTS.md#3-adr-rules), the
-  mechanics of the ADR index, the draft clause of the ADR on tests, and the release take-up through
-  a normalization.
 
 ## Consequences
 

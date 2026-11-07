@@ -31,8 +31,8 @@ so a hook holds only for those who keep it on. The remote's settings hold for ev
 but they see only what reaches the remote. An administrator may bypass a ruleset. Several branches
 reviewed apart collide only when they meet, so some work has to meet before it reaches `main`.
 
-These rules stood in [`AGENTS.md` §6](../../AGENTS.md#6-project-rules) and in no ADR, so no sensor
-routed a change to the hooks or the integration steps to them.
+The binding sensor routes a change only to ADRs. Rules on the hooks and the integration steps
+that stand in no ADR reach no session that changes them.
 
 ## Decision
 
