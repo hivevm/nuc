@@ -8,7 +8,7 @@ name: Checks
 #
 # The sensors report for the reviewer and fail on nothing they count, except the action
 # references once a project runs that sensor with --require; their self-tests fail like any
-# check's. The sensors job checks out the full history because three sensors read it. The review
+# check's. The sensors job checks out the full history because four sensors read it. The review
 # binding sensor runs in review-binding.yml, the repository settings sensor on a human's
 # instruction (ADR-0002); this workflow runs the self-test of each.
 #
@@ -141,6 +141,10 @@ jobs:
         run: bash scripts/test-sensor-plan-frontier.sh
       - name: Report the tickets that may be claimed, the claimed, and the blocked
         run: bash scripts/sensor-plan-frontier.sh
+      - name: Self-test the backlog sensor
+        run: bash scripts/test-sensor-backlog.sh
+      - name: Report the backlog entries on main and on unmerged local branches
+        run: bash scripts/sensor-backlog.sh
       - name: Self-test the action references sensor
         run: bash scripts/test-sensor-action-refs.sh
       - name: Report the forms of the action references the workflows use

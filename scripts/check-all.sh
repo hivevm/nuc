@@ -190,6 +190,8 @@ run "Revision-due sensor self-test" scripts/test-sensor-revision-due.sh
 run "Revision-due sensor" scripts/sensor-revision-due.sh
 run "Plan frontier sensor self-test" scripts/test-sensor-plan-frontier.sh
 run "Plan frontier sensor" scripts/sensor-plan-frontier.sh
+run "Backlog sensor self-test" scripts/test-sensor-backlog.sh
+run "Backlog sensor" scripts/sensor-backlog.sh
 run "Action references sensor self-test" scripts/test-sensor-action-refs.sh
 run "Action references sensor" scripts/sensor-action-refs.sh
 run "Review binding sensor self-test" scripts/test-sensor-review-binding.sh
