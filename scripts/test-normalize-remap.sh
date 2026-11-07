@@ -9,8 +9,8 @@
 # left for the hand, a marker that already names the successor, a refused chain, the --check
 # mode, a second run that changes nothing, a swap of two criteria, the record left untouched, a
 # criterion outside Markdown and outside a marker line, a reference to an ADR with no successor, an
-# ignored file, files without a final newline and a binary one, each invalid map, which changes
-# nothing, and every ADR of a copy of this repository moved to a new identifier, after which the
+# ignored file, files without a final newline and a binary one, the release's map applied from the
+# tree, each invalid map, which changes nothing, and every ADR of a copy of this repository moved to a new identifier, after which the
 # other self-tests still pass.
 #
 # The identifiers in the fixtures are assembled at run time: a literal one would be a reference
@@ -106,6 +106,11 @@ printf '%s %s\n' "$(id one)" "$(id four)" > "$work/map-check"
 check "--check exits 1 when something would move" "[[ $rc -eq 1 ]]"
 check "--check names the reference" "grep -qF 'README.md:1: $(id one) -> $(id four)' '$work/out'"
 check "--check changes nothing" "grep -qxF 'See $(id one).' '$d/README.md'"
+printf 'See %s and %s.\n' "$(old 1)" "$(old 3)" > "$d/README.md"
+printf '0001-alpha.md %s %s\n0003-gamma.md %s\n' "$(id one)" "$(id two)" "$(id four)" > "$work/map-check"
+(cd "$d" && bash "$REMAP" --check "$work/map-check") > "$work/out" 2>&1; rc=$?
+check "--check lists what it would leave beside what it would move" \
+  "[[ $rc -eq 1 ]] && grep -qF 'README.md:1: $(old 3) -> $(id four)' '$work/out' && grep -qF 'README.md:1: $(old 1) is split into' '$work/out'"
 
 # A clause moved to another ADR: the citation and the file of its link move together, and the
 # other clauses of the old ADR stay.
@@ -196,6 +201,20 @@ printf 'notes.md\n' > "$d/.gitignore"
 printf '%s\n' "$(id one)" > "$d/notes.md"
 run "$d" "$(id one) $(id four)"; rc=$?
 check "an ignored file is left alone" "[[ $rc -eq 0 ]] && grep -qxF '$(id one)' '$d/notes.md'"
+
+# The release's map, applied from where the tree ships it: it is valid, a whole ADR moves, a split
+# is left for the hand, and the map file itself stays as it was.
+d="$(repo shipped)"
+shipped=".agents/skills/normalize/map-v0.9.0.txt"
+mkdir -p "$d/${shipped%/*}"
+cp "$ROOT/$shipped" "$d/$shipped"
+to="$(awk '$1 ~ /^0003-/ { print $2 }' "$d/$shipped")"
+printf 'See %s and %s.\n' "$(old 3)" "$(old 1)" > "$d/README.md"
+(cd "$d" && bash "$REMAP" "$shipped") > "$work/out" 2>&1; rc=$?
+check "the release's map exits 2 on a split" "[[ $rc -eq 2 ]]"
+check "the release's map moves a whole ADR and leaves a split" \
+  "[[ -n '$to' ]] && grep -qxF 'See $to and $(old 1).' '$d/README.md'"
+check "the release's map leaves its own file as it was" "cmp -s '$d/$shipped' '$ROOT/$shipped'"
 
 # A file the map does not change keeps its bytes, a binary one and one without a final newline
 # among them, and a file it changes keeps a missing final newline.

@@ -32,14 +32,14 @@
 # The files are the ones git tracks plus new ones it does not ignore, as check-docs.sh reads
 # them. A file is written only when the map changes its text, and then keeps every other byte,
 # a missing final newline included; a file with a NUL byte, which git takes for binary, is
-# skipped.
+# skipped, and so is the map file itself, so that a map shipped in the tree applies as it stands.
 #
 # Pure bash, git, and awk. Usage, anywhere in the repository:
 #     .agents/skills/normalize/remap.sh [--check] <map file>
 # Prints each file it changed. Exit code 0 when every reference moved, 2 when references are left
 # for the hand, 1 on anything else; an invalid map changes nothing. With --check it changes
-# nothing, prints each reference the map would move as 'file:line: OLD -> NEW', and exits 1 when
-# there is one.
+# nothing, prints each reference the map would move as 'file:line: OLD -> NEW', lists those it
+# would leave, and exits 1 when one would move.
 set -uo pipefail
 
 # The script may rewrite its own text, so bash reads all of it before running any: one block.
@@ -48,7 +48,7 @@ check=0
 [[ "${1:-}" == --check ]] && { check=1; shift; }
 map="${1:-}"
 [[ -n "$map" && -f "$map" ]] || { echo "remap: '$map' is no map file" >&2; exit 1; }
-map="$(cd "$(dirname "$map")" && pwd)/$(basename "$map")"
+map="$(cd "$(dirname "$map")" && pwd -P)/$(basename "$map")"
 
 top="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "remap: not inside a git repository" >&2; exit 1; }
 cd "$top" || exit 1
@@ -227,7 +227,7 @@ AWK
 
 changed=0
 while IFS= read -r f; do
-  [[ -f "$f" && ! -L "$f" ]] || continue
+  [[ -f "$f" && ! -L "$f" && "$top/$f" != "$map" ]] || continue
   grep -Iq . "$f" 2>/dev/null || continue
   adr_on=1 crit_on=1 all_crit=0
   [[ "$f" == docs/adr/* ]] && adr_on=0
@@ -247,14 +247,12 @@ while IFS= read -r f; do
   fi
 done < <(git ls-files --cached --others --exclude-standard | sort -u)
 
-if ((check)); then
-  [[ -s "$moves" ]] && cat "$moves"
-  ((changed)) && exit 1
-fi
+((check)) && cat "$moves"
 if [[ -s "$left" ]]; then
   echo "remap: references left to rewrite by hand:" >&2
   cat "$left" >&2
-  exit 2
 fi
+((check && changed)) && exit 1
+[[ -s "$left" ]] && exit 2
 exit 0
 }
