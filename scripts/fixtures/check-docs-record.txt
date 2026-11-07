@@ -87,6 +87,7 @@
 12 | pass | - | a fork without a list, the README naming the release it forked | file NUC:base-rule accepted; text docs/adr/NUC:base-rule.md A clause the fork changed.; release v0.8.1, forked
 12 | fail | docs/adr/NUC.blobs: not found | a fork that names no release | file NUC:base-rule accepted; release unreleased, forked
 1 | pass | - | a base ADR, which the index does not list | file NUC:base-rule accepted; blobs
+1 | fail | ADR index: lists NUC:base-rule, an ADR of the base | a base ADR listed in the index | adr NUC:base-rule accepted; blobs
 8 | fail | SEC:x-rule.md: supersedes NUC:base-rule | a project ADR superseding a base ADR | file NUC:base-rule accepted; blobs; adr SEC:x-rule proposed; supersedes SEC:x-rule NUC:base-rule
 8 | pass | - | a narrowing of an existing base clause | file NUC:base-rule accepted; text docs/adr/NUC:base-rule.md 2. **Two.** A rule.; blobs; adr SEC:x-rule proposed; field SEC:x-rule Narrows [NUC:base-rule §2](NUC:base-rule.md)
 8 | fail | SEC:x-rule.md: Narrows NUC:base-rule §3, a clause its Decision does not have | a narrowing of a missing clause | file NUC:base-rule accepted; text docs/adr/NUC:base-rule.md 2. **Two.** A rule.; blobs; adr SEC:x-rule proposed; field SEC:x-rule Narrows NUC:base-rule §3

@@ -6,11 +6,11 @@
 # docs/adr/README.md:
 #
 #   1. ADR index integrity: every ADR file, docs/adr/<CAT>-<slug>.md or of the old form
-#      docs/adr/NNNN-*.md, but the 'NUC-' base, is listed in the index table in docs/adr/README.md
-#      once, every index row points to an existing file, and the status and the 'Applies to' cell
-#      shown in the index match the **Status:** and **Applies to:** lines inside each ADR — the
-#      index routes a reader from a change to the ADRs that bind it (AGENTS.md, section 2), so a
-#      row that misstates what its ADR governs misroutes them.
+#      docs/adr/NNNN-*.md, but the 'NUC-' base, which it lists in no row, is listed in the index
+#      table in docs/adr/README.md once, every index row points to an existing file, and the
+#      status and the 'Applies to' cell shown in the index match the **Status:** and **Applies
+#      to:** lines inside each ADR — the index routes a reader from a change to the ADRs that bind
+#      it (AGENTS.md, section 2), so a row that misstates what its ADR governs misroutes them.
 #      A superseded or rejected row sits below the 'Superseded and rejected' heading and an
 #      accepted or proposed one above it: the first table is what a session reads, and a
 #      row in the wrong one is either a dead decision read as binding or a binding one
@@ -336,6 +336,8 @@ check_adr_index() {
     indexed_files+=("$filename")
     indexed_applies+=("$applies")
     indexed_status+=("$status")
+    [[ "$number" == NUC-* ]] && add_error \
+      "ADR index: lists $number, an ADR of the base — the index links the base in one line and lists no NUC- ADR (NUC-adrs-record-decisions §15)"
     if [[ "$number" != [0-9]* ]]; then
       [[ "$filename" == "$number.md" ]] \
         || add_error "ADR index: row for $number links to '$filename', not to '$number.md'"
