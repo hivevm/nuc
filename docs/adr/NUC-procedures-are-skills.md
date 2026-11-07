@@ -28,46 +28,29 @@ directory holding one symlink per skill loads all of them.
 
 ## Decision
 
-We will keep the procedures of the rule file as Agent Skills under `.agents/skills/`, each
-carrying a how and no rule of its own.
+We will keep the procedures of the rule file as Agent Skills, each carrying a how and no rule.
 
-1. **Skills.** Each procedure of the rule file is an Agent Skill under `.agents/skills/`. A skill
-   is one directory with a `SKILL.md`. The procedures are these:
-   - developing an ADR, in `propose-adr`;
-   - planning work larger than one session, in `plan-feature`;
-   - working its tickets, alone or in parallel, in `work-tickets`;
-   - reviewing a change, in `review`;
-   - revising the design, in `design-revision`;
-   - normalizing the record and taking up the template or a release, in `normalize`.
-2. **Setup.** While `TEMPLATE-SETUP.md` exists, its walk is a skill of the same kind,
-   `setup-project`. The change that deletes the file must delete the skill.
-3. **Content.** A skill carries the steps of one procedure.
-   - It must cite the section of `AGENTS.md`, the ADR, or the setup step that requires the
-     procedure.
-   - It must not state a rule of its own.
-4. **Naming the skill.** The rule file and the templates name the skill of a procedure. They must
-   not carry its steps.
-5. **Reference files.** A skill may carry reference files that its procedure reads, such as the
-   catalogue of `propose-adr`. A reference file holds knowledge and must not hold a rule.
-6. **Scripts.** A skill may carry a script for a step whose outcome depends on the order of its
-   commands, such as the claim of `work-tickets`. The script is a how, like the steps. A self-test
-   under `scripts/` must run it.
-7. **Pointer directory.** An agent that reads skills only from another directory reaches them
-   through a pointer directory.
-   - A pointer directory must hold one symlink per skill, named like the skill and resolving to
-     it.
-   - It must hold nothing else. A copy of a skill must not stand in for its symlink.
-   - One symlink for the whole directory must not replace the symlinks per skill.
-   - Claude Code reads skills only from `.claude/skills/`, so that directory is a pointer
-     directory.
+1. **Skills.** Each procedure of the rule file is a skill: a directory with a `SKILL.md` under
+   `.agents/skills/`. The skills are `propose-adr`, `plan-feature`, `work-tickets`, `review`,
+   `design-revision`, and `normalize`, which also carries the take-up of a release.
+2. **Setup.** While `TEMPLATE-SETUP.md` exists, its walk is the skill `setup-project`. The change
+   that deletes the file must delete the skill too.
+3. **Content.** A skill carries the steps of one procedure. It must cite the `AGENTS.md` section,
+   ADR, or setup step that requires the procedure. It must not state a rule.
+4. **Naming.** The rule file and the templates must name the skill instead of its steps.
+5. **Files.** A skill may carry reference files that its procedure reads. It may carry a script
+   for a step whose outcome depends on the order of its commands. These files must not hold a
+   rule. A self-test under `scripts/` must run each script.
+6. **Pointer directory.** An agent that reads skills only from another directory reaches them
+   through a pointer directory. That directory must hold one symlink per skill, named like the
+   skill, and nothing else. A copy or one symlink for the whole directory must not replace them.
+   Claude Code reads only `.claude/skills/`, so that directory is a pointer directory.
 
 **Out of scope:**
 
-- the skills a project adds for its own domain, which the *Latitude* leaves to it;
 - whether a skill may run unattended, which its ticket decides by
   [`AGENTS.md` §4](../../AGENTS.md#4-working-style);
-- that no document besides the rule file states a rule, which `NUC-documents-are-fixed` decides;
-- the order of work of each procedure, which its skill carries;
+- that only the rule file states rules, which `NUC-documents-are-fixed` decides;
 - a check on the front matter of a skill.
 
 ## Latitude
@@ -75,7 +58,7 @@ carrying a how and no rule of its own.
 A project may choose:
 
 - skills of its own for its domain, with their reference files and scripts, in the form of
-  clauses 3, 5, and 6;
+  clauses 3 and 5;
 - the pointer directories of the further agents its harness names, per the entry
   [harness](../../.agents/skills/propose-adr/concepts/harness.md) of the catalogue.
 
@@ -128,18 +111,14 @@ The catalogue has no entry for the first choice, and it needs no ADR.
 
 ## Enforcement
 
-- Check 11 of `scripts/check-docs.sh` holds the pointer directory `.claude/skills/` (clause 7).
-  - It fails when a skill has no symlink there.
-  - It fails when an entry there is a copy, dangles, or resolves to another skill.
-  - It fails when a skill lives only there.
-  - Its self-test cites this ADR.
-- `scripts/check-docs.sh` resolves every link and every section reference a skill makes
-  (clause 3).
+- Check 11 of `scripts/check-docs.sh` holds `.claude/skills/` (clause 6). It fails on a skill
+  without a symlink there, and on an entry that is no symlink, dangles, or resolves to another
+  skill. Its self-test cites this ADR.
+- `scripts/check-docs.sh` resolves every link and section reference of a skill (clause 3).
 
-**Not mechanically decidable:** five clauses rest on judgement. The review holds them:
+**Not mechanically decidable:** the review holds four judgements:
 
-- whether a skill or its reference file states a rule (clauses 3 and 5);
+- whether a skill or its files state a rule (clauses 3 and 5);
 - whether the rule file and the templates name the skill instead of its steps (clause 4);
-- whether a self-test runs each script of a skill (clause 6);
-- whether a further pointer directory, other than `.claude/skills/`, holds its symlinks
-  (clause 7).
+- whether a self-test runs each script of a skill (clause 5);
+- whether a pointer directory other than `.claude/skills/` is complete (clause 6).
