@@ -9,7 +9,7 @@ only reports avoided words (ADR-0001).
 Once the template's ADRs are a fixed base a project never edits, a check can hold the glossary
 against the project's own rules and spare the template's files. The glossary parser also meets
 prose in an _Avoid:_ item, such as "self-edge in prose" or "shape alone"; it then reads bare words
-only, as the scaffold says, or reports what it cannot parse.
+only, as the scaffold would then say, or reports what it cannot parse.
 
 Where: scripts/sensor-plain-rules.sh, avoid_terms in scripts/lib/rules.sh,
 docs/adr/0001-agent-governance-model.md (Enforcement), docs/GLOSSARY.md.

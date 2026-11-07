@@ -1,6 +1,7 @@
 # shellcheck shell=bash
 # The rules a change adds to, read one way by scripts/sensor-plain-rules.sh: AGENTS.md, and the
-# sections ADR_RULE_SECTIONS of each ADR (AGENTS.md section 4). Sourced after scripts/lib/adr.sh, run inside the repository of the change.
+# sections ADR_RULE_SECTIONS of each ADR (AGENTS.md section 4). Sourced after scripts/lib/adr.sh,
+# run inside the repository of the change.
 
 # rule_stream <base> [head] — every line of the rules in the files the change touches, as the
 # change has them: without a head, the working tree with its untracked files. For each file
