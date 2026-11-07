@@ -3,7 +3,7 @@
 # Git pre-push hook: nothing is pushed to the remote's main, and the checks pass before anything
 # else is pushed.
 #
-# Changes reach main through a pull request (AGENTS.md, section 6); a push to it would skip that,
+# Changes reach main through a pull request (NUC-main-only-via-pr §4); a push to it would skip that,
 # and a ruleset that an administrator may bypass is no reason to try. AGENTS.md, section 5 requires
 # scripts/check-all.sh to pass before a push, and CI runs the same checks on every pull request.
 # This hook runs them first, so a red push never leaves the machine, and it is where the merges a
@@ -21,8 +21,8 @@
 # tree counts only when the working tree is clean, nothing changed and nothing untracked, and is
 # then the tree of HEAD. The hook keeps the last 50 green trees in 'checks-green-trees' of the
 # repository's git directory, shared by its worktrees.
-# Bypassable with 'git push --no-verify', or by writing a tree into that file by hand; AGENTS.md,
-# section 6 says who may. scripts/test-git-hooks.sh exercises this hook.
+# Bypassable with 'git push --no-verify', or by writing a tree into that file by hand;
+# NUC-main-only-via-pr §6 says who may. scripts/test-git-hooks.sh exercises this hook.
 
 set -uo pipefail
 
@@ -33,7 +33,7 @@ refs=0
 sent=0
 while read -r _ local_object remote_ref _; do
   if [[ "$remote_ref" == "refs/heads/main" ]]; then
-    echo "pre-push: refused — changes reach main through a pull request, not a push (AGENTS.md, section 6). Push a branch of its own and open one: gh pr create --base main" >&2
+    echo "pre-push: refused — changes reach main through a pull request, not a push (NUC-main-only-via-pr §4). Push a branch of its own and open one: gh pr create --base main" >&2
     exit 1
   fi
   refs=$((refs + 1))
