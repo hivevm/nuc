@@ -18,6 +18,9 @@ text with its new home and reports the word count before and after.
       it reports no sentence over the limit and no modal verb besides *must*, *must not*, *may*.
 - [ ] Given every clause of the old text, when the hand-off's clause table is walked, then each has
       a home, and no clause has two.
+- [ ] Given the *Latitude* section of each new ADR, when it is read, then it names no tool and no
+      project value, and each choice links the catalogue where the catalogue has an entry; where
+      none has one, the section says that no choice needs an ADR.
 - [ ] Given a fixture without `.devcontainer/`, when the Dev Container check runs, then it passes
       and says that nothing binds.
 - [ ] Given the tree, when `scripts/check-all.sh` runs, then it is green.

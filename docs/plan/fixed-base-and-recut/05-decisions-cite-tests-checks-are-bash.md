@@ -25,6 +25,9 @@ text with its new home and reports the word count before and after.
       it reports no sentence over the limit and no modal verb besides *must*, *must not*, *may*.
 - [ ] Given every clause of the old text, when the hand-off's clause table is walked, then each has
       a home, and no clause has two.
+- [ ] Given the *Latitude* section of each new ADR, when it is read, then it names no tool and no
+      project value, and each choice links the catalogue where the catalogue has an entry; where
+      none has one, the section says that no choice needs an ADR.
 - [ ] Given a sensor without a self-test, or a self-test that cites another ADR only, when the
       traceability check runs, then it fails and names the sensor and the ADR it expects.
 - [ ] Given `scripts/test-normalize-remap.sh`, when it cycles the real tree, then the traceability
