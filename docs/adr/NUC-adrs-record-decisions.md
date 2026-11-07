@@ -40,7 +40,8 @@ template's `NUC-` ADRs are a fixed base that a project extends or narrows but ne
      future technology choices.
    - One ADR records one decision, or an integration whose decision is the interplay.
    - When the catalogue of `propose-adr` has an entry for a decision no ADR in force decides, the
-     agent must propose the entry's fitting concepts first.
+     agent must propose the entry's fitting concepts first. The proposal must include the
+     simplest of them.
 2. **Calibration.** An ADR records a decision that is costly to reverse or constrains future
    choices. It also records one a reader without the conversation takes for a mistake, however
    cheap to reverse.
@@ -56,6 +57,9 @@ template's `NUC-` ADRs are a fixed base that a project extends or narrows but ne
 4. **Implementation.** After the human's review, the agent may implement while the ADR is
    proposed, after its commits, on the same branch or a stacked one.
    - A commit that changes the text of an ADR must change nothing else.
+   - A normalization may carry the restated ADRs together with the text that cites them.
+   - The template repository's correction of its own `NUC-` ADRs may carry the corrected ADRs
+     together with the text that cites them.
    - Findings return as revisions, each a commit of ADRs only.
    - The hand-off must name the commit of ADRs that the human reviewed.
 5. **Status.** Only a human may change the status of an ADR. The flip to accepted changes the
