@@ -211,7 +211,8 @@ These scripts fail nothing:
   change touches or the session names (clause 5). With `--sections` it prints the parts a session
   reads. Its self-test cites this ADR.
 - `scripts/test-normalize-remap.sh` cites this ADR. It holds that a map moves every reference
-  exactly once, a swap included (clause 17).
+  exactly once (clause 17). The map script refuses a chain or a cycle among ADR identifiers, so a
+  second run changes nothing (clause 8). A map of criteria may swap them in one pass.
 
 **Not mechanically decidable:** the review judges these (clauses 1 to 4, 11, 17):
 
