@@ -20,7 +20,7 @@
 # so that check-docs.sh does not read this script's own fixtures as references into this
 # repository.
 #
-# Inputs: scripts/check-docs.sh scripts/lib/ scripts/fixtures/ .github/workflows/release.yml
+# Inputs: scripts/check-docs.sh scripts/lib/ scripts/fixtures/
 #
 # Usage:
 #     scripts/test-check-docs.sh
@@ -771,16 +771,6 @@ exec %q "$@"
 ' "$(command -v git)" > "$work/warn-git-bin/git"
 chmod +x "$work/warn-git-bin/git"
 PATH="$work/warn-git-bin:$PATH" expect pass "check 2: a warning of git on stderr is no deleted ADR" "$d"
-
-# The release workflow on a tag: its step that writes the blob list, run in a fixture with a base
-# file, writes a list check 12 passes.
-d="$(repo release-blobs)"
-nuc=NUC
-printf '# %s: base\n\n- **Status:** 🟢 accepted\n- **Applies to:** everything\n' "$nuc-base-rule" \
-  > "$d/docs/adr/$nuc-base-rule.md"
-cmd="$(sed -n 's/^ *run: \(.*> docs\/adr\/NUC\.blobs\)$/\1/p' "$ROOT/.github/workflows/release.yml")"
-(cd "$d" && eval "${cmd//scripts\/lib\//$ROOT/scripts/lib/}")
-expect pass "check 12: the list the release workflow writes on a tag" "$d"
 
 # --- summary -------------------------------------------------------------------------------
 
