@@ -7,17 +7,22 @@
 # Sourced by the checks and sensors that read an ADR's file name, identifier, or header.
 
 # An identifier of the new form: a category key of two to five capital letters, a hyphen, and a
-# slug of at most five lower case words or numbers joined by hyphens.
-ADR_NEW_RE='[A-Z]{2,5}-[a-z0-9]+(-[a-z0-9]+){0,4}'
+# slug of two to five lower case words or numbers joined by hyphens.
+ADR_SLUG_RE='[a-z0-9]+(-[a-z0-9]+){1,4}'
+ADR_NEW_RE="[A-Z]{2,5}-$ADR_SLUG_RE"
 ADR_NUMBER_RE='[0-9]{4}'
 # The fixed categories; a project defines its others in the category list of the ADR index.
 ADR_FIXED_CATEGORIES=(NUC SEC OPS API)
-# An identifier a 'Verifies:' marker cites: an ADR of either form, a goal, or a quality goal.
-ADR_ID_RE="ADR-$ADR_NUMBER_RE|$ADR_NEW_RE|[GQ]-[0-9]+"
+# What a 'Verifies:' marker cites, read whole: capital letters, a hyphen, and the rest of the word.
+# The reader holds each against the forms of an ADR's identifier, a goal, and a quality goal.
+ADR_ID_RE='[A-Z]+-[A-Za-z0-9_-]+'
+# The characters next to a reference: one of them on either side makes it part of a longer word.
+ADR_WORD_CHARS='A-Za-z0-9_-'
 
 # adr_categories <index> — sets ADR_CATEGORIES to the fixed categories and those the category list
-# of the index defines, each a list item '- **<KEY>** …' below a heading '... Categories', and
-# ADR_REF_RE to an ADR as prose cites it: 'ADR-NNNN', or an identifier of a known category.
+# of the index defines, each a list item '- **<KEY>** …' below a heading '... Categories';
+# ADR_REF_RE to an ADR as prose cites it, 'ADR-NNNN' or an identifier of a known category; and
+# ADR_REF_WORD_RE to such a reference standing as a word of its own, the reference its group 2.
 adr_categories() {
   local key
   ADR_CATEGORIES=("${ADR_FIXED_CATEGORIES[@]}")
@@ -27,7 +32,8 @@ adr_categories() {
       p && match($0, /^- [*][*][A-Z]+[*][*]/) { print substr($0, 5, RLENGTH - 6) }' "$1")
   fi
   local IFS='|'
-  ADR_REF_RE="ADR-$ADR_NUMBER_RE|(${ADR_CATEGORIES[*]})-[a-z0-9]+(-[a-z0-9]+){0,4}"
+  ADR_REF_RE="ADR-$ADR_NUMBER_RE|(${ADR_CATEGORIES[*]})-$ADR_SLUG_RE"
+  ADR_REF_WORD_RE="(^|[^$ADR_WORD_CHARS])($ADR_REF_RE)([^$ADR_WORD_CHARS]|\$)"
 }
 adr_categories ""
 
@@ -42,14 +48,16 @@ adr_field_line() { grep -m1 -E "$ADR_ITEM_RE$2:[*][*]" "$1"; }
 # adr_field_value <line> <name> — sets ADR_VALUE to what follows the field's name on the line.
 adr_field_value() { ADR_VALUE="${1##*\*\*"$2":\*\*}"; }
 
-# The names of ADR files: a numbered one, then one of the new form, valid or not, so that the
-# checks see it. ADR_FILE_RE matches the same names.
-ADR_GLOBS=('[0-9][0-9][0-9][0-9]-*.md' '[A-Z][A-Z]*-*.md')
-ADR_FILE_RE="($ADR_NUMBER_RE-[^/]*|[A-Z]+-[^/]*)\\.md"
+# The names of ADR files: a numbered one, then any name of letters before its first hyphen, so
+# that check 2 of check-docs.sh sees a misnamed ADR, such as 'Sec-x.md'. ADR_FILE_RE matches the
+# same names.
+ADR_GLOBS=('[0-9][0-9][0-9][0-9]-*.md' '[A-Za-z]*-*.md')
+ADR_FILE_RE="($ADR_NUMBER_RE-[^/]*|[A-Za-z]+-[^/]*)\\.md"
 
 # adr_files <dir> — every ADR file in the directory, the numbered ones in order, then the others.
 adr_files() {
-  find "$1" -maxdepth 1 -type f \( -name "${ADR_GLOBS[0]}" -o -name "${ADR_GLOBS[1]}" \) | LC_ALL=C sort
+  LC_ALL=C find "$1" -maxdepth 1 -type f \( -name "${ADR_GLOBS[0]}" -o -name "${ADR_GLOBS[1]}" \) \
+    | LC_ALL=C sort
 }
 
 # adr_is_file <name> — true when it names an ADR file.

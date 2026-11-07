@@ -19,7 +19,8 @@
 #      clause 8, its category is fixed or in the category list of the index (clause 9), and the
 #      file's heading starts with '# <identifier>:'. No deleted ADR in the history carried the
 #      identifier; the message names the commit that deleted it. Files of the old form run
-#      0001..N without gaps, each headed '# ADR-NNNN', until the old ADRs retire.
+#      0001..N without gaps, each headed '# ADR-NNNN', until the old ADRs retire. Every file in
+#      docs/adr/ named with letters before a hyphen counts, so a misnamed ADR fails here.
 #   3. Relative-link integrity: every relative Markdown link in every tracked .md file resolves
 #      to a file or directory that exists. Links inside fenced code blocks are illustrations,
 #      not claims about files on disk, and are skipped (here and in check 6); so is a target that
@@ -41,8 +42,9 @@
 #   5. ADR-reference integrity: every 'ADR-NNNN' reference (with actual digits) and every
 #      identifier of a known category, a clause citation's among them, names an ADR file that
 #      exists in docs/adr/ — anticipated follow-ups are described by topic, never by an
-#      identifier that does not exist yet (NUC-adrs-record-decisions clause 16). A code span in
-#      Markdown is a literal, such as an example identifier, and is not read.
+#      identifier that does not exist yet (NUC-adrs-record-decisions clause 16). A reference is a
+#      word of its own: a one-word slug, such as API-first, or a longer chain is none. An
+#      identifier in a Markdown code span is no citation (clause 16) and is not read.
 #   6. ADR link agreement: a Markdown link whose text cites an ADR points at that ADR's own
 #      file — the identifier and the file it links to must name the same decision
 #      (docs/adr/README.md).
@@ -313,7 +315,7 @@ check_adr_index() {
   local indexed_files=() indexed_applies=() indexed_status=()
   local line number target filename applies status archive=0
   local -a cells
-  local row_re="^\\|[[:space:]]*\\[($ADR_NUMBER_RE|[A-Z]+-[^]]+)\\]\\(([^)]+)\\)"
+  local row_re="^\\|[[:space:]]*\\[($ADR_NUMBER_RE|[A-Za-z]+-[^]]+)\\]\\(([^)]+)\\)"
   while IFS= read -r line; do
     [[ "$line" =~ ^#+[[:space:]]+Superseded\ and\ rejected[[:space:]]*$ ]] && { archive=1; continue; }
     [[ "$line" =~ $row_re ]] || continue
@@ -393,8 +395,8 @@ check_adr_index() {
 
 # Check 2 (see the header). Numbers of the old form run 0001..N without gaps, and only the first
 # gap is reported; superseded ADRs stay on disk, so a gap can only ever mean a deleted ADR or a
-# botched rename. An identifier of the
-# new form is never reused, so a deleted one, read off the history, stays taken.
+# botched rename. An identifier of the new form is never reused, so a deleted one, read off the
+# history, stays taken.
 check_adr_identifiers() {
   local f base heading n=0 gap=0 expected id commit
   local -A deleted=()
@@ -403,10 +405,12 @@ check_adr_identifiers() {
     adr_key_of "$base"
     if [[ "$ADR_KEY" == [0-9]* ]]; then
       printf -v expected '%04d' $((++n))
-      [[ "$ADR_KEY" == "$expected" ]] || ((gap++)) \
-        || add_error "ADR numbering: expected '$expected-*.md' at position $n, found '$base' — numbers must run 0001..N without gaps"
+      if [[ "$ADR_KEY" != "$expected" ]] && ((!gap)); then
+        gap=1
+        add_error "ADR numbering: expected '$expected-*.md' at position $n, found '$base' — numbers must run 0001..N without gaps"
+      fi
     elif [[ ! "$ADR_ID" =~ ^$ADR_NEW_RE$ ]]; then
-      add_error "$base: the identifier is not '<CAT>-<slug>': two to five capital letters, a hyphen, and at most five lower case words or numbers joined by hyphens"
+      add_error "$base: the identifier is not '<CAT>-<slug>': two to five capital letters, a hyphen, and two to five lower case words or numbers joined by hyphens"
       continue
     elif ! _contains "${ADR_ID%%-*}" "${ADR_CATEGORIES[@]}"; then
       add_error "$base: the category ${ADR_ID%%-*} is neither fixed nor in the category list of docs/adr/README.md"
@@ -479,7 +483,7 @@ check_adr_headers() {
 # the bracket is optional (docs/adr/README.md asks for the link form).
 SUCCESSOR=""
 superseding_id() {
-  local re="superseded by \\[?($ADR_REF_RE)"
+  local re="superseded by \\[?($ADR_REF_RE)([^$ADR_WORD_CHARS]|\$)"
   SUCCESSOR=""
   [[ "$1" =~ $re ]] && SUCCESSOR="${BASH_REMATCH[1]}"
   return 0
@@ -490,8 +494,8 @@ REFS=()
 adr_refs() {
   local rest="$1"
   REFS=()
-  while [[ "$rest" =~ $ADR_REF_RE ]]; do
-    REFS+=("${BASH_REMATCH[0]}")
+  while [[ "$rest" =~ $ADR_REF_WORD_RE ]]; do
+    REFS+=("${BASH_REMATCH[2]}")
     rest="${rest#*"${BASH_REMATCH[0]}"}"
   done
 }
@@ -861,7 +865,7 @@ check_section_refs() {
 # not inside a longer word — must name an ADR file that already exists. Anticipated follow-up
 # decisions are described by topic (docs/adr/README.md). In Markdown, a code span is a literal.
 check_adr_refs() {
-  local f files=() lineno line match re="(^|[^A-Za-z0-9_-])($ADR_REF_RE)"
+  local f files=() lineno line match
   for f in "${TEXT_FILES[@]}"; do
     [[ "$f" == "$ADR_DIR/template.md" ]] && continue
     is_inactive_adr "$f" && continue
@@ -871,7 +875,7 @@ check_adr_refs() {
   # One grep over every file; --null ends each file name with a NUL, which no path carries.
   while IFS= read -r -d '' f && IFS=: read -r lineno line; do
     [[ "$f" == *.md ]] && code_spans_out "$line" && line="$LINE"
-    while [[ "$line" =~ $re ]]; do
+    while [[ "$line" =~ $ADR_REF_WORD_RE ]]; do
       match="${BASH_REMATCH[2]}" line="${line#*"${BASH_REMATCH[0]}"}"
       [[ -v ADR_BY_ID["$match"] ]] \
         || add_error "${f#"$ROOT"/}:$lineno: reference '$match' matches no ADR file in docs/adr/"
@@ -897,8 +901,8 @@ check_adr_link_targets() {
       # The text runs from the opening bracket to the first closing one, which it cannot contain.
       text="${linkexpr#\[}"
       text="${text%%]*}"
-      [[ "$text" =~ $ADR_REF_RE ]] || continue
-      id="${BASH_REMATCH[0]}"
+      [[ "$text" =~ $ADR_REF_WORD_RE ]] || continue
+      id="${BASH_REMATCH[2]}"
       link_target "$linkexpr"
       target="${LINK_TARGET%%#*}"
       base="${target##*/}"

@@ -720,8 +720,8 @@ expect pass "docs/plan/ named while there is no open work" "$d"
 TABLE="$ROOT/scripts/fixtures/check-docs-record.txt"
 
 # Verifies: NUC-adrs-record-decisions
-# hyphens <text> — the table's notation read: a colon after two to five capital letters and before
-# a letter or a digit is a hyphen.
+# hyphens <text> — the table's notation read: a colon after two to five capital letters, not
+# preceded by a letter, a digit, or '_', and before a letter or a digit is a hyphen.
 hyphens() { sed -E 's/(^|[^A-Za-z0-9_])([A-Z]{2,5}):([A-Za-z0-9])/\1\2-\3/g' <<< "$1"; }
 # adr_file <id> — the file of an identifier; status_of <status> — the status line it reads.
 adr_file() { if [[ "$1" == ADR-* ]]; then echo "${1#ADR-}-decision.md"; else echo "$1.md"; fi; }
@@ -760,7 +760,7 @@ step() {
       done
       insert_before "$dir/docs/adr/$file" "- **Applies to:**" "$list" ;;
     heading) sed_in "$dir/docs/adr/$file" "1s|.*|$rest|" ;;
-    text) echo "$rest" >> "$dir/$id" ;;
+    text) mkdir -p "$(dirname "$dir/$id")" && echo "$rest" >> "$dir/$id" ;;
     category) insert_before "$index" "### Binding" "- **$id** — a category of the project." ;;
     commit) g "$dir" add -A && g "$dir" commit -q -m "$op" ;;
     delete) g "$dir" rm -q "docs/adr/$file" && sed_in "$index" "/^| \[$key\]/d" && step "$dir" commit ;;
