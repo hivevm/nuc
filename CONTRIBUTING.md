@@ -102,8 +102,8 @@ The rules every agent follows live in [`AGENTS.md`](AGENTS.md); that there is ex
 is decided in [NUC-documents-are-fixed §3](docs/adr/NUC-documents-are-fixed.md). An agent that
 cannot read it natively gets a pointer file instead. [`.claude/CLAUDE.md`](.claude/CLAUDE.md) is
 the one shipped here; it carries the pointer and no rules of its own
-([NUC-documents-are-fixed §7](docs/adr/NUC-documents-are-fixed.md)). It
-exists for one gap only: Claude Code loads `CLAUDE.md`, not `AGENTS.md`, tracked upstream as
+([NUC-documents-are-fixed §7](docs/adr/NUC-documents-are-fixed.md)). It exists for one gap only:
+Claude Code loads `CLAUDE.md`, not `AGENTS.md`, tracked upstream as
 [anthropics/claude-code#34235](https://github.com/anthropics/claude-code/issues/34235). Once that
 lands, delete the pointer file rather than keeping a second file to maintain.
 
