@@ -140,6 +140,64 @@ printf '# ADR-0002: Y\n\n## Decision\n\nWe might do it.\n' > "$r/docs/adr/0002-y
 expect "the working tree: an untracked ADR is read" "$r" \
   'docs/adr/0002-y.md:5: the soft modal verb "might"' ""
 
+# glossary <dir> [entries] — a glossary whose entry "Git hook" lists "hook script" and "trigger"
+# under _Avoid:_, or the entries given, committed on the branch.
+glossary() {
+  fixture "$1"
+  printf '# Glossary\n\nOne term per concept; list under _Avoid:_ the synonyms it displaces.\n\n%s\n' \
+    "${2:-$(printf -- '- **Git hook** — a script git runs.\n  _Avoid:_ hook script, trigger.')}" > "$1/docs/GLOSSARY.md"
+  git_in "$1" add docs/GLOSSARY.md
+  git_in "$1" commit -q -m glossary
+}
+AVOID_MSG='is listed under _Avoid:_ in docs/GLOSSARY.md — write "Git hook"'
+
+r="$(repo avoid-decision)"
+glossary "$r"
+after "$r" docs/adr/0001-x.md "## Decision" "It runs a hook script."
+expect "an avoided term added to a Decision: listed with the term" "$r" \
+  "docs/adr/0001-x.md:11: \"hook script\" $AVOID_MSG" "" main
+
+r="$(repo avoid-agents)"
+glossary "$r"
+after "$r" AGENTS.md "## 1. Rules" "- Each Trigger runs."
+expect "an avoided term added to AGENTS.md, in another case: listed" "$r" "AGENTS.md:5: \"trigger\" $AVOID_MSG" "" main
+
+r="$(repo avoid-context)"
+glossary "$r"
+after "$r" docs/adr/0001-x.md "## Context" "It runs a hook script."
+expect "an avoided term in the Context: not listed" "$r" "" "$AVOID_MSG" main
+
+r="$(repo avoid-old)"
+glossary "$r"
+after "$r" docs/adr/0001-x.md "## Decision" "It runs a hook script."
+expect "an avoided term on a line not added: not listed" "$r" "" "$AVOID_MSG" HEAD
+
+r="$(repo avoid-mentions)"
+glossary "$r"
+# shellcheck disable=SC2016 # the backticks are a Markdown code span
+after "$r" docs/adr/0001-x.md "## Decision" 'Each `trigger`, *trigger*, and _trigger_ is named; snake_case_trigger and triggers run.'
+expect "an avoided term in a code span, in italics, in an identifier, or in a longer word: not listed" \
+  "$r" "" "$AVOID_MSG" main
+
+r="$(repo avoid-none)"
+glossary "$r" "- **Git hook** — a script git runs."
+after "$r" docs/adr/0001-x.md "## Decision" "It runs a hook script."
+expect "a glossary without _Avoid:_ entries: nothing listed" "$r" "no long sentence" "" main
+
+r="$(repo avoid-prose)"
+glossary "$r" "- **Git hook** — a script git runs."
+after "$r" AGENTS.md "## 1. Rules" "- Each entry names the synonyms it displaces."
+expect "the glossary's intro prose lists nothing" "$r" "no long sentence" "" main
+
+r="$(repo avoid-parser)"
+glossary "$r" "$(printf '%s\n' '- **Ticket** — one slice of work.' '  _Avoid:_ story; task,' '  and card.' '' \
+  '- **Spec** — the destination of a feature.' '  It is disposable.' '  _Avoid:_ epic.')"
+after "$r" docs/adr/0001-x.md "## Decision" "$(printf '%s\n' 'A card is cut.' 'Then an epic closes.' 'It is disposable.')"
+expect "the parser: a continuation line and a leading 'and' list a word" "$r" \
+  '"card" is listed under _Avoid:_ in docs/GLOSSARY.md — write "Ticket"' "" main
+expect "the parser: each entry names its own term, and a description lists nothing" "$r" \
+  '"epic" is listed under _Avoid:_ in docs/GLOSSARY.md — write "Spec"' '"disposable" is listed' main
+
 r="$(repo bad-base)"
 out="$(bash "$SENSOR" --root "$r" no-such-ref 2>&1)"; rc=$?
 check "a base that does not resolve: exit 2" test "$rc" -eq 2 -a "${out/does not resolve/}" != "$out"

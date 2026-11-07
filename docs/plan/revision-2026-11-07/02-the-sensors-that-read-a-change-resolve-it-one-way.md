@@ -13,9 +13,7 @@ same test inline in `rule_stream` of `scripts/lib/rules.sh`. The review of ticke
 second time, and a fix to one, such as the base of zeros, has to find the others.
 
 `scripts/lib/git.sh` takes the resolution and the reading of a file, and the four sensors and
-`rule_stream` call them. Check 17 of `scripts/check-docs.sh` keeps its own fallback, since a
-check falls back where a sensor exits 2; it may call the same function if one parameter says so,
-and not otherwise. Nothing a sensor decides or prints changes.
+`rule_stream` call them. Nothing a sensor decides or prints changes.
 
 While in `scripts/sensor-binding-adrs.sh`: its banner for `--sections` names "the Decision, and
 the Enforcement" literally, while the sections it prints are `ADR_RULE_SECTIONS` of
@@ -23,7 +21,7 @@ the Enforcement" literally, while the sections it prints are `ADR_RULE_SECTIONS`
 
 ## Acceptance criteria
 
-- [ ] Given the self-tests of the four sensors, of check 17, and of the plain-rules sensor, when
+- [ ] Given the self-tests of the four sensors and of the plain-rules sensor, when
       they run unchanged after the refactor, then they pass; a self-test that must change means
       the refactor changed behaviour.
 - [ ] Given `scripts/lib/git.sh`, when it is read, then it holds the one resolution of base and

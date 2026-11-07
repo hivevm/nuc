@@ -116,14 +116,6 @@
 #      else the branch a push runs on. A draft pull request passes, since it tests a feat/ branch
 #      still under rework, and so does a run outside CI, where nothing names the branch; the
 #      workflow says in PULL_REQUEST_DRAFT whether a pull request is a draft.
-#  17. Avoided terms: a line a change adds to AGENTS.md, or to the Decision or Enforcement of an ADR,
-#      carries no word a glossary entry lists under _Avoid:_ (ADR-0001). Whole words count, not a
-#      part of an identifier such as snake_case, case insensitive, outside code spans and italics,
-#      as scripts/lib/rules.sh reads the rules, one line at a time. The change runs from the base
-#      CI passes in CHECK_DOCS_BASE, else, or when that does not resolve, from the merge base with
-#      origin/main or main, to the working tree.
-#      An _Avoid:_ list counts inside a glossary entry only. With no list, or no base to compare
-#      with, there is nothing to check; a rule file whose reader fails is an error.
 #
 # Checks 5 and 6 read every text file of the repository, not a list of documentation extensions:
 # docs/adr/README.md states that code may reference an ADR number, so a verifier restricted to
@@ -149,10 +141,6 @@ set -uo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/adr.sh"
 # shellcheck source-path=SCRIPTDIR source=lib/check.sh
 source "$(dirname "${BASH_SOURCE[0]}")/lib/check.sh"
-# shellcheck source-path=SCRIPTDIR source=lib/git.sh
-source "$(dirname "${BASH_SOURCE[0]}")/lib/git.sh"
-# shellcheck source-path=SCRIPTDIR source=lib/rules.sh
-source "$(dirname "${BASH_SOURCE[0]}")/lib/rules.sh"
 
 ROOT="$(cd "${1:-$(dirname "${BASH_SOURCE[0]}")/..}" && pwd)"
 ADR_DIR="$ROOT/docs/adr"
@@ -1308,52 +1296,6 @@ check_template_release() {
 collect_text_files
 read_adr_headers
 scan_markdown
-# Check 17 (see the header). The glossary's entries give 'word<TAB>term' lines, the words in lower
-# case, split at commas and semicolons, a placeholder in angle brackets dropped. An entry is its
-# '- **Term**' line and the indented lines after it; prose outside an entry lists nothing.
-check_avoided_terms() {
-  local avoid base stream
-  [[ -f "$ROOT/docs/GLOSSARY.md" ]] || return
-  avoid="$(awk '
-    function take(s,  n, i, w, parts) {
-      n = split(s, parts, /[,;]/)
-      for (i = 1; i <= n; i++) {
-        w = tolower(parts[i]); gsub(/^[[:space:]]*(and[[:space:]]+)?|[.[:space:]]*$/, "", w)
-        if (w != "" && w !~ /[<>]/) printf "%s\t%s\n", w, term
-      }
-    }
-    /^- \*\*[^*]+\*\*/ { term = $0; sub(/^- \*\*/, "", term); sub(/\*\*.*/, "", term); open = 0; entry = 1 }
-    !/^- \*\*/ && !/^[[:space:]]+[^[:space:]]/ { entry = 0; open = 0; term = "" }
-    entry && open && !index($0, "_Avoid:_") && /^[[:space:]]+[^[:space:]-]/ { take($0); next }
-    entry && term != "" && index($0, "_Avoid:_") { open = 1; take(substr($0, index($0, "_Avoid:_") + 8)) }
-  ' "$ROOT/docs/GLOSSARY.md")"
-  [[ -n "$avoid" ]] || return
-  base="${CHECK_DOCS_BASE:-}"
-  (cd "$ROOT" && git rev-parse -q --verify "$base^{commit}" >/dev/null 2>&1) || base=""
-  [[ -n "$base" ]] || base="$(cd "$ROOT" && main_merge_base HEAD)" || return
-  stream="$(cd "$ROOT" && rule_stream "$base")"
-  while IFS= read -r line; do add_error "$line"; done < <(awk -F '\t' -v avoid="$avoid" '
-    BEGIN { n = split(avoid, rows, "\n"); for (i = 1; i <= n; i++) { split(rows[i], kv, "\t"); word[i] = kv[1]; term[i] = kv[2] } }
-    $1 == "E" && $2 == "" { print "could not list the rules the change touches, so check 17 decides nothing (AGENTS.md section 5)"; next }
-    $1 == "E" { printf "%s: could not read the rules, so check 17 decides nothing on them (AGENTS.md section 5)\n", $2; next }
-    $1 == "F" { file = $2; next }
-    $1 != "L" || $3 != 1 { next }
-    {
-      low = " " tolower($4) " "
-      for (i = 1; i <= n; i++) {
-        rest = low; off = 0
-        while ((at = index(rest, word[i])) > 0) {
-          before = substr(low, off + at - 1, 1); after = substr(low, off + at + length(word[i]), 1)
-          if (before !~ /[a-z0-9_]/ && after !~ /[a-z0-9_]/) {
-            printf "%s:%s: \"%s\" is listed under _Avoid:_ in docs/GLOSSARY.md — write \"%s\" (ADR-0001)\n", file, $2, word[i], term[i]
-            break
-          }
-          off += at; rest = substr(low, off + 1)
-        }
-      }
-    }' <<< "$stream")
-}
-
 check_adr_index
 check_adr_numbering
 check_no_draft_on_main
@@ -1370,7 +1312,6 @@ check_inherited_adrs
 check_template_identity
 check_template_release
 check_prose_width
-check_avoided_terms
 
 if ((${#errors[@]} > 0)); then
   echo "Documentation checks FAILED:"

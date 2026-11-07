@@ -126,7 +126,8 @@ restates nothing. A rule this file does not state is not a rule of this project.
   not*, and a permission with *may*. *Should*, *could*, *might*, and *ideally* leave the reader
   guessing.
   [`scripts/sensor-plain-rules.sh`](scripts/sensor-plain-rules.sh) reports each sentence over 25
-  words and each soft modal verb on the lines a change adds.
+  words, each soft modal verb, and each word the glossary lists under _Avoid:_ on the lines a
+  change adds.
 - **Plan work larger than one session in the tree, under `docs/plan/`.** A feature spec is cut
   into tracer-bullet tickets. The change that lands a ticket's work deletes its file
   ([ADR-0006](docs/adr/0006-feature-layer.md)). Skill: `plan-feature`. The skill `work-tickets`

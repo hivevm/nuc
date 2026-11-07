@@ -1,6 +1,5 @@
 # shellcheck shell=bash
-# The rules a change adds to, read one way by scripts/sensor-plain-rules.sh and by check 17 of
-# scripts/check-docs.sh: AGENTS.md, and the sections ADR_RULE_SECTIONS of each ADR (AGENTS.md
+# The rules a change adds to, read one way by scripts/sensor-plain-rules.sh: AGENTS.md, and the sections ADR_RULE_SECTIONS of each ADR (AGENTS.md
 # section 4). Sourced after scripts/lib/adr.sh, run inside the repository of the change.
 
 # rule_stream <base> [head] — every line of the rules in the files the change touches, as the
@@ -72,4 +71,25 @@ rule_stream() {
       }' ) || { printf 'E\t%s\n' "$p"; failed=1; }
   done <<< "$files"
   return "$failed"
+}
+
+# avoid_terms <glossary> — the words the glossary's entries list under _Avoid:_, 'word<TAB>term' a
+# line, the words in lower case, split at commas and semicolons, a leading 'and', a trailing period,
+# and a placeholder in angle brackets dropped. An entry is its '- **Term**' line and the indented
+# lines after it; prose outside an entry lists nothing (ADR-0001).
+avoid_terms() {
+  [[ -f "$1" ]] || return 0
+  awk '
+    function take(s,  n, i, w, parts) {
+      n = split(s, parts, /[,;]/)
+      for (i = 1; i <= n; i++) {
+        w = tolower(parts[i]); gsub(/^[[:space:]]*(and[[:space:]]+)?|[.[:space:]]*$/, "", w)
+        if (w != "" && w !~ /[<>]/) printf "%s\t%s\n", w, term
+      }
+    }
+    /^- \*\*[^*]+\*\*/ { term = $0; sub(/^- \*\*/, "", term); sub(/\*\*.*/, "", term); open = 0; entry = 1 }
+    !/^- \*\*/ && !/^[[:space:]]+[^[:space:]]/ { entry = 0; open = 0; term = "" }
+    entry && open && !index($0, "_Avoid:_") && /^[[:space:]]+[^[:space:]-]/ { take($0); next }
+    entry && term != "" && index($0, "_Avoid:_") { open = 1; take(substr($0, index($0, "_Avoid:_") + 8)) }
+  ' "$1"
 }
