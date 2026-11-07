@@ -18,10 +18,10 @@
 #   2. ADR identifier integrity: every identifier has the form of NUC-adrs-record-decisions
 #      clause 8, its category is fixed or in the category list of the index (clause 9), and the
 #      file's heading starts with '# <identifier>:'. No ADR deleted on the first-parent line of
-#      HEAD carried the identifier; the message names the commit that deleted it. Files of the
-#      old form run 0001..N without gaps, each headed '# ADR-NNNN', until the old ADRs retire.
-#      Every file in docs/adr/ named with letters before a hyphen counts, so a misnamed ADR fails
-#      here.
+#      HEAD carried the identifier; the message names the commit that deleted it, and a git that
+#      cannot read the history fails the check. Files of the old form run 0001..N without gaps,
+#      each headed '# ADR-NNNN', until the old ADRs retire. Every file in docs/adr/ named with
+#      letters before a hyphen counts, so a misnamed ADR fails here.
 #   3. Relative-link integrity: every relative Markdown link in every tracked .md file resolves
 #      to a file or directory that exists. Links inside fenced code blocks are illustrations,
 #      not claims about files on disk, and are skipped (here and in check 6); so is a target that
@@ -421,10 +421,17 @@ check_adr_identifiers() {
     [[ "$heading" == "# $ADR_ID:"* || ( "$ADR_KEY" == [0-9]* && "$heading" =~ ^#\ $ADR_ID([^0-9]|$) ) ]] \
       || add_error "$base: heading says '${heading:-<none>}', but the filename says $ADR_ID"
   done
+  # Without a commit there is no history; a git that cannot read it, such as one before 2.31
+  # without --diff-merges, is an error, not a pass.
+  local log=""
+  if git -C "$ROOT" rev-parse -q --verify 'HEAD^{commit}' > /dev/null 2>&1; then
+    log="$(git -C "$ROOT" log --first-parent --diff-merges=first-parent --no-renames --diff-filter=D \
+             --name-only --format='commit %h' HEAD -- ":(glob)docs/adr/${ADR_GLOBS[1]}" 2>&1)" \
+      || { add_error "ADR identifiers: git log cannot read the deleted ADRs (git 2.31 or later is needed): ${log%%$'\n'*}"; log=""; }
+  fi
   while IFS= read -r f; do
     if [[ "$f" == commit\ * ]]; then commit="${f#commit }"; elif [[ -n "$f" && ! -v deleted["${f##*/}"] ]]; then deleted["${f##*/}"]="$commit"; fi
-  done < <(git -C "$ROOT" log --first-parent --diff-merges=first-parent --no-renames --diff-filter=D \
-             --name-only --format='commit %h' HEAD -- ":(glob)docs/adr/${ADR_GLOBS[1]}" 2>/dev/null)
+  done <<< "$log"
   for f in "${ADR_LIST[@]}"; do
     base="${f##*/}"
     [[ -v deleted["$base"] ]] || continue
@@ -892,7 +899,7 @@ check_adr_refs() {
 # reference that deliberately points elsewhere (an index, a section about the decision) is left
 # alone.
 check_adr_link_targets() {
-  local f rel linkexpr text target base id
+  local f rel linkexpr text target base id dir
   for f in "${TEXT_FILES[@]}"; do
     case "$f" in *.md) ;; *) continue ;; esac
     rel="${f#"$ROOT"/}"
@@ -908,8 +915,12 @@ check_adr_link_targets() {
       link_target "$linkexpr"
       target="${LINK_TARGET%%#*}"
       base="${target##*/}"
-      # Compare only against ADR filenames; anything else is not a claim about which ADR it is.
+      # Compare only against an ADR file in docs/adr/; anything else is not a claim about which
+      # ADR it is.
+      dir="${f%/*}"
+      [[ "$target" == */* ]] && dir+="/${target%/*}"
       adr_is_file "$base" || continue
+      [[ "$(cd "$dir" 2>/dev/null && pwd)" == "$ADR_DIR" ]] || continue
       adr_key_of "$base"
       [[ "$ADR_ID" == "$id" ]] || add_error "$rel: link '$linkexpr' cites $id but points at '$base'"
     done <<< "${MD_LINKS["$f"]-}"

@@ -5,7 +5,8 @@
 #
 #   <pass or fail> | <text the output contains, or -> | <name> | <tree>
 #
-# The tree is a list of steps separated by '; ', applied in order to an empty repository:
+# The tree is a list of steps separated by '; ', applied in order to a repository with an empty
+# docs/adr/ and an empty tests/, and nothing else:
 #
 #   spec <text>                 the specification, with the text as its one goal
 #   adr <id> <status>           the ADR file, headed '# <id>: decision', with no exemption

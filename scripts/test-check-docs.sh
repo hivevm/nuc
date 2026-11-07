@@ -720,9 +720,6 @@ expect pass "docs/plan/ named while there is no open work" "$d"
 TABLE="$ROOT/scripts/fixtures/check-docs-record.txt"
 
 # Verifies: NUC-adrs-record-decisions
-# hyphens <text> — the table's notation read: a colon after two to five capital letters, not
-# preceded by a letter, a digit, or '_', and before a letter or a digit is a hyphen.
-hyphens() { sed -E 's/(^|[^A-Za-z0-9_])([A-Z]{2,5}):([A-Za-z0-9])/\1\2-\3/g' <<< "$1"; }
 # adr_file <id> — the file of an identifier; status_of <status> — the status line it reads.
 adr_file() { if [[ "$1" == ADR-* ]]; then echo "${1#ADR-}-decision.md"; else echo "$1.md"; fi; }
 status_of() {
@@ -779,7 +776,7 @@ n=0
 while IFS= read -r line; do
   [[ "$line" =~ ^[0-9] ]] || continue
   n=$((n + 1))
-  line="$(hyphens "$line")"
+  line="$(table_hyphens "$line")"
   IFS=$'\x1f' read -r check want needle name tree <<< "${line// | /$'\x1f'}"
   [[ "$needle" == - ]] && needle=""
   DELETED=""
@@ -793,6 +790,19 @@ while IFS= read -r line; do
   expect "$want" "check $check: $name" "$d" "$needle"
 done < "$TABLE"
 ((n > 0)) || { echo "FAIL: no case read from $TABLE" >&2; failed=$((failed + 1)); }
+
+# A git that cannot read the history, as one before 2.31 rejects --diff-merges, fails check 2.
+d="$(repo old-git)"
+g "$d" add -A && g "$d" commit -q -m base
+mkdir -p "$work/old-git-bin"
+printf '#!/usr/bin/env bash
+[[ " $* " == *" --diff-merges="* ]] && { echo "fatal: unrecognized argument: --diff-merges=first-parent" >&2; exit 128; }
+exec %q "$@"
+' \
+  "$(command -v git)" > "$work/old-git-bin/git"
+chmod +x "$work/old-git-bin/git"
+PATH="$work/old-git-bin:$PATH" expect fail "check 2: a git too old to read the history" "$d" \
+  "git log cannot read the deleted ADRs (git 2.31 or later is needed): fatal: unrecognized argument"
 
 # --- summary -------------------------------------------------------------------------------
 

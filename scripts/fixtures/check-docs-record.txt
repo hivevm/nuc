@@ -63,6 +63,7 @@
 5 | pass | - | a hyphenated word of no category is no citation | text README.md UTF:8 and SHA:256 and CVE:2025-30066.
 6 | fail | cites SEC:x-rule but points at '0001-decision.md' | a link that cites one ADR and points at another | adr ADR:0001 accepted; adr SEC:x-rule proposed; text README.md See [SEC:x-rule](docs/adr/0001-decision.md).
 6 | pass | - | a link that cites an ADR of the new form and points at its file | adr SEC:x-rule proposed; text README.md See [SEC:x-rule §2](docs/adr/SEC:x-rule.md#decision).
+6 | pass | - | a link that cites an ADR and points outside docs/adr/ is no claim | adr SEC:x-rule proposed; text docs/notes/threat-model.md # Threat model; text README.md See [SEC:x-rule](docs/notes/threat-model.md).
 8 | pass | - | one ADR superseding two, both flipped | adr ADR:0001 superseded:ADR:0003; adr ADR:0002 superseded:ADR:0003; adr ADR:0003 accepted; supersedes ADR:0003 ADR:0001,ADR:0002
 8 | fail | 0002-decision.md: 0003-decision.md supersedes it | one ADR superseding two, the second not flipped | adr ADR:0001 superseded:ADR:0003; adr ADR:0002 proposed; adr ADR:0003 accepted; supersedes ADR:0003 ADR:0001,ADR:0002
 8 | pass | - | a Supersedes field wrapped onto a second line, both flipped | adr ADR:0001 superseded:ADR:0003; adr ADR:0002 superseded:ADR:0003; adr ADR:0003 accepted; supersedes ADR:0003 ADR:0001,+ADR:0002

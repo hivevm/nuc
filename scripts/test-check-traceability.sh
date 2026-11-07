@@ -192,7 +192,7 @@ n=0
 while IFS= read -r line; do
   [[ "$line" =~ ^(pass|fail) ]] || continue
   n=$((n + 1))
-  line="$(sed -E 's/(^|[^A-Za-z0-9_])([A-Z]{2,5}):([A-Za-z0-9])/\1\2-\3/g' <<< "$line")"
+  line="$(table_hyphens "$line")"
   IFS=$'\x1f' read -r want needle name tree <<< "${line// | /$'\x1f'}"
   [[ "$needle" == - ]] && needle=""
   d="$(repo "table-$n")"
