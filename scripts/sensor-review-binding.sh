@@ -60,6 +60,8 @@ set -uo pipefail
 
 # shellcheck source-path=SCRIPTDIR source=lib/git.sh
 source "$(dirname "${BASH_SOURCE[0]}")/lib/git.sh"
+# shellcheck source-path=SCRIPTDIR source=lib/adr.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/adr.sh"
 
 caller="$PWD"
 enter_root "Review binding sensor" "${BASH_SOURCE[0]}" "$@"
@@ -128,11 +130,11 @@ bind() {
 # adr_text <commit> — the ADR files whose text the commit changes, Status, Date, and Deciders
 # lines aside.
 adr_text() {
-  git diff-tree -r --root --no-commit-id -p -U0 --no-color "$1" \
-    -- ':(glob)docs/adr/[0-9][0-9][0-9][0-9]-*.md' ':(glob)docs/adr/draft-*.md' | awk '
+  git diff-tree -r --root --no-commit-id -p -U0 --no-color "$1" -- "${ADR_GLOBS[@]/#/:(glob)docs/adr/}" \
+    | awk -v flip="^[-+]${ADR_ITEM_RE#^}(Status|Date|Deciders):[*][*]" '
     /^diff --git / { file = $NF; sub(/^b\//, "", file); next }
     /^(\+\+\+|---) / { next }
-    /^[-+]/ && !/^[-+]- \*\*(Status|Date|Deciders):\*\*/ && !(file in seen) { seen[file]; print file }
+    /^[-+]/ && $0 !~ flip && !(file in seen) { seen[file]; print file }
   '
 }
 
