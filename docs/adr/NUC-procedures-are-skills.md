@@ -3,7 +3,7 @@
 - **Status:** 🟡 proposed
 - **Date:** 2026-11-07
 - **Deciders:** NUC maintainer
-- **Applies to:** `.agents/skills/`, `.claude/skills/`, check 11 of `scripts/check-docs.sh`, `AGENTS.md` where it names a procedure, `docs/adr/template.md`, `.github/ISSUE_TEMPLATE/`, and `.github/PULL_REQUEST_TEMPLATE.md`
+- **Applies to:** `.agents/skills/`, `.claude/skills/`, checks 3, 4, and 11 of `scripts/check-docs.sh`, `AGENTS.md` where it names a procedure, `docs/adr/template.md`, `.github/ISSUE_TEMPLATE/`, and `.github/PULL_REQUEST_TEMPLATE.md`
 
 ## Context
 
@@ -43,8 +43,9 @@ We will keep the procedures of the rule file as Agent Skills, each carrying a ho
    rule. A self-test under `scripts/` must run each script.
 6. **Pointer directory.** An agent that reads skills only from another directory reaches them
    through a pointer directory. That directory must hold one symlink per skill, named like the
-   skill, and nothing else. A copy or one symlink for the whole directory must not replace them.
-   Claude Code reads only `.claude/skills/`, so that directory is a pointer directory.
+   skill and resolving to it, and nothing else. A copy or one symlink for the whole directory
+   must not replace them. Claude Code reads only `.claude/skills/`, so that directory is a
+   pointer directory.
 
 **Out of scope:**
 
@@ -58,9 +59,10 @@ We will keep the procedures of the rule file as Agent Skills, each carrying a ho
 A project may choose:
 
 - skills of its own for its domain, with their reference files and scripts, in the form of
-  clauses 3 and 5;
-- the pointer directories of the further agents its harness names, per the entry
-  [harness](../../.agents/skills/propose-adr/concepts/harness.md) of the catalogue.
+  clauses 3, 5, and 6;
+- the further agents its harness names, per the entry
+  [harness](../../.agents/skills/propose-adr/concepts/harness.md) of the catalogue. Clause 6 then
+  requires a pointer directory for each that reads skills only from another directory.
 
 The catalogue has no entry for the first choice, and it needs no ADR.
 
@@ -114,7 +116,8 @@ The catalogue has no entry for the first choice, and it needs no ADR.
 - Check 11 of `scripts/check-docs.sh` holds `.claude/skills/` (clause 6). It fails on a skill
   without a symlink there, and on an entry that is no symlink, dangles, or resolves to another
   skill. Its self-test cites this ADR.
-- `scripts/check-docs.sh` resolves every link and section reference of a skill (clause 3).
+- Checks 3 and 4 of `scripts/check-docs.sh` fail on a link or a section reference of a skill
+  that does not resolve.
 
 **Not mechanically decidable:** the review holds four judgements:
 
