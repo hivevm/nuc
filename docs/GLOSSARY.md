@@ -2,7 +2,7 @@
 
 > The **vocabulary** of this project: the terms everyone, humans and agents alike, uses in code,
 > comments, documentation, and ADRs. It defines words and decides nothing. Whoever resolves a term
-> adds it here in the same change ([ADR-0001](adr/0001-agent-governance-model.md)).
+> adds it here in the same change ([NUC-documents-are-fixed](adr/NUC-documents-are-fixed.md)).
 
 One term per concept, only terms specific to this domain. Say what a term *is* in one or two
 sentences, and list under _Avoid:_ the synonyms it displaces, where there are any. A term the

@@ -99,9 +99,10 @@ This Dev Container preinstalls the **Claude Code** and **Mistral Vibe** VS Code 
 Cursor, OpenCode, GitHub Copilot) work too once you add them.
 
 The rules every agent follows live in [`AGENTS.md`](AGENTS.md); that there is exactly one such file
-is decided in [ADR-0001](docs/adr/0001-agent-governance-model.md). An agent that cannot read it
-natively gets a pointer file instead. [`.claude/CLAUDE.md`](.claude/CLAUDE.md) is the one shipped
-here; it carries the pointer and no rules of its own ([`AGENTS.md` §3](AGENTS.md#3-adr-rules)). It
+is decided in [NUC-documents-are-fixed §3](docs/adr/NUC-documents-are-fixed.md). An agent that
+cannot read it natively gets a pointer file instead. [`.claude/CLAUDE.md`](.claude/CLAUDE.md) is
+the one shipped here; it carries the pointer and no rules of its own
+([NUC-documents-are-fixed §7](docs/adr/NUC-documents-are-fixed.md)). It
 exists for one gap only: Claude Code loads `CLAUDE.md`, not `AGENTS.md`, tracked upstream as
 [anthropics/claude-code#34235](https://github.com/anthropics/claude-code/issues/34235). Once that
 lands, delete the pointer file rather than keeping a second file to maintain.

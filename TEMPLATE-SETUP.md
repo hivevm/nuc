@@ -175,8 +175,9 @@ one it does not name.
 ## A small project
 
 A tool, a library, or a one-person project pays for the steps above only where they buy
-something. The chain stays intact as long as three inherited ADRs stand: ADR-0001 (the
-documents the checks read), ADR-0002 (a `Verifies:` marker per accepted decision, one line of
+something. The chain stays intact as long as three inherited ADRs stand:
+[NUC-documents-are-fixed](docs/adr/NUC-documents-are-fixed.md) (the documents the checks read),
+ADR-0002 (a `Verifies:` marker per accepted decision, one line of
 cost), and ADR-0003 (the skills and their pointers, which cost nothing until invoked).
 [NUC-releases-are-semver-tags](docs/adr/NUC-releases-are-semver-tags.md) costs nothing to accept:
 it is one line of the README. What can go, and how:
