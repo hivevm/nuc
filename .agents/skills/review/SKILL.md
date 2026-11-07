@@ -56,8 +56,7 @@ that sees the fixes is handed the commits after the one the first review saw and
 they answer, and judges those; where the agent can continue a session, it continues the first
 review's, which has read the change already and wrote none of the fixes. A later change gets a
 review session of its own. After a rework, the review is of the whole branch at its head
-([`AGENTS.md` §5](../../../AGENTS.md#5-quality-bar--definition-of-done)), and the pull request's
-description carries its `Reviewed at:` line.
+([`AGENTS.md` §5](../../../AGENTS.md#5-quality-bar--definition-of-done)).
 
 ## 2. Report on two axes, kept apart
 
@@ -96,4 +95,5 @@ keeps what it merges, is a commit of its own. It records in its *Review* section
 findings on both axes, what was fixed, and the commit the reviewer was handed, on its `Reviewed at:`
 line. The fixes come after that commit;
 [`scripts/sensor-review-binding.sh`](../../../scripts/sensor-review-binding.sh) lists them for the
-human who decides the merge, unless a second review sees them first and the line moves.
+human who decides the merge, unless a second review sees them first and the line moves. After a
+rework, the pull request's description carries that line.
