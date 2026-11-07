@@ -11,7 +11,7 @@ decided in [NUC-large-work-is-planned §4](../../../docs/adr/NUC-large-work-is-p
 works, in parallel or not, how many at once, and what never runs unattended is the project's
 harness ADR, the one the [harness entry](../propose-adr/concepts/harness.md) of the catalogue
 produced. This skill is the order of work and states no rule of its own
-([ADR-0003](../../../docs/adr/0003-procedures-as-skills.md)).
+([NUC-procedures-are-skills §3](../../../docs/adr/NUC-procedures-are-skills.md)).
 
 Two roles: the **dispatcher** claims tickets and starts the sessions that work them; a
 **worker** works one ticket. A worker started with a ticket path skips to step 2.
