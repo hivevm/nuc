@@ -1,7 +1,7 @@
 # shellcheck shell=bash
 # The rules a change adds to, read one way by scripts/sensor-plain-rules.sh: AGENTS.md, and the
-# sections ADR_RULE_SECTIONS of each ADR (AGENTS.md section 4). Sourced after scripts/lib/adr.sh,
-# run inside the repository of the change.
+# sections ADR_RULE_SECTIONS of each ADR (AGENTS.md section 4). Sourced after scripts/lib/adr.sh
+# and scripts/lib/git.sh, run inside the repository of the change.
 
 # rule_stream <base> [head] — every line of the rules in the files the change touches, as the
 # change has them: without a head, the working tree with its untracked files. For each file
@@ -36,7 +36,7 @@ rule_stream() {
     fi
     [[ -n "$lines" ]] || continue
     printf 'F\t%s\n' "$p"
-    ( set -o pipefail; { if [[ -z "$head" ]]; then cat -- "$p"; else git show "$head:$p"; fi; } | awk \
+    ( set -o pipefail; change_file "$head" "$p" | awk \
       -v added="$lines," -v adr="$([[ "$p" == AGENTS.md ]] || echo 1)" -v sections="^## ($ADR_RULE_SECTIONS)\$" '
       function para() { if (!gap) print "P"; gap = 1; ital = "" }
       # plain <text> — a star or an underscore opens an italic before a non-space and closes it
