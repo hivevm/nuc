@@ -88,8 +88,8 @@ rules in one rule file.
 **Out of scope:**
 
 - what the rule file says, beyond clause 3;
-- what enforces a rule, and what a per-agent configuration may do, which `NUC-main-only-via-pr §7`
-  decides;
+- what enforces a rule, and what a per-agent configuration may do, which
+  [NUC-main-only-via-pr §7](NUC-main-only-via-pr.md) decides;
 - the order of work of a setup, which the setup file and its skill carry.
 
 ## Latitude

@@ -79,7 +79,8 @@ findings outside the plan in a backlog.
 - triage beyond whether a finding becomes a ticket;
 - the design revision, which [NUC-design-is-revised](NUC-design-is-revised.md) decides;
 - the order of work, which the skills `plan-feature` and `work-tickets` carry;
-- the claim push and its hook exception, which `NUC-main-only-via-pr` decides;
+- the claim push and its hook exception, which [NUC-main-only-via-pr](NUC-main-only-via-pr.md)
+  decides;
 - the isolation, number, and limits of parallel sessions, which the harness ADR decides
   ([NUC-adrs-record-decisions §13](NUC-adrs-record-decisions.md)).
 
