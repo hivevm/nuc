@@ -31,6 +31,7 @@ The map stands in the hand-off and the commit body, not in a document.
 
 ## Blocked by
 
+- docs/plan/fixed-base-and-recut/02-the-base-is-held-by-blob-list.md
 - docs/plan/fixed-base-and-recut/04-documents-are-fixed.md
 - docs/plan/fixed-base-and-recut/05-decisions-cite-tests-checks-are-bash.md
 - docs/plan/fixed-base-and-recut/06-procedures-are-skills.md

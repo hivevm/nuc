@@ -8,6 +8,11 @@ proposed in a commit of ADRs only. Its take-up clause becomes: replace the `NUC-
 blob list, map the project's ADRs, run the checks. The normalize skill's take-up section follows
 it. ADR-0005 stays until ticket 10.
 
+This ticket runs beside ticket 02. The blob list is decided in
+[NUC-adrs-record-decisions §12](../../adr/NUC-adrs-record-decisions.md),
+and ticket 02 builds it. This ticket only cites the clause. The ADR template gains the *Latitude*
+section here, and ticket 02 adds its header fields.
+
 The hand-off lists each clause of ADR-0005 with its home in the new ADR, a skill, or nowhere and
 why. It reports the word count before and after.
 
@@ -32,7 +37,7 @@ why. It reports the word count before and after.
 
 ## Blocked by
 
-- docs/plan/fixed-base-and-recut/02-the-base-is-held-by-blob-list.md
+- docs/plan/fixed-base-and-recut/01-identifiers-name-their-category.md
 
 ## Mode
 
