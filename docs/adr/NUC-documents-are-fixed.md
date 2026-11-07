@@ -179,14 +179,15 @@ reference that names no section of the rule file.
 [`scripts/sensor-plain-rules.sh`](../../scripts/sensor-plain-rules.sh) holds clause 5 and the
 writing rule of the rule file ([`AGENTS.md` §4](../../AGENTS.md#4-working-style)), and its
 self-test cites this ADR. It reads the lines a change adds to the *Decision* and *Enforcement* of
-an ADR and to `AGENTS.md`:
+an ADR and to `AGENTS.md`, a renamed file by the lines its rename changes:
 
-- It fails on a soft modal verb, *should*, *could*, *might*, or *ideally*, and on a word an
-  _Avoid:_ list names, on such a line of a project ADR.
-- It reports them on such a line of a `NUC-` ADR or of `AGENTS.md`, which a take-up replaces as
-  the release has them, and fails nothing there.
-- It reports each sentence over 25 words and each item of an _Avoid:_ list it cannot read, and
-  fails nothing on them.
+- Without a flag, it fails nothing. It reports each soft modal verb, *should*, *could*, *might*,
+  or *ideally*, and each word an _Avoid:_ list names. It reports each sentence over 25 words and
+  each item of an _Avoid:_ list it cannot read.
+- With `--require`, it is the check of this clause and that rule. It fails on a soft modal verb
+  and on a word an _Avoid:_ list names, on such a line of a project ADR. On a line of a `NUC-` ADR
+  or of `AGENTS.md`, which a take-up replaces as the release has them, it only reports them.
+- `scripts/check-all.sh` and the `checks.yml` workflow run it with `--require`.
 
 [`.github/CODEOWNERS`](../../.github/CODEOWNERS) routes a specification change to the owner's
 review once the repository requires it (clause 2).
