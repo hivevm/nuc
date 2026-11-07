@@ -19,9 +19,7 @@ file, the `setup-project` skill, and case 3 of `scripts/test-template-setup.sh` 
 The sweep also moves citations of [`AGENTS.md` §6](../../../AGENTS.md#6-project-rules) for a rule
 that a `NUC-` ADR now carries, outside `AGENTS.md` itself: the `work-tickets` skill and its claim
 script, the pull request template, `SECURITY.md`, the workflows, the Dev Container definition, the
-catalogue entries, and the step 2 of the *Workflow* in `CONTRIBUTING.md`. The refusals of the
-pre-commit and pre-merge-commit hooks on red checks cite the clause of `NUC-checks-are-bash` that
-runs the checks before a merge.
+catalogue entries, and the step 2 of the *Workflow* in `CONTRIBUTING.md`.
 
 ## Acceptance criteria
 
