@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
 #
-# Self-test of scripts/check-devcontainer.sh. Verifies: ADR-0004
+# Self-test of scripts/check-devcontainer.sh. Verifies: NUC-container-hides-host-daemon, ADR-0004
 #
 # Each case builds a fixture under a temporary directory — a devcontainer.json with comments and
 # one pinned Feature and the postStartCommand that enables the git hooks, the lock that resolves
 # it, and the editor settings that pin the container-management extension to the host — runs the
 # check against it, and asserts the exit code and, for a failing case, the message that names the
-# violation. The baseline passes; every other case breaks one thing ADR-0004 decides, or drops a
-# git setting from the postStartCommand. A socket mount fails also in a config longer than a pipe
-# holds. The mount path passes when left to the default or set to it, and fails when set to a path
-# every project shares.
+# violation. The baseline passes; every other case breaks one clause of
+# NUC-container-hides-host-daemon. A socket mount fails also in a config longer than a pipe holds.
+# The mount path passes when left to the default or set to it, and fails when set to a path every
+# project shares. The cases of scripts/fixtures/check-devcontainer.txt pin what binds when the
+# project has no Dev Container or no VS Code settings, and the clause each message names.
 #
-# Inputs: scripts/check-devcontainer.sh scripts/lib/
+# Inputs: scripts/check-devcontainer.sh scripts/lib/ scripts/fixtures/check-devcontainer.txt
 #
 # Usage:
 #     scripts/test-check-devcontainer.sh
@@ -37,7 +38,7 @@ config() {
   {
     echo '{'
     echo '  "name": "fixture",'
-    echo '  // A comment: the container has no socket mount — see ADR-0004.'
+    echo '  // A comment: the container has no socket mount.'
     echo '  "image": "mcr.microsoft.com/devcontainers/base:debian",'
     [[ -z "$post_start" ]] || echo "  \"postStartCommand\": $post_start,"
     printf '  %s\n' "$@"
@@ -186,10 +187,6 @@ d="$(repo extension-under-other-key)"
 } > "$d/.vscode/settings.json"
 expect fail "the pair under a key other than remote.extensionKind" "$d" "does not pin 'ms-azuretools.vscode-containers'"
 
-d="$(repo no-devcontainer)"
-rm -r "$d/.devcontainer"
-expect fail "no Dev Container at all" "$d" "devcontainer.json: not found"
-
 d="$(repo post-start-string)"
 post_start='"git config core.hooksPath .githooks && git config merge.ff false && git config pull.ff only && git config '"$DRIVER"'"'
 config "$d" "ghcr.io/devcontainers/features/github-cli:1"
@@ -255,6 +252,33 @@ config "$d" "ghcr.io/devcontainers/features/github-cli:1" \
 post_start="$POST_START"
 expect fail "the git settings in another command than postStartCommand" "$d" \
   "postStartCommand does not run 'git config core.hooksPath .githooks'"
+
+# --- cases read from the fixture table ----------------------------------------------------
+
+TABLE="$ROOT/scripts/fixtures/check-devcontainer.txt"
+n=0
+while IFS= read -r line; do
+  [[ "$line" =~ ^(pass|fail) ]] || continue
+  n=$((n + 1))
+  IFS=$'\x1f' read -r want needle name tree <<< "${line// | /$'\x1f'}"
+  [[ "$needle" == - ]] && needle=""
+  d="$(repo "table-$n")"
+  while IFS= read -r s; do
+    read -r op arg <<< "$s"
+    case "$op" in
+      rm) rm -r "${d:?}/$arg" ;;
+      extra) config "$d" "ghcr.io/devcontainers/features/github-cli:1" "$arg" ;;
+      post)
+        post_start="$arg"
+        config "$d" "ghcr.io/devcontainers/features/github-cli:1"
+        post_start="$POST_START" ;;
+      settings) settings "$d" "$arg" ;;
+      *) echo "fixture table: unknown step '$op'" >&2; exit 1 ;;
+    esac
+  done <<< "${tree//; /$'\n'}"
+  expect "$want" "$name" "$d" "$needle"
+done < "$TABLE"
+((n > 0)) || { echo "FAIL: no case read from $TABLE" >&2; failed=$((failed + 1)); }
 
 # --- summary -------------------------------------------------------------------------------
 

@@ -1,0 +1,28 @@
+# Cases of scripts/check-devcontainer.sh, read by scripts/test-check-devcontainer.sh.
+#
+# One case per line, four fields separated by ' | ':
+#
+#   <pass or fail> | <text the output contains, or -> | <name> | <tree>
+#
+# The tree is a list of steps separated by '; ', applied in order to a repository that passes the
+# check: a devcontainer.json with one pinned Feature and the postStartCommand that enables the git
+# hooks, the lock that resolves it, and a .vscode/settings.json that pins the container-management
+# extension to the host side.
+#
+#   rm <path>                   the file or directory removed
+#   extra <json>                devcontainer.json written again, the json as one more top-level
+#                               line before the features block
+#   post <json>                 devcontainer.json written again, the json as the value of
+#                               postStartCommand
+#   settings <json>             .vscode/settings.json written again, the json as the value of
+#                               remote.extensionKind
+
+pass | nothing binds | a project without a Dev Container | rm .devcontainer
+pass | nothing binds | a project without a Dev Container or VS Code settings | rm .devcontainer; rm .vscode
+pass | a path of its own | a Dev Container without VS Code, where the host-side clause binds nothing | rm .vscode
+fail | settings.json: not found | VS Code without its settings file | rm .vscode/settings.json
+fail | (NUC-container-hides-host-daemon §2) | a socket mount names its clause | extra "mounts": ["source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"],
+fail | (NUC-container-hides-host-daemon §3) | a missing lock names its clause | rm .devcontainer/devcontainer-lock.json
+fail | (NUC-container-hides-host-daemon §4) | an extension in the container names its clause | settings { "ms-azuretools.vscode-containers": ["workspace"] }
+fail | (NUC-container-hides-host-daemon §5) | a shared mount path names its clause | extra "workspaceFolder": "/workspace",
+fail | (NUC-container-hides-host-daemon §6) | a missing git setting names its clause | post "echo started"
