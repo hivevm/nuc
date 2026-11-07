@@ -2,7 +2,7 @@
 #
 # Self-test of the git hooks under .githooks/: every refusal and every passage the table under
 # "Git hooks" in CONTRIBUTING.md lists (NUC-main-only-via-pr §1, §4, §5, §6; NUC-checks-are-bash
-# §6; AGENTS.md, section 5).
+# §6).
 #
 # Each case builds a throwaway repository under a temporary directory with core.hooksPath pointing
 # at this repository's .githooks/, runs a real 'git commit' or 'git push' in it — the push goes to
@@ -88,6 +88,8 @@ d="$(repo red)"
 git -C "${d:?}" switch -q -c feature
 checks "$d" 1
 expect refuse "a push while the checks are red" "$d" "the checks are red" push -q origin feature
+expect refuse "the push refusal names the clause that runs the checks before a push" "$d" \
+  "pushed (NUC-checks-are-bash §6)" push -q origin feature
 expect refuse "the refusal shows the check output" "$d" "check output for the test" push -q origin feature
 expect refuse "the hook runs the checks with --changed" "$d" "args: --changed" push -q origin feature
 expect pass "a commit is not gated by the checks" "$d" "" commit -q --allow-empty -m x
