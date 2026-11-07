@@ -30,9 +30,9 @@ git hooks and CI run alike.
    It must not fail on what it counts until a decision turns it into a check. Its self-test
    `scripts/test-sensor-<name>.sh` must cite this ADR.
 5. **Three lists.** `scripts/check-all.sh`, the `checks.yml` workflow, and the required checks of
-   `CONTRIBUTING.md` must list the same checks, a job with a matrix by its check runs. A workflow
-   that publishes rather than checks is no gate, and `scripts/check-all.sh` names it so. Its jobs
-   may run their own commands, and the scripts it runs count.
+   `CONTRIBUTING.md` must list the same checks. A job with a matrix is listed by the check runs it
+   reports. A workflow that publishes rather than checks is no gate, and `scripts/check-all.sh`
+   names it so. Its jobs may run their own commands, and the scripts it runs count.
 6. **Local gate.** The git hooks run the checks before a commit, a merge, and a push. They refuse
    what [NUC-main-only-via-pr §6](NUC-main-only-via-pr.md) keeps from `main`. With `--changed`,
    `scripts/check-all.sh` runs a self-test only where its `# Inputs:` line names a changed path. CI
@@ -59,7 +59,8 @@ A project may choose:
 - a binary in place of the bash scripts, under clause 8. Whether the template itself switches
   stays open;
 - further checks and sensors of its own, in the language of its toolchain, from the entry
-  `toolchain` of the [catalogue](../../.agents/skills/propose-adr/concepts/toolchain.md).
+  `toolchain` of the [catalogue](../../.agents/skills/propose-adr/concepts/toolchain.md). A
+  sensor of its own in another language falls outside clause 4.
 
 The catalogue has no entry for the binary, and choosing it needs an ADR that narrows clause 1.
 
@@ -101,7 +102,7 @@ The catalogue has no entry for the binary, and choosing it needs an ADR that nar
 - `scripts/test-check-all.sh` holds `--changed`, and `scripts/test-git-hooks.sh` every refusal of
   the hooks (clause 6).
 - `scripts/check-traceability.sh` fails on a sensor without its self-test, or a self-test that does
-  not cite this ADR (clause 4). It reads this ADR's identifier as it reads every other.
+  not cite this ADR (clause 4). It names this ADR's identifier, which no normalization moves.
 
 The self-tests of these checks cite this ADR.
 
@@ -110,5 +111,6 @@ The self-tests of these checks cite this ADR.
 - whether a script needs a further tool (clause 1);
 - whether a script runs after its self-test (clause 2);
 - whether a hook stays within bash 3.2 (clause 3);
+- whether a sensor's header says what it counts, and whether it never fails on that (clause 4);
 - whether a sensor of the GitHub repository runs on instruction only (clause 7);
 - whether a binary passes the fixture tables, which the narrowing ADR holds (clause 8).
