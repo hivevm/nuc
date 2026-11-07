@@ -36,62 +36,47 @@ routed a change to the hooks or the integration steps to them.
 
 ## Decision
 
-We will commit only on branches, leave pushes and rewrites to a human's instruction, and change
-`main` only by the merge commit of a pull request.
+We will commit only on branches, leave pushes and rewrites to a human, and change `main` only
+through merged pull requests.
 
-1. **Branches.** An agent may commit on a branch without an instruction. No human and no agent
-   may commit on `main`.
-2. **Instruction.** A human decides what leaves the machine. An agent must wait for a human's
-   instruction before each of these:
-   - a push;
-   - a `gh` command;
-   - a command that rewrites or discards history, such as `reset`, `rebase`, `merge`, `restore`,
-     or `clean`.
-
-   An instruction names one action and implies no next one. A standing instruction may cover one
-   push only: the claim on a ticket across clones. It may cover that push only where the harness
-   ADR grants it.
-3. **Credentials.** A human authenticates `gh` through its web flow and enters the one-time code.
+1. **Branches.** An agent may commit on a branch without an instruction. Nobody may commit on
+   `main`.
+2. **Instruction.** A human decides what leaves the machine.
+   - An agent must wait for a human's instruction before a push, a `gh` command, or anything that
+     rewrites or discards history, such as `reset`, `rebase`, `merge`, `restore`, or `clean`.
+   - An instruction covers the action it names and no next one.
+   - A standing instruction may cover only the push of a ticket's claim across clones, where the
+     harness ADR grants it.
+3. **Credentials.** A human authenticates `gh` through its web flow and enters its one-time code.
    An agent must not request, store, or hard-code a personal access token.
-4. **Pull request.** A change must reach `main` through a pull request. The pull request must
-   merge as a merge commit. The local `main` must only take up the remote's `main`, by
-   `git merge --ff-only origin/main`.
-5. **History of `main`.** Nobody may rewrite what has reached `main`.
-6. **Integration branch.** On a human's instruction, branches may integrate first on a `feat/`
-   branch.
-   - A branch must pass the review of
-     [`AGENTS.md` §5](../../AGENTS.md#5-quality-bar--definition-of-done) before it integrates.
-   - It integrates by a local merge or by a pull request against the `feat/` branch.
-   - Each integrated branch must be one merge commit.
-   - The merge commit's message must be the hand-off of the change. It must fill the sections of
-     the pull request template.
-7. **Rework.** Until the `feat/` branch's pull request into `main` merges, the whole `feat/`
-   branch is the human's. The human may rework it and push it again. This includes the merges of
-   pull requests into it.
-8. **Hooks.** The git hooks under `.githooks/` must enforce each rule of this ADR that a file in
-   the tree decides.
-   - An agent must not bypass a hook. It must not pass `--no-verify` or run git without the hooks.
-   - An agent must not move `origin/main` by hand or write a record of a green tree by hand.
-   - The push of a claim (clause 2) is the one exception. It skips the pre-push hook.
+4. **`main`.** A change must reach `main` through a pull request that merges as a merge commit.
+   The local `main` must only take up the remote's, by `git merge --ff-only origin/main`. Nobody
+   may rewrite what has reached `main`.
+5. **Integration branch.** On a human's instruction, a branch reviewed per
+   [`AGENTS.md` §5](../../AGENTS.md#5-quality-bar--definition-of-done) may integrate first on a
+   `feat/` branch. It integrates by a local merge or a pull request.
+   - Each integration must be one merge commit, its message the hand-off in the sections of the
+     pull request template.
+   - Until the `feat/` branch merges into `main`, the human may rework and push all of it again,
+     merged pull requests included.
+6. **Hooks.** The git hooks under `.githooks/` must enforce each rule of this ADR that a file
+   decides.
+   - An agent must not bypass a hook: no `--no-verify`, no git without the hooks, no hand-moved
+     `origin/main`, and no hand-written record of a green tree.
+   - The push of a claim may skip the pre-push hook.
    - A human may bypass a hook deliberately.
-9. **What enforces a rule.** Only what every agent hits enforces a rule: the git hooks, the
+7. **What enforces a rule.** Only what every agent hits enforces a rule: the git hooks, the
    checks, and the repository settings.
-   - The repository settings must enforce on the remote each clause of this ADR that no file
-     enforces.
-   - A tool's own configuration enforces no rule, and no rule may rest on it.
-   - A tool's configuration may close a path for its own agent as defence in depth.
+   - The repository settings must enforce on the remote what no file enforces.
+   - A tool's own configuration enforces no rule, and no rule may rest on it. It may close a path
+     for its own agent as defence in depth.
 
 **Out of scope:**
 
-- how a claim on a ticket is made and released, which `NUC-large-work-is-planned` and the
-  `work-tickets` skill carry;
-- what the review checks and which checks run before a push, which
-  [`AGENTS.md` §5](../../AGENTS.md#5-quality-bar--definition-of-done) states;
-- the settings that hold other decisions: the Code Owners review of the record, which
-  [NUC-adrs-record-decisions §5](NUC-adrs-record-decisions.md) needs, and secret scanning, which
-  [`AGENTS.md` §7](../../AGENTS.md#7-secrets) needs;
-- which agents work and what runs unattended, which the harness ADR decides;
-- the commands of each step and each hook's refusals, which `CONTRIBUTING.md` carries.
+- making and releasing a claim: `NUC-large-work-is-planned` and the `work-tickets` skill;
+- the review and the checks before a push:
+  [`AGENTS.md` §5](../../AGENTS.md#5-quality-bar--definition-of-done);
+- the commands, refusals, and settings, which `CONTRIBUTING.md` lists.
 
 ## Latitude
 
@@ -153,28 +138,13 @@ The catalogue has no entry for the last two choices, and neither needs an ADR.
 
 ## Enforcement
 
-The hooks hold what a file decides, and `scripts/test-git-hooks.sh` exercises every row of the
-table under *Git hooks* in `CONTRIBUTING.md`. That self-test cites this ADR.
+`scripts/test-git-hooks.sh` cites this ADR. It tests that the hooks refuse:
 
-- `.githooks/pre-commit` refuses a commit on `main` (clause 1).
-- `.githooks/pre-merge-commit` refuses a merge on `main` (clause 1).
-- `.githooks/reference-transaction` refuses a move of the local `main` to a commit that
-  `origin/main` lacks (clause 4). `--no-verify` does not skip it.
-- `.githooks/pre-push` refuses a push to the remote's `main`, a deletion included (clauses 4 and
-  5).
-- The git setting `merge.ff false` makes every local merge a merge commit (clause 6).
-- `scripts/ready-for-main.sh` refuses a branch that still carries a fixup (clause 5).
-- `scripts/drop-merged-branch.sh` takes up `origin/main` by a fast-forward only (clause 4).
+- a commit or a merge on `main` (clause 1);
+- a move of `main` that `origin/main` lacks, and a push to the remote's `main` (clause 4).
 
-The ruleset on `main` requires a pull request and allows the merge commit only. It blocks force
-pushes and deletion (clauses 4, 5, and 9). `scripts/sensor-repo-settings.sh` reports each setting
-that differs, on a human's instruction.
+`merge.ff false` makes each local merge a merge commit (clause 5). The ruleset on `main` holds
+clause 4 on the remote, and `scripts/sensor-repo-settings.sh` reports where it differs (clause 7).
 
-**Not mechanically decidable:** no file sees an instruction, a credential flow, or a gate in a
-tool's configuration. The review holds these judgements:
-
-- whether a push, a `gh` command, or a rewrite had its instruction (clause 2);
-- whether a personal access token was requested or stored (clause 3);
-- whether a merge commit's message is the hand-off (clause 6);
-- whether an agent bypassed a hook or ran git without one (clause 8);
-- whether a rule rests on a tool's own configuration (clause 9).
+**Not mechanically decidable:** no file sees clauses 2, 3, and 7, the message of clause 5, or a
+bypass under clause 6. The review holds them.
