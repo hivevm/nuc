@@ -55,6 +55,8 @@ rules in one rule file.
    - The human reconsiders each named ADR in the same review and supersedes each it invalidates.
    - A project must narrow a `NUC-` clause the change invalidates by an ADR of its own, or fork
      the template ([NUC-adrs-record-decisions §11](NUC-adrs-record-decisions.md)).
+   - The template repository corrects its own `NUC-` ADR in place instead
+     ([NUC-adrs-record-decisions §6](NUC-adrs-record-decisions.md)).
 3. **Rule file.** A repository must have exactly one rule file. It is vendor-neutral and the one
    source of working rules.
    - Another document must cite a working rule by a link to its section anchor and must not
