@@ -221,8 +221,10 @@ The rules of integration stand in
 
 - Branches, and the human's instruction before anything leaves the machine:
   [NUC-main-only-via-pr §1](docs/adr/NUC-main-only-via-pr.md) and
-  [NUC-main-only-via-pr §2](docs/adr/NUC-main-only-via-pr.md). The claim of a ticket and its
-  release: [NUC-large-work-is-planned §4](docs/adr/NUC-large-work-is-planned.md).
+  [NUC-main-only-via-pr §2](docs/adr/NUC-main-only-via-pr.md).
+- The claim of a ticket: [NUC-large-work-is-planned §4](docs/adr/NUC-large-work-is-planned.md).
+  Its release, local or remote, waits for an instruction
+  ([NUC-main-only-via-pr §2](docs/adr/NUC-main-only-via-pr.md)). Skill: `work-tickets`.
 - The git hooks, and that no agent bypasses them:
   [NUC-main-only-via-pr §6](docs/adr/NUC-main-only-via-pr.md). What each hook refuses is under
   [Git hooks](CONTRIBUTING.md#git-hooks).
