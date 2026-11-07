@@ -110,8 +110,8 @@ finish() {
     while IFS=$'\t' read -r key applies; do
       rows=$((rows + 1))
       [[ "$listed" == *" $key "* ]] && continue
-      sed -E 's/, and /\n/g; s/ and /\n/g; s/, /\n/g' <<< "$applies" \
-        | grep -qvE '^[[:space:]]*`[^`[:space:]]+`[[:space:]]*$' \
+      grep -qvE '^[[:space:]]*`[^`[:space:]]+`[[:space:]]*$' \
+        <<< "$(sed -E 's/, and /\n/g; s/ and /\n/g; s/, /\n/g' <<< "$applies")" \
         && prose+=("ADR-$key: $applies")
     done < <(show docs/adr/README.md 2>/dev/null | awk -F'|' '
       /^### Binding/ { p = 1; next } p && /^#/ { exit }

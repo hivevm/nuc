@@ -37,7 +37,8 @@
 # aside, each section of the specification still reading '…', step 6 while checks.yml has no
 # job beside the template's and the README names a command, and step 7 while the Building
 # blocks of docs/ARCHITECTURE.md name no golden path. Case 1 holds the listing to what
-# check-docs.sh names, to the sections that carry a '…', and to the two steps.
+# check-docs.sh names, to the sections that carry a '…', and to the two steps, which close also
+# where what they read is longer than a pipe holds.
 #
 # With --close it tests nothing and closes the setup in this repository: it removes the setup
 # file and what exists only for it, as close_setup lists, this script included. Case 2 makes the
@@ -129,8 +130,8 @@ open_toolchain() {
   [[ -f "$wf" ]] || return 0
   none="$(grep -cE '^- \*\*(Build|Test|Lint|Run):\*\* none$' "$1/README.md" 2>/dev/null)"
   ((none == 4)) && return 0
-  awk '/^jobs:/ { j = 1; next } j && /^  [a-z][a-z0-9_-]*:$/ { print substr($0, 3, length($0) - 3) }' "$wf" \
-    | grep -qvxE 'docs|traceability|devcontainer|sensors|shell' \
+  (($(awk '/^jobs:/ { j = 1; next } j && /^  [a-z][a-z0-9_-]*:$/ { print substr($0, 3, length($0) - 3) }' "$wf" \
+    | grep -cvxE 'docs|traceability|devcontainer|sensors|shell'))) \
     || echo "  - step 6: .github/workflows/checks.yml has no job of the project's toolchain"
 }
 
@@ -139,7 +140,7 @@ open_toolchain() {
 open_golden_path() {
   local doc="$1/docs/ARCHITECTURE.md"
   [[ -f "$doc" ]] || return 0
-  sed -n '/^## Building blocks/,/^## [^B]/p' "$doc" | grep -qiE '^- .*golden path' \
+  grep -qiE '^- .*golden path' <<< "$(sed -n '/^## Building blocks/,/^## [^B]/p' "$doc")" \
     || echo "  - step 7: docs/ARCHITECTURE.md names no golden path under Building blocks"
 }
 
@@ -318,6 +319,21 @@ for field in Build Test Lint Run; do edit "$d" README.md "s/^- \*\*$field:\*\* T
 if [[ -z "$(open_toolchain "$d")" ]]; then pass; else fail "--open lists step 6 where the README runs nothing"; fi
 edit "$d" docs/ARCHITECTURE.md 's/^- \*\*<Part>\*\*.*/- **Greeter** — the golden path: one request answered end to end./'
 if [[ -z "$(open_golden_path "$d")" ]]; then pass; else fail "--open lists step 7 beside a golden path named under Building blocks"; fi
+# Steps 6 and 7 again, where what the listing reads is longer than a pipe holds and the entry
+# that closes the step comes first: a grep that exits at that entry before the rest is written
+# cuts the writer off, and the step reads as open.
+d="$work/steps-6-7-long"
+mkdir -p "$d/.github/workflows" "$d/docs"
+pad="$(printf '%*s' 200000 '' | tr ' ' z)"
+printf '%s\n' '- **Build:** make' > "$d/README.md"
+printf 'jobs:\n  build:\n    runs-on: ubuntu-latest\n  z%s:\n    runs-on: ubuntu-latest\n' "$pad" \
+  > "$d/.github/workflows/checks.yml"
+printf '## Building blocks\n\n- **Greeter** — the golden path.\n- **Padding** — %s\n' "$pad" \
+  > "$d/docs/ARCHITECTURE.md"
+if [[ -z "$(open_toolchain "$d")" ]]; then pass
+else fail "--open lists step 6 beside a job of the project's own, before a long list of jobs"; fi
+if [[ -z "$(open_golden_path "$d")" ]]; then pass
+else fail "--open lists step 7 beside a golden path, before a long section"; fi
 # The argument: --open prints the listing and exits 0, an unknown one exits 2.
 if by_arg="$(bash "$ROOT/scripts/test-template-setup.sh" --open)"; then pass; else fail "--open does not exit 0"; fi
 if [[ "$by_arg" == "$open" ]]; then pass; else fail "--open prints something else than the listing"; fi
