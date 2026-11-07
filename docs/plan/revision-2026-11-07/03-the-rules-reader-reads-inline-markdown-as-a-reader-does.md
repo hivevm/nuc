@@ -3,15 +3,14 @@
 ## What to build
 
 `rule_stream` in `scripts/lib/rules.sh` feeds the plain-rules sensor and check 17 of
-`scripts/check-docs.sh`. It drops code spans and single-star italics, since a rule names a word
-there, but the reviews of tickets 02 and 03 of the plan `plain-rules-and-backlog` left these
-cases unread:
+`scripts/check-docs.sh`. It drops code spans and italics, since a rule names a word there, but
+the reviews of tickets 02 and 03 of the plan `plain-rules-and-backlog` left these cases unread:
 
-- an italic written `_word_` is read as prose, so check 17 fails on an avoided word a rule only
-  names, and the sensor counts it;
 - a code span that opens on one line and closes on the next is read as prose on both;
-- a bare star in prose, such as `a * b`, opens an italic that hides the rest of the paragraph
-  from check 17;
+- a bare star in prose, such as `a * b`, or an unclosed underscore after a non-letter, such as
+  `$_ENV`, opens an italic that hides the rest of the paragraph from check 17;
+- the plain-rules sensor's word boundary counts no underscore as part of a word, so it lists
+  *should* inside `run_should_stop`, where check 17 finds no term;
 - a fence closes on any line that starts with its marker, an opening line with an info string
   included;
 - a `## ` line inside a fence ends an ADR's section here but not in `adr_section` of
@@ -24,8 +23,6 @@ handles each case as Markdown does, and reads an ADR's sections with the same bo
 
 ## Acceptance criteria
 
-- [ ] Given an added line of a *Decision* with an avoided word in `_italics_`, when check 17
-      runs, then it passes; the same word in plain prose still fails.
 - [ ] Given a code span wrapped over two added lines of `AGENTS.md`, when the sensor and
       check 17 run, then neither reads its text.
 - [ ] Given a bare star between spaces, when check 17 runs on an avoided word later in the same

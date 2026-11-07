@@ -972,7 +972,7 @@ CHECK_DOCS_BASE="$(base_of "$d")" expect pass "an avoided term on a line the cha
 
 d="$(avoided avoid-mentions)"
 # shellcheck disable=SC2016 # the backticks are a Markdown code span
-printf '%s\n' 'Each `trigger` and each *trigger* is named, and triggers run.' >> "$d/$DECISION"
+printf '%s\n' 'Each `trigger`, each *trigger*, and each _trigger_ is named; a snake_case_trigger and triggers run.' >> "$d/$DECISION"
 CHECK_DOCS_BASE="$(base_of "$d")" expect pass "an avoided term in a code span, in italics, or inside a longer word" "$d"
 
 d="$(avoided avoid-empty "- **Git hook** — a script git runs.")"

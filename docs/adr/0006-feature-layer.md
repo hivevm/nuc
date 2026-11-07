@@ -109,9 +109,12 @@ changes touched, and it moves the date. The line sits in the overview because th
 corrects that document anyway, and because the overview is the one document that says how the
 system stands (ADR-0001).
 
-**Out of scope:** how work smaller than one session is planned; an artifact for an effort too
-foggy to be written as a spec; how a finding is triaged beyond the decision whether it becomes a
-ticket; whether a due revision blocks a merge, which it does not.
+**Out of scope:**
+
+- how work smaller than one session is planned;
+- an artifact for an effort too foggy to be written as a spec;
+- how a finding is triaged beyond the decision whether it becomes a ticket;
+- whether a due revision blocks a merge, which it does not.
 
 ## Alternatives considered
 
@@ -236,10 +239,14 @@ one remote, where the second claim of a ticket must lose.
 `scripts/sensor-backlog.sh`, in the same job, lists the backlog entries on `main` and those only
 on unmerged local branches; it fails nothing, and its self-test cites this ADR.
 
-**Not mechanically decidable:** whether an effort was larger than one session and so had to be
-specced and sliced, whether a finding went to the backlog rather than into a ticket, whether the
-branch that landed a ticket's work deleted its file, and whether a spec was deleted without its
-design revision are review, as is whether a due revision was run at all and the date moved with
-it. The templates of the
-[`plan-feature`](../../.agents/skills/plan-feature/) skill carry the shape, and the merge message
-names the ticket a change deletes ([`AGENTS.md` §6](../../AGENTS.md#6-project-rules)).
+**Not mechanically decidable:** the review decides each of these.
+
+- whether an effort was larger than one session, and so had to be specced and sliced;
+- whether a finding went to the backlog rather than into a ticket;
+- whether the branch that landed a ticket's work deleted its file;
+- whether a spec was deleted without its design revision;
+- whether a due revision ran at all, and moved the date.
+
+The templates of the [`plan-feature`](../../.agents/skills/plan-feature/) skill carry the shape.
+The merge message names the ticket a change deletes
+([`AGENTS.md` §6](../../AGENTS.md#6-project-rules)).

@@ -111,6 +111,15 @@ after "$r" AGENTS.md "## 1. Rules" "$(printf -- '- **Cache.** A session writes t
 expect "an italic wrapped over two lines: a real verb after it is listed" "$r" \
   'AGENTS.md:6: the soft modal verb "should"' "" main
 
+r="$(repo underscore)"
+after "$r" AGENTS.md "## 1. Rules" "- **Plain.** Say _must_; _should_ leaves the reader guessing."
+expect "a soft modal verb named in underscore italics: not listed" "$r" "no long sentence" "" main
+
+r="$(repo snake)"
+after "$r" AGENTS.md "## 1. Rules" "- The run_should_stop flag should be set."
+expect "an underscore inside a word opens no italic: the verb after it is listed" "$r" \
+  'AGENTS.md:5: the soft modal verb "should"' "" main
+
 r="$(repo quote)"
 after "$r" AGENTS.md "## 1. Rules" "> A quote that should not count."
 expect "a soft modal verb in a block quote: not listed" "$r" "no long sentence" "" main
