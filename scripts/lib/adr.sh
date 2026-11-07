@@ -66,12 +66,14 @@ adr_files() {
 
 # adr_blobs <dir> — the blob list of the 'NUC-' files in the directory, '<blob> <file name>' a
 # line, in the order adr_files gives (NUC-adrs-record-decisions §12). git reads each file as it
-# would store it, its line endings converted, so the list holds on every platform.
+# would store it, its line endings converted, so the list holds on every platform. Fails, saying
+# so, when git cannot hash a file.
 adr_blobs() {
-  local names=() f
+  local names=() f blobs
   while IFS= read -r f; do [[ "${f##*/}" == NUC-* ]] && names+=("${f##*/}"); done < <(adr_files "$1")
   ((${#names[@]})) || return 0
-  paste -d' ' <(cd "$1" && git hash-object -- "${names[@]}") <(printf '%s\n' "${names[@]}")
+  blobs="$(cd "$1" && git hash-object -- "${names[@]}")" || { echo "adr_blobs: git hash-object failed in $1" >&2; return 1; }
+  paste -d' ' <(printf '%s\n' "$blobs") <(printf '%s\n' "${names[@]}")
 }
 
 # adr_is_file <name> — true when it names an ADR file.

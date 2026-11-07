@@ -1200,13 +1200,15 @@ check_skill_pointers() {
 # Check 12 (see the header). The list is compared both ways, with the same message for the
 # template, which rewrites the list, and for a derived project, which restores the file.
 check_base_blobs() {
-  local list="$ADR_DIR/NUC.blobs" f name blob fix
-  fix="restore the file of the release, or in the template rewrite the list with adr_blobs of scripts/lib/adr.sh (NUC-adrs-record-decisions §12)"
+  local list="$ADR_DIR/NUC.blobs" f name blob fix out
+  fix="a derived project restores the NUC- file of its release; the template rewrites the list: bash -c 'source scripts/lib/adr.sh && adr_blobs docs/adr' > docs/adr/NUC.blobs (NUC-adrs-record-decisions §12)"
   local -A want=() have=()
-  while read -r blob name; do have["$name"]="$blob"; done < <(adr_blobs "$ADR_DIR")
+  out="$(adr_blobs "$ADR_DIR" 2>&1)" || { add_error "docs/adr/NUC.blobs: no blob identifiers computed: ${out##*$'\n'}"; return; }
+  while read -r blob name; do [[ -n "$name" ]] && have["$name"]="$blob"; done <<< "$out"
   if [[ ! -f "$list" ]]; then
     ((${#have[@]})) || return 0
-    grep -qE '^[[:space:]]*([-*] )?\*\*Template release:\*\*.*v[0-9]+\.[0-9]+\.[0-9]+.*[^[:alnum:]]forked([^[:alnum:]]|$)' \
+    # shellcheck disable=SC2016  # the backticks are Markdown to match, not a command substitution
+    grep -qE '^[[:space:]]*([-*] )?\*\*Template release:\*\*[[:space:]]*[[`]?v[0-9]+\.[0-9]+\.[0-9]+[]`]?(\([^)]*\))?, forked([^[:alnum:]]|$)' \
       "$ROOT/README.md" 2>/dev/null \
       || add_error "docs/adr/NUC.blobs: not found — it names each NUC- file with its blob; a fork names the release it forked on the Template release line of README.md, 'vX.Y.Z, forked' (NUC-adrs-record-decisions §11)"
     return

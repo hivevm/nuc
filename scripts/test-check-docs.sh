@@ -89,6 +89,8 @@ role_adr() {
     "$cat-fixture-$2" "$2" > "$1/docs/adr/$cat-fixture-$2.md"
 }
 role_row() { local cat=OPS; echo "| [$cat-fixture-$1]($cat-fixture-$1.md) | Decision | everything | 🟢 accepted |"; }
+# ROLES — the required roles, read from the library.
+read -r -a ROLES <<< "$(bash -c 'source "$1" && echo "${ADR_ROLES[*]}"' _ "$ROOT/scripts/lib/adr.sh")"
 
 # repo <name> — a fixture repository that passes every check, printed as its path.
 repo() {
@@ -159,14 +161,14 @@ repo() {
   } > "$dir/docs/adr/template.md"
 
   adr "$dir" 1 "🟡 proposed"
-  role_adr "$dir" harness && role_adr "$dir" toolchain
+  for r in "${ROLES[@]}"; do role_adr "$dir" "$r"; done
   {
     echo "# Architecture Decision Records"
     echo
     echo "| ADR | Title | Applies to | Status |"
     echo "|-----|-------|------------|--------|"
     index_row 1 "🟡 proposed"
-    role_row harness && role_row toolchain
+    for r in "${ROLES[@]}"; do role_row "$r"; done
   } > "$dir/docs/adr/README.md"
 
   printf -- '---\nname: review\ndescription: Review a change.\n---\n\n# Review\n' \
@@ -736,8 +738,8 @@ while IFS= read -r line; do
   DELETED=""
   d="$(repo "record-$n")"
   rm "$d/docs/adr/0001-decision.md"
-  printf '# ADRs\n\n### Categories\n\n- **NUC** — the template.\n\n### Binding\n\n%s\n%s\n%s\n%s\n### Superseded and rejected\n\n%s\n%s\n' \
-    "| ADR | Title | Applies to | Status |" "|-----|-------|------------|--------|" "$(role_row harness)" "$(role_row toolchain)" \
+  printf '# ADRs\n\n### Categories\n\n- **NUC** — the template.\n\n### Binding\n\n%s\n%s\n%s\n### Superseded and rejected\n\n%s\n%s\n' \
+    "| ADR | Title | Applies to | Status |" "|-----|-------|------------|--------|" "$(for r in "${ROLES[@]}"; do role_row "$r"; done)" \
     "| ADR | Title | Applies to | Status |" "|-----|-------|------------|--------|" > "$d/docs/adr/README.md"
   while IFS= read -r s; do step "$d" "$s"; done <<< "${tree//; /$'\n'}"
   needle="${needle//<deleted>/$DELETED}"
@@ -757,6 +759,18 @@ exec %q "$@"
 chmod +x "$work/old-git-bin/git"
 PATH="$work/old-git-bin:$PATH" expect fail "check 2: a git too old to read the history" "$d" \
   "git log cannot read the deleted ADRs (git 2.31 or later is needed): fatal: unrecognized argument"
+
+# A git that warns on stderr and succeeds: the warning, here the name of an ADR in the tree, is no
+# deleted ADR of check 2.
+d="$(repo warn-git)"
+g "$d" add -A && g "$d" commit -q -m base
+mkdir -p "$work/warn-git-bin"
+printf '#!/usr/bin/env bash
+[[ " $* " == *" --diff-filter=D "* ]] && echo "docs/adr/0001-decision.md" >&2
+exec %q "$@"
+' "$(command -v git)" > "$work/warn-git-bin/git"
+chmod +x "$work/warn-git-bin/git"
+PATH="$work/warn-git-bin:$PATH" expect pass "check 2: a warning of git on stderr is no deleted ADR" "$d"
 
 # The release workflow on a tag: its step that writes the blob list, run in a fixture with a base
 # file, writes a list check 12 passes.

@@ -401,8 +401,9 @@ setup_steps() {
       's/^- \*\*Deciders:\*\* NUC maintainer$/- **Deciders:** NUC maintainer, Fixture Owner/'
   done
   # Step 4: an accepted ADR for each required role, with its row in the index.
-  local role cat=OPS
-  for role in harness toolchain; do
+  local role cat=OPS roles
+  read -r -a roles <<< "$(bash -c 'source "$1" && echo "${ADR_ROLES[*]}"' _ "$ROOT/scripts/lib/adr.sh")"
+  for role in "${roles[@]}"; do
     printf '# %s: The %s\n\n- **Status:** 🟢 accepted\n- **Role:** %s\n- **Applies to:** the %s\n\n## Enforcement\n\n**Not mechanically decidable:** the fixture.\n' \
       "$cat-fixture-$role" "$role" "$role" "$role" > "$d/docs/adr/$cat-fixture-$role.md"
     awk -v row="| [$cat-fixture-$role]($cat-fixture-$role.md) | The $role | the $role | 🟢 accepted |" \
