@@ -202,6 +202,8 @@ expect pass "a consistent repository passes" "$d"
 
 # --- cases: skill pointers (check 11) ----------------------------------------------------
 
+# Verifies: NUC-procedures-are-skills ADR-0003
+
 d="$(repo pointer-missing)"
 rm "$d/.claude/skills/review"
 expect fail "a skill without its pointer" "$d" ".claude/skills/review: no pointer"

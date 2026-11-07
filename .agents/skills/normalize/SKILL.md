@@ -8,7 +8,7 @@ description: Restate the specification and rewrite the ADRs in force as a new se
 The rule is rule 5 of [`AGENTS.md` §3](../../../AGENTS.md#3-adr-rules), with rules 3 and 7; the
 mechanics of a normalization are in [`docs/adr/README.md`](../../../docs/adr/README.md#mechanics).
 This skill is the order of work and states no rule of its own
-([ADR-0003](../../../docs/adr/0003-procedures-as-skills.md)).
+([NUC-procedures-are-skills §3](../../../docs/adr/NUC-procedures-are-skills.md)).
 
 ## 1. Entry point and inputs
 

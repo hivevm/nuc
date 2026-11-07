@@ -83,8 +83,8 @@ the tickets that may be claimed, for the dispatching session.
 ## Alternatives
 
 The three forms above grow into each other. A process-owning framework that brings agents,
-artifacts, and pipeline in one piece is a fourth; ADR-0003 and NUC-large-work-is-planned decline
-it for the template.
+artifacts, and pipeline in one piece is a fourth; NUC-procedures-are-skills and
+NUC-large-work-is-planned decline it for the template.
 
 ## Sources
 
