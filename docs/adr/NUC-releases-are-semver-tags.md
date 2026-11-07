@@ -68,7 +68,7 @@ release it carries in its README.
 A project may choose:
 
 - which releases it takes up, and when; it may skip releases;
-- how it merges the other files of a release: by hand, by patch, or by subtree;
+- how it merges the other files of a release: by hand or by patch;
 - a templating tool on top of the tags, such as one that pins a tag at creation.
 
 The catalogue has no entry for these choices, and none of them needs an ADR.
