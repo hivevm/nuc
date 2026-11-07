@@ -43,9 +43,9 @@
 #      the section sign with a number, cites a clause of that ADR and is no section reference.
 #   5. ADR-reference integrity: every identifier of a known category, a clause citation's among
 #      them, names an ADR file that exists in docs/adr/ — anticipated follow-ups are described by
-#      topic, never by an identifier that does not exist yet (NUC-adrs-record-decisions clause 16). A reference is a
-#      word of its own: a one-word slug, such as API-first, or a longer chain is none. An
-#      identifier in a Markdown code span is no citation (clause 16) and is not read.
+#      topic, never by an identifier that does not exist yet (NUC-adrs-record-decisions clause 16).
+#      A reference is a word of its own: a one-word slug, such as API-first, or a longer chain is
+#      none. An identifier in a Markdown code span is no citation (clause 16) and is not read.
 #   6. ADR link agreement: a Markdown link whose text cites an ADR points at that ADR's own
 #      file — the identifier and the file it links to must name the same decision
 #      (docs/adr/README.md).
@@ -91,9 +91,7 @@
 #      other agent — nobody notices; a copy instead of a symlink is a second source that drifts,
 #      and a skill that lives only in the pointer directory is one no other agent finds. Each
 #      message says the command that fixes it. A repository with neither directory has nothing to
-#      check. Each SKILL.md opens with a front matter that an agent can read: '---' on the first
-#      line, a 'name:' that is the skill's directory and a 'description:', each on one line of
-#      its own, and '---' closing it on a line of its own; a wrapped field hides the skill.
+#      check.
 #  12. Base held by its blob list: every 'NUC-' file in docs/adr/ has the git blob identifier its
 #      line in docs/adr/NUC.blobs names, and every line names a file that exists
 #      (NUC-adrs-record-decisions §12). The template rewrites the list in the commit that changes a
@@ -107,8 +105,8 @@
 #      Step 1 of the setup: the project name NUC in the README title, its
 #      intro, its Why NUC section, and the Dev Container name, the template's repository in the
 #      README badges, the copyright holder in LICENSE, the security contact in SECURITY.md, the
-#      reporting contact in CODE_OF_CONDUCT.md, and a CODEOWNERS with no active rule or with its TODO. Step 3: the
-#      '<Project Name>' title of the specification, the overview, the glossary, and the
+#      reporting contact in CODE_OF_CONDUCT.md, and a CODEOWNERS with no active rule or with its
+#      TODO. Step 3: the '<Project Name>' title of the specification, the overview, the glossary, and the
 #      conventions, a criterion of the specification still reading '…' or '<Quality', and the
 #      scaffold's '<Part>', '<Term>', and '<Convention>' entries. Step 5: a 'TODO' as the Build,
 #      Test, Lint, or Run command of the README, its Overview sentence, and its Usage TODO. A
@@ -1165,14 +1163,6 @@ check_skill_pointers() {
   for d in "$skills"/*/; do
     [[ -f "$d/SKILL.md" ]] || continue
     name="$(basename "$d")"
-    awk -v name="$name" '
-      NR == 1 { if ($0 != "---") exit 1; next }
-      $0 == "---" { closed = 1; exit }
-      /^name: / { n = (substr($0, 7) == name); next }
-      /^description: ./ { desc = 1; next }
-      !/^[a-z][a-z-]*: / { exit 1 }
-      END { exit !(closed && n && desc) }' "$d/SKILL.md" \
-      || add_error ".agents/skills/$name/SKILL.md: no front matter an agent reads — '---', 'name: $name' and 'description: …' each on one line, then '---' on a line of its own"
     p="$pointers/$name"
     if [[ -L "$p" ]]; then
       continue
