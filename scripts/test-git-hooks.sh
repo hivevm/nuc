@@ -10,7 +10,7 @@
 # A push case ships its own scripts/check-all.sh, green or red, so the test decides what the hook
 # finds.
 #
-# Verifies: NUC-main-only-via-pr NUC-checks-are-bash ADR-0002
+# Verifies: NUC-main-only-via-pr NUC-checks-are-bash
 # Inputs: .githooks/ scripts/lib/
 #
 # Usage:

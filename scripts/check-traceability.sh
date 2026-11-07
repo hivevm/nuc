@@ -21,7 +21,7 @@
 # tests, not the constitution.
 #
 # A marker is the word 'Verifies', a colon, and one or more identifiers separated by spaces or
-# commas: an ADR's, such as NUC-adrs-record-decisions or ADR-0004 of the old form, G-1, or Q-2. A
+# commas: an ADR's, such as NUC-adrs-record-decisions, G-1, or Q-2. A
 # word of another form fails. Markers count in any file git does not ignore that is not Markdown,
 # which is excluded so that the specification and the ADRs can describe markers without being
 # counted as one.

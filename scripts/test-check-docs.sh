@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Self-test of scripts/check-docs.sh. Verifies: ADR-0001 NUC-documents-are-fixed ADR-0003
+# Self-test of scripts/check-docs.sh. Verifies: NUC-documents-are-fixed NUC-procedures-are-skills
 #
 # Each case builds a throwaway git repository under a temporary directory — a rule file with
 # numbered sections, a README with the Template release line, a CONTRIBUTING.md with a Project
@@ -202,7 +202,7 @@ expect pass "a consistent repository passes" "$d"
 
 # --- cases: skill pointers (check 11) ----------------------------------------------------
 
-# Verifies: NUC-procedures-are-skills ADR-0003
+# Verifies: NUC-procedures-are-skills
 
 d="$(repo pointer-missing)"
 rm "$d/.claude/skills/review"
@@ -408,7 +408,7 @@ expect fail "a bold label outside an ADR header is prose" "$d" "columns — wrap
 
 # --- cases: the template release named (check 14) ---------------------------------------
 
-# Verifies: NUC-releases-are-semver-tags ADR-0005
+# Verifies: NUC-releases-are-semver-tags
 
 # release_line <dir> <text> — replace the baseline's Template release line with the given text.
 release_line() { sed_in "$1/README.md" "s/^- \*\*Template release:\*\* unreleased$/$2/"; }
@@ -477,7 +477,7 @@ printf '\n## Last' >> "$d/AGENTS.md"
 echo "See [the last section](AGENTS.md#last)." >> "$d/README.md"
 expect pass "a heading on a last line without a newline anchors" "$d"
 
-# Verifies: ADR-0001 NUC-adrs-record-decisions
+# Verifies: NUC-adrs-record-decisions
 d="$(repo header-not-a-list-item)"
 sed 's/^- \*\*Status:\*\*/**Status:**/' "$d/docs/adr/0001-decision.md" > "$d/adr.tmp" \
   && mv "$d/adr.tmp" "$d/docs/adr/0001-decision.md"
@@ -521,7 +521,7 @@ d="$(repo check-lists)"
 echo 'run "Extra" scripts/check-extra.sh' >> "$d/scripts/check-all.sh"
 expect fail "a check the local runner has and CI does not" "$d" "CI and the local gate disagree"
 
-# Verifies: NUC-checks-are-bash ADR-0002
+# Verifies: NUC-checks-are-bash
 d="$(repo script-in-no-list)"
 echo 'echo new' > "$d/scripts/check-new.sh"
 expect fail "a script that neither list runs" "$d" "scripts/check-new.sh: no workflow and not scripts/check-all.sh runs it"
@@ -630,7 +630,7 @@ matrix_job() {
   sed_in "$dir/CONTRIBUTING.md" "s|^\`docs\`\$|\`docs\`, $names|"
 }
 
-# Verifies: NUC-checks-are-bash ADR-0002
+# Verifies: NUC-checks-are-bash
 d="$(repo matrix-runs)"
 # shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
 matrix_job "$d" '`build (ubuntu-latest)`, `build (macos-latest)`'
@@ -659,7 +659,7 @@ d="$(repo layout-stale)"
 sed_in "$d/CONTRIBUTING.md" 's|^docs/adr/ |docs/gone/ |'
 expect fail "a Project Layout entry that no longer exists" "$d" "is not a directory of this repository"
 
-# Verifies: ADR-0001 NUC-documents-are-fixed
+# Verifies: NUC-documents-are-fixed
 d="$(repo layout-unnamed-top)"
 echo "notes" > "$d/NOTES.md"
 expect fail "a top-level file the Project Layout does not name" "$d" \

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Self-test of scripts/sensor-binding-adrs.sh. Verifies: ADR-0001 NUC-adrs-record-decisions
+# Self-test of scripts/sensor-binding-adrs.sh. Verifies: NUC-adrs-record-decisions
 #
 # Each case builds a throwaway git repository with ADRs under docs/adr/, commits a change on
 # top of a tagged base, runs the sensor against the base, and asserts the exit code and a line a
@@ -14,7 +14,7 @@
 # prose, read from the ADR files and never from the index, also where the prose comes before a
 # list longer than a pipe holds. A 'NUC-' ADR of the base binds like any other, read from its file.
 #
-# Verifies: NUC-checks-are-bash ADR-0002
+# Verifies: NUC-checks-are-bash
 # Inputs: scripts/sensor-binding-adrs.sh scripts/lib/
 #
 # Usage:
