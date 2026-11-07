@@ -23,7 +23,8 @@
 #      also once the setup file was deleted by hand, removes what close_setup lists and keeps a
 #      NOTE block of the project's own. Of the files under docs/plan/ and docs/backlog/ it removes
 #      the template's and keeps a ticket the project wrote, after a 'Use this template' commit
-#      and in an adoption; and the setup file's opening paragraph names the two directories.
+#      and in an adoption, and names each file it removed and kept; on a copy no commit holds it
+#      removes none and says so. The setup file's opening paragraph names the two directories.
 #
 # A project partway through the setup has replaced some placeholders already. Case 1 asks only
 # for those still present, and an edit of case 2 that finds nothing to change does nothing, so
@@ -178,24 +179,32 @@ close_setup() {
   close_template_work "$d"
 }
 
-# close_template_work <dir> — the template's own plan and backlog, the files under docs/plan/ and
-# docs/backlog/ the template's tree brought: those the commit that added the setup file added,
-# and where no commit holds that file, those git does not track. A file the project wrote there
-# stays. A directory left empty goes.
+# close_template_work <dir> — the template's own plan and backlog: the files under docs/plan/ and
+# docs/backlog/ that the commit which added the setup file added, the copy of the template. A file
+# the project wrote there stays, and a directory left empty goes. Each file removed there and each
+# kept is printed. Where no commit holds the setup file, nothing there tells the template's files
+# from the project's, so none is removed and it says the copy must be committed first.
 close_template_work() {
   local d="$1" first f
-  local -a brought
+  local -a brought kept
   first="$(git -C "$d" log --diff-filter=A --format=%H -- TEMPLATE-SETUP.md 2>/dev/null | tail -n 1)"
-  if [[ -n "$first" ]]; then
-    mapfile -d '' -t brought < <(git -C "$d" diff-tree --root -r -z --no-commit-id --name-only \
-      --diff-filter=A "$first" -- docs/plan docs/backlog)
-  else
-    mapfile -d '' -t brought < <(git -C "$d" ls-files -z --others --exclude-standard -- docs/plan docs/backlog)
+  if [[ -z "$first" ]]; then
+    echo "The template's plan and backlog stay: no commit holds the copy of the template. Commit the copy and run --close again to clear docs/plan/ and docs/backlog/."
+    return 0
   fi
-  for f in "${brought[@]}"; do rm -f "${d:?}/$f"; done
+  mapfile -d '' -t brought < <(git -C "$d" diff-tree --root -r -z --no-commit-id --name-only \
+    --diff-filter=A "$first" -- docs/plan docs/backlog)
+  echo "The template's plan and backlog, under docs/plan/ and docs/backlog/:"
+  for f in "${brought[@]}"; do
+    [[ -e "$d/$f" ]] || continue
+    rm -f "${d:?}/$f"
+    echo "  removed: $f"
+  done
   for f in docs/plan docs/backlog; do
     [[ -d "$d/$f" ]] && find "$d/$f" -depth -type d -empty -delete
   done
+  mapfile -t kept < <(cd "$d" && find docs/plan docs/backlog -type f 2>/dev/null | sort)
+  for f in "${kept[@]}"; do echo "  kept: $f"; done
   return 0
 }
 
@@ -371,7 +380,7 @@ if ((rc == 2)); then pass; else fail "an unknown argument exits $rc, not 2"; fi
 # setup_steps <dir> — the steps of the setup, done in the copy as an agent would do them.
 setup_steps() {
   local d="$1" f doc
-  close_setup "$d"
+  close_setup "$d" >/dev/null
   # Step 1: the project's identity.
   edit "$d" README.md 's/^# NUC — .*/# Fixture/'
   edit "$d" README.md 's/^\*\*NUC\*\* is named after.*/**Fixture** answers questions./'
@@ -579,22 +588,39 @@ printf '# The template'"'"'s entry\n' > "$d/docs/backlog/the-templates-entry.md"
 git -C "$d" add -A && git -C "$d" -c user.name=t -c user.email=t@t commit -qm template
 mkdir -p "$d/docs/plan/own"
 printf '# Ticket: the project'"'"'s\n' > "$d/docs/plan/own/01-the-projects.md"
-bash "$d/scripts/test-template-setup.sh" --close >/dev/null 2>&1
+out="$(bash "$d/scripts/test-template-setup.sh" --close 2>&1)"
 left="$(cd "$d" && find docs/plan docs/backlog -type f 2>/dev/null | grep -vxF docs/plan/own/01-the-projects.md)"
 if [[ -z "$left" ]]; then pass; else fail "--close leaves the template's plan or backlog: $left"; fi
 if [[ -f "$d/docs/plan/own/01-the-projects.md" ]]; then pass
 else fail "--close removes a ticket the project added after the template's commit"; fi
-# An adoption copies the template's files into a project with a plan of its own: the project's
-# ticket is committed, the template's files are not yet.
+# It names each file it removed there and each it kept, for the human to see before committing.
+if grep -qxF -- "  removed: docs/plan/template-work/01-the-templates.md" <<< "$out" \
+  && grep -qxF -- "  removed: docs/backlog/the-templates-entry.md" <<< "$out" \
+  && grep -qxF -- "  kept: docs/plan/own/01-the-projects.md" <<< "$out"; then pass
+else fail "--close does not name each plan and backlog file it removed and kept: $out"; fi
+# An adoption commits the copy of the template into a project with a plan of its own: the
+# project's ticket is in an earlier commit, the template's arrives with the setup file.
 d="$(copy close-adoption)"
 edit "$d" README.md 's/^# NUC — .*/# Fixture/'
 mkdir -p "$d/docs/plan/template-work" "$d/docs/plan/own"
 printf '# Ticket: the template'"'"'s\n' > "$d/docs/plan/template-work/01-the-templates.md"
 printf '# Ticket: the project'"'"'s\n' > "$d/docs/plan/own/01-the-projects.md"
 git -C "$d" add docs/plan/own && git -C "$d" -c user.name=t -c user.email=t@t commit -qm project
+git -C "$d" add -A && git -C "$d" -c user.name=t -c user.email=t@t commit -qm template
 bash "$d/scripts/test-template-setup.sh" --close >/dev/null 2>&1
 if [[ ! -e "$d/docs/plan/template-work" && -f "$d/docs/plan/own/01-the-projects.md" ]]; then pass
-else fail "--close in an adoption does not remove the template's uncommitted ticket alone"; fi
+else fail "--close in an adoption does not remove the template's ticket alone"; fi
+# A copy no commit holds: nothing under docs/plan/ or docs/backlog/ tells the template's files from
+# the project's, so the close removes none of them and says the copy must be committed.
+d="$(copy close-uncommitted)"
+edit "$d" README.md 's/^# NUC — .*/# Fixture/'
+mkdir -p "$d/docs/plan/template-work"
+printf '# Ticket: the template'"'"'s\n' > "$d/docs/plan/template-work/01-the-templates.md"
+out="$(bash "$d/scripts/test-template-setup.sh" --close 2>&1)"
+if [[ -f "$d/docs/plan/template-work/01-the-templates.md" ]]; then pass
+else fail "--close on an uncommitted copy removes an untracked file under docs/plan/"; fi
+if grep -qi 'commit' <<< "$out"; then pass
+else fail "--close on an uncommitted copy does not say the copy must be committed: $out"; fi
 # The setup file says so where it lists what the close removes: its opening paragraph.
 opening="$(awk 'NR > 2 && /^$/ { exit } NR > 2' "$ROOT/TEMPLATE-SETUP.md")"
 if [[ "$opening" == *docs/plan/* && "$opening" == *docs/backlog/* ]]; then pass
