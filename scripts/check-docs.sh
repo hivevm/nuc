@@ -119,8 +119,9 @@
 #  17. Avoided terms: a line a change adds to AGENTS.md, or to the Decision or Enforcement of an ADR,
 #      carries no word a glossary entry lists under _Avoid:_ (ADR-0001). Whole words count, not a
 #      part of an identifier such as snake_case, case insensitive, outside code spans and italics,
-#      as scripts/lib/rules.sh reads the rules, one line at a time. The change runs from the base CI passes in CHECK_DOCS_BASE, else, or when
-#      that does not resolve, from the merge base with origin/main or main, to the working tree.
+#      as scripts/lib/rules.sh reads the rules, one line at a time. The change runs from the base
+#      CI passes in CHECK_DOCS_BASE, else, or when that does not resolve, from the merge base with
+#      origin/main or main, to the working tree.
 #      An _Avoid:_ list counts inside a glossary entry only. With no list, or no base to compare
 #      with, there is nothing to check.
 #

@@ -7,8 +7,10 @@
 the reviews of tickets 02 and 03 of the plan `plain-rules-and-backlog` left these cases unread:
 
 - a code span that opens on one line and closes on the next is read as prose on both;
-- a bare star in prose, such as `a * b`, opens an italic that hides the rest of the paragraph
-  from check 17;
+- a bare star in prose, such as `a * b`, or an unclosed underscore after a non-letter, such as
+  `$_ENV`, opens an italic that hides the rest of the paragraph from check 17;
+- the plain-rules sensor's word boundary counts no underscore as part of a word, so it lists
+  *should* inside `run_should_stop`, where check 17 finds no term;
 - a fence closes on any line that starts with its marker, an opening line with an info string
   included;
 - a `## ` line inside a fence ends an ADR's section here but not in `adr_section` of
