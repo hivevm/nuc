@@ -3,7 +3,7 @@
 - **Status:** 🟡 proposed
 - **Date:** 2026-11-07
 - **Deciders:** NUC maintainer
-- **Applies to:** `.devcontainer/`, `.vscode/settings.json`, `scripts/check-devcontainer.sh`, and `scripts/test-check-devcontainer.sh`
+- **Applies to:** `.devcontainer/`, `.vscode/settings.json`, `scripts/check-devcontainer.sh`, `scripts/test-check-devcontainer.sh`, and `scripts/fixtures/check-devcontainer.txt`
 
 ## Context
 
@@ -103,6 +103,7 @@ Only the way to the containers has a catalogue entry. The other choices need no 
 `scripts/check-devcontainer.sh`, job `devcontainer`, holds clauses 1 to 6. Its self-test cites
 this ADR. The check fails when:
 
+- a `.devcontainer/` holds no `devcontainer.json` (clause 1);
 - the definition mounts a host socket or adds a Feature that would (clause 2);
 - a Feature lacks a bare major version tag, or the lock is missing or names other Features
   (clause 3);
