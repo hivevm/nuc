@@ -28,31 +28,29 @@ not have cannot hold. So these rules bind only a project that has a Dev Containe
 We will keep the host daemon out of a Dev Container's reach, lock its Features, and mount each
 project under a path of its own.
 
-1. **Scope.** These clauses bind a project whose tree holds a Dev Container definition under
-   `.devcontainer/`. A project without one is not bound by them.
-2. **Socket.** A Dev Container definition must not mount the host's Docker socket. It must not
-   add a Feature that mounts the socket. This holds for every variant of the definition.
-3. **Pinning.** The definition must reference each Feature by its major version tag alone.
-4. **Lock.** The project must commit `.devcontainer/devcontainer-lock.json`. The lock must name
-   exactly the Features of the definition. So the same commit builds the same Features.
-5. **Host containers.** `.vscode/settings.json` must pin the container-management extension to the
-   host side through `remote.extensionKind`. That extension manages the host's containers without
-   the socket.
-6. **Mount path.** The definition must mount the repository at `/workspaces/` and the name of its
-   directory on the host. It must not mount it at a path that every project shares.
-7. **Git settings.** The container must enable the repository's git hooks on every start. It must
-   also set the merge settings the hooks rely on. This is the container's share of the local gate.
+1. **Scope.** These clauses bind only a project with a Dev Container definition under
+   `.devcontainer/`.
+2. **Socket.** The definition must not mount the host's Docker socket or add a Feature that
+   mounts it, in any variant.
+3. **Features.** The definition must reference each Feature by its major version tag alone. The
+   project must commit `.devcontainer/devcontainer-lock.json`, naming exactly these Features.
+4. **Host side.** A project that uses VS Code with its Dev Container must pin the
+   container-management extension to the host side in `.vscode/settings.json`, through
+   `remote.extensionKind`.
+5. **Mount path.** The definition must mount the repository at `/workspaces/` and its host
+   directory name, not at a path every project shares.
+6. **Git settings.** The container must enable the git hooks and the merge settings they rely on
+   at every start.
 
 **Out of scope:**
 
-- which base image, Features, and extensions a project picks, and whether it pins extensions;
-- the toolchain, a required role that
-  [NUC-adrs-record-decisions §13](NUC-adrs-record-decisions.md) names;
-- whether an engine runs inside the container, and how the work reaches the containers it needs;
-- whether work may happen outside the container;
-- hardening the container, which is not a security boundary;
-- how the lock is refreshed;
-- the local gate itself, which belongs to the ADR on tests.
+- the base image, Features, and extensions, and whether extensions are pinned;
+- the toolchain, a required role of [NUC-adrs-record-decisions §13](NUC-adrs-record-decisions.md);
+- an engine inside the container, and how the work reaches the containers it needs;
+- work outside the container;
+- hardening the container;
+- refreshing the lock;
+- the local gate, which the ADR on tests decides.
 
 ## Latitude
 
@@ -102,24 +100,20 @@ Only the way to the containers has a catalogue entry. The other choices need no 
 
 ## Enforcement
 
-`scripts/check-devcontainer.sh` holds these clauses in the job `devcontainer` of
-`.github/workflows/checks.yml`. Its self-test cites this ADR. The check fails in these cases:
+`scripts/check-devcontainer.sh`, job `devcontainer`, holds clauses 1 to 6. Its self-test cites
+this ADR. The check fails when:
 
-- the definition mounts a host socket, or adds a Feature that would (clause 2);
-- a Feature carries no tag, `latest`, a full version, or a digest (clause 3);
-- the lock is missing, or names other Features than the definition (clause 4);
-- `.vscode/settings.json` no longer pins the container-management extension to the host side
-  (clause 5);
-- `workspaceFolder` or the target of `workspaceMount` is not
-  `/workspaces/${localWorkspaceFolderBasename}` (clause 6);
-- the `postStartCommand` no longer sets `core.hooksPath`, `merge.ff`, `pull.ff`, and
-  `merge.adr-index.driver` (clause 7).
+- the definition mounts a host socket or adds a Feature that would (clause 2);
+- a Feature lacks a bare major version tag, or the lock is missing or names other Features
+  (clause 3);
+- a tree with `.vscode/` lacks the host-side pin in `.vscode/settings.json` (clause 4);
+- `workspaceFolder` or the `workspaceMount` target is not
+  `/workspaces/${localWorkspaceFolderBasename}` (clause 5);
+- `postStartCommand` does not set `core.hooksPath`, `merge.ff`, `pull.ff`, and
+  `merge.adr-index.driver` (clause 6).
 
-When the tree holds no `.devcontainer/`, the check passes and says that nothing binds (clause 1).
+Without `.devcontainer/`, the check passes and says that nothing binds (clause 1).
 
-**Not mechanically decidable:** the check reads only the default definition, and no CI job builds
-the container. The review holds these:
-
-- a variant definition under a subdirectory of `.devcontainer/` (clause 2);
-- whether the lock's digests are the ones the tags resolve to now (clause 4);
-- the mount of a definition built from a compose file, which that file declares (clause 6).
+**Not mechanically decidable:** the check reads only the default definition and builds nothing.
+The review holds variants (clause 2), current lock digests (clause 3), and a compose file's mount
+(clause 5).
