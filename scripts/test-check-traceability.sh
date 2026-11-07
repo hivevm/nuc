@@ -258,7 +258,8 @@ if [[ -f "$ROOT/TEMPLATE-SETUP.md" ]]; then
   done < <(git -C "$ROOT" ls-files --cached --others --exclude-standard -z)
   git -C "${d:?}" init -q
   # Assembled, so this file cites no ADR that does not exist here.
-  cat=OPS founding="$cat-a-founding-decision"
+  category=OPS
+  founding="$category-a-founding-decision"
   cat > "$d/docs/adr/$founding.md" <<ADR
 # $founding: A founding decision of the project, proposed in setup step 4
 

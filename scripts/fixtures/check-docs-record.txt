@@ -55,6 +55,7 @@
 2 | pass | - | an ADR a merged side branch deleted and wrote anew, as a normalization does | adr OPS:kept-rule proposed; commit; branch side; delete OPS:kept-rule; adr OPS:kept-rule accepted; commit; back; merge side
 2 | fail | OPS:gone-rule.md: the identifier OPS:gone-rule was taken | an ADR a merged side branch deleted, taken again | adr OPS:gone-rule proposed; commit; branch side; delete OPS:gone-rule; back; merge side; adr OPS:gone-rule proposed
 2 | pass | - | a deleted ADR whose identifier nobody takes again | adr OPS:old-rule proposed; commit; delete OPS:old-rule; adr OPS:new-rule proposed
+2 | fail | 0001-old.md: a numbered ADR, a form no check reads | a numbered ADR file left from before the migration | text docs/adr/0001-old.md # old decision
 5 | pass | - | a clause citation of an existing ADR | adr SEC:x-rule proposed; text README.md See [SEC:x-rule §3](docs/adr/SEC:x-rule.md) and SEC:x-rule §1.
 5 | fail | reference 'SEC:y-rule' matches no ADR file | a clause citation of a missing ADR | adr SEC:x-rule proposed; text README.md See SEC:y-rule §3.
 5 | fail | reference 'UX:dark-mode' matches no ADR file | a project category cited and missing | category UX; text README.md See UX:dark-mode.

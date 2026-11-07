@@ -20,7 +20,9 @@
 #      file's heading starts with '# <identifier>:'. No ADR deleted on the first-parent line of
 #      HEAD carried the identifier; the message names the commit that deleted it, and a git that
 #      cannot read the history fails the check. Every file in docs/adr/ named with letters before
-#      a hyphen counts, so a misnamed ADR fails here.
+#      a hyphen counts, so a misnamed ADR fails here, and so does a numbered ADR file, 'NNNN-*.md',
+#      which no reader takes any more: a derived project maps it once, with the map script of the
+#      normalize skill.
 #   3. Relative-link integrity: every relative Markdown link in every tracked .md file resolves
 #      to a file or directory that exists. Links inside fenced code blocks are illustrations,
 #      not claims about files on disk, and are skipped (here and in check 6); so is a target that
@@ -40,9 +42,8 @@
 #      can see (NUC-documents-are-fixed §3). A clause citation, an ADR's identifier, a space, and
 #      the section sign with a number, cites a clause of that ADR and is no section reference.
 #   5. ADR-reference integrity: every identifier of a known category, a clause citation's among
-#      them, names an ADR file that
-#      exists in docs/adr/ — anticipated follow-ups are described by topic, never by an
-#      identifier that does not exist yet (NUC-adrs-record-decisions clause 16). A reference is a
+#      them, names an ADR file that exists in docs/adr/ — anticipated follow-ups are described by
+#      topic, never by an identifier that does not exist yet (NUC-adrs-record-decisions clause 16). A reference is a
 #      word of its own: a one-word slug, such as API-first, or a longer chain is none. An
 #      identifier in a Markdown code span is no citation (clause 16) and is not read.
 #   6. ADR link agreement: a Markdown link whose text cites an ADR points at that ADR's own
@@ -406,6 +407,9 @@ check_adr_index() {
 check_adr_identifiers() {
   local f base heading id commit
   local -A deleted=()
+  [[ -d "$ADR_DIR" ]] && while IFS= read -r f; do
+    add_error "${f##*/}: a numbered ADR, a form no check reads — map it to '<CAT>-<slug>' with .agents/skills/normalize/remap.sh, as the normalize skill's migration says"
+  done < <(LC_ALL=C find "$ADR_DIR" -maxdepth 1 -type f -name '[0-9]*-*.md' | LC_ALL=C sort)
   for f in "${ADR_LIST[@]}"; do
     base="${f##*/}"
     adr_key_of "$base"
@@ -1043,8 +1047,8 @@ check_check_lists() {
   done
 
   # Every script under scripts/ runs in the two lists, unless the local runner names it on a line
-  # '# On instruction: scripts/<name>.sh', as for a sensor that reads GitHub (NUC-checks-are-bash §7). A script
-  # in neither list is a check nobody runs.
+  # '# On instruction: scripts/<name>.sh', as for a sensor that reads GitHub
+  # (NUC-checks-are-bash §7). A script in neither list is a check nobody runs.
   local on_instruction=() name
   while IFS= read -r name; do on_instruction+=("$name"); done \
     < <(sed -n 's/^#[[:space:]]*On instruction:[[:space:]]*\(scripts\/[A-Za-z0-9._-]*\.sh\).*/\1/p' "$all")
