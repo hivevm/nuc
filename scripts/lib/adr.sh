@@ -4,7 +4,7 @@
 # field written in any other form, so every other reader may take the list item for granted.
 # The identifier of an ADR is read one way too: its number, or the draft identifier of an ADR that
 # has not reached main, 'ADR-draft-<slug>' in the file 'draft-<slug>.md' (ADR-0002).
-# Sourced by every script that reads an ADR's file name, identifier, or header.
+# Sourced by the checks and sensors that read an ADR's file name, identifier, or header.
 
 # The slug of a draft identifier: lower case letters and digits, joined by single hyphens.
 ADR_SLUG_RE='[a-z0-9]+(-[a-z0-9]+)*'

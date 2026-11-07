@@ -5,9 +5,11 @@
 # Reads the rules a change touches as scripts/lib/rules.sh streams them: AGENTS.md, and the
 # Decision and Enforcement of an ADR, without code spans, italics, link targets, block quotes,
 # tables, fenced code, and headings. It lists each sentence over 25 words that holds an added line,
-# by the line it starts on, and each soft modal verb on an added line: should, could, might,
-# ideally. A paragraph or a list item ends a sentence; so do '.', '!', and '?' before a space or
-# the end. It reports for the reviewer and never fails on what it counts.
+# by the line it starts on, each soft modal verb on an added line: should, could, might, ideally,
+# and each word on an added line that an entry of docs/GLOSSARY.md lists under _Avoid:_, whole and
+# case insensitive, not inside an identifier, with the term to write instead (ADR-0001). A
+# paragraph or a list item ends a sentence; so do '.', '!', and '?' before a space or the end. It
+# reports for the reviewer and never fails on what it counts.
 #
 # Pure bash + git + awk. Usage:
 #     scripts/sensor-plain-rules.sh [--root <dir>] [base [head]]
@@ -50,9 +52,14 @@ if ! stream="$(rule_stream "$base" "$( ((worktree)) || echo "$head")")"; then
     $1 == "E" && $2 != "" { print "Plain rules sensor (" range "): could not read the rules of " $2 "." }' <<< "$stream" >&2
   exit 2
 fi
+# The glossary as the change has it: the working tree's, or the head's.
+if ((worktree)); then glossary=docs/GLOSSARY.md; else glossary="$(mktemp)"; git show "$head:docs/GLOSSARY.md" > "$glossary" 2>/dev/null; fi
+avoid="$(avoid_terms "$glossary")"
+((worktree)) || rm -f "$glossary"
 findings=()
 while IFS= read -r finding; do findings+=("$finding"); done < <(
-  awk -F '\t' -v max="$MAX_WORDS" '
+  awk -F '\t' -v max="$MAX_WORDS" -v avoid="$avoid" '
+    BEGIN { na = split(avoid, rows, "\n"); for (i = 1; i <= na; i++) { split(rows[i], kv, "\t"); word[i] = kv[1]; term[i] = kv[2] } }
     function flush(  i, any) {
       if (count > max) {
         any = 0
@@ -70,6 +77,18 @@ while IFS= read -r finding; do findings+=("$finding"); done < <(
         n = split("should could might ideally", soft, " ")
         for (i = 1; i <= n; i++)
           if (low ~ ("(^|[^a-z])" soft[i] "([^a-z]|$)")) print file ":" nr ": the soft modal verb \"" soft[i] "\""
+        low = " " low " "
+        for (i = 1; i <= na; i++) {
+          rest = low; off = 0
+          while ((at = index(rest, word[i])) > 0) {
+            before = substr(low, off + at - 1, 1); after = substr(low, off + at + length(word[i]), 1)
+            if (before !~ /[a-z0-9_]/ && after !~ /[a-z0-9_]/) {
+              print file ":" nr ": \"" word[i] "\" is listed under _Avoid:_ in docs/GLOSSARY.md — write \"" term[i] "\""
+              break
+            }
+            off += at; rest = substr(low, off + 1)
+          }
+        }
       }
       w = split(text, words, /[[:space:]]+/)
       for (i = 1; i <= w; i++) {
@@ -82,7 +101,7 @@ while IFS= read -r finding; do findings+=("$finding"); done < <(
     END { flush() }' <<< "$stream")
 
 if ((${#findings[@]} == 0)); then
-  echo "Plain rules sensor ($range): no long sentence and no soft modal verb on the lines the change adds to the rules."
+  echo "Plain rules sensor ($range): no long sentence, no soft modal verb, and no avoided term on the lines the change adds to the rules."
   exit 0
 fi
 echo "Plain rules sensor ($range): ${#findings[@]} to read on the lines the change adds to the rules (AGENTS.md section 4):"
