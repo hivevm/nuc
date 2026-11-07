@@ -3,10 +3,11 @@
 ## What to build
 
 The map that a derived project applies at take-up. It ships with the release: every clause of
-ADR-0001 to ADR-0006 to the `NUC-` ADR that carries it. The normalize skill's take-up steps become:
-replace the `NUC-` files and the blob list; write a map of the project's numbered ADRs to category
-identifiers, which the human reviews; turn each clause the project added to an inherited ADR into a
-project ADR that extends or narrows the `NUC-` clause; run the remap script and the checks.
+the six numbered ADRs to the `NUC-` ADR that carries it, as the hand-off of ticket 10 lists it. The
+normalize skill's take-up steps become: replace the `NUC-` files and the blob list; write a map of
+the project's numbered ADRs to category identifiers, which the human reviews; turn each clause the
+project added to an inherited ADR into a project ADR that extends or narrows the `NUC-` clause; run
+the remap script and the checks.
 
 The remap script runs dry over the parity corpus of nuc-tools. A trial migration runs on a local
 branch of nectar and is not pushed. Both results stand in the hand-off.

@@ -2,8 +2,8 @@
 
 ## Problem
 
-A derived project inherits six ADRs that each carry several decisions: ADR-0001 alone decides the
-document set, the rule file, the glossary, and how the record is read, and ADR-0006 decides
+A derived project inherits six ADRs that each carry several decisions: the first alone decides the
+document set, the rule file, the glossary, and how the record is read, and the sixth decides
 planning, the backlog, and the design revision at once. A session that touches one of these topics
 reads all of its ADR. The binding sensor prints about 3,000 words for a change to the docs check and
 about 1,600 for a plan file.
@@ -67,7 +67,9 @@ rules of the record and of integration in their `NUC-` ADRs instead of stating t
 
 None by identifier. The specification of the template repository is the scaffold that a derived
 project fills. This work maintains the template. It breaks every derived project's record, so it
-ships as the minor release `v0.9.0` under ADR-0005, which lets a minor break before `v1.0.0`.
+ships as the minor release `v0.9.0` under
+[NUC-releases-are-semver-tags §3](../../adr/NUC-releases-are-semver-tags.md), which lets a minor
+break before `v1.0.0`.
 
 ## User stories
 
@@ -113,7 +115,7 @@ checks and the lines in `scripts/` not to rise, so that the base stays lean.
 - **Index.** The index lists the project's ADRs only, grouped by category, and links the `NUC-` base
   as one line. The binding sensor reads *Applies to* from every ADR file, the `NUC-` ones included,
   and no longer from the index.
-- **The cut.** Ten `NUC-` ADRs replace ADR-0001 to ADR-0006 and absorb
+- **The cut.** Ten `NUC-` ADRs replace the six numbered ADRs and absorb
   [`AGENTS.md` §3](../../../AGENTS.md#3-adr-rules) and [§6](../../../AGENTS.md#6-project-rules):
   - Structure: `NUC-documents-are-fixed` (0001), `NUC-decisions-cite-tests` and
     `NUC-checks-are-bash` (0002 split, the second with the latitude "a `nuc` binary instead of
@@ -125,8 +127,8 @@ checks and the lines in `scripts/` not to rise, so that the base stays lean.
     planning and backlog, with the latitude "plan in issues": the issue assignment replaces the
     branch claim, the issue list replaces the frontier sensor), `NUC-design-is-revised` (0006
     revision), and `NUC-releases-are-semver-tags` (0005).
-  - The claim mechanics leave ADR-0006 for the `work-tickets` skill. The draft clause leaves
-    ADR-0002 with the draft state.
+  - The claim mechanics leave the feature-layer ADR for the `work-tickets` skill. The draft
+    clause leaves the ADR on tests with the draft state.
   - Every clause of an old ADR and every rule of [`AGENTS.md` §3](../../../AGENTS.md#3-adr-rules)
     and [§6](../../../AGENTS.md#6-project-rules) lives on in one `NUC-` ADR, a skill, or the rule
     file. The hand-off lists each clause with its new home.
@@ -182,11 +184,12 @@ checks and the lines in `scripts/` not to rise, so that the base stays lean.
 
 ## ADR impact
 
-Binding: ADR-0001 to ADR-0006, all of them restated by this work.
+Binding: the six numbered ADRs, all of them restated by this work and retired by ticket 10.
 
 Ten new ADRs, each proposed in a commit of ADRs only before its implementation
-([`AGENTS.md` §3](../../../AGENTS.md#3-adr-rules), rules 3 and 4). Three of them take new decisions:
-`NUC-adrs-record-decisions` (identifiers, fixed base, roles), `NUC-large-work-is-planned` (plan in
-issues as a latitude), and `NUC-checks-are-bash` (the `nuc` binary as a latitude). The other seven
-restate their old ADRs in the new form. The old ADRs are deleted when every clause has a new home.
-This is not a normalization: a normalization changes no decision.
+([NUC-adrs-record-decisions §3](../../adr/NUC-adrs-record-decisions.md) and
+[NUC-adrs-record-decisions §4](../../adr/NUC-adrs-record-decisions.md)). Three of them take new
+decisions: `NUC-adrs-record-decisions` (identifiers, fixed base, roles), `NUC-large-work-is-planned`
+(plan in issues as a latitude), and `NUC-checks-are-bash` (the `nuc` binary as a latitude). The
+other seven restate their old ADRs in the new form. The old ADRs are deleted when every clause has a
+new home. This is not a normalization: a normalization changes no decision.
