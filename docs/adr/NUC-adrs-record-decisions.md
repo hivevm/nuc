@@ -72,7 +72,7 @@ template's `NUC-` ADRs are a fixed base that a project extends or narrows but ne
    conflict and must not choose silently.
 8. **Identifier.** An ADR's identifier is its category key, a hyphen, and its slug, such as
    `SEC-host-socket-closed`.
-   - The category key is two to five capital letters. The slug is at most five lower-case words
+   - The category key is two to five capital letters. The slug is two to five lower-case words
      or numbers joined by hyphens, and it states the decision.
    - The file is `docs/adr/<identifier>.md`. Its heading starts with `# <identifier>:` and the
      title.
@@ -123,6 +123,9 @@ template's `NUC-` ADRs are a fixed base that a project extends or narrows but ne
 16. **Citations.** Every citation of an ADR must name a file that exists in `docs/adr/`. An
     anticipated follow-up is described by its topic. In Markdown, a citation of an ADR is a link
     to its own file.
+    - An identifier in a Markdown code span is an example or a planned identifier. It is not a
+      citation.
+    - A citation is a link, or an identifier outside a code span.
 17. **Normalization.** A normalization restates the record, only on a human's instruction.
     - It restates the specification first. It supersedes the ADRs the restatement invalidates
       next. Then it rewrites the project ADRs in force as a new set.
