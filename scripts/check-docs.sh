@@ -117,9 +117,9 @@
 #      still under rework, and so does a run outside CI, where nothing names the branch; the
 #      workflow says in PULL_REQUEST_DRAFT whether a pull request is a draft.
 #  17. Avoided terms: a line a change adds to AGENTS.md, or to the Decision or Enforcement of an ADR,
-#      carries no word a glossary entry lists under _Avoid:_ (ADR-0001). Whole words count, case
-#      insensitive, outside code spans and italics, as scripts/lib/rules.sh reads the rules, one
-#      line at a time. The change runs from the base CI passes in CHECK_DOCS_BASE, else, or when
+#      carries no word a glossary entry lists under _Avoid:_ (ADR-0001). Whole words count, not a
+#      part of an identifier such as snake_case, case insensitive, outside code spans and italics,
+#      as scripts/lib/rules.sh reads the rules, one line at a time. The change runs from the base CI passes in CHECK_DOCS_BASE, else, or when
 #      that does not resolve, from the merge base with origin/main or main, to the working tree.
 #      An _Avoid:_ list counts inside a glossary entry only. With no list, or no base to compare
 #      with, there is nothing to check.
@@ -1340,7 +1340,7 @@ check_avoided_terms() {
         rest = low; off = 0
         while ((at = index(rest, word[i])) > 0) {
           before = substr(low, off + at - 1, 1); after = substr(low, off + at + length(word[i]), 1)
-          if (before !~ /[a-z0-9]/ && after !~ /[a-z0-9]/) {
+          if (before !~ /[a-z0-9_]/ && after !~ /[a-z0-9_]/) {
             printf "%s:%s: \"%s\" is listed under _Avoid:_ in docs/GLOSSARY.md — write \"%s\" (ADR-0001)\n", file, $2, word[i], term[i]
             break
           }

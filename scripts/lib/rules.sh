@@ -6,8 +6,8 @@
 # rule_stream <base> [head] — every line of the rules in the files the change touches, as the
 # change has them: without a head, the working tree with its untracked files. For each file
 # 'F<TAB><path>'; for each line of its rules 'L<TAB><number><TAB><1 if the change adds it, else
-# 0><TAB><text>', the text without code spans, link targets, and words in single-star italics,
-# which a rule uses to name a word, each italic a space; 'P' where a paragraph, a list item, a
+# 0><TAB><text>', the text without code spans, link targets, and words in italics, '*word*' or
+# '_word_', which a rule uses to name a word, each italic a space; 'P' where a paragraph, a list item, a
 # heading, a block quote, a table, or fenced code ends a run of prose. An italic may wrap.
 rule_stream() {
   local base="$1" head="${2:-}" p lines
@@ -26,19 +26,22 @@ rule_stream() {
     printf 'F\t%s\n' "$p"
     { if [[ -z "$head" ]]; then cat -- "$p"; else git show "$head:$p"; fi; } | awk \
       -v added="$lines," -v adr="$([[ "$p" == AGENTS.md ]] || echo 1)" -v sections="^## ($ADR_RULE_SECTIONS)\$" '
-      function para() { if (!gap) print "P"; gap = 1; ital = 0 }
-      # plain <text> — a star opens an italic before a non-space and closes it after one; bold is
-      # no italic, and the italic carries to the next line of the paragraph.
-      function plain(s,  out, i, c, prev) {
-        gsub(/\*\*/, "\001", s); out = ""; prev = " "
+      function para() { if (!gap) print "P"; gap = 1; ital = "" }
+      # plain <text> — a star or an underscore opens an italic before a non-space and closes it
+      # after one; an underscore inside a word, as in snake_case, does neither. Bold is no italic,
+      # and the italic carries to the next line of the paragraph.
+      function plain(s,  out, i, c, prev, nx) {
+        gsub(/\*\*/, "\001", s); gsub(/__/, "\002", s); out = ""; prev = " "
         for (i = 1; i <= length(s); i++) {
-          c = substr(s, i, 1)
-          if (c == "*" && !ital && substr(s, i + 1, 1) ~ /[^[:space:]]/) { ital = 1; out = out " " }
-          else if (c == "*" && ital && prev ~ /[^[:space:]]/) { ital = 0; out = out " " }
-          else if (!ital) out = out c
+          c = substr(s, i, 1); nx = substr(s, i + 1, 1)
+          if (ital == "" && (c == "*" || (c == "_" && prev !~ /[[:alnum:]]/)) && nx ~ /[^[:space:]]/) {
+            ital = c; out = out " "
+          } else if (ital != "" && c == ital && prev ~ /[^[:space:]]/ && (c == "*" || nx !~ /[[:alnum:]]/)) {
+            ital = ""; out = out " "
+          } else if (ital == "") out = out c
           prev = c
         }
-        gsub(/\001/, "**", out)
+        gsub(/\001/, "**", out); gsub(/\002/, "__", out)
         return out
       }
       !fence && match($0, /^[[:space:]]*(```|~~~)/) { para(); fence = substr($0, RLENGTH - 2, 3); next }
