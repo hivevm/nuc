@@ -8,9 +8,11 @@
 # AGENTS.md and one ADR, a branch changes them, and the sensor runs against main. The cases are a
 # table of what the change adds and what the sensor must and must not print: a long sentence in
 # the Decision and in the Enforcement, one in the Context, one held in a code span, a soft modal
-# verb in AGENTS.md, named in italics, after an italic that wraps, in a block quote, in fenced
-# code, and on a line the change did not add, a sentence that ends early, a change outside the
-# rules, the working tree with an untracked ADR, and a base that does not resolve.
+# verb in AGENTS.md, named in italics, after an italic that wraps, in a code span that wraps, in
+# an identifier, in a block quote, in fenced code, after a fence's marker line with an info string
+# or a '## ' line inside it, and on a line the change did not add, a sentence that ends early, an
+# avoided word after a bare star or an unclosed underscore, a change outside the rules, the
+# working tree with an untracked ADR, and a base that does not resolve.
 #
 # Inputs: scripts/sensor-plain-rules.sh scripts/lib/
 #
@@ -122,6 +124,30 @@ after "$r" AGENTS.md "## 1. Rules" "- The run_should_stop flag should be set."
 expect "an underscore inside a word opens no italic: the verb after it is listed" "$r" \
   'AGENTS.md:5: the soft modal verb "should"' "" main
 
+r="$(repo wrapped-span)"
+# shellcheck disable=SC2016 # the backticks are a Markdown code span
+after "$r" AGENTS.md "## 1. Rules" "$(printf -- '- **Stop.** Run `make it so it\n  should stop` before the next step.')"
+expect "a code span wrapped over two added lines: none of its text is read" "$r" "no long sentence" "" main
+
+r="$(repo no-snake-verb)"
+after "$r" AGENTS.md "## 1. Rules" "- The run_should_stop flag is set."
+expect "a soft modal verb inside an identifier: not listed" "$r" "no long sentence" "" main
+
+r="$(repo fence-info)"
+# shellcheck disable=SC2016 # the backticks are a Markdown fence
+after "$r" docs/adr/0001-x.md "## Decision" "$(printf '````md\n```sh\nit should run\n````\n\nIt might run.')"
+expect "a fence holds a line of its marker with an info string: the fence ends at its closing line only" \
+  "$r" 'docs/adr/0001-x.md:16: the soft modal verb "might"' '"should"' main
+
+r="$(repo fence-heading)"
+# shellcheck disable=SC2016 # the backticks are a Markdown fence
+after "$r" docs/adr/0001-x.md "## Decision" "$(printf '```md\n## Notes\n```\n\nIt might run.')"
+expect "a '## ' line inside a fence: the section continues" "$r" \
+  'docs/adr/0001-x.md:15: the soft modal verb "might"' "" main
+section="$(source "$ROOT/scripts/lib/adr.sh"; adr_section Decision < "$r/docs/adr/0001-x.md")"
+check "a '## ' line inside a fence: adr_section continues the section as the reader does" \
+  test "${section/It might run./}" != "$section"
+
 r="$(repo quote)"
 after "$r" AGENTS.md "## 1. Rules" "> A quote that should not count."
 expect "a soft modal verb in a block quote: not listed" "$r" "no long sentence" "" main
@@ -189,6 +215,13 @@ glossary "$r"
 after "$r" docs/adr/0001-x.md "## Decision" 'Each `trigger`, *trigger*, and _trigger_ is named; snake_case_trigger and triggers run.'
 expect "an avoided term in a code span, in italics, in an identifier, or in a longer word: not listed" \
   "$r" "" "$AVOID_MSG" main
+
+r="$(repo avoid-after-star)"
+glossary "$r"
+# shellcheck disable=SC2016 # the dollar sign is the rule's text
+after "$r" AGENTS.md "## 1. Rules" "$(printf -- '- Compute a * b from $_ENV, and then\n  run a hook script.')"
+expect "a bare star and an unclosed underscore open no italic: an avoided word after them is listed" "$r" \
+  "AGENTS.md:6: \"hook script\" $AVOID_MSG" "" main
 
 r="$(repo avoid-none)"
 glossary "$r" "- **Git hook** — a script git runs."

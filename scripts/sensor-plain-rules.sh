@@ -6,10 +6,11 @@
 # Decision and Enforcement of an ADR, without code spans, italics, link targets, block quotes,
 # tables, fenced code, and headings. It lists each sentence over 25 words that holds an added line,
 # by the line it starts on, each soft modal verb on an added line: should, could, might, ideally,
-# and each word on an added line that an entry of docs/GLOSSARY.md lists under _Avoid:_, whole and
-# case insensitive, not inside an identifier, with the term to write instead (ADR-0001). A
-# paragraph or a list item ends a sentence; so do '.', '!', and '?' before a space or the end. It
-# reports for the reviewer and never fails on what it counts.
+# and each word on an added line that an entry of docs/GLOSSARY.md lists under _Avoid:_, with the
+# term to write instead (ADR-0001). A verb or a word counts whole, case insensitive, and not inside
+# an identifier, where a letter, a digit, or an underscore adjoins it. A paragraph or a list item
+# ends a sentence; so do '.', '!', and '?' before a space or the end. It reports for the reviewer
+# and never fails on what it counts.
 #
 # Pure bash + git + awk. Usage:
 #     scripts/sensor-plain-rules.sh [--root <dir>] [base [head]]
@@ -69,7 +70,7 @@ while IFS= read -r finding; do findings+=("$finding"); done < <(
         low = tolower(text)
         n = split("should could might ideally", soft, " ")
         for (i = 1; i <= n; i++)
-          if (low ~ ("(^|[^a-z])" soft[i] "([^a-z]|$)")) print file ":" nr ": the soft modal verb \"" soft[i] "\""
+          if (low ~ ("(^|[^a-z0-9_])" soft[i] "([^a-z0-9_]|$)")) print file ":" nr ": the soft modal verb \"" soft[i] "\""
         low = " " low " "
         for (i = 1; i <= na; i++) {
           rest = low; off = 0
