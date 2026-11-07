@@ -109,8 +109,8 @@ rule_stream() {
 # avoid_terms <glossary> — the words the glossary's entries list under _Avoid:_, 'word<TAB>term' a
 # line, the words in lower case, split at commas and semicolons, a leading 'and', a trailing period,
 # and a placeholder in angle brackets dropped. An entry is its '- **Term**' line and the indented
-# lines after it; prose outside an entry lists nothing (ADR-0001). An indented list item, a
-# sub-list of the entry, ends its _Avoid:_ list.
+# lines after it; prose outside an entry lists nothing (NUC-documents-are-fixed §5). An indented
+# list item, a sub-list of the entry, ends its _Avoid:_ list.
 avoid_terms() {
   [[ -f "$1" ]] || return 0
   awk '

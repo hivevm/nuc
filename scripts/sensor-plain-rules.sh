@@ -7,12 +7,12 @@
 # tables, fenced code, and headings. It lists each sentence over 25 words that holds an added line,
 # by the line it starts on, each soft modal verb on an added line: should, could, might, ideally,
 # and each word on an added line that an entry of docs/GLOSSARY.md lists under _Avoid:_, with the
-# term to write instead (ADR-0001). A verb or a word counts whole, case insensitive, and not inside
-# an identifier, where a letter, a digit, or an underscore adjoins it. A listed word that the line
-# break of a paragraph splits counts when either line is added, on the line it starts on if that
-# line is added, else on the next; the gap a code span or an italic leaves at the end of a line
-# stays. A paragraph or a list item ends a sentence; so do '.', '!', and '?' before a space or the end. It
-# reports for the reviewer and never fails on what it counts.
+# term to write instead (NUC-documents-are-fixed §5). A verb or a word counts whole, case
+# insensitive, and not inside an identifier, where a letter, a digit, or an underscore adjoins it.
+# A listed word that the line break of a paragraph splits counts when either line is added, on the
+# line it starts on if that line is added, else on the next; the gap a code span or an italic
+# leaves at the end of a line stays. A paragraph or a list item ends a sentence; so do '.', '!',
+# and '?' before a space or the end. It reports for the reviewer and never fails on what it counts.
 #
 # Pure bash + git + awk. Usage:
 #     scripts/sensor-plain-rules.sh [--root <dir>] [base [head]]

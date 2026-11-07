@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Self-test of the map script of the normalize skill, .agents/skills/normalize/remap.sh.
-# Verifies: ADR-0001
+# Verifies: ADR-0001 NUC-adrs-record-decisions
 #
 # Each case builds a throwaway git repository under a temporary directory, writes a map, runs the
 # script in it, and asserts the exit code and the files afterwards. The cases cover a swap of two
