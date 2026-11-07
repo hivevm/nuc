@@ -90,7 +90,8 @@
 #      only the pointer directory, so a skill without its pointer is invisible to it and to no
 #      other agent — nobody notices; a copy instead of a symlink is a second source that drifts,
 #      and a skill that lives only in the pointer directory is one no other agent finds. Each
-#      message says the command that fixes it. A repository with neither directory has nothing to check.
+#      message says the command that fixes it. A repository with neither directory has nothing to
+#      check.
 #  12. Base held by its blob list: every 'NUC-' file in docs/adr/ has the git blob identifier its
 #      line in docs/adr/NUC.blobs names, and every line names a file that exists
 #      (NUC-adrs-record-decisions §12). The template rewrites the list in the commit that changes a
