@@ -123,7 +123,7 @@
 #      CI passes in CHECK_DOCS_BASE, else, or when that does not resolve, from the merge base with
 #      origin/main or main, to the working tree.
 #      An _Avoid:_ list counts inside a glossary entry only. With no list, or no base to compare
-#      with, there is nothing to check.
+#      with, there is nothing to check; a rule file whose reader fails is an error.
 #
 # Checks 5 and 6 read every text file of the repository, not a list of documentation extensions:
 # docs/adr/README.md states that code may reference an ADR number, so a verifier restricted to
@@ -1312,7 +1312,7 @@ scan_markdown
 # case, split at commas and semicolons, a placeholder in angle brackets dropped. An entry is its
 # '- **Term**' line and the indented lines after it; prose outside an entry lists nothing.
 check_avoided_terms() {
-  local avoid base
+  local avoid base stream
   [[ -f "$ROOT/docs/GLOSSARY.md" ]] || return
   avoid="$(awk '
     function take(s,  n, i, w, parts) {
@@ -1331,8 +1331,12 @@ check_avoided_terms() {
   base="${CHECK_DOCS_BASE:-}"
   (cd "$ROOT" && git rev-parse -q --verify "$base^{commit}" >/dev/null 2>&1) || base=""
   [[ -n "$base" ]] || base="$(cd "$ROOT" && main_merge_base HEAD)" || return
-  while IFS= read -r line; do add_error "$line"; done < <(cd "$ROOT" && rule_stream "$base" | awk -F '\t' -v avoid="$avoid" '
+  if ! stream="$(cd "$ROOT" && rule_stream "$base")" && [[ $'\n'"$stream" != *$'\nE\t'* ]]; then
+    add_error "the rules the change touches could not be listed, so check 17 decides nothing (AGENTS.md section 5)"
+  fi
+  while IFS= read -r line; do add_error "$line"; done < <(awk -F '\t' -v avoid="$avoid" '
     BEGIN { n = split(avoid, rows, "\n"); for (i = 1; i <= n; i++) { split(rows[i], kv, "\t"); word[i] = kv[1]; term[i] = kv[2] } }
+    $1 == "E" { printf "%s: could not read the rules, so check 17 decides nothing on them (AGENTS.md section 5)\n", $2; next }
     $1 == "F" { file = $2; next }
     $1 != "L" || $3 != 1 { next }
     {
@@ -1348,7 +1352,7 @@ check_avoided_terms() {
           off += at; rest = substr(low, off + 1)
         }
       }
-    }')
+    }' <<< "$stream")
 }
 
 check_adr_index

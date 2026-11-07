@@ -1010,6 +1010,20 @@ CHECK_DOCS_BASE=0000000000000000000000000000000000000000 expect fail \
 CHECK_DOCS_BASE=no-such-commit expect fail \
   "a base that does not resolve falls back to the merge base with main" "$d" "\"hook script\" $AVOID_MSG"
 
+# A reader that breaks: an awk on PATH that fails on the program rule_stream runs per file, told
+# by its 'added' variable, and hands every other program to the real awk, so the glossary is read.
+broken="$work/broken-awk"
+mkdir -p "$broken"
+# shellcheck disable=SC2016 # the script is written as it runs, its variables unexpanded
+printf '#!/usr/bin/env bash\nfor a; do [[ "$a" == added=* ]] && { echo "awk: syntax error" >&2; exit 2; }; done\nexec %q "$@"\n' \
+  "$(command -v awk)" > "$broken/awk"
+chmod +x "$broken/awk"
+
+d="$(avoided avoid-broken-reader)"
+echo "Be brief." >> "$d/AGENTS.md"
+PATH="$broken:$PATH" CHECK_DOCS_BASE="$(base_of "$d")" expect fail \
+  "a reader that fails: check 17 fails and names the file" "$d" "AGENTS.md: could not read the rules"
+
 # --- summary -------------------------------------------------------------------------------
 
 summary "Documentation self-test"
