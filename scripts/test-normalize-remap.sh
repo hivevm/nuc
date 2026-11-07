@@ -10,9 +10,8 @@
 # mode, a second run that changes nothing, a swap of two criteria, the record left untouched, a
 # criterion outside Markdown and outside a marker line, a reference to an ADR with no successor, an
 # ignored file, files without a final newline and a binary one, each invalid map, which changes
-# nothing, and
-# every ADR of a copy of this repository moved to a new identifier, after which the other
-# self-tests still pass.
+# nothing, and every ADR of a copy of this repository moved to a new identifier, after which the
+# other self-tests still pass.
 #
 # The identifiers in the fixtures are assembled at run time: a literal one would be a reference
 # that check-docs.sh and check-traceability.sh hold against this repository.
@@ -229,6 +228,8 @@ run "$d" "# only a comment"; rc=$?
 check "an empty map exits 1" "[[ $rc -eq 1 ]] && grep -qF 'the map is empty' '$work/out'"
 run "$d" "$(id one)${S}3 $(id two)${S}1 $(id three)${S}1"; rc=$?
 check "a clause mapped to two exits 1" "[[ $rc -eq 1 ]] && grep -qF 'only a clause maps to, and alone' '$work/out'"
+run "$d" "$(id one)${S}3 $(id two) $(id three)"; rc=$?
+check "a clause mapped to two identifiers exits 1" "[[ $rc -eq 1 ]] && grep -qF 'a clause maps to one clause' '$work/out'"
 run "$d" "$(id one) $(id two)${S}1"; rc=$?
 check "an identifier mapped to a clause exits 1" "[[ $rc -eq 1 ]] && grep -qF 'only a clause maps to' '$work/out'"
 run "$d" "0001-alpha.md $(id four)" "0001-other.md $(id five)"; rc=$?
