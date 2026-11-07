@@ -100,9 +100,6 @@ fi
 # show <path> — a file as the change has it.
 show() { if ((worktree)); then cat -- "$1"; else git show "$head:$1"; fi; }
 
-# section <name> — the section '## <name>' of the ADR on stdin, its heading included.
-section() { awk -v h="## $1" '$0 == h { p = 1; print; next } p && /^## / { exit } p'; }
-
 # finish — print what --sections asks for, and end. Reads 'files', the ADRs listed.
 files=()
 finish() {
@@ -137,9 +134,9 @@ finish() {
       echo
       echo "=== ADR-$(adr_key "$file") ($file): the header, the Decision, and the Enforcement ==="
       awk '/^## / { exit } { print }' <<< "$text"
-      section Decision <<< "$text"
+      adr_section Decision <<< "$text"
       echo
-      section Enforcement <<< "$text"
+      adr_section Enforcement <<< "$text"
     done
   fi
   exit 0

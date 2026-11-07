@@ -72,9 +72,10 @@ the code; what could be deleted. Then each bullet of
 [`AGENTS.md` §5](../../../AGENTS.md#5-quality-bar--definition-of-done) that applies, in its order;
 of the tests, also whether they take their expected values from the criterion rather than from
 the code under test. Then the conventions, the ADRs, and the sensor output; a sensor finding the
-implementer suppressed is a finding here. Last, the *Doubts*: each disagreement checked against
-its evidence, each unconfirmed point confirmed or left open by name. A "none" is checked like any
-other claim.
+implementer suppressed is a finding here. Of each statement the change adds to the rules, whether
+it is one sentence ([`AGENTS.md` §4](../../../AGENTS.md#4-working-style)). Last, the
+*Doubts*: each disagreement checked against its evidence, each unconfirmed point confirmed or left
+open by name. A "none" is checked like any other claim.
 
 ## 3. Tests that changed
 

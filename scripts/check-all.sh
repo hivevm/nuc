@@ -186,6 +186,8 @@ run "Tests-kept sensor self-test" scripts/test-sensor-tests-kept.sh
 run "Tests-kept sensor" scripts/sensor-tests-kept.sh
 run "Binding ADRs sensor self-test" scripts/test-sensor-binding-adrs.sh
 run "Binding ADRs sensor" scripts/sensor-binding-adrs.sh
+run "Plain rules sensor self-test" scripts/test-sensor-plain-rules.sh
+run "Plain rules sensor" scripts/sensor-plain-rules.sh
 run "Revision-due sensor self-test" scripts/test-sensor-revision-due.sh
 run "Revision-due sensor" scripts/sensor-revision-due.sh
 run "Plan frontier sensor self-test" scripts/test-sensor-plan-frontier.sh
