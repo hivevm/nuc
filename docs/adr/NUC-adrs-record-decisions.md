@@ -35,8 +35,9 @@ We will record each architecture decision as one ADR named by a category key and
 template's `NUC-` ADRs are a fixed base that a project extends or narrows but never edits.
 
 1. **When.** An agent must create an ADR before an architecture-relevant decision.
-   - Such a decision constrains future technology choices, such as a dependency, a public
-     interface, a persistence strategy, or a data format.
+   - Such a decision picks a dependency or framework, a public interface, a persistence or
+     synchronization strategy, or a protocol or data format. It is anything that constrains
+     future technology choices.
    - One ADR records one decision, or an integration whose decision is the interplay.
    - When the catalogue of `propose-adr` has an entry for a decision no ADR in force decides, the
      agent must propose the entry's fitting concepts first.
