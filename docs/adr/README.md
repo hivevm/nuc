@@ -26,8 +26,9 @@ verifies.
   the file being opened. Two tables keep what a session reads apart from what it looks up: an
   accepted or proposed ADR sits under **Binding**, a superseded or rejected one under
   **Superseded and rejected**, and a status flip moves the row.
-- **Identifiers are permanent once on `main`, until a normalization.** Between two
-  normalizations, never rename, delete, or merge an ADR there: other ADRs, commits
+- **Identifiers are permanent once on `main`.** A normalization keeps them, and only a merged or
+  split ADR takes a new one ([NUC-adrs-record-decisions §17](NUC-adrs-record-decisions.md)).
+  Between two normalizations, never rename, delete, or merge an ADR there: other ADRs, commits
   (`Implements <CAT>-<slug>`), and code cite it. A superseded ADR keeps its file and its body.
   The superseding ADR's `Supersedes` field names it from the proposal on; its `Status` line
   flips to `⚪ superseded by <CAT>-<slug>` in the change where a human accepts the successor
@@ -35,7 +36,7 @@ verifies.
 - **Between normalizations, sprawl is curbed by supersession, never by editing.** One ADR may
   supersede several whose decisions have grown into one. Its `Supersedes` field names each, and
   each flips its status when the superseding ADR is accepted, so the set an agent reads shrinks
-  while every number and every body stays.
+  while every identifier and every body stays.
 - **A normalization restates the record** ([`AGENTS.md` §3](../../AGENTS.md#3-adr-rules), rule
   5).
   - **Start.** The tree has no proposed ADR, no feature spec or ticket under `docs/plan/`, and
@@ -63,9 +64,8 @@ verifies.
     had then.
 - **Cite only what exists.** Every citation, `<CAT>-<slug>`, a clause `<CAT>-<slug> §n`, or
   `ADR-NNNN`, names a file already in this directory. An anticipated follow-up is described by
-  topic ("a follow-up ADR on session storage"). In Markdown, cite an ADR as a link to its own
-  file; a code span holds an example, not a citation
-  ([NUC-adrs-record-decisions §16](NUC-adrs-record-decisions.md)).
+  topic ("a follow-up ADR on session storage"). What counts as a citation, and its form in
+  Markdown, is [NUC-adrs-record-decisions §16](NUC-adrs-record-decisions.md).
 
 ## Index
 
@@ -74,7 +74,8 @@ binds a derived project once its own maintainer adds their name to `Deciders` an
 line reads `🟢 accepted` ([`AGENTS.md` §3](../../AGENTS.md#3-adr-rules)). Change an inherited
 decision by superseding it, never by editing. Once the template setup is done, check 12 of
 [`scripts/check-docs.sh`](../../scripts/check-docs.sh) fails on an inherited ADR in force that
-names no decider of the project, or that is still proposed.
+names no decider of the project, or that is still proposed. It does not read a `NUC-` ADR, which a
+project never edits ([NUC-adrs-record-decisions §11](NUC-adrs-record-decisions.md)).
 
 ### Categories
 
