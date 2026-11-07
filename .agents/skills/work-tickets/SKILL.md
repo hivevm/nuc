@@ -94,5 +94,6 @@ itself. The rest of this skill holds as written.
    branch until then, since `main` still has its file and the branch is what claims it; prune
    the branches a remote has deleted (`git fetch --prune`),
    since the sensor reads remote ones as claims; run it again, and claim from the new frontier.
-   A claim given up without a merge is released by deleting its branch; on a remote, ask
-   the human to delete it, since the push the harness ADR grants only creates.
+   A claim given up without a merge is released by deleting its branch, only on the human's
+   instruction ([NUC-main-only-via-pr §2](../../../docs/adr/NUC-main-only-via-pr.md)); on a
+   remote, the human deletes it, since the push the harness ADR grants only creates.
