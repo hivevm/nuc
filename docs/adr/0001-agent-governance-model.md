@@ -166,9 +166,10 @@ created from this template drops.
 that the ADR record and its index agree, that links between the documents resolve, and that section
 references point at the section they name — which is why a document cites a rule as a link to
 its section anchor and never restates it: a renumbering breaks the link, and the check catches
-it, where a restated rule would drift unseen. Its check 17 holds the glossary's _Avoid:_ lists:
-it fails on a listed word on a line a change adds to `AGENTS.md` or to the *Decision* or
-*Enforcement* of an ADR, and names the term to use instead.
+it, where a restated rule would drift unseen.
+Its check 17 holds the glossary's _Avoid:_ lists. It fails on a listed word on a line a change
+adds to `AGENTS.md`, or to the *Decision* or *Enforcement* of an ADR. It does not read a word in a
+code span or in italics, where a rule names the word. Its finding names the term to use instead.
 [`scripts/sensor-binding-adrs.sh`](../../scripts/sensor-binding-adrs.sh) (job `sensors`) lists
 the ADRs in force whose *Applies to* names a path a change touches, or a path a session names
 before its first change, so that the session and its reviewer start from the same list; with
@@ -180,9 +181,14 @@ The self-test of the `normalize` skill's map script
 ([`scripts/test-normalize-remap.sh`](../../scripts/test-normalize-remap.sh), job `docs`) cites
 this ADR too: it decides that a map moves every reference once, a swap included, and leaves the
 record it describes to the normalization. One gate routes a specification change to a human
-without judging it: [`.github/CODEOWNERS`](../../.github/CODEOWNERS) requires the owner's review
+without judging it. [`.github/CODEOWNERS`](../../.github/CODEOWNERS) requires the owner's review
 once the repository enables it, as **Repository settings** in
-[`CONTRIBUTING.md`](../../CONTRIBUTING.md) says. That no other document holds a rule, that the
-overview matches the system, that the glossary's terms are the ones in use beyond check 17, that
-no convention stands where a check could, and that a normalization changed no decision, is review
-only.
+[`CONTRIBUTING.md`](../../CONTRIBUTING.md) says.
+
+The review alone decides the following:
+
+- that no other document holds a rule;
+- that the overview matches the system;
+- that the glossary's terms are the ones in use, beyond check 17;
+- that no convention stands where a check can decide it;
+- that a normalization changed no decision.
