@@ -77,19 +77,8 @@ if [[ "${1:-}" == "--hand-off" ]]; then
     || { echo "Review binding sensor: hand-off '$hand_off' is no file." >&2; exit 2; }
 fi
 
-base="${1:-}"
-head="${2:-HEAD}"
-
-[[ "$base" =~ ^0+$ ]] && base=""
-[[ -n "$base" ]] || base="$(main_merge_base "$head")"
-if [[ -z "$base" ]]; then
-  echo "Review binding sensor: nothing to compare — no base given and no main to compare with."
-  exit 0
-fi
-for ref in "$base" "$head"; do
-  git rev-parse --verify -q "$ref^{commit}" >/dev/null \
-    || { echo "Review binding sensor: '$ref' does not resolve to a commit." >&2; exit 2; }
-done
+resolve_change "Review binding sensor" "${1:-}" "${2:-HEAD}" || exit 0
+base="$CHANGE_BASE" head="$CHANGE_HEAD"
 
 at_tip=0
 findings=()

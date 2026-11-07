@@ -6,9 +6,12 @@
 # Decision and Enforcement of an ADR, without code spans, italics, link targets, block quotes,
 # tables, fenced code, and headings. It lists each sentence over 25 words that holds an added line,
 # by the line it starts on, each soft modal verb on an added line: should, could, might, ideally,
-# and each word on an added line that an entry of docs/GLOSSARY.md lists under _Avoid:_, whole and
-# case insensitive, not inside an identifier, with the term to write instead (ADR-0001). A
-# paragraph or a list item ends a sentence; so do '.', '!', and '?' before a space or the end. It
+# and each word on an added line that an entry of docs/GLOSSARY.md lists under _Avoid:_, with the
+# term to write instead (ADR-0001). A verb or a word counts whole, case insensitive, and not inside
+# an identifier, where a letter, a digit, or an underscore adjoins it. A listed word that the line
+# break of a paragraph splits counts when either line is added, on the line it starts on if that
+# line is added, else on the next; the gap a code span or an italic leaves at the end of a line
+# stays. A paragraph or a list item ends a sentence; so do '.', '!', and '?' before a space or the end. It
 # reports for the reviewer and never fails on what it counts.
 #
 # Pure bash + git + awk. Usage:
@@ -31,31 +34,24 @@ enter_root "Plain rules sensor" "${BASH_SOURCE[0]}" "$@"
 shift "$ROOT_TAKEN"
 
 MAX_WORDS=25
-base="${1:-}" head="${2:-}" worktree=0
-[[ -n "$head" ]] || { head=HEAD; worktree=1; }
-[[ "$base" =~ ^0+$ ]] && base=""
-[[ -n "$base" ]] || base="$(main_merge_base "$head")"
-if [[ -z "$base" ]]; then
-  echo "Plain rules sensor: nothing to compare — no base given and no main to compare with."
-  exit 0
-fi
-for ref in "$base" "$head"; do
-  git rev-parse --verify -q "$ref^{commit}" >/dev/null \
-    || { echo "Plain rules sensor: '$ref' does not resolve to a commit." >&2; exit 2; }
-done
+resolve_change "Plain rules sensor" "${1:-}" "${2:-}" || exit 0
+base="$CHANGE_BASE" head="$CHANGE_HEAD"
+# at — the head a file is read at, empty for the working tree, as rule_stream and change_file take it.
+at="$( ((CHANGE_WORKTREE)) || echo "$head")"
 range="$(git rev-parse --short "$base")..$(git rev-parse --short "$head")"
-((worktree)) && range="${range%..*}..working tree"
+[[ -n "$at" ]] || range="${range%..*}..working tree"
 
-if ! stream="$(rule_stream "$base" "$( ((worktree)) || echo "$head")")"; then
+if ! stream="$(rule_stream "$base" "$at")"; then
   awk -F '\t' -v range="$range" '
     $1 == "E" && $2 == "" { print "Plain rules sensor (" range "): could not list the rules the change touches." }
     $1 == "E" && $2 != "" { print "Plain rules sensor (" range "): could not read the rules of " $2 "." }' <<< "$stream" >&2
   exit 2
 fi
 # The glossary as the change has it: the working tree's, or the head's.
-if ((worktree)); then glossary=docs/GLOSSARY.md; else glossary="$(mktemp)"; git show "$head:docs/GLOSSARY.md" > "$glossary" 2>/dev/null; fi
+glossary="$(mktemp)"
+change_file "$at" docs/GLOSSARY.md > "$glossary" 2>/dev/null
 avoid="$(avoid_terms "$glossary")"
-((worktree)) || rm -f "$glossary"
+rm -f "$glossary"
 findings=()
 while IFS= read -r finding; do findings+=("$finding"); done < <(
   awk -F '\t' -v max="$MAX_WORDS" -v avoid="$avoid" '
@@ -68,27 +64,39 @@ while IFS= read -r finding; do findings+=("$finding"); done < <(
       }
       count = 0; start = 0; split("", seen)
     }
-    $1 == "F" { flush(); file = $2; next }
-    $1 == "P" { flush(); next }
+    # squash <text> — the text in lower case without the white space at its ends, one space at either end.
+    function squash(t) { t = tolower(t); sub(/^[[:space:]]+/, "", t); sub(/[[:space:]]+$/, "", t); return " " t " " }
+    # found <text> <word> <break> — whether the word stands whole in the text; with a break, only
+    # where it spans that position.
+    function found(s, w, b,  rest, off, at, before, after) {
+      rest = s; off = 0
+      while ((at = index(rest, w)) > 0) {
+        at += off
+        before = substr(s, at - 1, 1); after = substr(s, at + length(w), 1)
+        if (before !~ /[a-z0-9_]/ && after !~ /[a-z0-9_]/ && (!b || (at < b && at + length(w) > b))) return 1
+        off = at; rest = substr(s, off + 1)
+      }
+      return 0
+    }
+    function avoided(nr, i) {
+      if ((nr, i) in told) return
+      told[nr, i] = 1
+      print file ":" nr ": \"" word[i] "\" is listed under _Avoid:_ in docs/GLOSSARY.md — write \"" term[i] "\""
+    }
+    $1 == "F" { flush(); file = $2; prev = ""; split("", told); next }
+    $1 == "P" { flush(); prev = ""; next }
     {
-      nr = $2; text = $4
+      nr = $2; text = $4; low = squash(text)
+      if (prev != "" && ($3 == 1 || prevadded)) {
+        joined = prev " " substr(low, 2)
+        for (i = 1; i <= na; i++) if (found(joined, word[i], length(prev) + 1)) avoided(prevadded ? prevnr : nr, i)
+      }
+      prev = tolower(text); sub(/^[[:space:]]+/, "", prev); prev = " " prev; prevnr = nr; prevadded = ($3 == 1)
       if ($3 == 1) {
-        low = tolower(text)
         n = split("should could might ideally", soft, " ")
         for (i = 1; i <= n; i++)
-          if (low ~ ("(^|[^a-z])" soft[i] "([^a-z]|$)")) print file ":" nr ": the soft modal verb \"" soft[i] "\""
-        low = " " low " "
-        for (i = 1; i <= na; i++) {
-          rest = low; off = 0
-          while ((at = index(rest, word[i])) > 0) {
-            before = substr(low, off + at - 1, 1); after = substr(low, off + at + length(word[i]), 1)
-            if (before !~ /[a-z0-9_]/ && after !~ /[a-z0-9_]/) {
-              print file ":" nr ": \"" word[i] "\" is listed under _Avoid:_ in docs/GLOSSARY.md — write \"" term[i] "\""
-              break
-            }
-            off += at; rest = substr(low, off + 1)
-          }
-        }
+          if (low ~ ("[^a-z0-9_]" soft[i] "[^a-z0-9_]")) print file ":" nr ": the soft modal verb \"" soft[i] "\""
+        for (i = 1; i <= na; i++) if (found(low, word[i], 0)) avoided(nr, i)
       }
       w = split(text, words, /[[:space:]]+/)
       for (i = 1; i <= w; i++) {

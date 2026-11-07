@@ -9,9 +9,9 @@
 # change no ADR names, nothing to compare, and a base that does not resolve; a Rust file binds the
 # modules under the directory of its name, a Rust library root and a file of another kind do not.
 # Paths named with --path stand in for a change, and --sections prints the header, Decision, and
-# Enforcement of each ADR listed, and nothing else of it, and the Applies to of each other ADR in
-# force whose Applies to is prose, also where the prose comes before a list longer than a pipe
-# holds.
+# Enforcement of each ADR listed, and nothing else of it, under a banner that names the sections
+# ADR_RULE_SECTIONS lists, and the Applies to of each other ADR in force whose Applies to is
+# prose, also where the prose comes before a list longer than a pipe holds.
 #
 # Verifies: ADR-0002
 # Inputs: scripts/sensor-binding-adrs.sh scripts/lib/
@@ -303,6 +303,23 @@ pad="$(printf '%*s' 200000 '' | tr ' ' z)"
 base "$d"
 expect_with 0 "--sections prints prose before a list longer than a pipe holds" "$d" \
   "- $(adr_id 7): every document" --sections --path README.md
+
+# The banner of an ADR's sections names the sections ADR_RULE_SECTIONS lists, as a copy of the
+# sensor whose library lists three of them prints.
+d="$(repo sections-named)"
+printf '\n## Decision\n\nWe will plan.\n\n## Consequences\n\nIt costs.\n\n## Enforcement\n\nA sensor.\n' \
+  >> "$d/docs/adr/0001-fixture.md"
+base "$d"
+mkdir -p "$d/scripts" && cp "$SENSOR" "$d/scripts/" && cp -R "$ROOT/scripts/lib" "$d/scripts/"
+lib="$d/scripts/lib/adr.sh"
+sed "s/^ADR_RULE_SECTIONS=.*/ADR_RULE_SECTIONS='Decision|Consequences|Enforcement'/" "$lib" > "$lib.tmp" \
+  && cat "$lib.tmp" > "$lib" && rm "$lib.tmp"
+SENSOR="$d/scripts/sensor-binding-adrs.sh" expect_with 0 "--sections names the sections it prints" "$d" \
+  "): the header, the Decision, the Consequences, and the Enforcement ===" --sections --path README.md
+SENSOR="$d/scripts/sensor-binding-adrs.sh" expect_with 0 "--sections prints each section it names" "$d" \
+  "It costs." --sections --path README.md
+expect_with 0 "--sections names the two sections of the template" "$d" \
+  "): the header, the Decision, and the Enforcement ===" --sections --path README.md
 
 # --- summary ---------------------------------------------------------------------------------
 
