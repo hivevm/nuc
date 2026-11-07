@@ -11,8 +11,9 @@
 # verb in AGENTS.md, named in italics, after an italic that wraps, in a code span that wraps, in
 # an identifier, in a block quote, in fenced code, after a fence's marker line with an info string
 # or a '## ' line inside it, and on a line the change did not add, a sentence that ends early, an
-# avoided word after a bare star or an unclosed underscore, a change outside the rules, the
-# working tree with an untracked ADR, and a base that does not resolve.
+# avoided word after a bare star or an unclosed underscore, an avoided term of two words wrapped
+# over two lines and split by a paragraph break, a sub-list that ends an _Avoid:_ list, a change
+# outside the rules, the working tree with an untracked ADR, and a base that does not resolve.
 #
 # Inputs: scripts/sensor-plain-rules.sh scripts/lib/
 #
@@ -241,6 +242,24 @@ expect "the parser: a continuation line and a leading 'and' list a word" "$r" \
   '"card" is listed under _Avoid:_ in docs/GLOSSARY.md — write "Ticket"' "" main
 expect "the parser: each entry names its own term, and a description lists nothing" "$r" \
   '"epic" is listed under _Avoid:_ in docs/GLOSSARY.md — write "Spec"' '"disposable" is listed' main
+
+r="$(repo avoid-wrapped)"
+glossary "$r"
+after "$r" docs/adr/0001-x.md "## Decision" "$(printf '%s\n' 'It runs a hook' '  script before each commit.')"
+expect "an avoided term of two words wrapped over two added lines: listed by the line it starts on" "$r" \
+  "docs/adr/0001-x.md:11: \"hook script\" $AVOID_MSG" "" main
+
+r="$(repo avoid-paragraph)"
+glossary "$r"
+after "$r" docs/adr/0001-x.md "## Decision" "$(printf '%s\n' 'It runs on each hook' '' 'Script authors read it.')"
+expect "the words of an avoided term across a paragraph break: not listed" "$r" "" "$AVOID_MSG" main
+
+r="$(repo avoid-sublist)"
+glossary "$r" "$(printf '%s\n' '- **Ticket** — one slice of work.' '  _Avoid:_ story,' '  - kept apart from a board,' '    lanes.')"
+after "$r" docs/adr/0001-x.md "## Decision" "$(printf '%s\n' 'A story is cut.' 'Lanes hold a board.')"
+expect "the parser: an indented sub-list line ends the _Avoid:_ list" "$r" \
+  '"story" is listed under _Avoid:_ in docs/GLOSSARY.md — write "Ticket"' '"lanes" is listed' main
+expect "the parser: no word of the sub-list is an avoided term" "$r" "" '"board" is listed' main
 
 r="$(repo bad-base)"
 out="$(bash "$SENSOR" --root "$r" no-such-ref 2>&1)"; rc=$?

@@ -109,7 +109,8 @@ rule_stream() {
 # avoid_terms <glossary> — the words the glossary's entries list under _Avoid:_, 'word<TAB>term' a
 # line, the words in lower case, split at commas and semicolons, a leading 'and', a trailing period,
 # and a placeholder in angle brackets dropped. An entry is its '- **Term**' line and the indented
-# lines after it; prose outside an entry lists nothing (ADR-0001).
+# lines after it; prose outside an entry lists nothing (ADR-0001). An indented list item, a
+# sub-list of the entry, ends its _Avoid:_ list.
 avoid_terms() {
   [[ -f "$1" ]] || return 0
   awk '
@@ -122,6 +123,7 @@ avoid_terms() {
     }
     /^- \*\*[^*]+\*\*/ { term = $0; sub(/^- \*\*/, "", term); sub(/\*\*.*/, "", term); open = 0; entry = 1 }
     !/^- \*\*/ && !/^[[:space:]]+[^[:space:]]/ { entry = 0; open = 0; term = "" }
+    /^[[:space:]]+([-*+]|[0-9]+[.)])([[:space:]]|$)/ { open = 0 }
     entry && open && !index($0, "_Avoid:_") && /^[[:space:]]+[^[:space:]-]/ { take($0); next }
     entry && term != "" && index($0, "_Avoid:_") { open = 1; take(substr($0, index($0, "_Avoid:_") + 8)) }
   ' "$1"
