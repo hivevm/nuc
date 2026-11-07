@@ -201,6 +201,8 @@ every clause with the `NUC-` clause that carries it.
    map, and read what each would move and leave. Then apply both, the release's map first. Place
    each reference a split leaves at the `NUC-` clause that carries what it cites, from the clause
    table of the release's map. A reference that names something other than this record's ADR,
-   such as a message copied from an older release, stays as it is.
+   such as a message copied from an older release, stays as it is. Rewrap each line that a longer
+   identifier pushed past the width
+   [`scripts/check-docs.sh`](../../../scripts/check-docs.sh) holds, in the record too.
 9. **The checks.** Go on with step 5 of [section 7](#7-take-up-a-template-release), and hand both
    maps to the human with the branch in its step 6.
