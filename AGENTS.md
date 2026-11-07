@@ -35,30 +35,30 @@ speed and cleverness:
 
 ## 2. Start here
 
-Before any non-trivial work, the agent must read the decisions that bind it. Of the rest it reads
-only what the work needs.
+Before any non-trivial work, the agent must read the decisions that bind it. Of the rest it must
+read only what the work needs.
 
 1. **The ADRs.** The agent must run
    [`scripts/sensor-binding-adrs.sh`](scripts/sensor-binding-adrs.sh) `--sections`. While nothing
-   has changed yet, it names each path the work will touch with a `--path`.
+   has changed yet, it must name each path the work will touch with a `--path`.
    - The sensor prints the `NUC-` ADRs like any other. It reads each *Applies to* from the ADR
      file, not from the index [`docs/adr/README.md`](docs/adr/README.md).
    - Accepted ADRs are binding
      ([NUC-adrs-record-decisions §5](docs/adr/NUC-adrs-record-decisions.md)).
-   - The agent must match each *Applies to* written in prose against the work itself. Of each ADR
+   - The agent must match each *Applies to* written in prose against the work by hand. Of each ADR
      that binds the work, it must read the header, *Decision*, and *Enforcement*.
-   - The agent reads the rest of an ADR when the change questions, revises, or supersedes it. It
-     reads the mechanics of the index when the change writes one.
+   - The agent must read the rest of an ADR when the change questions, revises, or supersedes it.
+     It must read the mechanics of the index when the change writes one.
    - A `proposed` ADR binds the work that implements it. Rejected and superseded ADRs explain
      *why*. They are not rules.
 2. **The specification.** [`docs/SPECIFICATION.md`](docs/SPECIFICATION.md) holds the problem,
    the goals, and the success criteria, in the vocabulary of the
-   [glossary](docs/GLOSSARY.md). The agent reads it when the work serves or moves a goal (`G-n`,
-   `Q-n`), plans a feature, or decides an ADR.
+   [glossary](docs/GLOSSARY.md). The agent must read it when the work serves or moves a goal
+   (`G-n`, `Q-n`), plans a feature, or decides an ADR.
 3. **The overview.** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) holds the system as it
    stands today, below the accepted ADRs
-   ([NUC-documents-are-fixed §4](docs/adr/NUC-documents-are-fixed.md)). The agent reads it when the
-   work changes the structure or has to find its way in it.
+   ([NUC-documents-are-fixed §4](docs/adr/NUC-documents-are-fixed.md)). The agent must read it when
+   the work changes the structure or has to find its way in it.
 
 Scaffold text in what the work reads is the first work, such as a placeholder title, an empty
 section, or a `TODO`. The agent must say so and elaborate it with the human before implementing.
@@ -102,11 +102,11 @@ The rules of the record stand in `NUC-` ADRs. The mechanics of the record are in
   call goes: [NUC-documents-are-fixed §6](docs/adr/NUC-documents-are-fixed.md).
 - **Write a rule plainly.** This covers the rules of this file and the *Decision* and
   *Enforcement* of an ADR.
-  - A rule must hold one statement per sentence.
-  - It must name who acts, in the active voice.
-  - It must use the terms of the glossary.
-  - It must write several items as a list.
-  - It must state a duty with *must* or *must not*, and a permission with *may*. *Should*,
+  - The author must write one statement per sentence.
+  - The author must name who acts, in the active voice.
+  - The author must use the terms of the glossary.
+  - The author must write several items as a list.
+  - The author must state a duty with *must* or *must not*, and a permission with *may*. *Should*,
     *could*, *might*, and *ideally* leave the reader guessing.
 
   [`scripts/sensor-plain-rules.sh`](scripts/sensor-plain-rules.sh) reports each sentence over 25
@@ -139,14 +139,14 @@ The rules of the record stand in `NUC-` ADRs. The mechanics of the record are in
   - Alignment, implementation, and review must each start in a fresh session with only what it
     needs. No session may start by compacting the old one.
   - The implementing session loads what the *Read first* of its ticket names.
-  - The agent must read a file by the sections the work needs. It reads a file whole where a rule
-    or a procedure says so, or where the work judges the file as a whole.
+  - The agent must read a file by the sections the work needs. It must read a file whole where a
+    rule or a procedure says so, or where the work judges the file as a whole.
   - The agent must run a command whose output is longer than the work reads through a filter for
     its purpose. It must read the exit status and a failure unfiltered.
   - A degraded session must hand off, and so must one whose topic is done. Every turn resends the
     whole session.
-  - The note of a hand-off lies under `.scratch/`. It says what the next session needs, not what
-    this one did.
+  - A session that hands off must leave a note under `.scratch/`. The note says what the next
+    session needs, not what this one did.
   - A review's topic lasts until the fixes it asked for are judged.
 - **Session artifacts are not tracked.** Session plans, handoff notes, and scratch files live
   under `.scratch/` (gitignored) or outside the tree. What has to outlive the session becomes a
