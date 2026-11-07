@@ -127,7 +127,7 @@ restates nothing. A rule this file does not state is not a rule of this project.
   guessing.
   [`scripts/sensor-plain-rules.sh`](scripts/sensor-plain-rules.sh) reports each sentence over 25
   words, each soft modal verb, and each word the glossary lists under _Avoid:_ on the lines a
-  change adds.
+  change adds. With `--require`, it fails on the last two in a project ADR.
 - **Plan work larger than one session in the tree, under `docs/plan/`.** A feature spec is cut
   into tracer-bullet tickets. The change that lands a ticket's work deletes its file
   ([NUC-large-work-is-planned §5](docs/adr/NUC-large-work-is-planned.md)). Skill: `plan-feature`.

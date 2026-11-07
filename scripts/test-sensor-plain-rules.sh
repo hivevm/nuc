@@ -14,9 +14,12 @@
 # avoided word after a bare star or an unclosed underscore, an avoided term of two words wrapped
 # over two lines, around a code span, with only its second line added, and split by a paragraph
 # break, a sub-list that ends an _Avoid:_ list, a change outside the rules, the working tree with
-# an untracked ADR, and a base that does not resolve.
+# an untracked ADR, and a base that does not resolve. The cases of '--require' stand in the fixture
+# table scripts/fixtures/plain-rules.txt: what fails in a project ADR and is reported in a NUC- ADR
+# and in AGENTS.md, the qualifiers of an _Avoid:_ item, a renamed ADR, and a take-up on comb's
+# glossary. Two cases read the glossary reader's rows directly.
 #
-# Inputs: scripts/sensor-plain-rules.sh scripts/lib/
+# Inputs: scripts/sensor-plain-rules.sh scripts/lib/ scripts/fixtures/plain-rules.txt
 #
 # Usage:
 #     scripts/test-sensor-plain-rules.sh
@@ -30,6 +33,8 @@ SENSOR="$ROOT/scripts/sensor-plain-rules.sh"
 
 LONG="The session that reads this rule before it starts any work must find every single word of it in the glossary and must also know who acts here."
 SHORT="The human decides."
+# The identifier of the fixture's NUC- ADR, assembled so that check-docs.sh reads no reference here.
+NUC_Y="NUC""-rule-y"
 
 # git_in <dir> <args...> — git in the fixture, with an author.
 git_in() {
@@ -46,6 +51,7 @@ repo() {
   printf '# Agent Guide\n\n## 1. Rules\n\n- %s\n- Old line that says should.\n' "$SHORT" > "$dir/AGENTS.md"
   printf '# FIX-rule-x: X\n\n- **Status:** 🟢 accepted\n\n## Context\n\n%s\n\n## Decision\n\n%s\n\n## Enforcement\n\n%s\n' \
     "$SHORT" "$SHORT" "$SHORT" > "$dir/docs/adr/FIX-rule-x.md"
+  sed "s/^# FIX-rule-x: X/# $NUC_Y: Y/" "$dir/docs/adr/FIX-rule-x.md" > "$dir/docs/adr/$NUC_Y.md"
   git_in "$dir" add -A
   git_in "$dir" commit -q -m start
   git_in "$dir" switch -q -c work
@@ -294,12 +300,12 @@ after "$r" AGENTS.md "## 1. Rules" "- $SHORT"
 out="$(PATH="$broken:$PATH" bash "$SENSOR" --root "$r" main 2>&1)"; rc=$?
 check "a reader that fails: exit 2, naming the file" test "$rc" -eq 2 -a "${out/could not read the rules of AGENTS.md/}" != "$out"
 
-# A listing that breaks: a git on PATH that fails on '--name-only', which only rule_stream asks for
+# A listing that breaks: a git on PATH that fails on '--name-status', which only rule_stream asks for
 # when it lists the files a change touches, and hands every other command to the real git.
 unlisted="$work/broken-git"
 mkdir -p "$unlisted"
 # shellcheck disable=SC2016 # the script is written as it runs, its variables unexpanded
-printf '#!/usr/bin/env bash\nfor a; do [[ "$a" == --name-only ]] && { echo "fatal: broken" >&2; exit 128; }; done\nexec %q "$@"\n' \
+printf '#!/usr/bin/env bash\nfor a; do [[ "$a" == --name-status ]] && { echo "fatal: broken" >&2; exit 128; }; done\nexec %q "$@"\n' \
   "$(command -v git)" > "$unlisted/git"
 chmod +x "$unlisted/git"
 
@@ -308,5 +314,65 @@ after "$r" AGENTS.md "## 1. Rules" "- $SHORT"
 out="$(PATH="$unlisted:$PATH" bash "$SENSOR" --root "$r" main 2>&1)"; rc=$?
 check "a listing that fails: exit 2, saying it could not list the rules" \
   test "$rc" -eq 2 -a "${out/could not list the rules the change touches/}" != "$out"
+
+# --- the cases of --require, from the fixture table ------------------------------------------
+
+TABLE="$ROOT/scripts/fixtures/plain-rules.txt"
+
+# step <dir> <step> — apply one step of a tree of the table to the fixture.
+step() {
+  local dir="$1" verb="${2%% *}" rest="${2#* }" file section text from to
+  case "$verb" in
+    add)
+      file="${rest%% *}"; rest="${rest#* }"; section="${rest%% *}"; text="${rest#* }"
+      [[ "$section" == Rules ]] && section="1. Rules"
+      after "$dir" "$file" "## $section" "${text//\\n/$'\n'}" ;;
+    glossary)
+      glossary "$dir" "$(awk -F ' [|] ' -v n="$rest" '$1 == "= " n { print $2 }' "$TABLE")" ;;
+    base) git_in "$dir" branch -f main HEAD ;;
+    rename)
+      from="${rest%% *}"; to="${rest#* }"
+      git_in "$dir" mv "docs/adr/$from.md" "docs/adr/$to.md"
+      sed "1s/^# $from:/# $to:/" "$dir/docs/adr/$to.md" > "$dir/new" && mv "$dir/new" "$dir/docs/adr/$to.md"
+      git_in "$dir" commit -q -am "rename $from" ;;
+    takeup)
+      rm -f "$dir"/docs/adr/NUC-*
+      cp "$ROOT"/docs/adr/NUC-* "$ROOT/AGENTS.md" "$dir/docs/adr/" && mv "$dir/docs/adr/AGENTS.md" "$dir/AGENTS.md"
+      git_in "$dir" add -A
+      git_in "$dir" commit -q -m takeup ;;
+    noflag) flag=() ;;
+    *) echo "unknown step '$2'" >&2; return 1 ;;
+  esac
+}
+
+cases=0
+while IFS= read -r line; do
+  [[ "$line" =~ ^(pass|fail)\ \|\  ]] || continue
+  line="${line//NUC:/NUC-}"
+  IFS='|' read -r want text name tree <<< "${line// | /|}"
+  cases=$((cases + 1))
+  r="$(repo "table-$cases")"
+  flag=(--require)
+  ok=1
+  while IFS= read -r s; do [[ -z "$s" ]] || step "$r" "$s" >/dev/null || ok=0; done <<< "${tree//; /$'\n'}"
+  out="$(bash "$SENSOR" --root "$r" "${flag[@]}" main 2>&1)"; rc=$?
+  [[ "$want" == pass ]] && want=0 || want=1
+  if [[ "$text" == !* ]]; then [[ "$out" != *"${text#!}"* ]] || ok=0
+  elif [[ "$text" != - ]]; then [[ "$out" == *"$text"* ]] || ok=0; fi
+  if ((ok)) && [[ "$rc" == "$want" ]]; then passed=$((passed + 1)); continue; fi
+  failed=$((failed + 1))
+  echo "FAIL: $name (got exit $rc)" >&2
+  while IFS= read -r l; do printf '    %s\n' "$l"; done <<< "$out" >&2
+done < "$TABLE"
+check "the fixture table holds cases" test "$cases" -gt 20
+
+# The reader reads a qualifier with its word, and says what it cannot read.
+reader="$work/reader-glossary.md"
+awk -F ' [|] ' '$1 == "= shape" { print $2 }' "$TABLE" > "$reader"
+terms="$(source "$ROOT/scripts/lib/rules.sh"; avoid_terms "$reader")"
+check "the reader: '*shape* alone' is the word with its qualifier" \
+  grep -qxF "$(printf 'A\tshape\tNode shape\talone')" <<< "$terms"
+check "the reader: an item it cannot read is named with its line" \
+  grep -qxF "$(printf 'U\t6\toutside the wording of the constraint that requires it\tCulling')" <<< "$terms"
 
 summary "Plain rules sensor self-test"

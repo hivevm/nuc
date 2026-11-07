@@ -22,8 +22,9 @@ Sentence length stays a sensor. The ADR that decides the plain-rules checks name
 
 ## Read first
 
-- Touches: `scripts/sensor-plain-rules.sh`, `scripts/lib/rules.sh`, `scripts/check-docs.sh`,
-  `scripts/test-check-docs.sh`, `docs/GLOSSARY.md`, `docs/backlog/`
+- Touches: `scripts/sensor-plain-rules.sh`, `scripts/lib/rules.sh`,
+  `scripts/test-sensor-plain-rules.sh`, `scripts/fixtures/plain-rules.txt`, `scripts/check-all.sh`,
+  `.github/workflows/checks.yml`, `docs/GLOSSARY.md`, `docs/backlog/`
 - The backlog entry above.
 - [`AGENTS.md` §4](../../../AGENTS.md#4-working-style), the writing rule.
 
