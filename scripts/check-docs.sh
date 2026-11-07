@@ -17,10 +17,11 @@
 #      never read (docs/adr/README.md).
 #   2. ADR identifier integrity: every identifier has the form of NUC-adrs-record-decisions
 #      clause 8, its category is fixed or in the category list of the index (clause 9), and the
-#      file's heading starts with '# <identifier>:'. No deleted ADR in the history carried the
-#      identifier; the message names the commit that deleted it. Files of the old form run
-#      0001..N without gaps, each headed '# ADR-NNNN', until the old ADRs retire. Every file in
-#      docs/adr/ named with letters before a hyphen counts, so a misnamed ADR fails here.
+#      file's heading starts with '# <identifier>:'. No ADR deleted on the first-parent line of
+#      HEAD carried the identifier; the message names the commit that deleted it. Files of the
+#      old form run 0001..N without gaps, each headed '# ADR-NNNN', until the old ADRs retire.
+#      Every file in docs/adr/ named with letters before a hyphen counts, so a misnamed ADR fails
+#      here.
 #   3. Relative-link integrity: every relative Markdown link in every tracked .md file resolves
 #      to a file or directory that exists. Links inside fenced code blocks are illustrations,
 #      not claims about files on disk, and are skipped (here and in check 6); so is a target that
@@ -396,7 +397,8 @@ check_adr_index() {
 # Check 2 (see the header). Numbers of the old form run 0001..N without gaps, and only the first
 # gap is reported; superseded ADRs stay on disk, so a gap can only ever mean a deleted ADR or a
 # botched rename. An identifier of the new form is never reused, so a deleted one, read off the
-# history, stays taken.
+# history, stays taken. The history is the first-parent line of HEAD, each merge read against the
+# branch it landed on: a side branch that deleted an ADR and wrote it anew deleted nothing there.
 check_adr_identifiers() {
   local f base heading n=0 gap=0 expected id commit
   local -A deleted=()
@@ -421,8 +423,8 @@ check_adr_identifiers() {
   done
   while IFS= read -r f; do
     if [[ "$f" == commit\ * ]]; then commit="${f#commit }"; elif [[ -n "$f" && ! -v deleted["${f##*/}"] ]]; then deleted["${f##*/}"]="$commit"; fi
-  done < <(git -C "$ROOT" log --no-renames --diff-filter=D --name-only --format='commit %h' \
-             -- ":(glob)docs/adr/${ADR_GLOBS[1]}" 2>/dev/null)
+  done < <(git -C "$ROOT" log --first-parent --diff-merges=first-parent --no-renames --diff-filter=D \
+             --name-only --format='commit %h' HEAD -- ":(glob)docs/adr/${ADR_GLOBS[1]}" 2>/dev/null)
   for f in "${ADR_LIST[@]}"; do
     base="${f##*/}"
     [[ -v deleted["$base"] ]] || continue

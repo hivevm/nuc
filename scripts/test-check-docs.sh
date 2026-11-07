@@ -763,7 +763,11 @@ step() {
     text) mkdir -p "$(dirname "$dir/$id")" && echo "$rest" >> "$dir/$id" ;;
     category) insert_before "$index" "### Binding" "- **$id** — a category of the project." ;;
     commit) g "$dir" add -A && g "$dir" commit -q -m "$op" ;;
-    delete) g "$dir" rm -q "docs/adr/$file" && sed_in "$index" "/^| \[$key\]/d" && step "$dir" commit ;;
+    delete) g "$dir" rm -q "docs/adr/$file" && sed_in "$index" "/^| \[$key\]/d" && step "$dir" commit \
+              && DELETED="$(g "$dir" rev-parse --short HEAD)" ;;
+    branch) g "$dir" switch -q -c "$id" ;;
+    back) g "$dir" switch -q - ;;
+    merge) g "$dir" merge -q --no-ff -m "$op" "$id" ;;
     *) echo "fixture table: unknown step '$op'" >&2; exit 1 ;;
   esac
 }
@@ -778,12 +782,14 @@ while IFS= read -r line; do
   line="$(hyphens "$line")"
   IFS=$'\x1f' read -r check want needle name tree <<< "${line// | /$'\x1f'}"
   [[ "$needle" == - ]] && needle=""
+  DELETED=""
   d="$(repo "record-$n")"
   rm "$d/docs/adr/0001-decision.md"
   printf '# ADRs\n\n### Categories\n\n- **NUC** — the template.\n\n### Binding\n\n%s\n%s\n### Superseded and rejected\n\n%s\n%s\n' \
     "| ADR | Title | Applies to | Status |" "|-----|-------|------------|--------|" \
     "| ADR | Title | Applies to | Status |" "|-----|-------|------------|--------|" > "$d/docs/adr/README.md"
   while IFS= read -r s; do step "$d" "$s"; done <<< "${tree//; /$'\n'}"
+  needle="${needle//<deleted>/$DELETED}"
   expect "$want" "check $check: $name" "$d" "$needle"
 done < "$TABLE"
 ((n > 0)) || { echo "FAIL: no case read from $TABLE" >&2; failed=$((failed + 1)); }

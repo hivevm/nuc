@@ -20,6 +20,11 @@
 #   category <key>              a project category in the category list of the index
 #   commit                      every file committed
 #   delete <id>                 the file and its row deleted and committed
+#   branch <name>               a new branch, checked out
+#   back                        the branch checked out before
+#   merge <name>                the branch merged by a merge commit
+#
+# In the expected text, '<deleted>' stands for the short hash of the commit of the last delete.
 #
 # An id is 'ADR:NNNN', the file NNNN-decision.md, or '<CAT>:<slug>', the file <CAT>-<slug>.md. A
 # status is accepted, proposed, rejected, or superseded:<id>. Everywhere in a line, a colon after
@@ -43,7 +48,9 @@
 2 | fail | Sec-host-socket.md: the identifier is not | a category key not in capitals, visible to the check | adr Sec-host-socket proposed
 2 | pass | - | a category of the project's list | category UX; adr UX:dark-mode proposed
 2 | fail | SEC:a-rule.md: heading says '# SEC:b-rule: decision' | a heading that names another identifier | adr SEC:a-rule proposed; heading SEC:a-rule # SEC:b-rule: decision
-2 | fail | OPS:old-rule.md: the identifier OPS:old-rule was taken by a deleted ADR, deleted in | an identifier a deleted ADR carried | adr OPS:old-rule proposed; commit; delete OPS:old-rule; adr OPS:old-rule proposed
+2 | fail | OPS:old-rule.md: the identifier OPS:old-rule was taken by a deleted ADR, deleted in <deleted> — | an identifier a deleted ADR carried, the deleting commit named | adr OPS:old-rule proposed; commit; delete OPS:old-rule; adr OPS:old-rule proposed
+2 | pass | - | an ADR a merged side branch deleted and wrote anew, as a normalization does | adr OPS:kept-rule proposed; commit; branch side; delete OPS:kept-rule; adr OPS:kept-rule accepted; commit; back; merge side
+2 | fail | OPS:gone-rule.md: the identifier OPS:gone-rule was taken | an ADR a merged side branch deleted, taken again | adr OPS:gone-rule proposed; commit; branch side; delete OPS:gone-rule; back; merge side; adr OPS:gone-rule proposed
 2 | pass | - | a deleted ADR whose identifier nobody takes again | adr OPS:old-rule proposed; commit; delete OPS:old-rule; adr OPS:new-rule proposed
 5 | fail | reference 'ADR:0042' matches no ADR file | an old reference to an ADR that does not exist | text README.md Decided in ADR:0042.
 5 | pass | - | a clause citation of an existing ADR | adr SEC:x-rule proposed; text README.md See [SEC:x-rule §3](docs/adr/SEC:x-rule.md) and SEC:x-rule §1.
