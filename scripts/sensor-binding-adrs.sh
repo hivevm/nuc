@@ -100,21 +100,18 @@ fi
 # show <path> — a file as the change has it.
 show() { if ((worktree)); then cat -- "$1"; else git show "$head:$1"; fi; }
 
-# section <name> — the section '## <name>' of the ADR on stdin, its heading included.
-section() { awk -v h="## $1" '$0 == h { p = 1; print; next } p && /^## / { exit } p'; }
-
 # finish — print what --sections asks for, and end. Reads 'files', the ADRs listed.
 files=()
 finish() {
   if ((sections)); then
-    local file text listed=" " key applies rows=0 prose=()
+    local file text listed=" " key applies rows=0 prose=() parts part
     for file in "${files[@]}"; do listed+="$(adr_key "$file") "; done
     # shellcheck disable=SC2016  # the backticks are Markdown to match, not a command substitution
     while IFS=$'\t' read -r key applies; do
       rows=$((rows + 1))
       [[ "$listed" == *" $key "* ]] && continue
-      sed -E 's/, and /\n/g; s/ and /\n/g; s/, /\n/g' <<< "$applies" \
-        | grep -qvE '^[[:space:]]*`[^`[:space:]]+`[[:space:]]*$' \
+      grep -qvE '^[[:space:]]*`[^`[:space:]]+`[[:space:]]*$' \
+        <<< "$(sed -E 's/, and /\n/g; s/ and /\n/g; s/, /\n/g' <<< "$applies")" \
         && prose+=("ADR-$key: $applies")
     done < <(show docs/adr/README.md 2>/dev/null | awk -F'|' '
       /^### Binding/ { p = 1; next } p && /^#/ { exit }
@@ -137,9 +134,11 @@ finish() {
       echo
       echo "=== ADR-$(adr_key "$file") ($file): the header, the Decision, and the Enforcement ==="
       awk '/^## / { exit } { print }' <<< "$text"
-      section Decision <<< "$text"
-      echo
-      section Enforcement <<< "$text"
+      IFS='|' read -r -a parts <<< "$ADR_RULE_SECTIONS"
+      for part in "${parts[@]}"; do
+        [[ "$part" == "${parts[0]}" ]] || echo
+        adr_section "$part" <<< "$text"
+      done
     done
   fi
   exit 0
@@ -186,7 +185,7 @@ fi
 if ((worktree)); then
   adrs="$(adr_files docs/adr 2>/dev/null)"
 else
-  adrs="$(git ls-tree -r --name-only "$head" -- docs/adr/ | grep -E "^docs/adr/([0-9]{4}-[^/]*|draft-[^/]*)\\.md\$")"
+  adrs="$(git ls-tree -r --name-only "$head" -- docs/adr/ | grep -E "^docs/adr/$ADR_FILE_RE\$")"
 fi
 
 found=()
