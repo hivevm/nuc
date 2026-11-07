@@ -124,6 +124,9 @@ restates nothing. A rule this file does not state is not a rule of this project.
   into tracer-bullet tickets. The change that lands a ticket's work deletes its file
   ([ADR-0006](docs/adr/0006-feature-layer.md)). Skill: `plan-feature`. The skill `work-tickets`
   works the tickets, one at a time or in parallel.
+- **Record a finding outside your ticket in the backlog.** A finding is a defect, a doubt, or an
+  idea that no ticket covers. Do not widen the ticket for it. The human decides which entry becomes
+  a ticket ([ADR-0006](docs/adr/0006-feature-layer.md)).
 - **Work with the human:** small steps, reasoning surfaced, feedback sought early. A task runs
   unattended only when its ticket answers for all of the following:
   - a test decides its criteria;
