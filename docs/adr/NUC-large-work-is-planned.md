@@ -52,8 +52,9 @@ findings outside the plan in a backlog.
    - The claim is the branch `ticket/<spec>/<NN>-<slug>`. It must be visible to every parallel
      session.
    - The `work-tickets` skill carries the steps of a claim and of its release.
-5. **Disposal.** The branch that lands a ticket's work must delete its file. What must last moves
-   first into the specification, an ADR, the overview, the glossary, or the conventions.
+5. **Disposal.** The branch that lands a ticket's work must delete its file. Before a ticket's
+   or a spec's file goes, what must last moves into the specification, an ADR, the overview, the
+   glossary, or the conventions.
 6. **Finding.** A finding is a defect, a doubt, or an idea that no ticket covers. A session must
    record it in the backlog and must not widen its ticket for it.
 7. **Backlog.** The backlog is files, unless an ADR of the project chooses the host's issues. A
@@ -169,8 +170,8 @@ parallel branches never conflict; the file form of the backlog borrows it.
 
 - `scripts/sensor-plan-frontier.sh`, in the job `sensors`, lists the open tickets as claimed,
   blocked, or on the frontier, with their *Mode* (clauses 3 and 4). It fails on a ticket without
-  a *Blocked by* or a *Mode* section. Its self-test cites this ADR. It claims in one repository
-  and across two clones, and the second claim must lose.
+  a *Blocked by* or a *Mode* section. Its self-test cites this ADR. The self-test claims a
+  ticket in one repository and across two clones, and the second claim must lose.
 - `scripts/sensor-backlog.sh` lists the entries on `main` and on unmerged local branches, and
   fails nothing (clause 7). Its self-test cites this ADR.
 

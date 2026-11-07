@@ -98,8 +98,8 @@ The catalogue has no entry for these choices, and none of them needs an ADR.
 
 `scripts/sensor-revision-due.sh`, in the job `sensors`, reads the line of the overview (clause 4).
 It reports the count since the line's date. Once the revision is due, it lists the top-level
-paths the changes touched. It fails only on a missing or unreadable line (clause 5). Its
-self-test cites this ADR.
+paths the changes touched. It fails only on a missing or unreadable line (clause 4), never on the
+count (clause 5). Its self-test cites this ADR.
 
 **Not mechanically decidable:** the review holds whether:
 
