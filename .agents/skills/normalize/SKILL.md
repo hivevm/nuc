@@ -124,7 +124,7 @@ own ADRs stay as they are; no inherited ADR is merged into its record. Work on a
    [`README.md`](../../../README.md) names and the tag to take up. Read the release notes of every
    release between the two. Keep for step 5 each map of a re-cut a note carries
    ([NUC-releases-are-semver-tags §7](../../../docs/adr/NUC-releases-are-semver-tags.md)).
-   A project whose record still has numbered ADRs, a release before `v0.9.0`, migrates it once:
+   A project on a release before `v0.9.0` still has numbered ADRs and migrates its record once:
    walk [section 8](#8-migrate-a-numbered-record) in place of step 2, and take the other steps as
    they stand.
 2. **The base.** Replace the `NUC-` files under `docs/adr/` and the blob list
@@ -157,8 +157,9 @@ template, and its own from `0007` on. The take-up of `v0.9.0` or a later release
 the fixed base and to identifiers
 ([NUC-adrs-record-decisions §8](../../../docs/adr/NUC-adrs-record-decisions.md) and
 [NUC-adrs-record-decisions §11](../../../docs/adr/NUC-adrs-record-decisions.md)). The migration is
-a normalization ([NUC-adrs-record-decisions §17](../../../docs/adr/NUC-adrs-record-decisions.md)),
-which covers its edits to accepted project ADRs: the renames, the headings, the `Status` and
+a normalization of identifiers only
+([NUC-adrs-record-decisions §17](../../../docs/adr/NUC-adrs-record-decisions.md)), which covers its
+edits to accepted project ADRs: the renames, the headings, the `Status` and
 `Supersedes` fields, the `Role` lines, and the rewraps. The release's
 map is [`map-v0.9.0.txt`](map-v0.9.0.txt): the six inherited ADRs to the `NUC-` ADRs, and a table of
 every clause with the `NUC-` clause that carries it.
@@ -170,9 +171,10 @@ every clause with the `NUC-` clause that carries it.
    the `NUC-` files and the blob list as step 2 of [section 7](#7-take-up-a-template-release)
    says ([NUC-adrs-record-decisions §12](../../../docs/adr/NUC-adrs-record-decisions.md)).
 3. **The project map.** Write a map under `.scratch/`, one line per numbered ADR of the project,
-   superseded and rejected ones included, in the form `remap.sh` names in its header:
-   `0007-old-title.md <CAT>-<slug>`. Pick each category from the fixed ones or add it to the
-   category list of the index
+   superseded and rejected ones included, since the migration keeps every ADR
+   ([NUC-adrs-record-decisions §17](../../../docs/adr/NUC-adrs-record-decisions.md)), in the form
+   `remap.sh` names in its header: `0007-old-title.md <CAT>-<slug>`. Pick each category from the
+   fixed ones or add it to the category list of the index
    ([NUC-adrs-record-decisions §9](../../../docs/adr/NUC-adrs-record-decisions.md)), and pick a
    slug that states the decision
    ([NUC-adrs-record-decisions §8](../../../docs/adr/NUC-adrs-record-decisions.md)). Hand the map
