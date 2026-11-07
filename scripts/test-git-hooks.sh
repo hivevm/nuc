@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 #
 # Self-test of the git hooks under .githooks/: every refusal and every passage the table under
-# "Git hooks" in CONTRIBUTING.md lists (NUC-main-only-via-pr §1, §4, §5, §6; AGENTS.md, section 5).
+# "Git hooks" in CONTRIBUTING.md lists (NUC-main-only-via-pr §1, §4, §5, §6; NUC-checks-are-bash
+# §6; AGENTS.md, section 5).
 #
 # Each case builds a throwaway repository under a temporary directory with core.hooksPath pointing
 # at this repository's .githooks/, runs a real 'git commit' or 'git push' in it — the push goes to
@@ -9,7 +10,7 @@
 # A push case ships its own scripts/check-all.sh, green or red, so the test decides what the hook
 # finds.
 #
-# Verifies: NUC-main-only-via-pr ADR-0002
+# Verifies: NUC-main-only-via-pr NUC-checks-are-bash ADR-0002
 # Inputs: .githooks/ scripts/lib/
 #
 # Usage:
@@ -208,6 +209,10 @@ merging() {
 d="$(merging merge-red 1 0)"
 expect refuse "a merge into a branch while the documentation check is red" "$d" "the documentation check is red on the merge" merge -q -m m feature
 
+d="$(merging merge-red-clause 1 0)"
+expect refuse "the merge refusal names the clause that runs the checks before a merge" "$d" \
+  "takes up another (NUC-checks-are-bash §6)" merge -q -m m feature
+
 d="$(merging merge-red-output 1 0)"
 expect refuse "the refusal shows the documentation check's output" "$d" "docs output for the test" merge -q -m m feature
 
@@ -241,6 +246,10 @@ conflict() {
 
 d="$(conflict conflict-red 1 feat/x)"
 expect refuse "concluding a conflicted merge while the checks are red" "$d" "pre-commit: refused — the checks are red" commit -q --no-edit
+
+d="$(conflict conflict-red-clause 1 feat/x)"
+expect refuse "the refusal of a conflicted merge names the clause that runs the checks" "$d" \
+  "takes up another (NUC-checks-are-bash §6)" commit -q --no-edit
 
 d="$(conflict conflict-changed 1 feat/x)"
 expect refuse "concluding a conflicted merge runs the checks with --changed" "$d" "args: --changed" commit -q --no-edit

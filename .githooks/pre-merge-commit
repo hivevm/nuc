@@ -38,7 +38,7 @@ unset $(git rev-parse --local-env-vars)
 if [[ -n "$root" && -f "$root/scripts/check-docs.sh" ]]; then
   if ! bash "$root/scripts/check-docs.sh"; then
     echo >&2
-    echo "pre-merge-commit: refused — the documentation check is red on the merge, and it passes before a branch takes up another (AGENTS.md, section 5). git merge --abort, fix it on the merged branch, then merge again." >&2
+    echo "pre-merge-commit: refused — the documentation check is red on the merge, and it passes before a branch takes up another (NUC-checks-are-bash §6). git merge --abort, fix it on the merged branch, then merge again." >&2
     exit 1
   fi
 fi
