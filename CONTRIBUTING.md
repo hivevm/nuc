@@ -116,8 +116,8 @@ not followed. The symlinks are pointers of the same kind as `CLAUDE.md`, tracked
 [anthropics/claude-code#31005](https://github.com/anthropics/claude-code/issues/31005). Delete them
 when that lands, and add one for every skill added meanwhile; the documentation check fails on a
 skill without its pointer. What enforces a rule is what every agent hits
-([`AGENTS.md` §6](AGENTS.md#6-project-rules)): the git hooks under [`.githooks/`](.githooks/),
-the checks, and the repository settings below.
+([NUC-main-only-via-pr §7](docs/adr/NUC-main-only-via-pr.md)): the git hooks under
+[`.githooks/`](.githooks/), the checks, and the repository settings below.
 
 Agents work tickets in parallel without any one vendor's mechanism: a dispatching session claims
 each ticket by its branch in a git worktree of its own and starts a fresh session there, with the
@@ -138,32 +138,33 @@ git config merge.adr-index.driver '.githooks/merge-adr-index %O %A %B %S %X %Y'
 ```
 
 `merge.ff false` makes every merge a merge commit, as a `feat/` branch keeps them
-([`AGENTS.md` §6](AGENTS.md#6-project-rules)); a fast-forward would make no commit and run no
-hook. `pull.ff only` keeps a pull from then making a merge. Without the two settings the hooks
-still hold: a fast-forward skips the documentation check of `pre-merge-commit`, and the push
+([NUC-main-only-via-pr §5](docs/adr/NUC-main-only-via-pr.md)); a fast-forward would make no commit
+and run no hook. `pull.ff only` keeps a pull from then making a merge. Without the two settings the
+hooks still hold: a fast-forward skips the documentation check of `pre-merge-commit`, and the push
 still gates what it brought. The merge driver of the ADR index keeps the rows both sides add and
-stops on its prose ([`.githooks/merge-adr-index`](.githooks/merge-adr-index)); without it, every
-row two branches append conflicts.
+stops on its prose ([`.githooks/merge-adr-index`](.githooks/merge-adr-index)); without it, every row
+two branches append conflicts.
 
 | Hook | Refuses | Bypassed by |
 |---|---|---|
 | `reference-transaction` | moving the local `main` to a commit `origin/main` lacks: by a commit, merge, cherry-pick, reset, or `git branch -f`. It lets through `git merge --ff-only origin/main`, a reset to it, `git fetch origin main:main`, a write of `main` where it already is, and a deletion. Needs git 2.28 or later. | running git without the hooks (`git -c core.hooksPath=/dev/null`), or moving `origin/main` by hand; not by `--no-verify` |
 | `pre-commit` | a commit on `main`; the conclusion of a conflicted merge while `scripts/check-all.sh --changed` is red | `--no-verify` |
 | `pre-merge-commit` | a merge on `main`; a merge into any other branch while `scripts/check-docs.sh` is red | `--no-verify` |
-| `pre-push` | a push to the remote's `main`, a deletion included; any other push while `scripts/check-all.sh --changed` is red, except one that only deletes, and one from a clean working tree whose tree the checks passed on before, as after a rework that only regroups | `--no-verify`, as the claim on a ticket does ([`AGENTS.md` §6](AGENTS.md#6-project-rules)); a tree written by hand into `checks-green-trees` of the git directory |
+| `pre-push` | a push to the remote's `main`, a deletion included; any other push while `scripts/check-all.sh --changed` is red, except one that only deletes, and one from a clean working tree whose tree the checks passed on before, as after a rework that only regroups | `--no-verify`, as the claim on a ticket does ([NUC-main-only-via-pr §6](docs/adr/NUC-main-only-via-pr.md)); a tree written by hand into `checks-green-trees` of the git directory |
 
-With `--changed`, the self-tests of what the branch left untouched since `main` are skipped; CI
-runs every one before anything reaches `main`. A bypass is a deliberate act, not a default;
-[`AGENTS.md` §6](AGENTS.md#6-project-rules) says when an agent may. Each refusal says what to do
-instead.
+With `--changed`, the self-tests of what the branch left untouched since `main` are skipped; CI runs
+every one before anything reaches `main`. A bypass is a deliberate act, not a default;
+[NUC-main-only-via-pr §6](docs/adr/NUC-main-only-via-pr.md) says when an agent may. Each refusal
+says what to do instead.
 [`scripts/test-git-hooks.sh`](scripts/test-git-hooks.sh) exercises every row.
 
 ## Integration branches
 
 A change reaches `main` through a pull request. Several branches may integrate first on a
 `feat/` branch, by local merges or by pull requests against it, and it stays the human's to
-rework until its pull request into `main` merges ([`AGENTS.md` §6](AGENTS.md#6-project-rules)).
-Each step waits for a human's instruction.
+rework until its pull request into `main` merges
+([NUC-main-only-via-pr §5](docs/adr/NUC-main-only-via-pr.md)). Each step waits for a human's
+instruction ([NUC-main-only-via-pr §2](docs/adr/NUC-main-only-via-pr.md)).
 
 1. Start it at the remote's `main`: `git fetch origin`, then
    `git switch -c feat/<topic> origin/main`.
@@ -174,11 +175,11 @@ Each step waits for a human's instruction.
    and all the checks gate that commit.
 3. Or merge it by a pull request against the `feat/` branch, so that its pipelines run what the
    local gate cannot, such as another platform or a service
-   ([`AGENTS.md` §6](AGENTS.md#6-project-rules)). With both branches pushed, on the branch:
-   `gh pr create --base feat/<topic> --body-file .scratch/<hand-off>.md`, and once it is green,
-   `gh pr merge <number> --merge --body-file .scratch/<hand-off>.md`, never by the web interface,
-   whose merge commit drops the hand-off. Then, on the `feat/` branch, `git fetch origin` and
-   `git merge --ff-only origin/feat/<topic>`.
+   ([NUC-main-only-via-pr §5](docs/adr/NUC-main-only-via-pr.md)). With both branches pushed, on
+   the branch: `gh pr create --base feat/<topic> --body-file .scratch/<hand-off>.md`, and once it
+   is green, `gh pr merge <number> --merge --body-file .scratch/<hand-off>.md`, never by the web
+   interface, whose merge commit drops the hand-off. Then, on the `feat/` branch,
+   `git fetch origin` and `git merge --ff-only origin/feat/<topic>`.
 4. Rework it as often as needed: rebase it, regroup its commits, or drop what did not hold,
    with `git rebase -i --autosquash --rebase-merges`. `--autosquash` folds in the fixups a review
    leaves, as the `review` skill says; without `--rebase-merges` the merges flatten, and their
@@ -204,12 +205,13 @@ Each step waits for a human's instruction.
 ## Repository settings
 
 Some of this project's rules cannot be enforced by files in the repository
-([`AGENTS.md` §6](AGENTS.md#6-project-rules)). They are settings on the GitHub repository itself,
-configured once by a maintainer and worth re-checking after a repository move or transfer:
+([NUC-main-only-via-pr §7](docs/adr/NUC-main-only-via-pr.md)). They are settings on the GitHub
+repository itself, configured once by a maintainer and worth re-checking after a repository move
+or transfer:
 
 - a **ruleset on `main`** that requires pull requests and allows the merge method **merge commit**
   only, since squash and rebase discard the merges a `feat/` branch carries and the commits it
-  was reworked into ([`AGENTS.md` §6](AGENTS.md#6-project-rules)); requires the
+  was reworked into ([NUC-main-only-via-pr §4](docs/adr/NUC-main-only-via-pr.md)); requires the
   <!-- required-checks begin — compared with the workflow's jobs by scripts/check-docs.sh -->
   `docs`, `traceability`, `devcontainer`, `sensors`, and `shell`
   <!-- required-checks end -->
