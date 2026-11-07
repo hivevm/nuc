@@ -42,6 +42,12 @@ header ([`AGENTS.md` §2](../../AGENTS.md#2-start-here)).
 without contradicting this one. Write "nothing beyond the sentence above" when the decision is
 already narrow.
 
+## Latitude
+
+The choices this decision leaves to a project, one per item, each linking its entry of the
+[catalogue](../../.agents/skills/propose-adr/concepts/README.md) where it has one. Name no tool and
+no project value. Write "None." when the decision leaves no choice.
+
 ## Alternatives considered
 
 - **<Alternative A>** — why it was not chosen.
