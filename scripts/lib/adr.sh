@@ -37,8 +37,12 @@ adr_categories() {
 }
 adr_categories ""
 
+# The roles a project fills with one accepted ADR each, named in its 'Role:' field
+# (NUC-adrs-record-decisions §13).
+ADR_ROLES=(harness toolchain)
+
 # The fields of docs/adr/template.md, an item's start, a field's item, a field anywhere (awk-safe).
-ADR_FIELDS='Status|Date|Deciders|Applies to|Supersedes'
+ADR_FIELDS='Status|Date|Deciders|Applies to|Supersedes|Extends|Narrows|Role'
 ADR_ITEM_RE='^- [*][*]'
 ADR_FIELD_ITEM_RE="${ADR_ITEM_RE}[A-Za-z ]+:[*][*]"
 ADR_FIELD_MARK_RE="[*][*]($ADR_FIELDS):[*][*]"
@@ -58,6 +62,18 @@ ADR_FILE_RE="($ADR_NUMBER_RE-[^/]*|[A-Za-z]+-[^/]*)\\.md"
 adr_files() {
   LC_ALL=C find "$1" -maxdepth 1 -type f \( -name "${ADR_GLOBS[0]}" -o -name "${ADR_GLOBS[1]}" \) \
     | LC_ALL=C sort
+}
+
+# adr_blobs <dir> — the blob list of the 'NUC-' files in the directory, '<blob> <file name>' a
+# line, in the order adr_files gives (NUC-adrs-record-decisions §12). git reads each file as it
+# would store it, its line endings converted, so the list holds on every platform. Fails, saying
+# so, when git cannot hash a file.
+adr_blobs() {
+  local names=() f blobs
+  while IFS= read -r f; do [[ "${f##*/}" == NUC-* ]] && names+=("${f##*/}"); done < <(adr_files "$1")
+  ((${#names[@]})) || return 0
+  blobs="$(cd "$1" && git hash-object -- "${names[@]}")" || { echo "adr_blobs: git hash-object failed in $1" >&2; return 1; }
+  paste -d' ' <(printf '%s\n' "$blobs") <(printf '%s\n' "${names[@]}")
 }
 
 # adr_is_file <name> — true when it names an ADR file.

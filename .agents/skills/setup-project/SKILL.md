@@ -26,8 +26,8 @@ the conversation and states no rule of its own
 - A later session resumes from the tree. The profile is read from the team and the work in the
   specification's *Constraints* and the assets in its *Threats*, or asked again while those are
   unwritten. [`scripts/test-template-setup.sh`](../../../scripts/test-template-setup.sh)
-  `--open` lists what is still open of steps 1, 3, 5, 6, and 7, and each inherited ADR without a
-  decider of this project. Read from the tree are the
+  `--open` lists what is still open of steps 1, 3, 5, 6, and 7, and each required role without
+  its accepted ADR. Read from the tree are the
   *Problem*, *Mission*, *Vision*, and *Strategy* of the specification, whose scaffold carries no
   `…` to find. The founding decisions already taken are the ADRs of step 4 in `docs/adr/`.
   Whether the repository settings are set, ask the human.

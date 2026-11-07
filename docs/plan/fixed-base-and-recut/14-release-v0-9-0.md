@@ -13,14 +13,13 @@ The README names `v0.9.0`, and the branch deletes this ticket.
       hand-off reports each before and after, and the number of checks and the lines in `scripts/`
       and the skill scripts have not risen.
 - [ ] Given each `NUC-` ADR, when the release is cut, then the human has accepted it.
-- [ ] Given the release workflow on the tag, when it runs, then it writes the blob list and the
-      check passes.
+- [ ] Given the release commit, when check-docs runs, then check 12 passes on the blob list.
 - [ ] Given `docs/plan/fixed-base-and-recut/`, when the release commit lands, then the directory is
       gone.
 
 ## Read first
 
-- Touches: `README.md`, `docs/ARCHITECTURE.md`, `docs/plan/`, `.github/workflows/`
+- Touches: `README.md`, `docs/ARCHITECTURE.md`, `docs/plan/`
 - The `design-revision` skill.
 - The release notes of `v0.8.0` and `v0.8.1` as the golden path.
 

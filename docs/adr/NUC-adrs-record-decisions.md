@@ -102,8 +102,8 @@ template's `NUC-` ADRs are a fixed base that a project extends or narrows but ne
     - A project takes up a release by replacing the `NUC-` files and the blob list.
     - A project accepts the base by naming the release it carries.
 12. **Blob list.** The blob list `docs/adr/NUC.blobs` names each `NUC-` file with its git blob
-    identifier. The release workflow of the template writes it. In a derived project, each
-    `NUC-` file must match its line in the list.
+    identifier. A change to a `NUC-` file rewrites the list in the same commit. In every
+    repository, each `NUC-` file must match its line in the list.
 13. **Roles.** Some choices are required project ADRs. Such an ADR carries the header field
     `Role:` with the role it fills. The required roles are `harness` and `toolchain`. Once the
     template setup is done, each required role must have exactly one accepted ADR. The template
@@ -213,7 +213,7 @@ A project may choose:
 - the `Supersedes:` field and the status lines agree (clause 14);
 - no project ADR supersedes a `NUC-` ADR, and each `Extends:` or `Narrows:` names an existing
   clause (clause 11);
-- each `NUC-` file matches the blob list, and the template's list matches its files (clause 12);
+- each `NUC-` file matches the blob list (clause 12);
 - after the setup, each required role has exactly one accepted ADR (clause 13).
 
 `scripts/sensor-review-binding.sh` lists each commit that changes the text of an ADR and another

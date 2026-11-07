@@ -101,7 +101,7 @@ checks and the lines in `scripts/` not to rise, so that the base stays lean.
   `Narrows:` with a `NUC-` clause. A check forbids `Supersedes: NUC-*`. Whether a narrowing
   contradicts the base is the reviewer's call. Clause numbers are stable: a removed clause leaves a
   gap.
-- **Blob list.** The release workflow writes the list of the `NUC-` files with their git blob
+- **Blob list.** A change to a `NUC-` file rewrites the list of the `NUC-` files with their git blob
   identifiers, and a check in the template repository holds the list against the files. In a derived
   project a check compares the files with the list. It replaces check 12 (inherited ADRs decided): a
   project accepts the base by naming the release it carries. A fork removes the list and names the

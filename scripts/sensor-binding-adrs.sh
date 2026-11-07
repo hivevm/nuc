@@ -22,8 +22,8 @@
 # does with each fixture. With --sections it prints after the list what a session reads of the
 # record (AGENTS.md section 2): of each ADR listed its header and the sections ADR_RULE_SECTIONS
 # of scripts/lib/adr.sh names, its Decision and its Enforcement, so that no session opens a whole
-# ADR for them, and from the Binding table of docs/adr/README.md the Applies to of every other ADR in force that paths alone do not decide,
-# for the session to match by its prose. An Applies to is decided by paths alone when each of
+# ADR for them, and the Applies to of every other ADR in force that paths alone do not decide, read
+# from its file, the 'NUC-' ones of the base included, for the session to match by its prose. An Applies to is decided by paths alone when each of
 # its items, split at commas and 'and', is one path in backticks.
 # Each --path names a path the work is about to touch, for a session that has changed nothing
 # yet; the paths stand in for the change, and the ADRs are read as the working tree has them. A
@@ -95,34 +95,44 @@ base="" head=HEAD worktree=1 verb=changed
 # show <path> — a file as the change has it.
 show() { change_file "$( ((worktree)) || echo "$head")" "$1"; }
 
+# adr_list — the ADR files as the change has them: one that adds an ADR or flips one is read with
+# its own record.
+adr_list() {
+  if ((worktree)); then
+    adr_files docs/adr 2>/dev/null
+  else
+    git ls-tree -r --name-only "$head" -- docs/adr/ | grep -E "^docs/adr/$ADR_FILE_RE\$"
+  fi
+}
+
 # finish — print what --sections asks for, and end. Reads 'files', the ADRs listed.
 files=()
 finish() {
   if ((sections)); then
-    local file text listed=" " key applies rows=0 prose=() parts part banner="the header"
+    local file text listed=" " applies status rows=0 prose=() parts part banner="the header"
     # The banner of an ADR names what is printed of it: its header and ADR_RULE_SECTIONS.
     IFS='|' read -r -a parts <<< "$ADR_RULE_SECTIONS"
     for part in "${parts[@]}"; do
       [[ "$part" == "${parts[-1]}" ]] && banner+=", and the $part" || banner+=", the $part"
     done
-    for file in "${files[@]}"; do adr_key_of "$file"; listed+="$ADR_KEY "; done
+    listed+="${files[*]} "
     # shellcheck disable=SC2016  # the backticks are Markdown to match, not a command substitution
-    while IFS=$'\t' read -r key applies; do
+    while IFS= read -r file; do
+      [[ -n "$file" ]] || continue
+      text="$(show "$file")"
+      status="$(adr_field_line - Status <<< "$text")"
+      [[ "$status" == *"🟢"* || "$status" == *"🟡"* ]] || continue
       rows=$((rows + 1))
-      [[ "$listed" == *" $key "* ]] && continue
+      [[ "$listed" == *" $file "* ]] && continue
+      adr_field_value "$(adr_field_line - 'Applies to' <<< "$text")" 'Applies to'
+      applies="${ADR_VALUE#"${ADR_VALUE%%[![:space:]]*}"}"
       grep -qvE '^[[:space:]]*`[^`[:space:]]+`[[:space:]]*$' \
         <<< "$(sed -E 's/, and /\n/g; s/ and /\n/g; s/, /\n/g' <<< "$applies")" \
-        && prose+=("$([[ "$key" == [0-9]* ]] && echo ADR-)$key: $applies")
-    done < <(show docs/adr/README.md 2>/dev/null | awk -F'|' '
-      /^### Binding/ { p = 1; next } p && /^#/ { exit }
-      p && /^\| \[/ {
-        key = $2; sub(/^ *\[/, "", key); sub(/\].*/, "", key)
-        applies = $4; gsub(/^ +| +$/, "", applies)
-        print key "\t" applies
-      }')
+        && prose+=("$(adr_id "$file"): $applies")
+    done < <(adr_list)
     echo
     if ((rows == 0)); then
-      echo "No row found under '### Binding' in docs/adr/README.md; read the index for the ADRs whose Applies to is prose."
+      echo "No ADR in force found in docs/adr/; read the index for the ADRs whose Applies to is prose."
     elif ((${#prose[@]})); then
       echo "The ADRs in force no path above decides, by their Applies to; match the prose against the work:"
       printf '  - %s\n' "${prose[@]}"
@@ -173,12 +183,7 @@ else
   fi
 fi
 
-# The ADRs as the change has them: one that adds an ADR or flips one is read with its own record.
-if ((worktree)); then
-  adrs="$(adr_files docs/adr 2>/dev/null)"
-else
-  adrs="$(git ls-tree -r --name-only "$head" -- docs/adr/ | grep -E "^docs/adr/$ADR_FILE_RE\$")"
-fi
+adrs="$(adr_list)"
 
 found=()
 while IFS= read -r file; do
