@@ -63,7 +63,7 @@ through merged pull requests.
    decides.
    - An agent must not bypass a hook: no `--no-verify`, no git without the hooks, no hand-moved
      `origin/main`, and no hand-written record of a green tree.
-   - The push of a claim may skip the pre-push hook.
+   - Where the harness ADR grants the push of a claim, that push may skip the pre-push hook.
    - A human may bypass a hook deliberately.
 7. **What enforces a rule.** Only what every agent hits enforces a rule: the git hooks, the
    checks, and the repository settings.
@@ -138,13 +138,17 @@ The catalogue has no entry for the last two choices, and neither needs an ADR.
 
 ## Enforcement
 
-`scripts/test-git-hooks.sh` cites this ADR. It tests that the hooks refuse:
+Four self-tests cite this ADR:
 
-- a commit or a merge on `main` (clause 1);
-- a move of `main` that `origin/main` lacks, and a push to the remote's `main` (clause 4).
+- `scripts/test-git-hooks.sh`: no commit or merge on `main` (clause 1), and no push to it or move
+  of it past `origin/main` (clause 4);
+- `scripts/test-ready-for-main.sh` and `scripts/test-drop-merged-branch.sh`: no fixup reaches
+  `main`, and the local `main` only takes up the remote's (clause 4);
+- `scripts/test-sensor-repo-settings.sh`: the sensor reports each repository setting that differs
+  (clause 7).
 
 `merge.ff false` makes each local merge a merge commit (clause 5). The ruleset on `main` holds
-clause 4 on the remote, and `scripts/sensor-repo-settings.sh` reports where it differs (clause 7).
+clause 4 on the remote.
 
-**Not mechanically decidable:** no file sees clauses 2, 3, and 7, the message of clause 5, or a
-bypass under clause 6. The review holds them.
+**Not mechanically decidable:** the review holds clauses 2 and 3 and the message of clause 5. It
+also holds a bypass under clause 6, and clause 7 beyond the repository settings.
