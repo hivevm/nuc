@@ -52,7 +52,10 @@ if ! stream="$(rule_stream "$base" "$( ((worktree)) || echo "$head")")"; then
     $1 == "E" && $2 != "" { print "Plain rules sensor (" range "): could not read the rules of " $2 "." }' <<< "$stream" >&2
   exit 2
 fi
-avoid="$(avoid_terms docs/GLOSSARY.md)"
+# The glossary as the change has it: the working tree's, or the head's.
+if ((worktree)); then glossary=docs/GLOSSARY.md; else glossary="$(mktemp)"; git show "$head:docs/GLOSSARY.md" > "$glossary" 2>/dev/null; fi
+avoid="$(avoid_terms "$glossary")"
+((worktree)) || rm -f "$glossary"
 findings=()
 while IFS= read -r finding; do findings+=("$finding"); done < <(
   awk -F '\t' -v max="$MAX_WORDS" -v avoid="$avoid" '
@@ -98,7 +101,7 @@ while IFS= read -r finding; do findings+=("$finding"); done < <(
     END { flush() }' <<< "$stream")
 
 if ((${#findings[@]} == 0)); then
-  echo "Plain rules sensor ($range): no long sentence and no soft modal verb on the lines the change adds to the rules."
+  echo "Plain rules sensor ($range): no long sentence, no soft modal verb, and no avoided term on the lines the change adds to the rules."
   exit 0
 fi
 echo "Plain rules sensor ($range): ${#findings[@]} to read on the lines the change adds to the rules (AGENTS.md section 4):"

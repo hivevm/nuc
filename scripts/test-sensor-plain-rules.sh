@@ -2,6 +2,8 @@
 #
 # Self-test of scripts/sensor-plain-rules.sh. Verifies: ADR-0002
 #
+# Verifies: ADR-0001
+#
 # Each case builds a throwaway git repository under a temporary directory: main holds an
 # AGENTS.md and one ADR, a branch changes them, and the sensor runs against main. The cases are a
 # table of what the change adds and what the sensor must and must not print: a long sentence in
@@ -170,7 +172,16 @@ expect "an avoided term in the Context: not listed" "$r" "" "$AVOID_MSG" main
 r="$(repo avoid-old)"
 glossary "$r"
 after "$r" docs/adr/0001-x.md "## Decision" "It runs a hook script."
-expect "an avoided term on a line not added: not listed" "$r" "" "$AVOID_MSG" HEAD
+git_in "$r" branch -f main HEAD
+after "$r" docs/adr/0001-x.md "## Enforcement" "Run it."
+expect "an avoided term on a line not added, in a file the change touches: not listed" "$r" "" "$AVOID_MSG" main
+
+r="$(repo avoid-head)"
+glossary "$r"
+after "$r" docs/adr/0001-x.md "## Decision" "It runs a hook script."
+rm "$r/docs/GLOSSARY.md"
+expect "with a head, the glossary is the head's, not the working tree's" "$r" \
+  "docs/adr/0001-x.md:11: \"hook script\" $AVOID_MSG" "" main work
 
 r="$(repo avoid-mentions)"
 glossary "$r"

@@ -25,10 +25,11 @@ sub-list line.
 
 - Touches: `scripts/lib/rules.sh`, `scripts/sensor-plain-rules.sh`,
   `scripts/test-sensor-plain-rules.sh`
+- The merge of ticket 03 of `plain-rules-and-backlog` (`9fd9507`), its *Doubts*.
 
 ## Blocked by
 
-- None (can start immediately)
+- docs/plan/revision-2026-11-07/03-the-rules-reader-reads-inline-markdown-as-a-reader-does.md
 
 ## Mode
 

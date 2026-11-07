@@ -24,10 +24,10 @@ handles each case as Markdown does, and reads an ADR's sections with the same bo
 
 ## Acceptance criteria
 
-- [ ] Given a code span wrapped over two added lines of `AGENTS.md`, when the sensor and
-      its avoided terms run, then neither reads its text.
+- [ ] Given a code span wrapped over two added lines of `AGENTS.md`, when the sensor runs, then
+      it reads none of its text.
 - [ ] Given a bare star between spaces, when the sensor runs on an avoided word later in the same
-      paragraph, then it fails on that word.
+      paragraph, then it reports that word.
 - [ ] Given a fence that holds a line starting with its marker and an info string, and a `## `
       line, when the reader runs, then the fence ends at its closing line only and the section
       continues, as `adr_section` reads it.
