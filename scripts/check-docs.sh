@@ -118,10 +118,11 @@
 #      workflow says in PULL_REQUEST_DRAFT whether a pull request is a draft.
 #  17. Avoided terms: a line a change adds to AGENTS.md, or to the Decision or Enforcement of an ADR,
 #      carries no word a glossary entry lists under _Avoid:_ (ADR-0001). Whole words count, case
-#      insensitive, outside code spans and italics, as scripts/lib/rules.sh reads the rules. The
-#      change runs from the base CI passes in BASE, else from the merge base with origin/main or
-#      main, to the working tree. With no _Avoid:_ entry, or no base to compare with, there is
-#      nothing to check.
+#      insensitive, outside code spans and italics, as scripts/lib/rules.sh reads the rules, one
+#      line at a time. The change runs from the base CI passes in CHECK_DOCS_BASE, else, or when
+#      that does not resolve, from the merge base with origin/main or main, to the working tree.
+#      An _Avoid:_ list counts inside a glossary entry only. With no list, or no base to compare
+#      with, there is nothing to check.
 #
 # Checks 5 and 6 read every text file of the repository, not a list of documentation extensions:
 # docs/adr/README.md states that code may reference an ADR number, so a verifier restricted to
@@ -1307,7 +1308,8 @@ collect_text_files
 read_adr_headers
 scan_markdown
 # Check 17 (see the header). The glossary's entries give 'word<TAB>term' lines, the words in lower
-# case, split at commas and semicolons, a placeholder in angle brackets dropped.
+# case, split at commas and semicolons, a placeholder in angle brackets dropped. An entry is its
+# '- **Term**' line and the indented lines after it; prose outside an entry lists nothing.
 check_avoided_terms() {
   local avoid base
   [[ -f "$ROOT/docs/GLOSSARY.md" ]] || return
@@ -1319,16 +1321,15 @@ check_avoided_terms() {
         if (w != "" && w !~ /[<>]/) printf "%s\t%s\n", w, term
       }
     }
-    /^- \*\*[^*]+\*\*/ { term = $0; sub(/^- \*\*/, "", term); sub(/\*\*.*/, "", term); open = 0 }
-    open && /^[[:space:]]+[^[:space:]-]/ { take($0); next }
-    { open = 0 }
-    index($0, "_Avoid:_") { open = 1; take(substr($0, index($0, "_Avoid:_") + 8)) }
+    /^- \*\*[^*]+\*\*/ { term = $0; sub(/^- \*\*/, "", term); sub(/\*\*.*/, "", term); open = 0; entry = 1 }
+    !/^- \*\*/ && !/^[[:space:]]+[^[:space:]]/ { entry = 0; open = 0; term = "" }
+    entry && open && !index($0, "_Avoid:_") && /^[[:space:]]+[^[:space:]-]/ { take($0); next }
+    entry && term != "" && index($0, "_Avoid:_") { open = 1; take(substr($0, index($0, "_Avoid:_") + 8)) }
   ' "$ROOT/docs/GLOSSARY.md")"
   [[ -n "$avoid" ]] || return
-  base="${BASE:-}"
-  [[ "$base" =~ ^0+$ ]] && base=""
+  base="${CHECK_DOCS_BASE:-}"
+  (cd "$ROOT" && git rev-parse -q --verify "$base^{commit}" >/dev/null 2>&1) || base=""
   [[ -n "$base" ]] || base="$(cd "$ROOT" && main_merge_base HEAD)" || return
-  (cd "$ROOT" && git rev-parse -q --verify "$base^{commit}" >/dev/null) || return
   while IFS= read -r line; do add_error "$line"; done < <(cd "$ROOT" && rule_stream "$base" | awk -F '\t' -v avoid="$avoid" '
     BEGIN { n = split(avoid, rows, "\n"); for (i = 1; i <= n; i++) { split(rows[i], kv, "\t"); word[i] = kv[1]; term[i] = kv[2] } }
     $1 == "F" { file = $2; next }
