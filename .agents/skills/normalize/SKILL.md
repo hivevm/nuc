@@ -156,7 +156,10 @@ A project on a release before `v0.9.0` carries numbered ADRs: `0001` to `0006` i
 template, and its own from `0007` on. The take-up of `v0.9.0` or a later release moves them once to
 the fixed base and to identifiers
 ([NUC-adrs-record-decisions §8](../../../docs/adr/NUC-adrs-record-decisions.md) and
-[NUC-adrs-record-decisions §11](../../../docs/adr/NUC-adrs-record-decisions.md)). The release's
+[NUC-adrs-record-decisions §11](../../../docs/adr/NUC-adrs-record-decisions.md)). The migration is
+a normalization ([NUC-adrs-record-decisions §17](../../../docs/adr/NUC-adrs-record-decisions.md)),
+which covers its edits to accepted project ADRs: the renames, the headings, the `Status` and
+`Supersedes` fields, the `Role` lines, and the rewraps. The release's
 map is [`map-v0.9.0.txt`](map-v0.9.0.txt): the six inherited ADRs to the `NUC-` ADRs, and a table of
 every clause with the `NUC-` clause that carries it.
 
@@ -174,18 +177,10 @@ every clause with the `NUC-` clause that carries it.
    slug that states the decision
    ([NUC-adrs-record-decisions §8](../../../docs/adr/NUC-adrs-record-decisions.md)). Hand the map
    to the human, who reviews it before anything moves.
-4. **The record.** `remap.sh` leaves `docs/adr/` alone, so move the record by hand, by the
-   project map:
-   - rename each numbered file with `git mv` to `<CAT>-<slug>.md`, and head it with its
-     identifier;
-   - move the identifiers in the `Status` and `Supersedes` fields and in the citations of the
-     project's ADRs;
-   - move each citation of an inherited ADR to the `NUC-` clause that carries what it cites, by
-     the release's map
-     ([NUC-adrs-record-decisions §6](../../../docs/adr/NUC-adrs-record-decisions.md));
-   - rewrite the index as the release's index has it: the category list, the line on the base,
-     and the rows by category, without the inherited ADRs
-     ([NUC-adrs-record-decisions §15](../../../docs/adr/NUC-adrs-record-decisions.md)).
+4. **The index.** Rewrite the index as the release's index has it: the category list, the line
+   on the base, and the project's rows by category, without the inherited ADRs
+   ([NUC-adrs-record-decisions §15](../../../docs/adr/NUC-adrs-record-decisions.md)). The rows may
+   keep their numbered links; step 8 moves them.
 5. **The added clauses.** Turn each clause from step 1 into a project ADR through
    [`propose-adr`](../propose-adr/SKILL.md). Its `Extends:` or `Narrows:` field names the `NUC-`
    clause that carries the inherited clause
@@ -197,12 +192,18 @@ every clause with the `NUC-` clause that carries it.
 7. **The other files.** Take up the other files and move the release line, as steps 3 and 4 of
    [section 7](#7-take-up-a-template-release) say, so that only the project's own files are left
    for the maps.
-8. **The references.** Run `remap.sh --check` with the release's map and then with the project
-   map, and read what each would move and leave. Then apply both, the release's map first. Place
-   each reference a split leaves at the `NUC-` clause that carries what it cites, from the clause
-   table of the release's map. A reference that names something other than this record's ADR,
-   such as a message copied from an older release, stays as it is. Rewrap each line that a longer
-   identifier pushed past the width
-   [`scripts/check-docs.sh`](../../../scripts/check-docs.sh) holds, in the record too.
+8. **The references.** Run `remap.sh --record --check` with the release's map and then with the
+   project map, and read what each would move, rename, and leave. Then apply both, the release's
+   map first. With `--record` the script also renames each numbered file to `<CAT>-<slug>.md` and
+   moves its heading, its `Status` and `Supersedes` fields, its links, and its index row; it never
+   edits a `NUC-` file.
+   - Place each reference a split leaves at the `NUC-` clause that carries what it cites, from the
+     clause table of the release's map, in accepted ADRs too
+     ([NUC-adrs-record-decisions §6](../../../docs/adr/NUC-adrs-record-decisions.md)).
+   - A reference that names something other than this record's ADR, such as a message copied from
+     an older release or a file of another repository, keeps its old number. The script cannot
+     tell it apart, so revert each such move by hand after the run.
+   - Rewrap each line that a longer identifier pushed past the width
+     [`scripts/check-docs.sh`](../../../scripts/check-docs.sh) holds, in the record too.
 9. **The checks.** Go on with step 5 of [section 7](#7-take-up-a-template-release), and hand both
    maps to the human with the branch in its step 6.
