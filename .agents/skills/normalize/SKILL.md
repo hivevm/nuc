@@ -5,9 +5,11 @@ description: Restate the specification and rewrite the ADRs in force as a new se
 
 # Normalize the project
 
-The rule is rule 5 of [`AGENTS.md` §3](../../../AGENTS.md#3-adr-rules), with rules 3 and 7; the
-mechanics of a normalization are in [`docs/adr/README.md`](../../../docs/adr/README.md#mechanics).
-This skill is the order of work and states no rule of its own
+The rule is [NUC-adrs-record-decisions §17](../../../docs/adr/NUC-adrs-record-decisions.md), with
+[NUC-adrs-record-decisions §3](../../../docs/adr/NUC-adrs-record-decisions.md) and
+[NUC-documents-are-fixed §2](../../../docs/adr/NUC-documents-are-fixed.md); the mechanics of a
+normalization are in [`docs/adr/README.md`](../../../docs/adr/README.md#mechanics). This skill is
+the order of work and states no rule of its own
 ([NUC-procedures-are-skills §3](../../../docs/adr/NUC-procedures-are-skills.md)).
 
 ## 1. Entry point and inputs
@@ -29,7 +31,7 @@ with its files:
 
 - **Before the copy,** a local `main` with commits the remote's lacks moves them to a `feat/`
   branch: the hooks keep `main` to what `origin/main` has
-  ([`AGENTS.md` §6](../../../AGENTS.md#6-project-rules)).
+  ([NUC-main-only-via-pr §4](../../../docs/adr/NUC-main-only-via-pr.md)).
 - **Once the files are in,** every clone enables the hooks with the merge settings they rely on, as
   [Git hooks](../../../CONTRIBUTING.md#git-hooks) in the contributing guide says; a Dev Container
   rebuilt from the new configuration does it on every start.
@@ -38,7 +40,7 @@ with its files:
   for an adoption all of it, for a release what changed in the template's section between the
   two tags, such as the merge method or a required check.
   [`scripts/sensor-repo-settings.sh`](../../../scripts/sensor-repo-settings.sh), run on the
-  maintainer's instruction ([ADR-0002](../../../docs/adr/0002-decisions-verified-by-tests.md)),
+  maintainer's instruction ([NUC-checks-are-bash §7](../../../docs/adr/NUC-checks-are-bash.md)),
   reports what differs once the new contributing guide is in.
   A ruleset that still requires a check the workflow no longer runs blocks the merge; one that
   lacks a new check lets the merge through while that check fails.
@@ -58,8 +60,8 @@ decision found outside a record with where it was found.
    map, list the other citations with `git grep -nwE '<old identifiers>' -- ':!*.md'`, and note
    each that a fixture does not explain.
 3. Apply the map with [`remap.sh`](remap.sh): `.agents/skills/normalize/remap.sh <map file>`, the
-   map outside the tree or under `.scratch/`. Rewrite by hand what it lists as left, and the
-   citations noted in the step before.
+   map outside the tree or under `.scratch/`; its header gives the form of the lines. Rewrite by
+   hand what it lists as left, and the citations noted in the step before.
 4. Name every accepted ADR whose basis the change moves, and why. The human judges that list.
 5. Run [`scripts/check-all.sh`](../../../scripts/check-all.sh), commit on the normalization's
    branch, `chore/normalize`, and hand the commit to the human with the map. The supersessions
@@ -74,8 +76,9 @@ has decided each: accepted, with the ADRs it supersedes flipped to superseded, o
 
 ## 4. The cut
 
-Propose the new series to the human before writing a record, as a table: new number, title, the
-old ADRs it restates, and the group it belongs to. Order it as the mechanics say. Point out
+Propose the new record to the human before writing it, as a table: identifier, title, the old
+ADRs it restates, and the group it belongs to. An ADR restated alone keeps its identifier; a merged
+or split one takes a new identifier. Order it as the mechanics say. Point out
 every merge and every split, and every old ADR that maps to none. Write nothing until the human
 has agreed the cut.
 
@@ -90,10 +93,11 @@ has agreed the cut.
 2. Write the clause table for the hand-off: each clause of each old ADR, in its own words
    shortened to a line, with the new ADR and the section that carry it.
 3. Delete the old files, and rewrite both tables of the index.
-4. Write the ADR map, one line per old file, `OLD NEW`: a dead ADR maps to the new file of its
-   final successor, or to `-` where it has none. Apply it with `remap.sh` and rewrite by hand
-   what it lists as left.
-5. Make the tests cite the new numbers where `remap.sh` did not reach, and update
+4. Write the ADR map, one line per old identifier, `OLD NEW`: a dead ADR maps to its final
+   successor, or to `-` where it has none, and a split names each successor. A successor that is
+   itself mapped is refused, so a map has no chain. Check it with `remap.sh --check`, apply it
+   with `remap.sh`, and rewrite by hand what it lists as left; `--check` then reports nothing.
+5. Make the tests cite the new identifiers where `remap.sh` did not reach, and update
    [`docs/ARCHITECTURE.md`](../../../docs/ARCHITECTURE.md) where the cut changed what it cites.
 6. Run `scripts/check-all.sh`.
 
@@ -104,7 +108,7 @@ commit, the map, and the clause table: the reviewer walks the table, reads each 
 new ADR that carries it, and reports any decision that moved and any clause the table misses.
 Commit with the map in the commit body, and hand the branch to the human with both maps, the
 cut, the clause table, and the review in its hand-off. One pull request lands the branch
-([`AGENTS.md` §6](../../../AGENTS.md#6-project-rules)).
+([NUC-main-only-via-pr §4](../../../docs/adr/NUC-main-only-via-pr.md)).
 
 In the template, a release that merges, splits, or removes a `NUC-` ADR is a major, and its notes
 carry the map
@@ -127,9 +131,9 @@ own ADRs stay as they are; no inherited ADR is merged into its record. Work on a
    Change no `NUC-` file beyond the copy
    ([NUC-adrs-record-decisions §11](../../../docs/adr/NUC-adrs-record-decisions.md)).
 3. **The other files.** Take up each other file the notes name. Where the project changed the file
-   too, merge the two in the way the project chose. `AGENTS.md` is taken up as the release has it,
-   except the ADR rules of [§3](../../../AGENTS.md#3-adr-rules) that an ADR of the project on the
-   ADR process changed: those keep the project's wording, as its opening note says. The git hooks
+   too, merge the two in the way the project chose. `AGENTS.md` is taken up as the release has it:
+   a project narrows a rule of the record in an ADR of its own, not in the rule file
+   ([NUC-adrs-record-decisions §11](../../../docs/adr/NUC-adrs-record-decisions.md)). The git hooks
    and the repository settings follow as [section 1](#1-entry-point-and-inputs) says.
 4. **The release line.** Move the `Template release` line to the new tag in the same change
    ([NUC-releases-are-semver-tags §5](../../../docs/adr/NUC-releases-are-semver-tags.md)).
@@ -140,4 +144,5 @@ own ADRs stay as they are; no inherited ADR is merged into its record. Work on a
    ([NUC-adrs-record-decisions §6](../../../docs/adr/NUC-adrs-record-decisions.md)). Where the
    cited clause changed its meaning, hand the ADR to the human for a supersession instead.
 6. **Hand-off.** Hand the branch to the human with the two tags and, for a re-cut, the citations
-   that moved. One pull request lands it ([`AGENTS.md` §6](../../../AGENTS.md#6-project-rules)).
+   that moved. One pull request lands it
+   ([NUC-main-only-via-pr §4](../../../docs/adr/NUC-main-only-via-pr.md)).

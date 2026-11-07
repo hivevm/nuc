@@ -63,14 +63,14 @@ and whatever else the specification's threats protect.
   [`AGENTS.md` §5](../../../../AGENTS.md#5-quality-bar--definition-of-done) excludes it whatever
   the harness says.
 - A gate in one agent's own configuration as the enforcement of a rule
-  ([`AGENTS.md` §6](../../../../AGENTS.md#6-project-rules)).
+  ([NUC-main-only-via-pr §7](../../../../docs/adr/NUC-main-only-via-pr.md)).
 
 ## The rule a test decides
 
 None, as a rule: who reviews, who decides which ADRs, and what runs unattended is decided
 outside the tree. The ADR says so in a `**Not mechanically decidable:**` paragraph
-([ADR-0002](../../../../docs/adr/0002-decisions-verified-by-tests.md)). What the harness relies
-on mechanically is already checked: the git hooks, the required checks, and the Code Owners
+([NUC-decisions-cite-tests §4](../../../../docs/adr/NUC-decisions-cite-tests.md)). What the harness
+relies on mechanically is already checked: the git hooks, the required checks, and the Code Owners
 review of the repository settings.
 
 ## Sensors

@@ -27,8 +27,9 @@ The high-level approach to get there.
 Acceptance criteria a test can decide, where it helps in the form *When <trigger>, the system
 shall <response>*. Each starts with a bold `G-n`, which a test cites with `Verifies: G-n`. Until
 that test exists the criterion is pending work, and the traceability check lists it
-([ADR-0002](adr/0002-decisions-verified-by-tests.md)). Identifiers are never reused.
-Only a normalization renumbers them ([`AGENTS.md` §3](../AGENTS.md#3-adr-rules), rule 5).
+([NUC-decisions-cite-tests §5](adr/NUC-decisions-cite-tests.md)). Identifiers are never reused.
+Only a normalization renumbers them
+([NUC-decisions-cite-tests §1](adr/NUC-decisions-cite-tests.md)).
 
 1. **G-1** — …
 2. **G-2** — …

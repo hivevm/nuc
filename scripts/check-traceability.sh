@@ -21,14 +21,14 @@
 # tests, not the constitution.
 #
 # A marker is the word 'Verifies', a colon, and one or more identifiers separated by spaces or
-# commas: an ADR's, such as NUC-adrs-record-decisions or ADR-0004 of the old form, G-1, or Q-2. A
+# commas: an ADR's, such as NUC-adrs-record-decisions, G-1, or Q-2. A
 # word of another form fails. Markers count in any file git does not ignore that is not Markdown,
 # which is excluded so that the specification and the ADRs can describe markers without being
 # counted as one.
 # Whether the citing test asserts anything is review, not this check.
 #
 # 🟡 proposed ADRs are out of scope: their tests land while they are proposed, and the acceptance
-# lands with them (AGENTS.md, section 3).
+# lands with them (NUC-decisions-cite-tests §3).
 #
 # Pure bash + coreutils/grep/sed, plus git to enumerate the repository's files. The file list
 # comes from git — tracked plus new, not-yet-added files, minus everything .gitignore excludes.
@@ -140,8 +140,8 @@ while IFS= read -r -d '' rel; do
       if [[ "$id" =~ ^[GQ]-[0-9]+$ ]]; then
         _contains "$id" "${criteria[@]}" \
           || add_error "$rel:$lineno: cites '$id', which is not a criterion of $SPEC"
-      elif [[ ! "$id" =~ ^(ADR-$ADR_NUMBER_RE|$ADR_NEW_RE)$ ]]; then
-        add_error "$rel:$lineno: cites '$id', which is no identifier: ADR-NNNN, <CAT>-<slug> of two to five words, G-n, or Q-n"
+      elif [[ ! "$id" =~ ^$ADR_NEW_RE$ ]]; then
+        add_error "$rel:$lineno: cites '$id', which is no identifier: <CAT>-<slug> of two to five words, G-n, or Q-n"
       elif ! _contains "$id" "${known_adrs[@]}"; then
         add_error "$rel:$lineno: cites '$id', which does not exist in $ADR_DIR/"
       elif _contains "$id" "${inactive[@]}"; then

@@ -26,20 +26,21 @@ These properties shape the security posture of the coding agents working here:
   which keeps that capability outside the container's reach. The container is still not a strong
   security boundary, so run only agents and code you trust in it.
 - **Nothing leaves the machine without a human.** The rule is
-  [`AGENTS.md` §6](AGENTS.md#6-project-rules). It is documentation: no file in the repository can
-  stop an agent from running `git push`, and a tool's own configuration enforces none.
-  Authentication uses the web flow of `gh` with no stored tokens. What the repository's own git
-  hooks guarantee for every agent and every human, and what bypasses each, is under
+  [NUC-main-only-via-pr §2](docs/adr/NUC-main-only-via-pr.md). It is documentation: no file in the
+  repository can stop an agent from running `git push`, and a tool's own configuration enforces
+  none. Authentication uses the web flow of `gh` with no stored tokens. What the repository's own
+  git hooks guarantee for every agent and every human, and what bypasses each, is under
   [Git hooks](CONTRIBUTING.md#git-hooks) in the contributing guide.
 - **The specification and the decision record change only by human decision**
-  ([`AGENTS.md` §3](AGENTS.md#3-adr-rules), rules 4 and 7). The gate is
-  [`.github/CODEOWNERS`](.github/CODEOWNERS) together with the Code-Owner review requirement
-  listed under [**Repository settings**](CONTRIBUTING.md#repository-settings). It does not stop the
-  edit; it routes it to a human before it reaches `main`, and it holds for every agent alike.
-  Two limits are worth knowing. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) is deliberately
-  not gated, because [§5](AGENTS.md#5-quality-bar--definition-of-done) requires it to be updated in
-  the same change as the structure it describes. And a code owner GitHub does not know matches
-  nobody, so the file enforces nothing until it carries a real handle.
+  ([NUC-adrs-record-decisions §5](docs/adr/NUC-adrs-record-decisions.md) and
+  [NUC-documents-are-fixed §2](docs/adr/NUC-documents-are-fixed.md)). The gate is
+  [`.github/CODEOWNERS`](.github/CODEOWNERS) together with the Code-Owner review requirement listed
+  under [**Repository settings**](CONTRIBUTING.md#repository-settings). It does not stop the edit;
+  it routes it to a human before it reaches `main`, and it holds for every agent alike. Two limits
+  are worth knowing. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) is deliberately not gated,
+  because [§5](AGENTS.md#5-quality-bar--definition-of-done) requires it to be updated in the same
+  change as the structure it describes. And a code owner GitHub does not know matches nobody, so the
+  file enforces nothing until it carries a real handle.
 
 ## Secrets
 

@@ -50,7 +50,7 @@ itself. The rest of this skill holds as written.
      already points at succeeds without creating anything, and two clones would both win. That
      push skips the pre-push hook, since its commit carries the remote's `main` tree unchanged.
      It is the one push the harness ADR may grant without an instruction per push
-     ([`AGENTS.md` §6](../../../AGENTS.md#6-project-rules)).
+     ([NUC-main-only-via-pr §2](../../../docs/adr/NUC-main-only-via-pr.md)).
 
    Exit code 2 says another session was first: choose again. Then isolate the claim in a
    worktree, `git worktree add .scratch/worktrees/<spec>-<NN>-<slug> ticket/<spec>/<NN>-<slug>`,
@@ -86,8 +86,8 @@ itself. The rest of this skill holds as written.
 1. Each finished branch goes to a fresh session that did not write it, through
    [`review`](../review/SKILL.md), of the agent and model the harness ADR names for reviewing.
 2. The branch reaches `main` by its pull request, or merges into the `feat/` branch the human
-   names ([`AGENTS.md` §6](../../../AGENTS.md#6-project-rules)); its hand-off is the pull
-   request's description or the merge's message. A ticket whose spec has no ticket file left
+   names ([NUC-main-only-via-pr §5](../../../docs/adr/NUC-main-only-via-pr.md)); its hand-off is the
+   pull request's description or the merge's message. A ticket whose spec has no ticket file left
    hands that spec to [`design-revision`](../design-revision/SKILL.md).
 3. Remove each finished worktree (`git worktree remove .scratch/worktrees/<spec>-<NN>-<slug>`)
    and, once its work is on `main`, its branch: a ticket merged into a `feat/` branch keeps its

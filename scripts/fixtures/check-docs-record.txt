@@ -31,21 +31,19 @@
 #
 # In the expected text, '<deleted>' stands for the short hash of the commit of the last delete.
 #
-# An id is 'ADR:NNNN', the file NNNN-decision.md, or '<CAT>:<slug>', the file <CAT>-<slug>.md. A
+# An id is '<CAT>:<slug>', the file <CAT>-<slug>.md. A
 # status is accepted, proposed, rejected, or superseded:<id>. Everywhere in a line, a colon after
 # two to five capital letters, not preceded by a letter, a digit, or '_', and before a letter or a
 # digit reads as a hyphen: the file then cites no ADR of this repository, and the map script of the
 # normalize skill leaves it as it is.
 
-1 | fail | status for '0001-decision.md' is 🟡 | an index status that disagrees with the ADR | adr ADR:0001 proposed; status ADR:0001 accepted
-1 | fail | sits above the 'Superseded and rejected' heading | a rejected row in the binding table | file ADR:0001 rejected; row binding ADR:0001 rejected
-1 | fail | sits below the 'Superseded and rejected' heading | a proposed row in the archive table | file ADR:0001 proposed; row archive ADR:0001 proposed
-1 | fail | lists '0001-decision.md' twice | a row both sides of a union merge kept | adr ADR:0001 proposed; row binding ADR:0001 proposed
-1 | pass | - | an ADR of the new form and its row | adr SEC:host-socket-closed proposed
-1 | fail | file 'SEC:host-socket-closed.md' exists but is not listed | an ADR of the new form without its row | file SEC:host-socket-closed proposed
-1 | fail | lists 'OPS:gone-rule.md', but no such ADR file exists | a row of the new form without its file | row binding OPS:gone-rule proposed
-2 | fail | numbers must run 0001..N without gaps | a gap in the old numbering | adr ADR:0001 proposed; adr ADR:0003 proposed
-2 | pass | - | both forms side by side | adr ADR:0001 accepted; adr SEC:host-socket-closed proposed
+1 | fail | status for 'SEC:decision-1.md' is 🟡 | an index status that disagrees with the ADR | adr SEC:decision-1 proposed; status SEC:decision-1 accepted
+1 | fail | sits above the 'Superseded and rejected' heading | a rejected row in the binding table | file SEC:decision-1 rejected; row binding SEC:decision-1 rejected
+1 | fail | sits below the 'Superseded and rejected' heading | a proposed row in the archive table | file SEC:decision-1 proposed; row archive SEC:decision-1 proposed
+1 | fail | lists 'SEC:decision-1.md' twice | a row both sides of a union merge kept | adr SEC:decision-1 proposed; row binding SEC:decision-1 proposed
+1 | pass | - | an ADR and its row | adr SEC:host-socket-closed proposed
+1 | fail | file 'SEC:host-socket-closed.md' exists but is not listed | an ADR without its row | file SEC:host-socket-closed proposed
+1 | fail | lists 'OPS:gone-rule.md', but no such ADR file exists | a row without its file | row binding OPS:gone-rule proposed
 2 | fail | SEC:Host_socket.md: the identifier is not | a slug with capitals and an underscore | adr SEC:Host_socket proposed
 2 | fail | API:one-two-three-four-five-six.md: the identifier is not | a slug of six words | adr API:one-two-three-four-five-six proposed
 2 | fail | XYZ:some-thing.md: the category XYZ is neither fixed nor in the category list | a category nobody defined | adr XYZ:some-thing proposed
@@ -57,7 +55,7 @@
 2 | pass | - | an ADR a merged side branch deleted and wrote anew, as a normalization does | adr OPS:kept-rule proposed; commit; branch side; delete OPS:kept-rule; adr OPS:kept-rule accepted; commit; back; merge side
 2 | fail | OPS:gone-rule.md: the identifier OPS:gone-rule was taken | an ADR a merged side branch deleted, taken again | adr OPS:gone-rule proposed; commit; branch side; delete OPS:gone-rule; back; merge side; adr OPS:gone-rule proposed
 2 | pass | - | a deleted ADR whose identifier nobody takes again | adr OPS:old-rule proposed; commit; delete OPS:old-rule; adr OPS:new-rule proposed
-5 | fail | reference 'ADR:0042' matches no ADR file | an old reference to an ADR that does not exist | text README.md Decided in ADR:0042.
+2 | fail | 0001-old.md: a numbered ADR, a form no check reads | a numbered ADR file left from before the migration | text docs/adr/0001-old.md # old decision
 5 | pass | - | a clause citation of an existing ADR | adr SEC:x-rule proposed; text README.md See [SEC:x-rule §3](docs/adr/SEC:x-rule.md) and SEC:x-rule §1.
 5 | fail | reference 'SEC:y-rule' matches no ADR file | a clause citation of a missing ADR | adr SEC:x-rule proposed; text README.md See SEC:y-rule §3.
 5 | fail | reference 'UX:dark-mode' matches no ADR file | a project category cited and missing | category UX; text README.md See UX:dark-mode.
@@ -66,19 +64,19 @@
 5 | pass | - | a slug of one word in a shell script is no citation | text scripts/lib/note.sh # An API:first design.
 5 | pass | - | a chain longer than an identifier is no citation, not one cut short | text README.md NUC:adrs-record-decisions-and-a-b.
 5 | pass | - | a hyphenated word of no category is no citation | text README.md UTF:8 and SHA:256 and CVE:2025-30066.
-6 | fail | cites SEC:x-rule but points at '0001-decision.md' | a link that cites one ADR and points at another | adr ADR:0001 accepted; adr SEC:x-rule proposed; text README.md See [SEC:x-rule](docs/adr/0001-decision.md).
-6 | pass | - | a link that cites an ADR of the new form and points at its file | adr SEC:x-rule proposed; text README.md See [SEC:x-rule §2](docs/adr/SEC:x-rule.md#decision).
+6 | fail | cites SEC:x-rule but points at 'SEC:decision-1.md' | a link that cites one ADR and points at another | adr SEC:decision-1 accepted; adr SEC:x-rule proposed; text README.md See [SEC:x-rule](docs/adr/SEC:decision-1.md).
+6 | pass | - | a link that cites an ADR and points at its file | adr SEC:x-rule proposed; text README.md See [SEC:x-rule §2](docs/adr/SEC:x-rule.md#decision).
 6 | pass | - | a link that cites an ADR and points outside docs/adr/ is no claim | adr SEC:x-rule proposed; text docs/notes/threat-model.md # Threat model; text README.md See [SEC:x-rule](docs/notes/threat-model.md).
-8 | pass | - | one ADR superseding two, both flipped | adr ADR:0001 superseded:ADR:0003; adr ADR:0002 superseded:ADR:0003; adr ADR:0003 accepted; supersedes ADR:0003 ADR:0001,ADR:0002
-8 | fail | 0002-decision.md: 0003-decision.md supersedes it | one ADR superseding two, the second not flipped | adr ADR:0001 superseded:ADR:0003; adr ADR:0002 proposed; adr ADR:0003 accepted; supersedes ADR:0003 ADR:0001,ADR:0002
-8 | pass | - | a Supersedes field wrapped onto a second line, both flipped | adr ADR:0001 superseded:ADR:0003; adr ADR:0002 superseded:ADR:0003; adr ADR:0003 accepted; supersedes ADR:0003 ADR:0001,+ADR:0002
-8 | fail | 0002-decision.md: 0003-decision.md supersedes it | a wrapped Supersedes field, the name on the second line not flipped | adr ADR:0001 superseded:ADR:0003; adr ADR:0002 proposed; adr ADR:0003 accepted; supersedes ADR:0003 ADR:0001,+ADR:0002
-8 | pass | - | a proposed supersession, the old ADR still accepted | adr ADR:0001 accepted; adr ADR:0002 proposed; supersedes ADR:0002 ADR:0001
-8 | fail | 0001-decision.md: superseded by ADR:0002, which is not accepted | an old ADR flipped while its successor is only proposed | adr ADR:0001 superseded:ADR:0002; adr ADR:0002 proposed; supersedes ADR:0002 ADR:0001
-8 | pass | - | a chain of supersessions, the last successor accepted | adr ADR:0001 superseded:ADR:0002; adr ADR:0002 superseded:ADR:0003; adr ADR:0003 accepted; supersedes ADR:0002 ADR:0001; supersedes ADR:0003 ADR:0002
-8 | pass | - | an ADR of the new form superseding an old one, accepted and flipped | adr ADR:0001 superseded:SEC:new-rule; adr SEC:new-rule accepted; supersedes SEC:new-rule ADR:0001
-8 | fail | 0001-decision.md: SEC:new-rule.md supersedes it, but its status line does not say 'superseded by SEC:new-rule' | an ADR of the new form accepted, the old one not flipped | adr ADR:0001 accepted; adr SEC:new-rule accepted; supersedes SEC:new-rule ADR:0001
-8 | fail | SEC:new-rule.md: 0001-decision.md says it supersedes, but it carries no '**Supersedes:**' field naming ADR:0001 | an old ADR naming a successor of the new form that does not claim it | adr ADR:0001 superseded:SEC:new-rule; adr SEC:new-rule accepted
+8 | pass | - | one ADR superseding two, both flipped | adr SEC:decision-1 superseded:SEC:decision-3; adr SEC:decision-2 superseded:SEC:decision-3; adr SEC:decision-3 accepted; supersedes SEC:decision-3 SEC:decision-1,SEC:decision-2
+8 | fail | SEC:decision-2.md: SEC:decision-3.md supersedes it | one ADR superseding two, the second not flipped | adr SEC:decision-1 superseded:SEC:decision-3; adr SEC:decision-2 proposed; adr SEC:decision-3 accepted; supersedes SEC:decision-3 SEC:decision-1,SEC:decision-2
+8 | pass | - | a Supersedes field wrapped onto a second line, both flipped | adr SEC:decision-1 superseded:SEC:decision-3; adr SEC:decision-2 superseded:SEC:decision-3; adr SEC:decision-3 accepted; supersedes SEC:decision-3 SEC:decision-1,+SEC:decision-2
+8 | fail | SEC:decision-2.md: SEC:decision-3.md supersedes it | a wrapped Supersedes field, the name on the second line not flipped | adr SEC:decision-1 superseded:SEC:decision-3; adr SEC:decision-2 proposed; adr SEC:decision-3 accepted; supersedes SEC:decision-3 SEC:decision-1,+SEC:decision-2
+8 | pass | - | a proposed supersession, the old ADR still accepted | adr SEC:decision-1 accepted; adr SEC:decision-2 proposed; supersedes SEC:decision-2 SEC:decision-1
+8 | fail | SEC:decision-1.md: superseded by SEC:decision-2, which is not accepted | an old ADR flipped while its successor is only proposed | adr SEC:decision-1 superseded:SEC:decision-2; adr SEC:decision-2 proposed; supersedes SEC:decision-2 SEC:decision-1
+8 | pass | - | a chain of supersessions, the last successor accepted | adr SEC:decision-1 superseded:SEC:decision-2; adr SEC:decision-2 superseded:SEC:decision-3; adr SEC:decision-3 accepted; supersedes SEC:decision-2 SEC:decision-1; supersedes SEC:decision-3 SEC:decision-2
+8 | pass | - | an ADR superseding an old one, accepted and flipped | adr SEC:decision-1 superseded:SEC:new-rule; adr SEC:new-rule accepted; supersedes SEC:new-rule SEC:decision-1
+8 | fail | SEC:decision-1.md: SEC:new-rule.md supersedes it, but its status line does not say 'superseded by SEC:new-rule' | an ADR accepted, the old one not flipped | adr SEC:decision-1 accepted; adr SEC:new-rule accepted; supersedes SEC:new-rule SEC:decision-1
+8 | fail | SEC:new-rule.md: SEC:decision-1.md says it supersedes, but it carries no '**Supersedes:**' field naming SEC:decision-1 | an old ADR naming a successor that does not claim it | adr SEC:decision-1 superseded:SEC:new-rule; adr SEC:new-rule accepted
 12 | pass | - | a base that matches its blob list | file NUC:base-rule accepted; blobs
 12 | pass | - | a list written out with the git blob identifier of the file's content | file NUC:base-rule accepted; text docs/adr/NUC.blobs 2bb3f08bb1f9ab0e5ef83df15d5ec1f6ede8c83b NUC:base-rule.md
 12 | fail | NUC:base-rule.md: differs from its line | a list written out with another identifier | file NUC:base-rule accepted; text docs/adr/NUC.blobs 2bb3f08bb1f9ab0e5ef83df15d5ec1f6ede8c83c NUC:base-rule.md
