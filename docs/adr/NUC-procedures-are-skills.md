@@ -1,0 +1,145 @@
+# NUC-procedures-are-skills: The procedures of the rule file are Agent Skills under `.agents/skills/`, each carrying a how and no rule of its own
+
+- **Status:** 🟡 proposed
+- **Date:** 2026-11-07
+- **Deciders:** NUC maintainer
+- **Applies to:** `.agents/skills/`, `.claude/skills/`, check 11 of `scripts/check-docs.sh`, `AGENTS.md` where it names a procedure, `docs/adr/template.md`, `.github/ISSUE_TEMPLATE/`, and `.github/PULL_REQUEST_TEMPLATE.md`
+
+## Context
+
+[`AGENTS.md`](../../AGENTS.md) states rules. Several of them are procedures: developing an ADR,
+planning work larger than one session and working its tickets, reviewing a change, and revising
+the design. Each was once written out in the rule file and again where it is used: the ADR
+template, the issue templates, the pull request template. The copies drift. Every sharpening
+lands in a file that every session reads in full, whether it reviews, plans, or fixes a typo.
+
+Two forces bound the answer. The rule file is the single source of working rules, and no other
+document states one. So wherever a procedure moves, it carries the *how* and cites the rule. And
+the template is vendor-neutral: a format that one agent reads is worth a pointer, not a home for
+process.
+
+Agent Skills are an open specification. A skill is a directory with a `SKILL.md` whose front
+matter names it and says when it applies. An agent loads it in full only when a task matches.
+Every agent this template names reads skills, and some forty others do. The location is not part
+of the specification. Codex, Gemini CLI, and Cursor read `.agents/skills/`. Claude Code reads only
+`.claude/skills/`, and the request to read the neutral path is open upstream. Tried on Claude Code
+2.1.274: a `.claude/skills` that is itself a symlink loads nothing. A real `.claude/skills/`
+directory holding one symlink per skill loads all of them.
+
+## Decision
+
+We will keep the procedures of the rule file as Agent Skills under `.agents/skills/`, each
+carrying a how and no rule of its own.
+
+1. **Skills.** Each procedure of the rule file is an Agent Skill under `.agents/skills/`. A skill
+   is one directory with a `SKILL.md`. The procedures are these:
+   - developing an ADR, in `propose-adr`;
+   - planning work larger than one session, in `plan-feature`;
+   - working its tickets, alone or in parallel, in `work-tickets`;
+   - reviewing a change, in `review`;
+   - revising the design, in `design-revision`;
+   - normalizing the record and taking up the template or a release, in `normalize`.
+2. **Setup.** While `TEMPLATE-SETUP.md` exists, its walk is a skill of the same kind,
+   `setup-project`. The change that deletes the file must delete the skill.
+3. **Content.** A skill carries the steps of one procedure.
+   - It must cite the section of `AGENTS.md`, the ADR, or the setup step that requires the
+     procedure.
+   - It must not state a rule of its own.
+4. **Naming the skill.** The rule file and the templates name the skill of a procedure. They must
+   not carry its steps.
+5. **Reference files.** A skill may carry reference files that its procedure reads, such as the
+   catalogue of `propose-adr`. A reference file holds knowledge and must not hold a rule.
+6. **Scripts.** A skill may carry a script for a step whose outcome depends on the order of its
+   commands, such as the claim of `work-tickets`. The script is a how, like the steps. A self-test
+   under `scripts/` must run it.
+7. **Pointer directory.** An agent that reads skills only from another directory reaches them
+   through a pointer directory.
+   - A pointer directory must hold one symlink per skill, named like the skill and resolving to
+     it.
+   - It must hold nothing else. A copy of a skill must not stand in for its symlink.
+   - One symlink for the whole directory must not replace the symlinks per skill.
+   - Claude Code reads skills only from `.claude/skills/`, so that directory is a pointer
+     directory.
+
+**Out of scope:**
+
+- the skills a project adds for its own domain, which the *Latitude* leaves to it;
+- whether a skill may run unattended, which its ticket decides by
+  [`AGENTS.md` §4](../../AGENTS.md#4-working-style);
+- that no document besides the rule file states a rule, which `NUC-documents-are-fixed` decides;
+- the order of work of each procedure, which its skill carries;
+- a check on the front matter of a skill.
+
+## Latitude
+
+A project may choose:
+
+- skills of its own for its domain, with their reference files and scripts, in the form of
+  clauses 3, 5, and 6;
+- the pointer directories of the further agents its harness names, per the entry
+  [harness](../../.agents/skills/propose-adr/concepts/harness.md) of the catalogue.
+
+The catalogue has no entry for the first choice, and it needs no ADR.
+
+## Alternatives considered
+
+- **Procedures stay in prose.** Four copies drift, and every session pays for the whole rule file.
+- **One agent's native commands,** such as Claude Code commands or Cursor rules. They put the
+  process in one vendor's format, against the reason for one rule file.
+- **A published skills collection or plugin.** It brings a process in one piece, with its own
+  artifacts and vocabulary. The template declines the same trade for planning.
+- **Procedures as plain files under `docs/`, loaded by pointer.** They offer no progressive
+  disclosure and no invocation by name. Every session pays for all of them or for none.
+- **A copy per agent directory.** Two tracked sources drift, which one rule file exists to
+  prevent. A symlink is one source.
+- **One symlink for the whole directory.** It is the obvious first try, and Claude Code does not
+  follow it (see Context).
+
+## Sources / Prior art
+
+- Agent Skills specification — <https://agentskills.io/specification>; client list at
+  <https://agentskills.io/>.
+- Skill locations — Claude Code: <https://code.claude.com/docs/en/skills>; Codex:
+  <https://learn.chatgpt.com/docs/build-skills>; Gemini CLI:
+  <https://geminicli.com/docs/cli/skills/>; Cursor: <https://cursor.com/docs/context/skills>.
+- Matt Pocock's skills — <https://github.com/mattpocock/skills>: a process as a set of named,
+  lazily loaded `SKILL.md` files rather than a framework that owns it; *Writing for agents* —
+  <https://www.aihero.dev/skills-writing-for-agents>: what applies in one context out of ten goes
+  behind a pointer. Addy Osmani, *Agent skills* — <https://addyosmani.com/blog/agent-skills/>:
+  process over prose, each phase ending in evidence.
+- The open request for Claude Code to read `.agents/skills/` —
+  <https://github.com/anthropics/claude-code/issues/31005>; symlinked skill folders load but the
+  agent's listing may not show them — <https://github.com/anthropics/claude-code/issues/14836>.
+
+## Consequences
+
+- Positive: one place for each how, and the rule file shrinks to rules.
+- Positive: a procedure costs context only when it runs.
+- Positive: a human starts a review or an ADR by name instead of hoping a paragraph is followed.
+- Negative: a skill is a fifth kind of tracked artifact. Its steps or its reference files can
+  smuggle in a rule, and only review sees that.
+- Negative: a skill is Markdown and is followed as reliably as Markdown. What the template
+  enforces, it enforces through hooks, checks, and repository settings, and this decision adds
+  nothing to that.
+- Negative: the pointers rest on observed behaviour of one Claude Code version, not on documented
+  behaviour.
+- Follow-ups: delete the pointer directory and its check once Claude Code reads `.agents/skills/`;
+  a check on the front matter of a skill once the reference validator is worth the dependency.
+
+## Enforcement
+
+- Check 11 of `scripts/check-docs.sh` holds the pointer directory `.claude/skills/` (clause 7).
+  - It fails when a skill has no symlink there.
+  - It fails when an entry there is a copy, dangles, or resolves to another skill.
+  - It fails when a skill lives only there.
+  - Its self-test cites this ADR.
+- `scripts/check-docs.sh` resolves every link and every section reference a skill makes
+  (clause 3).
+
+**Not mechanically decidable:** five clauses rest on judgement. The review holds them:
+
+- whether a skill or its reference file states a rule (clauses 3 and 5);
+- whether the rule file and the templates name the skill instead of its steps (clause 4);
+- whether a self-test runs each script of a skill (clause 6);
+- whether a further pointer directory, other than `.claude/skills/`, holds its symlinks
+  (clause 7).
