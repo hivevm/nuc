@@ -123,7 +123,7 @@ avoid_terms() {
     }
     /^- \*\*[^*]+\*\*/ { term = $0; sub(/^- \*\*/, "", term); sub(/\*\*.*/, "", term); open = 0; entry = 1 }
     !/^- \*\*/ && !/^[[:space:]]+[^[:space:]]/ { entry = 0; open = 0; term = "" }
-    /^[[:space:]]+([-*+]|[0-9]+[.)])([[:space:]]|$)/ { open = 0 }
+    /^[[:space:]]+([-*+]|[0-9]+\.)[[:space:]]/ { open = 0 }
     entry && open && !index($0, "_Avoid:_") && /^[[:space:]]+[^[:space:]-]/ { take($0); next }
     entry && term != "" && index($0, "_Avoid:_") { open = 1; take(substr($0, index($0, "_Avoid:_") + 8)) }
   ' "$1"

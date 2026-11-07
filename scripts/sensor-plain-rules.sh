@@ -9,8 +9,9 @@
 # and each word on an added line that an entry of docs/GLOSSARY.md lists under _Avoid:_, with the
 # term to write instead (ADR-0001). A verb or a word counts whole, case insensitive, and not inside
 # an identifier, where a letter, a digit, or an underscore adjoins it. A listed word that the line
-# break of a paragraph splits counts on the line it starts on, when either line is added. A
-# paragraph or a list item ends a sentence; so do '.', '!', and '?' before a space or the end. It
+# break of a paragraph splits counts when either line is added, on the line it starts on if that
+# line is added, else on the next; the gap a code span or an italic leaves at the end of a line
+# stays. A paragraph or a list item ends a sentence; so do '.', '!', and '?' before a space or the end. It
 # reports for the reviewer and never fails on what it counts.
 #
 # Pure bash + git + awk. Usage:
@@ -86,12 +87,11 @@ while IFS= read -r finding; do findings+=("$finding"); done < <(
     $1 == "P" { flush(); prev = ""; next }
     {
       nr = $2; text = $4; low = squash(text)
-      # A term the line break of a paragraph splits counts on the line it starts on, the previous one.
       if (prev != "" && ($3 == 1 || prevadded)) {
-        joined = prev substr(low, 2)
-        for (i = 1; i <= na; i++) if (found(joined, word[i], length(prev))) avoided(prevnr, i)
+        joined = prev " " substr(low, 2)
+        for (i = 1; i <= na; i++) if (found(joined, word[i], length(prev) + 1)) avoided(prevadded ? prevnr : nr, i)
       }
-      prev = low; prevnr = nr; prevadded = ($3 == 1)
+      prev = tolower(text); sub(/^[[:space:]]+/, "", prev); prev = " " prev; prevnr = nr; prevadded = ($3 == 1)
       if ($3 == 1) {
         n = split("should could might ideally", soft, " ")
         for (i = 1; i <= n; i++)
