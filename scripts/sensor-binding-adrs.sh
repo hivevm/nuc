@@ -186,7 +186,7 @@ fi
 if ((worktree)); then
   adrs="$(adr_files docs/adr 2>/dev/null)"
 else
-  adrs="$(git ls-tree -r --name-only "$head" -- docs/adr/ | grep -E "^docs/adr/([0-9]{4}-[^/]*|draft-[^/]*)\\.md\$")"
+  adrs="$(git ls-tree -r --name-only "$head" -- docs/adr/ | grep -E "^docs/adr/$ADR_FILE_RE\$")"
 fi
 
 found=()
