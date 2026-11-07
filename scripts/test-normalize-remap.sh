@@ -6,10 +6,11 @@
 # Each case builds a throwaway git repository under a temporary directory, writes a map, runs the
 # script in it, and asserts the exit code and the files afterwards. The cases cover an ADR moved
 # to a new identifier, a clause moved to another ADR, the one migration of a numbered ADR, a split
-# left for the hand, a marker that already names the successor, a refused chain, the --check mode,
-# a second run that changes nothing, a swap of two criteria, the record left untouched, a criterion
-# outside Markdown and outside a marker line, a reference to an ADR with no successor, an ignored
-# file, files without a final newline and a binary one, an invalid map that changes nothing, and
+# left for the hand, a marker that already names the successor, a refused chain, the --check
+# mode, a second run that changes nothing, a swap of two criteria, the record left untouched, a
+# criterion outside Markdown and outside a marker line, a reference to an ADR with no successor, an
+# ignored file, files without a final newline and a binary one, each invalid map, which changes
+# nothing, and
 # every ADR of a copy of this repository moved to a new identifier, after which the other
 # self-tests still pass.
 #
@@ -78,16 +79,17 @@ rerun() {
 d="$(repo move)"
 printf 'Read [%s](docs/adr/%s.md), then %s %s3.\n' "$(id one)" "$(id one)" "$(id one)" "$S" > "$d/README.md"
 printf '# %s: %s %s\n' "$V" "$(id one)" "$(id two)" > "$d/src/test.sh"
-printf 'Not %s-x, nor X%s.\n' "$(id one)" "$(id one)" > "$d/notes.md"
+printf 'Not %s-x, x%s, nor _%s.\n' "$(id one)" "$(id one)" "$(id one)" > "$d/notes.md"
 run "$d" "$(id one) $(id four)"; rc=$?
 check "a move exits 0" "[[ $rc -eq 0 ]]"
 check "a move rewrites the identifier, its link, and a clause" \
   "grep -qF 'Read [$(id four)](docs/adr/$(id four).md), then $(id four) ${S}3.' '$d/README.md'"
 check "a move rewrites a marker" "grep -qF '$V: $(id four) $(id two)' '$d/src/test.sh'"
-check "a longer identifier or word is left alone" "grep -qF 'Not $(id one)-x, nor X$(id one).' '$d/notes.md'"
+check "a longer identifier or word is left alone, on either side" \
+  "grep -qF 'Not $(id one)-x, x$(id one), nor _$(id one).' '$d/notes.md'"
 check "a move prints the files it changed" "grep -qx 'README.md' '$work/out' && grep -qx 'src/test.sh' '$work/out'"
 check "the record under docs/adr/ is left as it was" \
-  "grep -qF '[$(id two)]($(id two).md)' '$d/docs/adr/$(id one).md'"
+  "grep -qxF '# $(id one): a' '$d/docs/adr/$(id one).md' && grep -qF '[$(id two)]($(id two).md)' '$d/docs/adr/$(id one).md'"
 
 # A second run with the same map changes nothing, and --check then finds nothing to move.
 cp "$d/README.md" "$work/readme.before"
@@ -143,6 +145,10 @@ printf '# %s: %s %s\n' "$V" "$(id four)" "$(old 3)" > "$d/src/test.sh"
 run "$d" "0003-gamma.md $(id four)"; rc=$?
 check "a marker that already names the successor keeps it once" \
   "[[ $rc -eq 0 ]] && grep -qxF '# $V: $(id four)' '$d/src/test.sh'"
+printf '# %s: %s, %s\n' "$V" "$(old 3)" "$(id four)" > "$d/src/test.sh"
+run "$d" "0003-gamma.md $(id four)"; rc=$?
+check "an old identifier dropped first in a marker takes the separator after it" \
+  "[[ $rc -eq 0 ]] && grep -qxF '# $V: $(id four)' '$d/src/test.sh'"
 
 # A chain or a cycle among ADR identifiers is refused: an identifier is never used twice, and a
 # second run of such a map would move again.
@@ -152,6 +158,10 @@ run "$d" "$(id one) $(id two)" "$(id two) $(id one)"; rc=$?
 check "a cycle of ADR identifiers exits 1" "[[ $rc -eq 1 ]] && grep -qF 'never used twice' '$work/out'"
 run "$d" "$(id one) $(id two)" "$(id two) $(id three)"; rc=$?
 check "a chain of ADR identifiers exits 1" "[[ $rc -eq 1 ]]"
+run "$d" "$(id one) $(id two)" "$(id two)${S}2 $(id three)${S}1"; rc=$?
+check "a successor whose clause is mapped exits 1" "[[ $rc -eq 1 ]] && grep -qF 'never used twice' '$work/out'"
+run "$d" "$(id one)${S}3 $(id two)${S}1" "$(id two) $(id three)"; rc=$?
+check "a clause whose successor's identifier is mapped exits 1" "[[ $rc -eq 1 ]] && grep -qF 'never used twice' '$work/out'"
 check "a refused map changes nothing" "grep -qxF '$(id one)' '$d/README.md'"
 
 # A swap of two criteria: in Markdown, on a marker line, and in an ADR; never in the specification
@@ -215,6 +225,14 @@ run "$d" "$(id one) $(id four)" "$(id one) $(id five)"; rc=$?
 check "an ADR mapped twice exits 1" "[[ $rc -eq 1 ]] && grep -qF 'mapped twice' '$work/out'"
 run "$d" "$(id one)"; rc=$?
 check "a line without NEW exits 1" "[[ $rc -eq 1 ]]"
+run "$d" "# only a comment"; rc=$?
+check "an empty map exits 1" "[[ $rc -eq 1 ]] && grep -qF 'the map is empty' '$work/out'"
+run "$d" "$(id one)${S}3 $(id two)${S}1 $(id three)${S}1"; rc=$?
+check "a clause mapped to two exits 1" "[[ $rc -eq 1 ]] && grep -qF 'only a clause maps to, and alone' '$work/out'"
+run "$d" "$(id one) $(id two)${S}1"; rc=$?
+check "an identifier mapped to a clause exits 1" "[[ $rc -eq 1 ]] && grep -qF 'only a clause maps to' '$work/out'"
+run "$d" "0001-alpha.md $(id four)" "0001-other.md $(id five)"; rc=$?
+check "a number mapped twice exits 1" "[[ $rc -eq 1 ]] && grep -qF 'its number is mapped twice' '$work/out'"
 
 # Outside a repository the script refuses.
 mkdir -p "$work/bare"
