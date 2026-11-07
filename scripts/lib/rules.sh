@@ -106,8 +106,8 @@ rule_stream() {
 }
 
 # avoid_terms <glossary> — what the glossary's entries list under _Avoid:_, split at commas and
-# semicolons, a leading 'and', a trailing period, the stars and underscores of italics, and a
-# placeholder in angle brackets dropped. Each item it reads is 'A<TAB>word<TAB>term<TAB>qualifier':
+# semicolons, a leading 'and', a trailing period, the stars and underscores of italics, the
+# backticks of a code span, and a placeholder in angle brackets dropped. Each item it reads is 'A<TAB>word<TAB>term<TAB>qualifier':
 # one to three words in lower case, letters beyond ASCII among them, then 'alone' where the item
 # ends so, or nothing; 'in prose' at its end reads as nothing, since only prose is read. Each item
 # it cannot read is 'U<TAB>line<TAB>item<TAB>term', and each term 'T<TAB>term' in lower case. An
@@ -120,7 +120,7 @@ avoid_terms() {
     function take(s,  n, i, k, w, q, parts, parts2) {
       n = split(s, parts, /[,;]/)
       for (i = 1; i <= n; i++) {
-        w = " " parts[i] " "; gsub(/\*/, "", w)
+        w = " " parts[i] " "; gsub(/[*`]/, "", w)
         while (match(w, /[^[:alnum:]]_|_[^[:alnum:]]/)) w = substr(w, 1, RSTART - 1 + (substr(w, RSTART, 1) != "_")) substr(w, RSTART + 1 + (substr(w, RSTART, 1) != "_"))
         w = tolower(w); gsub(/[[:space:]]+/, " ", w); gsub(/^ (and )?| ?[.]? ?$/, "", w)
         if (w == "" || w ~ /[<>]/) continue

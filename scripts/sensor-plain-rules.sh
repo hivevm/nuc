@@ -15,8 +15,8 @@
 # It lists each item of an _Avoid:_ list that scripts/lib/rules.sh cannot read. A listed word
 # that the line break of a paragraph splits counts when either line is added, on the line it
 # starts on if that line is added, else on the next; the gap a code span or an italic leaves at
-# the end of a line stays. A paragraph or a list
-# item ends a sentence; so do '.', '!', and '?' before a space or the end.
+# the end of a line stays. A paragraph or a list item ends a sentence; so do '.', '!', and '?'
+# before a space or the end.
 #
 # Without '--require' it reports for the reviewer and never fails on what it counts. With
 # '--require' it fails on a soft modal verb or an avoided word in a project ADR; in a 'NUC-' ADR

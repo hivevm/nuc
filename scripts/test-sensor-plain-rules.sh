@@ -307,6 +307,18 @@ sed 's/adr=\*/max=*/' "$broken/awk" > "$work/awk" && mkdir -p "$work/max" && mv 
 out="$(PATH="$work/max:$PATH" bash "$SENSOR" --root "$r" main 2>&1)"; rc=$?
 check "a sensor whose awk fails: exit 2, saying so" test "$rc" -eq 2 -a "${out/awk failed on the rules/}" != "$out"
 
+# A glossary reader that breaks, told by its function 'take': exit 2, never a silent pass.
+r="$(repo broken-glossary)"
+glossary "$r"
+after "$r" AGENTS.md "## 1. Rules" "- $SHORT"
+mkdir -p "$work/take"
+# shellcheck disable=SC2016 # the script is written as it runs, its variables unexpanded
+printf '#!/usr/bin/env bash\nfor a; do [[ "$a" == *"function take("* ]] && { echo "awk: syntax error" >&2; exit 2; }; done\nexec %q "$@"\n' \
+  "$(command -v awk)" > "$work/take/awk"
+chmod +x "$work/take/awk"
+out="$(PATH="$work/take:$PATH" bash "$SENSOR" --root "$r" main 2>&1)"; rc=$?
+check "a glossary reader that fails: exit 2, saying so" test "$rc" -eq 2 -a "${out/could not read docs\/GLOSSARY.md/}" != "$out"
+
 # A listing that breaks: a git on PATH that fails on '--name-status', which only rule_stream asks for
 # when it lists the files a change touches, and hands every other command to the real git.
 unlisted="$work/broken-git"
@@ -382,6 +394,13 @@ check "the reader: '*shape* alone' is the word with its qualifier" \
 printf -- '- **Size** — how large a node is.\n  _Avoid:_ Größe.\n' > "$reader"
 check "the reader: a word with letters beyond ASCII is read" \
   grep -qxF "$(printf 'A\tgröße\tSize\t')" <<< "$(source "$ROOT/scripts/lib/rules.sh"; avoid_terms "$reader")"
+# shellcheck disable=SC2016 # the backticks are a Markdown code span
+printf -- '- **Pipeline** — what runs a change.\n  _Avoid:_ `pin`, ci/cd, -flag, .dot, \x27quoted.\n' > "$reader"
+items="$(source "$ROOT/scripts/lib/rules.sh"; avoid_terms "$reader")"
+check "the reader: an item in backticks is read as its word" grep -qxF "$(printf 'A\tpin\tPipeline\t')" <<< "$items"
+for item in ci/cd -flag .dot "'quoted"; do
+  check "the reader: '$item' is an item it cannot read" grep -qxF "$(printf 'U\t2\t%s\tPipeline' "$item")" <<< "$items"
+done
 check "the reader: an item it cannot read is named with its line" \
   grep -qxF "$(printf 'U\t6\toutside the wording of the constraint that requires it\tCulling')" <<< "$terms"
 
