@@ -10,7 +10,8 @@
 # modules under the directory of its name, a Rust library root and a file of another kind do not.
 # Paths named with --path stand in for a change, and --sections prints the header, Decision, and
 # Enforcement of each ADR listed, and nothing else of it, and the Applies to of each other ADR in
-# force whose Applies to is prose.
+# force whose Applies to is prose, also where the prose comes before a list longer than a pipe
+# holds.
 #
 # Verifies: ADR-0002
 # Inputs: scripts/sensor-binding-adrs.sh scripts/lib/
@@ -288,6 +289,20 @@ expect_with 0 "--sections says so when it finds no Binding table" "$d" "No row f
 mv "$d/README.adr" "$d/docs/adr/README.md"
 expect_with 0 "--sections prints the ADRs with prose when nothing changed" "$d" \
   "- $(adr_id 1): the plan under" --sections base
+
+# An Applies to whose prose comes before a list longer than a pipe holds: a grep that exits at
+# the prose before the list is written cuts the writer off, and the ADR goes unlisted.
+d="$(repo sections-long)"
+pad="$(printf '%*s' 200000 '' | tr ' ' z)"
+# shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
+{
+  printf '# ADRs\n\n## Index\n\n### Binding\n\n'
+  printf '| ADR | Title | Applies to | Status |\n|-----|-------|-----|-----|\n'
+  printf '| [0007](0007-fixture.md) | Long | every document, `%s`, and `%s` | 🟢 |\n' "$pad" "$pad"
+} > "$d/docs/adr/README.md"
+base "$d"
+expect_with 0 "--sections prints prose before a list longer than a pipe holds" "$d" \
+  "- $(adr_id 7): every document" --sections --path README.md
 
 # --- summary ---------------------------------------------------------------------------------
 
