@@ -140,8 +140,8 @@ while IFS= read -r -d '' rel; do
       if [[ "$id" =~ ^[GQ]-[0-9]+$ ]]; then
         _contains "$id" "${criteria[@]}" \
           || add_error "$rel:$lineno: cites '$id', which is not a criterion of $SPEC"
-      elif [[ ! "$id" =~ ^(ADR-$ADR_NUMBER_RE|$ADR_NEW_RE)$ ]]; then
-        add_error "$rel:$lineno: cites '$id', which is no identifier: ADR-NNNN, <CAT>-<slug> of two to five words, G-n, or Q-n"
+      elif [[ ! "$id" =~ ^$ADR_NEW_RE$ ]]; then
+        add_error "$rel:$lineno: cites '$id', which is no identifier: <CAT>-<slug> of two to five words, G-n, or Q-n"
       elif ! _contains "$id" "${known_adrs[@]}"; then
         add_error "$rel:$lineno: cites '$id', which does not exist in $ADR_DIR/"
       elif _contains "$id" "${inactive[@]}"; then

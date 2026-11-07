@@ -5,8 +5,8 @@
 # Enforces — as CI, not just convention — the documentation rules from AGENTS.md and
 # docs/adr/README.md:
 #
-#   1. ADR index integrity: every ADR file, docs/adr/<CAT>-<slug>.md or of the old form
-#      docs/adr/NNNN-*.md, but the 'NUC-' base, which it lists in no row, is listed in the index
+#   1. ADR index integrity: every ADR file, docs/adr/<CAT>-<slug>.md, but the 'NUC-' base,
+#      which it lists in no row, is listed in the index
 #      table in docs/adr/README.md once, every index row points to an existing file, and the
 #      status and the 'Applies to' cell shown in the index match the **Status:** and **Applies
 #      to:** lines inside each ADR — the index routes a reader from a change to the ADRs that bind
@@ -19,13 +19,12 @@
 #      clause 8, its category is fixed or in the category list of the index (clause 9), and the
 #      file's heading starts with '# <identifier>:'. No ADR deleted on the first-parent line of
 #      HEAD carried the identifier; the message names the commit that deleted it, and a git that
-#      cannot read the history fails the check. Files of the old form run 0001..N without gaps,
-#      each headed '# ADR-NNNN', until the old ADRs retire. Every file in docs/adr/ named with
-#      letters before a hyphen counts, so a misnamed ADR fails here.
+#      cannot read the history fails the check. Every file in docs/adr/ named with letters before
+#      a hyphen counts, so a misnamed ADR fails here.
 #   3. Relative-link integrity: every relative Markdown link in every tracked .md file resolves
 #      to a file or directory that exists. Links inside fenced code blocks are illustrations,
 #      not claims about files on disk, and are skipped (here and in check 6); so is a target that
-#      still carries a placeholder of docs/adr/template.md, 'NNNN' or '<CAT>'; an optional link
+#      still carries the placeholder '<CAT>' of docs/adr/template.md; an optional link
 #      title ('[text](file "title")') is not part of the path. Reference-style links
 #      ('[text][label]') are not resolved — this repository uses inline links only.
 #
@@ -40,8 +39,8 @@
 #      repeat is a botched renumbering, and it is the only half of the renumbering hazard a check
 #      can see (NUC-documents-are-fixed §3). A clause citation, an ADR's identifier, a space, and
 #      the section sign with a number, cites a clause of that ADR and is no section reference.
-#   5. ADR-reference integrity: every 'ADR-NNNN' reference (with actual digits) and every
-#      identifier of a known category, a clause citation's among them, names an ADR file that
+#   5. ADR-reference integrity: every identifier of a known category, a clause citation's among
+#      them, names an ADR file that
 #      exists in docs/adr/ — anticipated follow-ups are described by topic, never by an
 #      identifier that does not exist yet (NUC-adrs-record-decisions clause 16). A reference is a
 #      word of its own: a one-word slug, such as API-first, or a longer chain is none. An
@@ -285,7 +284,8 @@ collect_text_files() {
 # and in source code, the section sign is an ordinary character with its own meanings — a statute
 # cited in a German string literal, a translated message, a test fixture — none of which are
 # claims about a section of AGENTS.md.
-# The ADR checks scan every text file because 'ADR-NNNN' is unambiguous; this notation is not.
+# The ADR checks scan every text file because an identifier of a known category is unambiguous;
+# this notation is not.
 is_doc_file() {
   case "$1" in
     *.md | *.yml | *.yaml | *.sh | "$ROOT"/.githooks/*) return 0 ;;
@@ -322,7 +322,7 @@ check_adr_index() {
   local indexed_files=() indexed_applies=() indexed_status=()
   local line number target filename applies status archive=0
   local -a cells
-  local row_re="^\\|[[:space:]]*\\[($ADR_NUMBER_RE|[A-Za-z]+-[^]]+)\\]\\(([^)]+)\\)"
+  local row_re="^\\|[[:space:]]*\\[([A-Za-z]+-[^]]+)\\]\\(([^)]+)\\)"
   while IFS= read -r line; do
     [[ "$line" =~ ^#+[[:space:]]+Superseded\ and\ rejected[[:space:]]*$ ]] && { archive=1; continue; }
     [[ "$line" =~ $row_re ]] || continue
@@ -340,12 +340,8 @@ check_adr_index() {
     indexed_status+=("$status")
     [[ "$number" == NUC-* ]] && add_error \
       "ADR index: lists $number, an ADR of the base — the index links the base in one line and lists no NUC- ADR (NUC-adrs-record-decisions §15)"
-    if [[ "$number" != [0-9]* ]]; then
-      [[ "$filename" == "$number.md" ]] \
-        || add_error "ADR index: row for $number links to '$filename', not to '$number.md'"
-    elif [[ "$filename" != "$number"-* ]]; then
-      add_error "ADR index: row for $number links to '$filename', which does not start with '$number-'"
-    fi
+    [[ "$filename" == "$number.md" ]] \
+      || add_error "ADR index: row for $number links to '$filename', not to '$number.md'"
     case "$status" in
       ⚪|🔴)
         ((archive)) \
@@ -402,31 +398,23 @@ check_adr_index() {
   done
 }
 
-# Check 2 (see the header). Numbers of the old form run 0001..N without gaps, and only the first
-# gap is reported; superseded ADRs stay on disk, so a gap can only ever mean a deleted ADR or a
-# botched rename. An identifier of the new form is never reused, so a deleted one, read off the
+# Check 2 (see the header). An identifier is never reused, so a deleted one, read off the
 # history, stays taken. The history is the first-parent line of HEAD, each merge read against the
 # branch it landed on: a side branch that deleted an ADR and wrote it anew deleted nothing there.
 check_adr_identifiers() {
-  local f base heading n=0 gap=0 expected id commit
+  local f base heading id commit
   local -A deleted=()
   for f in "${ADR_LIST[@]}"; do
     base="${f##*/}"
     adr_key_of "$base"
-    if [[ "$ADR_KEY" == [0-9]* ]]; then
-      printf -v expected '%04d' $((++n))
-      if [[ "$ADR_KEY" != "$expected" ]] && ((!gap)); then
-        gap=1
-        add_error "ADR numbering: expected '$expected-*.md' at position $n, found '$base' — numbers must run 0001..N without gaps"
-      fi
-    elif [[ ! "$ADR_ID" =~ ^$ADR_NEW_RE$ ]]; then
+    if [[ ! "$ADR_ID" =~ ^$ADR_NEW_RE$ ]]; then
       add_error "$base: the identifier is not '<CAT>-<slug>': two to five capital letters, a hyphen, and two to five lower case words or numbers joined by hyphens"
       continue
     elif ! _contains "${ADR_ID%%-*}" "${ADR_CATEGORIES[@]}"; then
       add_error "$base: the category ${ADR_ID%%-*} is neither fixed nor in the category list of docs/adr/README.md"
     fi
     heading="${ADR_HEADING["$f"]-}"
-    [[ "$heading" == "# $ADR_ID:"* || ( "$ADR_KEY" == [0-9]* && "$heading" =~ ^#\ $ADR_ID([^0-9]|$) ) ]] \
+    [[ "$heading" == "# $ADR_ID:"* ]] \
       || add_error "$base: heading says '${heading:-<none>}', but the filename says $ADR_ID"
   done
   # Without a commit there is no history; a git that cannot read it, such as one before 2.31
@@ -434,7 +422,7 @@ check_adr_identifiers() {
   local log=""
   if git -C "$ROOT" rev-parse -q --verify 'HEAD^{commit}' > /dev/null 2>&1; then
     local args=(log --first-parent --diff-merges=first-parent --no-renames --diff-filter=D --name-only
-                --format='commit %h' HEAD -- ":(glob)docs/adr/${ADR_GLOBS[1]}")
+                --format='commit %h' HEAD -- ":(glob)docs/adr/$ADR_GLOB")
     # stderr stays out of the list: a warning on a success would be read as a file name.
     log="$(git -C "$ROOT" "${args[@]}" 2>/dev/null)" || { log="$(git -C "$ROOT" "${args[@]}" 2>&1 >/dev/null)"
       add_error "ADR identifiers: git log cannot read the deleted ADRs (git 2.31 or later is needed): ${log%%$'\n'*}"; log=""; }
@@ -720,9 +708,9 @@ check_relative_links() {
       case "$target" in
         http://*|https://*|mailto:*) continue ;;
       esac
-      # 'NNNN' and '<CAT>' are the placeholders docs/adr/template.md uses where a real ADR carries
-      # its identifier, so such a target names no file and claims none exists.
-      case "$target" in *NNNN* | *'<CAT>'*) continue ;; esac
+      # '<CAT>' is the placeholder docs/adr/template.md uses where a real ADR carries its
+      # identifier, so such a target names no file and claims none exists.
+      case "$target" in *'<CAT>'*) continue ;; esac
       # Split into a path part and an optional '#fragment'. An empty path is a same-file anchor.
       path_part="${target%%#*}"
       frag=""
@@ -895,9 +883,9 @@ check_section_refs() {
   done
 }
 
-# Every reference — 'ADR-NNNN' with digits, or an identifier of a known category, on its own and
-# not inside a longer word — must name an ADR file that already exists. Anticipated follow-up
-# decisions are described by topic (docs/adr/README.md). In Markdown, a code span is a literal.
+# Every reference — an identifier of a known category, on its own and not inside a longer word —
+# must name an ADR file that already exists. Anticipated follow-up decisions are described by
+# topic (docs/adr/README.md). In Markdown, a code span is a literal.
 check_adr_refs() {
   local f files=() lineno line match
   for f in "${TEXT_FILES[@]}"; do
@@ -918,8 +906,8 @@ check_adr_refs() {
 }
 
 # A Markdown link that cites an ADR in its text must point at that ADR's own file. Both
-# halves resolve on their own — the number names a file that exists, the target is a file that
-# exists — so a renumbering, a copied line, or a consolidated decision set leaves the two naming
+# halves resolve on their own — the identifier names a file that exists, the target is a file that
+# exists — so a copied line, a renamed file, or a consolidated decision set leaves the two naming
 # different ADRs without any single check noticing. Only links into docs/adr/ are compared; a
 # reference that deliberately points elsewhere (an index, a section about the decision) is left
 # alone.
