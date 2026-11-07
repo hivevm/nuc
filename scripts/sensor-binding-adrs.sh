@@ -104,7 +104,7 @@ show() { if ((worktree)); then cat -- "$1"; else git show "$head:$1"; fi; }
 files=()
 finish() {
   if ((sections)); then
-    local file text listed=" " key applies rows=0 prose=()
+    local file text listed=" " key applies rows=0 prose=() parts part
     for file in "${files[@]}"; do listed+="$(adr_key "$file") "; done
     # shellcheck disable=SC2016  # the backticks are Markdown to match, not a command substitution
     while IFS=$'\t' read -r key applies; do
@@ -134,9 +134,11 @@ finish() {
       echo
       echo "=== ADR-$(adr_key "$file") ($file): the header, the Decision, and the Enforcement ==="
       awk '/^## / { exit } { print }' <<< "$text"
-      adr_section Decision <<< "$text"
-      echo
-      adr_section Enforcement <<< "$text"
+      IFS='|' read -r -a parts <<< "$ADR_RULE_SECTIONS"
+      for part in "${parts[@]}"; do
+        [[ "$part" == "${parts[0]}" ]] || echo
+        adr_section "$part" <<< "$text"
+      done
     done
   fi
   exit 0

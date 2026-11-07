@@ -46,7 +46,7 @@ adr_is_draft() { [[ "${1##*/}" == draft-* ]]; }
 adr_key_of() { if adr_is_draft "$1"; then ADR_KEY="${1##*/}" ADR_KEY="${ADR_KEY%.md}"; else ADR_KEY="${1##*/}" ADR_KEY="${ADR_KEY%%-*}"; fi; }
 adr_key() { adr_key_of "$1"; printf '%s\n' "$ADR_KEY"; }
 
-# The sections of an ADR a session reads, and the writing rule of AGENTS.md section 4 covers.
+# The sections of an ADR a session reads, in order, and the writing rule of AGENTS.md section 4 covers.
 ADR_RULE_SECTIONS='Decision|Enforcement'
 # adr_section <name> — the section '## <name>' of the ADR on stdin, its heading included.
 adr_section() { awk -v h="## $1" '$0 == h { p = 1; print; next } p && /^## / { exit } p'; }

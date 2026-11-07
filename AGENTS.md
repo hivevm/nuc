@@ -122,7 +122,9 @@ restates nothing. A rule this file does not state is not a rule of this project.
   ([§5](#5-quality-bar--definition-of-done)). One that constrains future choices becomes an ADR.
 - **Write a rule plainly.** This covers the rules of this file and the *Decision* and
   *Enforcement* of an ADR. Write one statement per sentence. Name who acts, in the active voice.
-  Use the terms of the glossary. Write several items as a list.
+  Use the terms of the glossary. Write several items as a list. State a duty with *must* or *must
+  not*, and a permission with *may*. *Should*, *could*, *might*, and *ideally* leave the reader
+  guessing.
   [`scripts/sensor-plain-rules.sh`](scripts/sensor-plain-rules.sh) reports each sentence over 25
   words and each soft modal verb on the lines a change adds.
 - **Plan work larger than one session in the tree, under `docs/plan/`.** A feature spec is cut

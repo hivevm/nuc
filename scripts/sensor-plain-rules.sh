@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #
-# Sensor: rules written plainly (AGENTS.md section 4, ADR-0001).
+# Sensor: rules written plainly (AGENTS.md section 4, ADR-0002).
 #
 # Reads the lines a change adds to the rules: AGENTS.md, and the Decision and Enforcement sections
 # of an ADR (ADR_RULE_SECTIONS in scripts/lib/adr.sh). It lists each sentence over 25 words that
 # holds an added line, by the line it starts on, and each soft modal verb on an added line:
-# should, could, might, ideally. Code spans, link targets, block quotes, fenced code, and headings
-# do not count. A paragraph or a list item ends a sentence; so do '.', '!', and '?' before a
+# should, could, might, ideally. Code spans, words in italics, which a rule uses to name a word,
+# link targets, block quotes, fenced code, tables, and headings do not count. A paragraph or a list item ends a sentence; so do '.', '!', and '?' before a
 # space or the end. It reports for the reviewer and never fails on what it counts.
 #
 # Pure bash + git + awk. Usage:
@@ -85,15 +85,16 @@ for f in "${files[@]}"; do
       }
       count = 0; start = 0; split("", seen)
     }
-    /^```/ { flush(); fence = !fence; next }
+    /^[[:space:]]*(```|~~~)/ { flush(); fence = !fence; next }
     fence { next }
     /^## / { flush(); if (mode == "adr") inside = ($0 ~ sections); next }
     mode == "adr" && !inside { next }
-    /^#/ || /^[[:space:]]*>/ || /^[[:space:]]*$/ { flush(); next }
+    /^#/ || /^[[:space:]]*[>|]/ || /^[[:space:]]*$/ { flush(); next }
     /^[[:space:]]*([-*+]|[0-9]+\.)[[:space:]]/ { flush() }
     {
       text = $0
       gsub(/`[^`]*`/, "", text)
+      gsub(/\*\*/, "\001", text); gsub(/\*[^*]+\*/, "", text); gsub(/\001/, "**", text)
       gsub(/\]\([^)]*\)/, "]", text)
       if (index(added, "," NR ",")) {
         low = tolower(text)
