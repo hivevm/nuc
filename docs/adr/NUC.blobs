@@ -1,4 +1,8 @@
-d4827a08e57779fba61718eb46c6a294867f7ab5 NUC-adrs-record-decisions.md
+55c27fa5b9cddf5dea4b8789cfbe96031c2693c2 NUC-adrs-record-decisions.md
 3da8b7fd27183cb0ed8a69f826ad0ca1c957b3fa NUC-checks-are-bash.md
+5412fd4779d7b9b6bf660c8610e7e055ed2a5205 NUC-container-hides-host-daemon.md
 03bb4223a8d8cb857cc873d186f68c3d2479dc58 NUC-decisions-cite-tests.md
-d777bfe1f9447c32dc3a5b3a755042014f644309 NUC-releases-are-semver-tags.md
+78a17c0da47e502b379e581d252f22f1bfdcac31 NUC-design-is-revised.md
+a355d6e862bd4c6f97bdc3c2642b37801bdb7ad5 NUC-large-work-is-planned.md
+8890db60abd626ffd390f75fc831c93a6a36aad0 NUC-main-only-via-pr.md
+bc3124dab156fb8a24aa0e47a2310f6847b92332 NUC-releases-are-semver-tags.md

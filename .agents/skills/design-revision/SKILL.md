@@ -7,9 +7,16 @@ description: Revisit the design of what recent work touched — its modules, the
 
 The rule is [`AGENTS.md` §5](../../../AGENTS.md#5-quality-bar--definition-of-done); that a spec
 closes only after this has run, and that it is due after a number of changes without a spec, is
-decided in [ADR-0006](../../../docs/adr/0006-feature-layer.md). This skill runs in a fresh
-session and states no rule of its own
+decided in [NUC-design-is-revised](../../../docs/adr/NUC-design-is-revised.md). This skill runs
+in a fresh session and states no rule of its own
 ([ADR-0003](../../../docs/adr/0003-procedures-as-skills.md)).
+
+A project that plans in its host's issues, as its harness ADR records
+([NUC-large-work-is-planned §9](../../../docs/adr/NUC-large-work-is-planned.md)), takes the
+spec's closed ticket issues as its tickets in step 1, and files what it finds as issues in
+step 6. Where step 6 deletes `spec.md`, the revision's pull request names the spec's issue with a
+closing keyword (`Closes #<n>`), and the human's merge closes it; the session never closes it
+itself. The rest of this skill holds as written.
 
 ## 1. Scope
 
@@ -105,8 +112,9 @@ specification change as a ticket whose *Mode* is "with the human". The tickets g
 without a spec; a second revision on one day numbers on in the same directory. List the backlog
 entries that touch the modules in scope, from
 [`scripts/sensor-backlog.sh`](../../../scripts/sensor-backlog.sh) or the host's issues, as
-candidates for the human ([ADR-0006](../../../docs/adr/0006-feature-layer.md)); a ticket made
-from one deletes the entry in the same commit. Where the
+candidates for the human
+([NUC-design-is-revised §3](../../../docs/adr/NUC-design-is-revised.md)); a ticket made from one
+deletes the entry in the same commit. Where the
 revision took the count, move the `Last design revision` line of
 [`docs/ARCHITECTURE.md`](../../../docs/ARCHITECTURE.md) to today's date; where it reads today's
 date already, add this revision's ordinal of the day after it, `(2)` for the second. Then delete

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Self-test of scripts/ready-for-main.sh. Verifies: ADR-0002
+# Self-test of scripts/ready-for-main.sh. Verifies: NUC-main-only-via-pr ADR-0002
 #
 # Each case builds a throwaway repository under a temporary directory, with a bare repository as
 # its origin: a main with one ADR, a branch feat/work that adds another, and an origin main that

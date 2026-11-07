@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 #
 # Prepares a branch for its pull request into main to be made ready: step 7 of
-# Integration branches in CONTRIBUTING.md, in the order the step needs.
+# Integration branches in CONTRIBUTING.md, in the order the step needs. Nobody rewrites what has
+# reached main, so a fixup is folded in before (NUC-main-only-via-pr §4).
 #
 #   1. Fetches origin and refuses while the branch carries a fixup the rework has not folded in
 #      (a subject starting 'fixup!', 'squash!', or 'amend!'), since main keeps what it merges.
