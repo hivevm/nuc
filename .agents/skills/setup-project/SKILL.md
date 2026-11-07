@@ -8,7 +8,7 @@ description: Set a project up from this template interactively, one question at 
 The steps and what each one decides are [`TEMPLATE-SETUP.md`](../../../TEMPLATE-SETUP.md); the
 rules on ADRs are [`AGENTS.md` §3](../../../AGENTS.md#3-adr-rules). This skill is the order of
 the conversation and states no rule of its own
-([ADR-0003](../../../docs/adr/0003-procedures-as-skills.md)).
+([NUC-procedures-are-skills §3](../../../docs/adr/NUC-procedures-are-skills.md)).
 
 ## How the conversation runs
 

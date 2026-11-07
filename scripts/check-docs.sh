@@ -86,11 +86,12 @@
 #      is a tour of the parts a newcomer needs, not a file listing.
 #  11. Skill pointer integrity: every skill under .agents/skills/ (a directory with a SKILL.md)
 #      has a symlink of the same name under .claude/skills/ that resolves to it, and every entry
-#      under .claude/skills/ is such a symlink (ADR-0003). Claude Code reads only the pointer
-#      directory, so a skill without its pointer is invisible to it and to no other agent —
-#      nobody notices; a copy instead of a symlink is a second source that drifts, and a skill
-#      that lives only in the pointer directory is one no other agent finds. Each message says
-#      the command that fixes it. A repository with neither directory has nothing to check.
+#      under .claude/skills/ is such a symlink (NUC-procedures-are-skills §6). Claude Code reads
+#      only the pointer directory, so a skill without its pointer is invisible to it and to no
+#      other agent — nobody notices; a copy instead of a symlink is a second source that drifts,
+#      and a skill that lives only in the pointer directory is one no other agent finds. Each
+#      message says the command that fixes it. A repository with neither directory has nothing to
+#      check.
 #  12. Base held by its blob list: every 'NUC-' file in docs/adr/ has the git blob identifier its
 #      line in docs/adr/NUC.blobs names, and every line names a file that exists
 #      (NUC-adrs-record-decisions §12). The template rewrites the list in the commit that changes a
@@ -1185,7 +1186,7 @@ check_skill_pointers() {
     if [[ ! -L "$p" ]]; then
       # A copy of an existing skill was reported above; what is left is a skill living here only.
       [[ -f "$skills/$name/SKILL.md" ]] \
-        || add_error ".claude/skills/$name: is not a symlink into .agents/skills/ — a skill lives there, where every agent reads it, and is pointed at from here (ADR-0003)"
+        || add_error ".claude/skills/$name: is not a symlink into .agents/skills/ — a skill lives there, where every agent reads it, and is pointed at from here (NUC-procedures-are-skills §6)"
       continue
     fi
     if ! target="$(cd -P "$p" 2>/dev/null && pwd -P)"; then
