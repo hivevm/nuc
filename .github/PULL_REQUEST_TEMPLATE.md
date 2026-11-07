@@ -10,7 +10,8 @@
 
 ## Related
 
-- Ticket:  <!-- the file under docs/plan/ this deletes (ADR-0006), or the request it answers -->
+- Ticket:  <!-- the file under docs/plan/ this deletes (NUC-large-work-is-planned §5), or the
+            request it answers -->
 - Implements:  <!-- the ADR this implements or relates to, by its identifier,
      or none -->
 - ADRs reviewed at:  <!-- the commit of ADRs only the human reviewed before the implementation,

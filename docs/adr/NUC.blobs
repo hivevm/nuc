@@ -1,3 +1,7 @@
-c0d6d2802460e942410b401ef55bc12f9a0e7df6 NUC-adrs-record-decisions.md
+21d2dbed27a5944fb4c2fc50a632bd9d05e743b5 NUC-adrs-record-decisions.md
+5412fd4779d7b9b6bf660c8610e7e055ed2a5205 NUC-container-hides-host-daemon.md
+78a17c0da47e502b379e581d252f22f1bfdcac31 NUC-design-is-revised.md
 9c6831865881464aee2cd1fe261730e53a21527f NUC-documents-are-fixed.md
-d777bfe1f9447c32dc3a5b3a755042014f644309 NUC-releases-are-semver-tags.md
+a355d6e862bd4c6f97bdc3c2642b37801bdb7ad5 NUC-large-work-is-planned.md
+8890db60abd626ffd390f75fc831c93a6a36aad0 NUC-main-only-via-pr.md
+bc3124dab156fb8a24aa0e47a2310f6847b92332 NUC-releases-are-semver-tags.md

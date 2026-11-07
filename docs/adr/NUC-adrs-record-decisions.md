@@ -64,6 +64,9 @@ template's `NUC-` ADRs are a fixed base that a project extends or narrows but ne
 6. **Immutability.** Outside a normalization, nobody may rewrite or delete an accepted project
    ADR. A project changes one only by superseding it. The template repository corrects its own
    `NUC-` ADRs in place, and a release ships the correction.
+   - A take-up of a release may move each citation of a `NUC-` clause in an accepted project ADR,
+     as the map of the release says.
+   - When the cited clause changes its meaning, the project must supersede its ADR instead.
 7. **Authority.** Authority runs from the specification to the accepted ADRs to the task. When the
    specification and an ADR conflict, the specification wins. An agent must raise the conflict
    instead of choosing silently.
