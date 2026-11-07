@@ -9,7 +9,7 @@
 > **Last design revision:** 2026-11-07, due after 20 changes. The revision that took the count
 > moves the date; the number is this project's to set; a sensor counts the changes outside
 > `docs/` since the commit that set the date and says when the next is due
-> ([ADR-0006](adr/0006-feature-layer.md)).
+> ([NUC-design-is-revised §4](adr/NUC-design-is-revised.md)).
 
 ## Context
 

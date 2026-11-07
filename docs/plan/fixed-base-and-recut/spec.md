@@ -141,8 +141,10 @@ checks and the lines in `scripts/` not to rise, so that the base stays lean.
   and no reader of it survives the release.
 - **Migration tooling.** The remap script runs idempotently, has a `--check` mode, and takes its map
   as a reviewed data file. It runs dry over the parity corpus of nuc-tools before the release. The
-  normalize skill's take-up becomes: replace the `NUC-` files and the blob list, map the project's
-  ADRs and references, run the checks. A trial migration runs on nectar.
+  normalize skill's take-up becomes: replace the `NUC-` files and the blob list, move the citations
+  of `NUC-` clauses by the release's map, run the checks; the project's ADRs keep their
+  identifiers. Only the migration to this release maps the project's numbered ADRs to category
+  identifiers, once. A trial migration runs on nectar.
 - **Plain-rules checks.** Modal verbs and avoided terms become checks on the project's own rules,
   and they spare the `NUC-` files. The glossary reader parses qualifiers in an *Avoid* item or
   reports what it cannot parse. Sentence length stays a sensor.
