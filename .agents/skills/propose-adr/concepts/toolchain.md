@@ -3,7 +3,9 @@
 The language, its build, test, and lint commands, and the sensors that check what an agent
 wrote. Every project decides it at setup; the template ships none. The toolchain ADR is the one
 the review skill, the pull request template, and the shape entries of this catalogue name when
-they speak of "the sensors the toolchain ADR names".
+they speak of "the sensors the toolchain ADR names". It carries the header field
+`Role: toolchain`
+([NUC-adrs-record-decisions §13](../../../../docs/adr/NUC-adrs-record-decisions.md)).
 
 The sensors come in three kinds:
 

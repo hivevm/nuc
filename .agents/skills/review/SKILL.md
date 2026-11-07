@@ -26,8 +26,7 @@ The reviewer runs in a context that did not write the change and is handed only:
 - the ADRs in force whose *Applies to* the diff touches: those that name a path of the diff, as
   [`scripts/sensor-binding-adrs.sh`](../../../scripts/sensor-binding-adrs.sh) `--sections`
   lists them with the parts a session reads, and those whose *Applies to* is prose, which it
-  prints from the **Binding** table of
-  [`docs/adr/README.md`](../../../docs/adr/README.md#binding);
+  prints from the ADR files, the `NUC-` ones included;
 - for each of those ADRs that chose a concept of the catalogue in
   [`propose-adr`](../propose-adr/concepts/README.md), that entry's *Does not fit* and *The rule a
   test decides*: what the tests decide is checked there, and the rest is checked here;
