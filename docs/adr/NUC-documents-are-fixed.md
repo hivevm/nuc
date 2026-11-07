@@ -176,9 +176,17 @@ A project may choose:
 this ADR. Check 3 fails on a relative link that does not resolve. Check 4 fails on a section
 reference that names no section of the rule file.
 
-[`scripts/sensor-plain-rules.sh`](../../scripts/sensor-plain-rules.sh) holds clause 5, and its
-self-test cites this ADR. It reports each word an _Avoid:_ list names on a line a change adds to
-the rules, and fails nothing.
+[`scripts/sensor-plain-rules.sh`](../../scripts/sensor-plain-rules.sh) holds clause 5 and the
+writing rule of the rule file ([`AGENTS.md` §4](../../AGENTS.md#4-working-style)), and its
+self-test cites this ADR. It reads the lines a change adds to the *Decision* and *Enforcement* of
+an ADR and to `AGENTS.md`:
+
+- It fails on a soft modal verb, *should*, *could*, *might*, or *ideally*, and on a word an
+  _Avoid:_ list names, on such a line of a project ADR.
+- It reports them on such a line of a `NUC-` ADR or of `AGENTS.md`, which a take-up replaces as
+  the release has them, and fails nothing there.
+- It reports each sentence over 25 words and each item of an _Avoid:_ list it cannot read, and
+  fails nothing on them.
 
 [`.github/CODEOWNERS`](../../.github/CODEOWNERS) routes a specification change to the owner's
 review once the repository requires it (clause 2).
