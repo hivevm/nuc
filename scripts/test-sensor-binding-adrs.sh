@@ -14,7 +14,7 @@
 # prose, read from the ADR files and never from the index, also where the prose comes before a
 # list longer than a pipe holds. A 'NUC-' ADR of the base binds like any other, read from its file.
 #
-# Verifies: ADR-0002
+# Verifies: NUC-checks-are-bash ADR-0002
 # Inputs: scripts/sensor-binding-adrs.sh scripts/lib/
 #
 # Usage:

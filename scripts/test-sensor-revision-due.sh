@@ -10,7 +10,7 @@
 # the due message with its directories and their changes, and the three ways the line fails to
 # read.
 #
-# Verifies: ADR-0002
+# Verifies: NUC-checks-are-bash ADR-0002
 # Inputs: scripts/sensor-revision-due.sh scripts/lib/
 #
 # Usage:
