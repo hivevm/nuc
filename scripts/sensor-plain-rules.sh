@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Sensor: rules written plainly (AGENTS.md section 4, ADR-0002).
+# Sensor: rules written plainly (AGENTS.md section 4, NUC-checks-are-bash §4).
 #
 # Reads the rules a change touches as scripts/lib/rules.sh streams them: AGENTS.md, and the
 # Decision and Enforcement of an ADR, without code spans, italics, link targets, block quotes,

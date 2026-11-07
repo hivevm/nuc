@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Self-test of scripts/sensor-plain-rules.sh. Verifies: ADR-0002
+# Self-test of scripts/sensor-plain-rules.sh. Verifies: NUC-checks-are-bash ADR-0002
 #
 # Verifies: ADR-0001 NUC-documents-are-fixed
 #

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
-# Traceability check for this repository (ADR-0002): every accepted decision and every success
-# criterion is verified by a test that cites it.
+# Traceability check for this repository (NUC-decisions-cite-tests): every accepted decision and
+# every success criterion is verified by a test that cites it.
 #
 # What is checked:
 #   1. Identifiers: every list item under '## Goals / Success Criteria' and '## Quality Goals' in
@@ -12,6 +12,9 @@
 #      followed by a reason is exempt.
 #   3. Citations: every marker names an identifier that exists, and no ADR that is ⚪ superseded
 #      or 🔴 rejected.
+#   4. Sensor self-tests: every scripts/sensor-<name>.sh has its self-test
+#      scripts/test-sensor-<name>.sh, and that self-test carries a marker citing the ADR that
+#      decides the checks (NUC-checks-are-bash §4), whichever else it cites.
 #
 # A criterion that no marker cites is pending work: the check lists it in its closing line and
 # does not fail — nothing in the specification marks the state, so meeting a goal touches the
@@ -45,6 +48,9 @@ ROOT="$(cd "${1:-$(dirname "${BASH_SOURCE[0]}")/..}" && pwd)"
 SPEC="docs/SPECIFICATION.md"
 ADR_DIR="docs/adr"
 ID_RE="$ADR_ID_RE"
+# The ADR that decides the checks, which each self-test of a sensor cites: a NUC- identifier no
+# normalization moves (NUC-adrs-record-decisions §17).
+CHECKS_ADR="NUC-checks-are-bash"
 
 
 # ---------------------------------------------------------------------------------------------
@@ -116,6 +122,7 @@ done < <(adr_files "$ROOT/$ADR_DIR")
 # 3. Markers: every citation in every non-Markdown text file.
 
 cited=()   # identifiers cited, one entry per citation
+declare -A cited_in=()   # file -> the identifiers its markers cite, each followed by a space
 
 while IFS= read -r -d '' rel; do
   f="$ROOT/$rel"
@@ -129,6 +136,7 @@ while IFS= read -r -d '' rel; do
                        | sed -E 's/^Verifies:[[:space:]]*//' | grep -oE "$ID_RE")
     for id in "${ids[@]}"; do
       cited+=("$id")
+      cited_in[$rel]+="$id "
       if [[ "$id" =~ ^[GQ]-[0-9]+$ ]]; then
         _contains "$id" "${criteria[@]}" \
           || add_error "$rel:$lineno: cites '$id', which is not a criterion of $SPEC"
@@ -144,7 +152,23 @@ while IFS= read -r -d '' rel; do
 done < <(git -C "$ROOT" ls-files --cached --others --exclude-standard -z)
 
 # ---------------------------------------------------------------------------------------------
-# 4. Coverage: every accepted ADR is cited; criteria without a citation are listed.
+# 4. Sensor self-tests: each sensor has one, and it cites the ADR that decides the checks.
+
+while IFS= read -r -d '' rel; do
+  [[ "$rel" =~ ^scripts/sensor-([^/]+)\.sh$ && -f "$ROOT/$rel" ]] || continue
+  if [[ ! -f "$ROOT/$ADR_DIR/$CHECKS_ADR.md" ]]; then
+    add_error "$CHECKS_ADR, which the self-test of each sensor cites, is not in $ADR_DIR/"; break
+  fi
+  self_test="scripts/test-sensor-${BASH_REMATCH[1]}.sh"
+  if [[ ! -f "$ROOT/$self_test" ]]; then
+    add_error "$rel has no self-test $self_test — each sensor runs after one that cites $CHECKS_ADR"
+  elif [[ " ${cited_in[$self_test]:-}" != *" $CHECKS_ADR "* ]]; then
+    add_error "$self_test does not cite $CHECKS_ADR — the self-test of a sensor cites the ADR that decides the checks"
+  fi
+done < <(git -C "$ROOT" ls-files --cached --others --exclude-standard -z -- scripts)
+
+# ---------------------------------------------------------------------------------------------
+# 5. Coverage: every accepted ADR is cited; criteria without a citation are listed.
 
 for id in "${accepted[@]}"; do
   _contains "$id" "${exempt[@]}" && continue

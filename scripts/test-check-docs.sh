@@ -521,7 +521,7 @@ d="$(repo check-lists)"
 echo 'run "Extra" scripts/check-extra.sh' >> "$d/scripts/check-all.sh"
 expect fail "a check the local runner has and CI does not" "$d" "CI and the local gate disagree"
 
-# Verifies: ADR-0002
+# Verifies: NUC-checks-are-bash ADR-0002
 d="$(repo script-in-no-list)"
 echo 'echo new' > "$d/scripts/check-new.sh"
 expect fail "a script that neither list runs" "$d" "scripts/check-new.sh: no workflow and not scripts/check-all.sh runs it"
@@ -630,7 +630,7 @@ matrix_job() {
   sed_in "$dir/CONTRIBUTING.md" "s|^\`docs\`\$|\`docs\`, $names|"
 }
 
-# Verifies: ADR-0002
+# Verifies: NUC-checks-are-bash ADR-0002
 d="$(repo matrix-runs)"
 # shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
 matrix_job "$d" '`build (ubuntu-latest)`, `build (macos-latest)`'
