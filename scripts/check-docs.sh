@@ -81,9 +81,9 @@
 #      exists, a trailing '/' meaning a directory. The block is written by hand and nothing else
 #      tells a reader that one of its lines has gone stale. A path with a '*' matches at least one
 #      file, and docs/plan/ may be absent, since open work lives there only while there is some
-#      (NUC-large-work-is-planned §2). The reverse holds for the top level only: every tracked top-level file and
-#      directory is named, by itself or by a path under it. Below it the block is a tour of the
-#      parts a newcomer needs, not a file listing.
+#      (NUC-large-work-is-planned §2). The reverse holds for the top level only: every tracked
+#      top-level file and directory is named, by itself or by a path under it. Below it the block
+#      is a tour of the parts a newcomer needs, not a file listing.
 #  11. Skill pointer integrity: every skill under .agents/skills/ (a directory with a SKILL.md)
 #      has a symlink of the same name under .claude/skills/ that resolves to it, and every entry
 #      under .claude/skills/ is such a symlink (ADR-0003). Claude Code reads only the pointer

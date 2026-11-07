@@ -48,7 +48,8 @@ no decision; the command that starts a session of each without a human, such as 
 non-interactive mode, and the one that continues a session, where the agent has one; how parallel
 sessions are kept apart, if there are any, and on which remote claims on tickets are made where the
 sessions do not all share one repository; whether the plan lies in the tree or in the host's issues,
-where the assignment of an issue is the claim and the host's list of open issues the frontier
+where the assignment of a ticket's issue is the claim, the host's list of open, unblocked,
+unassigned ticket issues the frontier, and closing an issue replaces deleting the file
 ([NUC-large-work-is-planned §9](../../../../docs/adr/NUC-large-work-is-planned.md)); how much agent
 work may be open at once; and which parts of the system are never worked unattended however small
 the ticket, such as authentication and authorization, payment, public interfaces, data migrations,

@@ -8,10 +8,9 @@ description: Work the tickets under docs/plan/, each claimed by its branch and w
 The rules are [`AGENTS.md` §4](../../../AGENTS.md#4-working-style) and
 [§5](../../../AGENTS.md#5-quality-bar--definition-of-done); the frontier and the claim are
 decided in [NUC-large-work-is-planned §4](../../../docs/adr/NUC-large-work-is-planned.md); who
-works, in parallel or not,
-how many at once, and what never runs unattended is the project's harness ADR, the one the
-[harness entry](../propose-adr/concepts/harness.md) of the catalogue produced. This skill is the
-order of work and states no rule of its own
+works, in parallel or not, how many at once, and what never runs unattended is the project's
+harness ADR, the one the [harness entry](../propose-adr/concepts/harness.md) of the catalogue
+produced. This skill is the order of work and states no rule of its own
 ([ADR-0003](../../../docs/adr/0003-procedures-as-skills.md)).
 
 Two roles: the **dispatcher** claims tickets and starts the sessions that work them; a
@@ -38,8 +37,9 @@ these steps delete the ticket file. The rest of this skill holds as written.
    first* names no paths is dispatched only while no other ticket is claimed. A ticket "with the
    human" is worked in a session the human sits in, never dispatched.
 3. Claim each with [`claim.sh`](claim.sh): `.agents/skills/work-tickets/claim.sh <ticket path>`
-   creates the branch `ticket/<spec>/<NN>-<slug>` at `main`. The ticket must be on `main` first,
-   since the worker's branch starts there and other clones read the frontier there.
+   creates the branch `ticket/<spec>/<NN>-<slug>` at `main`. Only a ticket on `main` is
+   claimable ([NUC-large-work-is-planned §4](../../../docs/adr/NUC-large-work-is-planned.md)):
+   the worker's branch starts there, and other clones read the frontier there.
    - Among sessions that share the repository, the claim is the local branch, which git refuses
      to create twice. It needs no commit and nothing pushed.
    - Among clones that share a remote, pass the remote the harness ADR names as a second
@@ -48,8 +48,7 @@ these steps delete the ticket file. The rest of this skill holds as written.
      already points at succeeds without creating anything, and two clones would both win. That
      push skips the pre-push hook, since its commit carries the remote's `main` tree unchanged.
      It is the one push the harness ADR may grant without an instruction per push
-     ([`AGENTS.md` §6](../../../AGENTS.md#6-project-rules)); a project whose sessions share a
-     repository grants none.
+     ([`AGENTS.md` §6](../../../AGENTS.md#6-project-rules)).
 
    Exit code 2 says another session was first: choose again. Then isolate the claim in a
    worktree, `git worktree add .scratch/worktrees/<spec>-<NN>-<slug> ticket/<spec>/<NN>-<slug>`,

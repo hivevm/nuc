@@ -11,6 +11,12 @@ decided in [NUC-design-is-revised](../../../docs/adr/NUC-design-is-revised.md). 
 in a fresh session and states no rule of its own
 ([ADR-0003](../../../docs/adr/0003-procedures-as-skills.md)).
 
+A project that plans in its host's issues, as its harness ADR records
+([NUC-large-work-is-planned §9](../../../docs/adr/NUC-large-work-is-planned.md)), takes the
+spec's closed ticket issues as its tickets in step 1, files what it finds as issues in step 6,
+and closes the spec's issue where step 6 deletes `spec.md`. The rest of this skill holds as
+written.
+
 ## 1. Scope
 
 Take the feature spec and its merged tickets: once only its `spec.md` is left, the tickets are the
