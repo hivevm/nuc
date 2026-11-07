@@ -1,0 +1,64 @@
+# Cases of the record checks of scripts/check-docs.sh, read by scripts/test-check-docs.sh.
+#
+# One case per line, five fields separated by ' | ':
+#
+#   <check> | <pass or fail> | <text the output contains, or -> | <name> | <tree>
+#
+# The tree is a list of steps separated by '; ', applied in order to a repository that passes
+# every check and has an empty record: an index with a category list and its two tables.
+#
+#   adr <id> <status>           the ADR file, headed '# <id>: decision', and its index row, in the
+#                               table its status belongs to
+#   file <id> <status>          the ADR file alone
+#   row <table> <id> <status>   an index row alone, in 'binding' or 'archive'
+#   status <id> <status>        the status line of the file alone
+#   deciders <id> <text>        a Deciders field with the text
+#   supersedes <id> <ids>       a Supersedes field linking each id of the comma-separated list;
+#                               an id after '+' stands on a continuation line
+#   heading <id> <text>         the first line of the file replaced by the text
+#   text <file> <text>          a line of text appended to the file
+#   category <key>              a project category in the category list of the index
+#   commit                      every file committed
+#   delete <id>                 the file and its row deleted and committed
+#
+# An id is 'ADR:NNNN', the file NNNN-decision.md, or '<CAT>:<slug>', the file <CAT>-<slug>.md. A
+# status is accepted, proposed, rejected, or superseded:<id>. Everywhere in a line, a colon after
+# two to five capital letters and before a letter or a digit reads as a hyphen: the file then
+# cites no ADR of this repository, and the map script of the normalize skill leaves it as it is.
+
+1 | fail | status for '0001-decision.md' is 🟡 | an index status that disagrees with the ADR | adr ADR:0001 proposed; status ADR:0001 accepted
+1 | fail | sits above the 'Superseded and rejected' heading | a rejected row in the binding table | file ADR:0001 rejected; row binding ADR:0001 rejected
+1 | fail | sits below the 'Superseded and rejected' heading | a proposed row in the archive table | file ADR:0001 proposed; row archive ADR:0001 proposed
+1 | fail | lists '0001-decision.md' twice | a row both sides of a union merge kept | adr ADR:0001 proposed; row binding ADR:0001 proposed
+1 | pass | - | an ADR of the new form and its row | adr SEC:host-socket-closed proposed
+1 | fail | file 'SEC:host-socket-closed.md' exists but is not listed | an ADR of the new form without its row | file SEC:host-socket-closed proposed
+1 | fail | lists 'OPS:gone.md', but no such ADR file exists | a row of the new form without its file | row binding OPS:gone proposed
+2 | fail | numbers must run 0001..N without gaps | a gap in the old numbering | adr ADR:0001 proposed; adr ADR:0003 proposed
+2 | pass | - | both forms side by side | adr ADR:0001 accepted; adr SEC:host-socket-closed proposed
+2 | fail | SEC:Host_socket.md: the identifier is not | a slug with capitals and an underscore | adr SEC:Host_socket proposed
+2 | fail | API:one-two-three-four-five-six.md: the identifier is not | a slug of six words | adr API:one-two-three-four-five-six proposed
+2 | fail | XYZ:thing.md: the category XYZ is neither fixed nor in the category list | a category nobody defined | adr XYZ:thing proposed
+2 | pass | - | a category of the project's list | category UX; adr UX:dark-mode proposed
+2 | fail | SEC:a.md: heading says '# SEC:b: decision' | a heading that names another identifier | adr SEC:a proposed; heading SEC:a # SEC:b: decision
+2 | fail | OPS:old.md: the identifier OPS:old was taken by a deleted ADR, deleted in | an identifier a deleted ADR carried | adr OPS:old proposed; commit; delete OPS:old; adr OPS:old proposed
+2 | pass | - | a deleted ADR whose identifier nobody takes again | adr OPS:old proposed; commit; delete OPS:old; adr OPS:new proposed
+5 | fail | reference 'ADR:0042' matches no ADR file | an old reference to an ADR that does not exist | text README.md Decided in ADR:0042.
+5 | pass | - | a clause citation of an existing ADR | adr SEC:x proposed; text README.md See [SEC:x §3](docs/adr/SEC:x.md) and SEC:x §1.
+5 | fail | reference 'SEC:y' matches no ADR file | a clause citation of a missing ADR | adr SEC:x proposed; text README.md See SEC:y §3.
+5 | fail | reference 'UX:dark-mode' matches no ADR file | a project category cited and missing | category UX; text README.md See UX:dark-mode.
+5 | pass | - | an identifier in a code span is a literal | text README.md An identifier such as `SEC:host-socket-closed`.
+5 | pass | - | a hyphenated word of no category is no citation | text README.md UTF:8 and SHA:256 and CVE:2025-30066.
+6 | fail | cites SEC:x but points at '0001-decision.md' | a link that cites one ADR and points at another | adr ADR:0001 accepted; adr SEC:x proposed; text README.md See [SEC:x](docs/adr/0001-decision.md).
+6 | pass | - | a link that cites an ADR of the new form and points at its file | adr SEC:x proposed; text README.md See [SEC:x §2](docs/adr/SEC:x.md#decision).
+8 | pass | - | one ADR superseding two, both flipped | adr ADR:0001 superseded:ADR:0003; adr ADR:0002 superseded:ADR:0003; adr ADR:0003 accepted; supersedes ADR:0003 ADR:0001,ADR:0002
+8 | fail | 0002-decision.md: 0003-decision.md supersedes it | one ADR superseding two, the second not flipped | adr ADR:0001 superseded:ADR:0003; adr ADR:0002 proposed; adr ADR:0003 accepted; supersedes ADR:0003 ADR:0001,ADR:0002
+8 | pass | - | a Supersedes field wrapped onto a second line, both flipped | adr ADR:0001 superseded:ADR:0003; adr ADR:0002 superseded:ADR:0003; adr ADR:0003 accepted; supersedes ADR:0003 ADR:0001,+ADR:0002
+8 | fail | 0002-decision.md: 0003-decision.md supersedes it | a wrapped Supersedes field, the name on the second line not flipped | adr ADR:0001 superseded:ADR:0003; adr ADR:0002 proposed; adr ADR:0003 accepted; supersedes ADR:0003 ADR:0001,+ADR:0002
+8 | pass | - | a proposed supersession, the old ADR still accepted | adr ADR:0001 accepted; adr ADR:0002 proposed; supersedes ADR:0002 ADR:0001
+8 | fail | 0001-decision.md: superseded by ADR:0002, which is not accepted | an old ADR flipped while its successor is only proposed | adr ADR:0001 superseded:ADR:0002; adr ADR:0002 proposed; supersedes ADR:0002 ADR:0001
+8 | pass | - | a chain of supersessions, the last successor accepted | adr ADR:0001 superseded:ADR:0002; adr ADR:0002 superseded:ADR:0003; adr ADR:0003 accepted; supersedes ADR:0002 ADR:0001; supersedes ADR:0003 ADR:0002
+8 | pass | - | an ADR of the new form superseding an old one, accepted and flipped | adr ADR:0001 superseded:SEC:new; adr SEC:new accepted; supersedes SEC:new ADR:0001
+8 | fail | 0001-decision.md: SEC:new.md supersedes it, but its status line does not say 'superseded by SEC:new' | an ADR of the new form accepted, the old one not flipped | adr ADR:0001 accepted; adr SEC:new accepted; supersedes SEC:new ADR:0001
+8 | fail | SEC:new.md: 0001-decision.md says it supersedes, but it carries no '**Supersedes:**' field naming ADR:0001 | an old ADR naming a successor of the new form that does not claim it | adr ADR:0001 superseded:SEC:new; adr SEC:new accepted
+12 | fail | 0001-decision.md: inherited from the template and still proposed after setup | an inherited ADR still proposed after setup | adr ADR:0001 proposed; deciders ADR:0001 NUC maintainer, project maintainer
+12 | pass | - | an ADR of the template's base, proposed after setup, is not read | adr NUC:base proposed; deciders NUC:base NUC maintainer

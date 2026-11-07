@@ -17,9 +17,8 @@
 # does not fail — nothing in the specification marks the state, so meeting a goal touches the
 # tests, not the constitution.
 #
-# A marker is the word 'Verifies', a colon, and one or more identifiers (ADR-0004, G-1, Q-2,
-# or the draft identifier ADR-draft-<slug> of an ADR that has not reached main, ADR-0002)
-# separated by spaces or commas, in any file git does not ignore that is not Markdown. Markdown
+# A marker is the word 'Verifies', a colon, and one or more identifiers (an ADR's, such as
+# NUC-adrs-record-decisions or ADR-0004 of the old form, G-1, Q-2) separated by spaces or commas, in any file git does not ignore that is not Markdown. Markdown
 # is excluded so that the specification and the ADRs can describe markers without being counted
 # as one.
 # Whether the citing test asserts anything is review, not this check.
@@ -93,7 +92,7 @@ exempt=()
 
 while IFS= read -r f; do
   name="$(basename "$f")"
-  id="ADR-$(adr_key "$f")"
+  id="$(adr_id "$f")"
   known_adrs+=("$id")
   status_line="$(adr_field_line "$f" Status)"
   case "$status_line" in
@@ -129,19 +128,14 @@ while IFS= read -r -d '' rel; do
                        | sed -E 's/^Verifies:[[:space:]]*//' | grep -oE "$ID_RE")
     for id in "${ids[@]}"; do
       cited+=("$id")
-      case "$id" in
-        ADR-*)
-          if ! _contains "$id" "${known_adrs[@]}"; then
-            add_error "$rel:$lineno: cites '$id', which does not exist in $ADR_DIR/"
-          elif _contains "$id" "${inactive[@]}"; then
-            add_error "$rel:$lineno: cites '$id', which is superseded or rejected — a test cannot verify a decision no longer in force"
-          fi
-          ;;
-        *)
-          _contains "$id" "${criteria[@]}" \
-            || add_error "$rel:$lineno: cites '$id', which is not a criterion of $SPEC"
-          ;;
-      esac
+      if [[ "$id" =~ ^[GQ]-[0-9]+$ ]]; then
+        _contains "$id" "${criteria[@]}" \
+          || add_error "$rel:$lineno: cites '$id', which is not a criterion of $SPEC"
+      elif ! _contains "$id" "${known_adrs[@]}"; then
+        add_error "$rel:$lineno: cites '$id', which does not exist in $ADR_DIR/"
+      elif _contains "$id" "${inactive[@]}"; then
+        add_error "$rel:$lineno: cites '$id', which is superseded or rejected — a test cannot verify a decision no longer in force"
+      fi
     done
   done < <(grep -nE "Verifies:[[:space:]]*($ID_RE)" "$f")
 done < <(git -C "$ROOT" ls-files --cached --others --exclude-standard -z)

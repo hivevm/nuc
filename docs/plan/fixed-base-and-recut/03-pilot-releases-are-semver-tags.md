@@ -2,11 +2,11 @@
 
 ## What to build
 
-The first restatement, which sets the form the other `NUC-` ADRs copy. `NUC-releases-are-semver-
-tags` restates ADR-0005 in plain rules, with a *Latitude* section, proposed in a commit of ADRs
-only. Its take-up clause becomes: replace the `NUC-` files and the blob list, map the project's
-ADRs, run the checks. The normalize skill's take-up section follows it. ADR-0005 stays until ticket
-10.
+The first restatement, which sets the form the other `NUC-` ADRs copy.
+`NUC-releases-are-semver-tags` restates ADR-0005 in plain rules, with a *Latitude* section,
+proposed in a commit of ADRs only. Its take-up clause becomes: replace the `NUC-` files and the
+blob list, map the project's ADRs, run the checks. The normalize skill's take-up section follows
+it. ADR-0005 stays until ticket 10.
 
 The hand-off lists each clause of ADR-0005 with its home in the new ADR, a skill, or nowhere and
 why. It reports the word count before and after.

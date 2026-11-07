@@ -182,22 +182,22 @@ adr "$d" 0002 "🟢 accepted"
 mark "G-1 $(adr_id 1) $(adr_id 2)" > "$d/tests/t.txt"
 expect fail "marker citing a superseded ADR" "$d" "'$(adr_id 1)', which is superseded or rejected"
 
-# Verifies: ADR-0002
-# A draft is cited by its draft identifier, assembled for the same reason as adr_id.
-draft_id() { printf 'ADR-%s-%s' draft "$1"; }
+# Verifies: NUC-adrs-record-decisions
+# new_id <slug> — an identifier of the new form, assembled for the same reason as adr_id.
+new_id() { printf '%s-%s' SEC "$1"; }
 
-d="$(repo draft-cited)"
+d="$(repo new-form-cited)"
 spec "$d" "**G-1** — it works."
 adr "$d" 0001 "🟢 accepted"
-printf '# %s: next\n\n- **Status:** 🟡 proposed\n' "$(draft_id next)" > "$d/docs/adr/draft-next.md"
-mark "$(adr_id 1) $(draft_id next) G-1" > "$d/tests/t.txt"
-expect pass "a marker citing a draft that exists" "$d"
+printf '# %s: closed\n\n- **Status:** 🟢 accepted\n' "$(new_id host-socket-closed)" > "$d/docs/adr/$(new_id host-socket-closed).md"
+mark "$(adr_id 1) $(new_id host-socket-closed), G-1" > "$d/tests/t.txt"
+expect pass "a marker citing an ADR of the new form that exists" "$d"
 
-d="$(repo draft-unknown)"
+d="$(repo new-form-unknown)"
 spec "$d" "**G-1** — it works."
 adr "$d" 0001 "🟢 accepted"
-mark "$(adr_id 1) $(draft_id gone) G-1" > "$d/tests/t.txt"
-expect fail "a marker citing a draft that does not exist" "$d" "'$(draft_id gone)', which does not exist"
+mark "$(adr_id 1) $(new_id gone) G-1" > "$d/tests/t.txt"
+expect fail "a marker citing an ADR of the new form that does not exist" "$d" "'$(new_id gone)', which does not exist"
 
 d="$(repo markdown-not-counted)"
 spec "$d" "**G-1** — it works."
