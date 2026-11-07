@@ -11,8 +11,8 @@ Its function `close_setup` in [`scripts/test-template-setup.sh`](scripts/test-te
 lists them. The close also removes the template's own open work, so the project starts with an
 empty plan and an empty backlog. That work is the files under `docs/plan/` and `docs/backlog/`
 that the committed copy of the template brought. A file the project wrote there itself stays. The
-close lists each file it removed there and each it kept. On a copy not yet committed, it removes
-none of them and says so.
+close lists each file it removed there and each it kept. On a copy not yet committed, the close
+refuses and asks to commit it first.
 
 Choose the **profile** first, because it decides how much of each step you take. A small
 project takes the path of [A small project](#a-small-project) at each step; a complex one takes

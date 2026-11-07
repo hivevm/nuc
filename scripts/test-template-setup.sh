@@ -23,8 +23,8 @@
 #      also once the setup file was deleted by hand, removes what close_setup lists and keeps a
 #      NOTE block of the project's own. Of the files under docs/plan/ and docs/backlog/ it removes
 #      the template's and keeps a ticket the project wrote, after a 'Use this template' commit
-#      and in an adoption, and names each file it removed and kept; on a copy no commit holds it
-#      removes none and says so. The setup file's opening paragraph names the two directories.
+#      and in an adoption, and names each file it removed and kept. It refuses a copy no commit
+#      holds and removes nothing. The setup file's opening paragraph names the two directories.
 #
 # A project partway through the setup has replaced some placeholders already. Case 1 asks only
 # for those still present, and an edit of case 2 that finds nothing to change does nothing, so
@@ -46,7 +46,8 @@
 # With --close it tests nothing and closes the setup in this repository: it removes the setup
 # file and what exists only for it, as close_setup lists, this script included. Case 2 makes the
 # same edits on its copy, and case 4 runs --close on a copy. It refuses while the README carries
-# the template's title, so the template's own tree stays.
+# the template's title, so the template's own tree stays, and while no commit holds the setup
+# file, since only that commit tells the template's plan and backlog from the project's.
 #
 # No '# Inputs:' line: it reads the whole tree, so scripts/check-all.sh runs it in its
 # --changed mode too.
@@ -54,7 +55,8 @@
 # Pure bash + coreutils/sed/awk/grep/tar, plus git to enumerate the files and build the copy. Usage:
 #     scripts/test-template-setup.sh [--open|--close]
 # Exit code 0 when every case passes, with --open, or once --close has closed the setup; 1 when
-# a case fails; 2 on an unknown argument or a --close the template's title refuses.
+# a case fails; 2 on an unknown argument, or on a --close refused for the template's title or for
+# a copy no commit holds.
 
 set -uo pipefail
 
@@ -183,15 +185,12 @@ close_setup() {
 # docs/backlog/ that the commit which added the setup file added, the copy of the template. A file
 # the project wrote there stays, and a directory left empty goes. Each file removed there and each
 # kept is printed. Where no commit holds the setup file, nothing there tells the template's files
-# from the project's, so none is removed and it says the copy must be committed first.
+# from the project's, so none is removed; close refuses such a copy before it gets here.
 close_template_work() {
   local d="$1" first f
   local -a brought kept
   first="$(git -C "$d" log --diff-filter=A --format=%H -- TEMPLATE-SETUP.md 2>/dev/null | tail -n 1)"
-  if [[ -z "$first" ]]; then
-    echo "The template's plan and backlog stay: no commit holds the copy of the template. Commit the copy and run --close again to clear docs/plan/ and docs/backlog/."
-    return 0
-  fi
+  [[ -n "$first" ]] || return 0
   mapfile -d '' -t brought < <(git -C "$d" diff-tree --root -r -z --no-commit-id --name-only \
     --diff-filter=A "$first" -- docs/plan docs/backlog)
   echo "The template's plan and backlog, under docs/plan/ and docs/backlog/:"
@@ -208,11 +207,16 @@ close_template_work() {
   return 0
 }
 
-# close — close the setup in this repository, once step 1 has given it its own name: the
-# template's own tree is never closed.
+# close — close the setup in this repository, once step 1 has given it its own name and a commit
+# holds the copy of the template: the template's own tree is never closed, and only that commit
+# tells the template's plan and backlog from the project's.
 close() {
   if grep -q '^# NUC — an Agentic' "$ROOT/README.md" 2>/dev/null; then
     echo "test-template-setup: the README still carries the template's title — close the setup after step 1." >&2
+    exit 2
+  fi
+  if [[ -z "$(git -C "$ROOT" log -n 1 --diff-filter=A --format=%H -- TEMPLATE-SETUP.md 2>/dev/null)" ]]; then
+    echo "test-template-setup: no commit holds the copy of the template — commit it first, so the close can tell the template's plan and backlog from the project's." >&2
     exit 2
   fi
   close_setup "$ROOT"
@@ -544,6 +548,12 @@ fi
 # On the template's tree it refuses and removes nothing. On the template the copy keeps its own
 # README, so the refusal is tested against the title it ships. A derived project has replaced the
 # title at step 1, which also removed the template's badges, so its copy is given the title back.
+# commit_copy <dir> <message> — commit everything in the copy, as 'Use this template' or an
+# adoption's copy commit does before the close.
+commit_copy() {
+  fixture "$1"
+  git -C "$1" add -A && git -C "$1" -c user.name=t -c user.email=t@t commit -qm "$2"
+}
 d="$(copy close-refused)"
 grep -q '^\[!\[.*hivevm/nuc/' "$d/README.md" \
   || edit "$d" README.md '1i\
@@ -557,6 +567,7 @@ else fail "--close on the template's own tree exits $rc or removes the setup fil
 d="$(copy close)"
 edit "$d" README.md 's/^# NUC — .*/# Fixture/'
 printf '\n> [!NOTE]\n> **Fixture keeps this note.**\n' >> "$d/README.md"
+commit_copy "$d" template
 if bash "$d/scripts/test-template-setup.sh" --close >/dev/null 2>&1; then pass
 else fail "--close after step 1 does not exit 0"; fi
 for f in TEMPLATE-SETUP.md scripts/test-template-setup.sh .agents/skills/setup-project/SKILL.md; do
@@ -573,6 +584,7 @@ else fail "--close drops the executable bit of scripts/check-all.sh"; fi
 # A setup file deleted by hand: --close still removes the rest.
 d="$(copy close-after-hand)"
 edit "$d" README.md 's/^# NUC — .*/# Fixture/'
+commit_copy "$d" template
 rm "$d/TEMPLATE-SETUP.md"
 bash "$d/scripts/test-template-setup.sh" --close >/dev/null 2>&1
 if [[ ! -e "$d/scripts/test-template-setup.sh" && ! -e "$d/.agents/skills/setup-project" ]]; then pass
@@ -585,7 +597,7 @@ edit "$d" README.md 's/^# NUC — .*/# Fixture/'
 mkdir -p "$d/docs/plan/template-work" "$d/docs/backlog"
 printf '# Ticket: the template'"'"'s\n' > "$d/docs/plan/template-work/01-the-templates.md"
 printf '# The template'"'"'s entry\n' > "$d/docs/backlog/the-templates-entry.md"
-git -C "$d" add -A && git -C "$d" -c user.name=t -c user.email=t@t commit -qm template
+commit_copy "$d" template
 mkdir -p "$d/docs/plan/own"
 printf '# Ticket: the project'"'"'s\n' > "$d/docs/plan/own/01-the-projects.md"
 out="$(bash "$d/scripts/test-template-setup.sh" --close 2>&1)"
@@ -606,21 +618,24 @@ mkdir -p "$d/docs/plan/template-work" "$d/docs/plan/own"
 printf '# Ticket: the template'"'"'s\n' > "$d/docs/plan/template-work/01-the-templates.md"
 printf '# Ticket: the project'"'"'s\n' > "$d/docs/plan/own/01-the-projects.md"
 git -C "$d" add docs/plan/own && git -C "$d" -c user.name=t -c user.email=t@t commit -qm project
-git -C "$d" add -A && git -C "$d" -c user.name=t -c user.email=t@t commit -qm template
+commit_copy "$d" template
 bash "$d/scripts/test-template-setup.sh" --close >/dev/null 2>&1
 if [[ ! -e "$d/docs/plan/template-work" && -f "$d/docs/plan/own/01-the-projects.md" ]]; then pass
 else fail "--close in an adoption does not remove the template's ticket alone"; fi
 # A copy no commit holds: nothing under docs/plan/ or docs/backlog/ tells the template's files from
-# the project's, so the close removes none of them and says the copy must be committed.
+# the project's, and once the close ran, no later commit holds the setup file. So --close refuses
+# and removes nothing.
 d="$(copy close-uncommitted)"
 edit "$d" README.md 's/^# NUC — .*/# Fixture/'
 mkdir -p "$d/docs/plan/template-work"
 printf '# Ticket: the template'"'"'s\n' > "$d/docs/plan/template-work/01-the-templates.md"
 out="$(bash "$d/scripts/test-template-setup.sh" --close 2>&1)"
-if [[ -f "$d/docs/plan/template-work/01-the-templates.md" ]]; then pass
-else fail "--close on an uncommitted copy removes an untracked file under docs/plan/"; fi
-if grep -qi 'commit' <<< "$out"; then pass
-else fail "--close on an uncommitted copy does not say the copy must be committed: $out"; fi
+rc=$?
+if ((rc == 2)) && [[ -f "$d/TEMPLATE-SETUP.md" && -f "$d/scripts/test-template-setup.sh" \
+  && -f "$d/docs/plan/template-work/01-the-templates.md" ]]; then pass
+else fail "--close on an uncommitted copy exits $rc or removes a file"; fi
+if [[ "$out" == "test-template-setup: no commit holds the copy of the template — commit it first, so the close can tell the template's plan and backlog from the project's." ]]; then pass
+else fail "--close on an uncommitted copy does not ask to commit it first: $out"; fi
 # The setup file says so where it lists what the close removes: its opening paragraph.
 opening="$(awk 'NR > 2 && /^$/ { exit } NR > 2' "$ROOT/TEMPLATE-SETUP.md")"
 if [[ "$opening" == *docs/plan/* && "$opening" == *docs/backlog/* ]]; then pass
