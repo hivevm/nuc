@@ -10,11 +10,12 @@
 # on an added line: should, could, might, ideally, and each word on an added line that an entry of
 # docs/GLOSSARY.md lists under _Avoid:_, with the term to write instead. A verb or a word counts
 # whole, case insensitive, and not inside an identifier, where a letter, a digit, or an underscore
-# adjoins it. A word listed as '<word> alone' does not count inside a longer term of the glossary
-# that holds it, such as 'node shape' for 'shape alone'. It lists each item of an _Avoid:_ list
-# that scripts/lib/rules.sh cannot read. A listed word that the line break of a paragraph splits
-# counts when either line is added, on the line it starts on if that line is added, else on the
-# next; the gap a code span or an italic leaves at the end of a line stays. A paragraph or a list
+# adjoins it. A word does not count inside a longer term of the glossary that holds it, such as
+# 'node shape' for 'shape', whether the item says 'alone' or another entry lists the word bare.
+# It lists each item of an _Avoid:_ list that scripts/lib/rules.sh cannot read. A listed word
+# that the line break of a paragraph splits counts when either line is added, on the line it
+# starts on if that line is added, else on the next; the gap a code span or an italic leaves at
+# the end of a line stays. A paragraph or a list
 # item ends a sentence; so do '.', '!', and '?' before a space or the end.
 #
 # Without '--require' it reports for the reviewer and never fails on what it counts. With
@@ -59,28 +60,30 @@ fi
 # The glossary as the change has it: the working tree's, or the head's.
 glossary="$(mktemp)"
 change_file "$at" docs/GLOSSARY.md > "$glossary" 2>/dev/null
-avoid="$(avoid_terms "$glossary")"
+avoid="$(avoid_terms "$glossary")"; rc=$?
 rm -f "$glossary"
-findings=()
-while IFS= read -r finding; do findings+=("$finding"); done < <(
-  awk -F '\t' -v max="$MAX_WORDS" -v avoid="$avoid" '
+((rc == 0)) || { echo "Plain rules sensor ($range): could not read docs/GLOSSARY.md." >&2; exit 2; }
+# The rows of the glossary and the rules reach awk through the environment and stdin: an awk of
+# the BWK line refuses a newline in a '-v' value.
+out="$(AVOID="$avoid" awk -F '\t' -v max="$MAX_WORDS" '
     # A row of avoid_terms: an item it reads (A), a term (T), or an item it cannot read (U).
     BEGIN {
-      n = split(avoid, rows, "\n"); na = 0; nt = 0
+      n = split(ENVIRON["AVOID"], rows, "\n"); na = 0; nt = 0
       for (i = 1; i <= n; i++) {
         split(rows[i], kv, "\t")
-        if (kv[1] == "A") { word[++na] = kv[2]; term[na] = kv[3]; alone[na] = (kv[4] == "alone") }
+        if (kv[1] == "A") { word[++na] = kv[2]; term[na] = kv[3] }
         else if (kv[1] == "T") terms[++nt] = kv[2]
         else if (kv[1] == "U") print "docs/GLOSSARY.md:" kv[2] ": cannot read \"" kv[3] "\" under _Avoid:_ of \"" kv[4] "\""
       }
     }
     # bare <text> <i> — the text with each longer term of the glossary that holds the word of
-    # item i blanked, where the item counts the word alone; else the text.
-    function bare(s, i,  k, t) {
-      if (!alone[i]) return s
+    # item i blanked: a word inside a term of the glossary is no synonym to avoid.
+    function bare(s, i,  k, t, b) {
       for (k = 1; k <= nt; k++) {
         t = terms[k]
-        if (t != word[i] && found(" " t " ", word[i], 0)) while (found(s, t, 0)) s = substr(s, 1, FOUND - 1) sprintf("%*s", length(t), "") substr(s, FOUND + length(t))
+        if (t == word[i] || !found(" " t " ", word[i], 0)) continue
+        b = t; gsub(/./, " ", b)
+        while (found(s, t, 0)) s = substr(s, 1, FOUND - 1) b substr(s, FOUND + length(t))
       }
       return s
     }
@@ -135,7 +138,10 @@ while IFS= read -r finding; do findings+=("$finding"); done < <(
         if (words[i] ~ /[.!?][)*_"]*$/) flush()
       }
     }
-    END { flush() }' <<< "$stream")
+    END { flush() }' <<< "$stream")" \
+  || { echo "Plain rules sensor ($range): awk failed on the rules." >&2; exit 2; }
+findings=()
+while IFS= read -r finding; do [[ -z "$finding" ]] || findings+=("$finding"); done <<< "$out"
 
 failing=0
 for i in "${!findings[@]}"; do

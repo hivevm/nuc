@@ -9,8 +9,8 @@ sentences, and list under _Avoid:_ the synonyms it displaces, where there are an
 specification, an ADR, or the code uses without an entry here is a gap to close, not a convention
 to invent.
 
-List each synonym under _Avoid:_ as a word of one to three words. Add *alone* after it where it
-stays in a longer term, as in "shape alone" beside **Node shape**.
+List each synonym under _Avoid:_ as one to three words, without prose around them. A synonym
+inside a longer term of this glossary, such as "shape" in **Node shape**, is no synonym there.
 
 - **<Term>** — what it is, in one or two sentences.
   _Avoid:_ <the synonyms not used here>.

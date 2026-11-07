@@ -22,7 +22,7 @@ rule_stream() {
     set -o pipefail
     { git -c core.quotePath=false diff --name-status -M "${refs[@]}" \
         | awk -F '\t' '{ print $NF "\t" ($1 ~ /^R/ ? $2 : "") }' \
-        && if [[ -z "$head" ]]; then git -c core.quotePath=false ls-files --others --exclude-standard | sed 's/$/\t/'; fi
+        && if [[ -z "$head" ]]; then git -c core.quotePath=false ls-files --others --exclude-standard | awk '{ print $0 "\t" }'; fi
     } | LC_ALL=C sort -u)" || { printf 'E\t\n'; return 1; }
   while IFS=$'\t' read -r p from; do
     [[ -n "$p" ]] || continue
@@ -37,9 +37,9 @@ rule_stream() {
     fi
     [[ -n "$lines" ]] || continue
     printf 'F\t%s\n' "$p"
-    ( set -o pipefail; change_file "$head" "$p" | awk \
-      -v added="$lines," -v adr="$([[ "$p" == AGENTS.md ]] || echo 1)" -v sections="^## ($ADR_RULE_SECTIONS)\$" \
-      "$ADR_FENCE_AWK"'
+    ( set -o pipefail; change_file "$head" "$p" | ADDED="$lines," SECTIONS="^## ($ADR_RULE_SECTIONS)\$" awk \
+      -v adr="$([[ "$p" == AGENTS.md ]] || echo 1)" "$ADR_FENCE_AWK"'
+      BEGIN { added = ENVIRON["ADDED"]; sections = ENVIRON["SECTIONS"] }
       # A run of prose is held until it ends, since a code span or an italic may close on a later
       # line of it, and one that never closes is plain text, as Markdown reads it.
       function para() { flush(); if (!gap) print "P"; gap = 1 }
@@ -108,12 +108,12 @@ rule_stream() {
 # avoid_terms <glossary> — what the glossary's entries list under _Avoid:_, split at commas and
 # semicolons, a leading 'and', a trailing period, the stars and underscores of italics, and a
 # placeholder in angle brackets dropped. Each item it reads is 'A<TAB>word<TAB>term<TAB>qualifier':
-# a word of one to three words in lower case, then 'alone' where the item ends so, or nothing,
-# 'in prose' at its end read as nothing, since only prose is read. Each item it cannot read is
-# 'U<TAB>line<TAB>item<TAB>term', and each term 'T<TAB>term' in lower case. An entry is its
-# '- **Term**' line and the indented lines after it; prose outside an entry lists nothing
-# (NUC-documents-are-fixed §5). An indented list item, a sub-list of the entry, ends its _Avoid:_
-# list.
+# one to three words in lower case, letters beyond ASCII among them, then 'alone' where the item
+# ends so, or nothing; 'in prose' at its end reads as nothing, since only prose is read. Each item
+# it cannot read is 'U<TAB>line<TAB>item<TAB>term', and each term 'T<TAB>term' in lower case. An
+# entry is its '- **Term**' line and the indented lines after it; prose outside an entry lists
+# nothing (NUC-documents-are-fixed §5). An indented list item, a sub-list of the entry, ends its
+# _Avoid:_ list.
 avoid_terms() {
   [[ -f "$1" ]] || return 0
   awk '
@@ -127,7 +127,7 @@ avoid_terms() {
         q = ""
         if (w ~ / alone$/) { q = "alone"; sub(/ alone$/, "", w) } else sub(/ in prose$/, "", w)
         k = split(w, parts2, " ")
-        if (k > 3 || w !~ /^[a-z0-9][a-z0-9 .\x27-]*$/) printf "U\t%d\t%s\t%s\n", NR, w (q ? " " q : ""), term
+        if (k > 3 || w ~ /^[-.\047]/ || w ~ /[\[\]!"#$%&()*+,\/:;<=>?@\\^_`{|}~]/) printf "U\t%d\t%s\t%s\n", NR, w (q ? " " q : ""), term
         else printf "A\t%s\t%s\t%s\n", w, term, q
       }
     }

@@ -71,6 +71,7 @@ pass | docs/adr/NUC:rule-y.md:11: "trigger" is listed | an avoided word in a NUC
 pass | !is listed | an avoided word in a project ADR's Context | glossary hook; add docs/adr/FIX-rule-x.md Context It runs a hook script.
 pass | docs/adr/FIX-rule-x.md:11: a sentence of 28 words | a long sentence in a project ADR: reported | add docs/adr/FIX-rule-x.md Decision The session that reads this rule before it starts any work must find every single word of it in the glossary and must also know who acts here.
 fail | docs/adr/FIX-rule-x.md:11: "shape" is listed under _Avoid:_ in docs/GLOSSARY.md — write "Node shape" | an item '*shape* alone': the bare word | glossary shape; add docs/adr/FIX-rule-x.md Decision The shape is drawn.
+pass | !"shape" is listed | another entry lists the word bare: the word inside a longer term passes | glossary comb; add docs/adr/FIX-rule-x.md Decision The node shape is drawn.
 pass | !"shape" is listed | an item '*shape* alone': the word inside the longer term | glossary shape; add docs/adr/FIX-rule-x.md Decision The node shape is drawn.
 fail | docs/adr/FIX-rule-x.md:11: "self-edge" is listed | an item 'self-edge in prose': the word in a rule | glossary shape; add docs/adr/FIX-rule-x.md Decision A self-edge is drawn.
 fail | docs/adr/FIX-rule-x.md:11: "frustum culling" is listed | an item the reader cannot read leaves the others of its list | glossary shape; add docs/adr/FIX-rule-x.md Decision Frustum culling runs.

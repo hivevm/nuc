@@ -61,7 +61,7 @@ repo() {
 # after <dir> <file> <heading> <text> — insert a paragraph after the heading line, and commit.
 after() {
   fixture "$1"
-  awk -v h="$3" -v t="$4" '{ print } $0 == h { print ""; print t }' "$1/$2" > "$1/$2.new"
+  T="$4" awk -v h="$3" '{ print } $0 == h { print ""; print ENVIRON["T"] }' "$1/$2" > "$1/$2.new"
   mv "$1/$2.new" "$1/$2"
   git_in "$1" commit -q -am "change $2"
 }
@@ -287,11 +287,11 @@ out="$(bash "$SENSOR" --root "$r" no-such-ref 2>&1)"; rc=$?
 check "a base that does not resolve: exit 2" test "$rc" -eq 2 -a "${out/does not resolve/}" != "$out"
 
 # A reader that breaks: an awk on PATH that fails on the program rule_stream runs per file, told
-# by its 'added' variable, and hands every other program to the real awk.
+# by its 'adr' variable, and hands every other program to the real awk.
 broken="$work/broken-awk"
 mkdir -p "$broken"
 # shellcheck disable=SC2016 # the script is written as it runs, its variables unexpanded
-printf '#!/usr/bin/env bash\nfor a; do [[ "$a" == added=* ]] && { echo "awk: syntax error" >&2; exit 2; }; done\nexec %q "$@"\n' \
+printf '#!/usr/bin/env bash\nfor a; do [[ "$a" == adr=* ]] && { echo "awk: syntax error" >&2; exit 2; }; done\nexec %q "$@"\n' \
   "$(command -v awk)" > "$broken/awk"
 chmod +x "$broken/awk"
 
@@ -299,6 +299,13 @@ r="$(repo broken-reader)"
 after "$r" AGENTS.md "## 1. Rules" "- $SHORT"
 out="$(PATH="$broken:$PATH" bash "$SENSOR" --root "$r" main 2>&1)"; rc=$?
 check "a reader that fails: exit 2, naming the file" test "$rc" -eq 2 -a "${out/could not read the rules of AGENTS.md/}" != "$out"
+
+# A sensor whose awk breaks, told by its 'max' variable: exit 2, never a silent pass.
+r="$(repo broken-sensor)"
+after "$r" AGENTS.md "## 1. Rules" "- $SHORT"
+sed 's/adr=\*/max=*/' "$broken/awk" > "$work/awk" && mkdir -p "$work/max" && mv "$work/awk" "$work/max/awk" && chmod +x "$work/max/awk"
+out="$(PATH="$work/max:$PATH" bash "$SENSOR" --root "$r" main 2>&1)"; rc=$?
+check "a sensor whose awk fails: exit 2, saying so" test "$rc" -eq 2 -a "${out/awk failed on the rules/}" != "$out"
 
 # A listing that breaks: a git on PATH that fails on '--name-status', which only rule_stream asks for
 # when it lists the files a change touches, and hands every other command to the real git.
@@ -372,6 +379,9 @@ awk -F ' [|] ' '$1 == "= shape" { print $2 }' "$TABLE" > "$reader"
 terms="$(source "$ROOT/scripts/lib/rules.sh"; avoid_terms "$reader")"
 check "the reader: '*shape* alone' is the word with its qualifier" \
   grep -qxF "$(printf 'A\tshape\tNode shape\talone')" <<< "$terms"
+printf -- '- **Size** — how large a node is.\n  _Avoid:_ Größe.\n' > "$reader"
+check "the reader: a word with letters beyond ASCII is read" \
+  grep -qxF "$(printf 'A\tgröße\tSize\t')" <<< "$(source "$ROOT/scripts/lib/rules.sh"; avoid_terms "$reader")"
 check "the reader: an item it cannot read is named with its line" \
   grep -qxF "$(printf 'U\t6\toutside the wording of the constraint that requires it\tCulling')" <<< "$terms"
 
