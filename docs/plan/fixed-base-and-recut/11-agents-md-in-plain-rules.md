@@ -20,7 +20,7 @@ citations by anchor stay valid.
 
 ## Read first
 
-- Touches: `AGENTS.md`, `CLAUDE.md`, `.claude/CLAUDE.md`
+- Touches: `AGENTS.md`, `.claude/CLAUDE.md`, `.githooks/pre-push`, `scripts/test-git-hooks.sh`
 - [`AGENTS.md` §4](../../../AGENTS.md#4-working-style), the writing rule.
 - `NUC-adrs-record-decisions` and `NUC-main-only-via-pr`.
 
