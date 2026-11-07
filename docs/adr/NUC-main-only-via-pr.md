@@ -45,8 +45,8 @@ through merged pull requests.
    - An agent must wait for a human's instruction before a push, a `gh` command, or anything that
      rewrites or discards history, such as `reset`, `rebase`, `merge`, `restore`, or `clean`.
    - An instruction covers the action it names and no next one.
-   - A standing instruction may cover only the push of a ticket's claim across clones, where the
-     harness ADR grants it.
+   - A standing instruction may cover only the claim of a ticket, where the harness ADR grants it.
+     The claim is the push that creates its branch across clones, or the assignment of its issue.
 3. **Credentials.** A human authenticates `gh` through its web flow and enters its one-time code.
    An agent must not request, store, or hard-code a personal access token.
 4. **`main`.** A change must reach `main` through a pull request that merges as a merge commit.
