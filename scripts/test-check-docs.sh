@@ -12,12 +12,14 @@
 # a maintainer would meet first — check 9 gets two more for the toolchain job a derived project
 # adds, checks 12 and 13 (inherited ADRs decided and the template's identity replaced once the setup
 # file is gone) have a case for each of their conditions, and check 14 (the template release named)
-# one for each form the line may take.
+# one for each form the line may take. The cases of the record checks, 1, 2, 5, 6, 8, and a part of
+# 12, stand in the fixture table scripts/fixtures/check-docs-record.txt, which says its format.
 #
-# Section references and ADR numbers inside fixtures are assembled, never written literally, so
-# that check-docs.sh does not read this script's own fixtures as references into this repository.
+# Section references and ADR identifiers inside fixtures are assembled, never written literally,
+# so that check-docs.sh does not read this script's own fixtures as references into this
+# repository.
 #
-# Inputs: scripts/check-docs.sh scripts/lib/
+# Inputs: scripts/check-docs.sh scripts/lib/ scripts/fixtures/
 #
 # Usage:
 #     scripts/test-check-docs.sh
@@ -516,10 +518,6 @@ printf '\n## Last' >> "$d/AGENTS.md"
 echo "See [the last section](AGENTS.md#last)." >> "$d/README.md"
 expect pass "a heading on a last line without a newline anchors" "$d"
 
-d="$(repo index-status)"
-adr "$d" 1 "🟢 accepted"
-expect fail "an index status that disagrees with the ADR" "$d" "status for '0001-decision.md'"
-
 # Verifies: ADR-0001
 d="$(repo header-not-a-list-item)"
 sed 's/^- \*\*Status:\*\*/**Status:**/' "$d/docs/adr/0001-decision.md" > "$d/adr.tmp" \
@@ -530,149 +528,6 @@ d="$(repo header-field-quoted-in-body)"
 # shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
 echo 'A later ADR names this one in its `**Supersedes:**` field.' >> "$d/docs/adr/0001-decision.md"
 expect pass "a header field quoted in the body of an ADR" "$d"
-
-d="$(repo numbering-gap)"
-adr "$d" 3 "🟡 proposed"
-index_row 3 "🟡 proposed" >> "$d/docs/adr/README.md"
-expect fail "a gap in the ADR numbering" "$d" "numbers must run 0001..N without gaps"
-
-# consolidation <dir> <flip second: yes|no> [wrap] — ADR 3 supersedes ADRs 1 and 2; the second's
-# status is flipped only when asked, so that a check reading the first name alone passes; with
-# 'wrap', the second name sits on a continuation line of the field.
-consolidation() {
-  local dir="$1" flip="$2" wrap="${3:-}" n3 sep=", "
-  n3="$(adr_id 3)"
-  [[ "$wrap" == "wrap" ]] && sep=",\n  "
-  adr "$dir" 1 "⚪ superseded by $n3"
-  if [[ "$flip" == "yes" ]]; then adr "$dir" 2 "⚪ superseded by $n3"; else adr "$dir" 2 "🟡 proposed"; fi
-  adr "$dir" 3 "🟢 accepted"
-  insert_before "$dir/docs/adr/0003-decision.md" "- **Applies to:**" \
-    "- **Supersedes:** [$(adr_id 1)](0001-decision.md)${sep}[$(adr_id 2)](0002-decision.md)"
-  {
-    echo "# Architecture Decision Records"
-    echo
-    echo "### Binding"
-    echo
-    echo "| ADR | Title | Applies to | Status |"
-    echo "|-----|-------|------------|--------|"
-    [[ "$flip" == "yes" ]] || index_row 2 "🟡 proposed"
-    index_row 3 "🟢 accepted"
-    echo
-    echo "### Superseded and rejected"
-    echo
-    echo "| ADR | Title | Applies to | Status |"
-    echo "|-----|-------|------------|--------|"
-    index_row 1 "⚪ superseded by $n3"
-    [[ "$flip" == "yes" ]] && index_row 2 "⚪ superseded by $n3"
-  } > "$dir/docs/adr/README.md"
-}
-
-# --- cases: the two index tables (check 1) ------------------------------------------------
-
-d="$(repo archive-row-above)"
-adr "$d" 1 "🔴 rejected"
-{
-  echo "# Architecture Decision Records"
-  echo
-  echo "| ADR | Title | Applies to | Status |"
-  echo "|-----|-------|------------|--------|"
-  index_row 1 "🔴 rejected"
-} > "$d/docs/adr/README.md"
-expect fail "a rejected row with no archive heading above it" "$d" "sits above the 'Superseded and rejected' heading"
-
-d="$(repo index-row-twice)"
-index_row 1 "🟡 proposed" >> "$d/docs/adr/README.md"
-expect fail "a row both sides of a union merge kept" "$d" "lists '0001-decision.md' twice"
-
-d="$(repo binding-row-below)"
-{
-  echo "# Architecture Decision Records"
-  echo
-  echo "## Superseded and rejected"
-  echo
-  echo "| ADR | Title | Applies to | Status |"
-  echo "|-----|-------|------------|--------|"
-  index_row 1 "🟡 proposed"
-} > "$d/docs/adr/README.md"
-expect fail "a proposed row under the archive heading" "$d" "sits below the 'Superseded and rejected' heading"
-
-d="$(repo consolidation)"
-consolidation "$d" yes
-expect pass "one ADR superseding two, both flipped" "$d"
-
-d="$(repo consolidation-half)"
-consolidation "$d" no
-expect fail "one ADR superseding two, the second not flipped" "$d" "0002-decision.md: 0003-decision.md supersedes it"
-
-d="$(repo consolidation-wrapped)"
-consolidation "$d" yes wrap
-expect pass "a Supersedes field wrapped onto a second line, both flipped" "$d"
-
-d="$(repo consolidation-wrapped-half)"
-consolidation "$d" no wrap
-expect fail "a wrapped Supersedes field, the name on the second line not flipped" "$d" "0002-decision.md: 0003-decision.md supersedes it"
-
-# proposed_supersession <dir> <old status> — ADR 2, proposed, supersedes ADR 1, whose status line
-# and index row read as given.
-proposed_supersession() {
-  local dir="$1" old="$2"
-  adr "$dir" 1 "$old"
-  adr "$dir" 2 "🟡 proposed"
-  insert_before "$dir/docs/adr/0002-decision.md" "- **Applies to:**" \
-    "- **Supersedes:** [$(adr_id 1)](0001-decision.md)"
-  {
-    echo "# Architecture Decision Records"
-    echo
-    echo "### Binding"
-    echo
-    echo "| ADR | Title | Applies to | Status |"
-    echo "|-----|-------|------------|--------|"
-    [[ "$old" == ⚪* ]] || index_row 1 "$old"
-    index_row 2 "🟡 proposed"
-    echo
-    echo "### Superseded and rejected"
-    echo
-    echo "| ADR | Title | Applies to | Status |"
-    echo "|-----|-------|------------|--------|"
-    [[ "$old" == ⚪* ]] && index_row 1 "$old"
-  } > "$dir/docs/adr/README.md"
-}
-
-# Verifies: ADR-0001
-d="$(repo supersession-proposed)"
-proposed_supersession "$d" "🟢 accepted"
-expect pass "a proposed supersession, the old ADR still accepted" "$d"
-d="$(repo supersession-flipped-early)"
-proposed_supersession "$d" "⚪ superseded by $(adr_id 2)"
-expect fail "an old ADR flipped while its successor is only proposed" "$d" \
-  "0001-decision.md: superseded by $(adr_id 2), which is not accepted"
-
-# A chain: ADR 1 superseded by ADR 2, which ADR 3, accepted, supersedes in its turn.
-d="$(repo supersession-chain)"
-adr "$d" 1 "⚪ superseded by $(adr_id 2)"
-adr "$d" 2 "⚪ superseded by $(adr_id 3)"
-adr "$d" 3 "🟢 accepted"
-insert_before "$d/docs/adr/0002-decision.md" "- **Applies to:**" \
-  "- **Supersedes:** [$(adr_id 1)](0001-decision.md)"
-insert_before "$d/docs/adr/0003-decision.md" "- **Applies to:**" \
-  "- **Supersedes:** [$(adr_id 2)](0002-decision.md)"
-{
-  echo "# Architecture Decision Records"
-  echo
-  echo "### Binding"
-  echo
-  echo "| ADR | Title | Applies to | Status |"
-  echo "|-----|-------|------------|--------|"
-  index_row 3 "🟢 accepted"
-  echo
-  echo "### Superseded and rejected"
-  echo
-  echo "| ADR | Title | Applies to | Status |"
-  echo "|-----|-------|------------|--------|"
-  index_row 1 "⚪ superseded by $(adr_id 2)"
-  index_row 2 "⚪ superseded by $(adr_id 3)"
-} > "$d/docs/adr/README.md"
-expect pass "a chain of supersessions, the last successor accepted" "$d"
 
 d="$(repo section-ref)"
 echo "Cited in [\`AGENTS.md\` $(sect 9)](AGENTS.md#9-nowhere)." >> "$d/README.md"
@@ -702,10 +557,6 @@ expect pass "the section sign in JSON is an ordinary character" "$d"
 d="$(repo section-json-words)"
 echo "{ \"note\": \"$(words 9)\" }" > "$d/settings.json"
 expect fail "a reference in words in a JSON file" "$d" "settings.json:1: reference"
-
-d="$(repo unknown-adr-ref)"
-echo "Decided in $(adr_id 42)." >> "$d/README.md"
-expect fail "a reference to an ADR that does not exist" "$d" "matches no ADR file"
 
 d="$(repo check-lists)"
 echo 'run "Extra" scripts/check-extra.sh' >> "$d/scripts/check-all.sh"
@@ -864,71 +715,94 @@ d="$(repo layout-plan-absent)"
 layout "$d" "docs/plan/"
 expect pass "docs/plan/ named while there is no open work" "$d"
 
-# --- cases: drafts (checks 1, 2, 5, 6, 8, and 16) ---------------------------------------
+# --- cases: the record (checks 1, 2, 5, 6, 8, and 12), read from the fixture table -------
 
-# Verifies: ADR-0002
-DRAFT="draft"
-# draft_id <slug> — the draft identifier of a slug, assembled for the same reason as adr_id.
-draft_id() { printf 'ADR-%s-%s' "$DRAFT" "$1"; }
+TABLE="$ROOT/scripts/fixtures/check-docs-record.txt"
 
-# drafted <dir> — the draft 'next', proposed to supersede ADR 1, which stays accepted until the
-# draft is, with both index rows and a link to the draft from the README.
-drafted() {
-  local dir="$1"
-  adr "$dir" 1 "🟢 accepted"
-  {
-    echo "# $(draft_id next): the next decision"
-    echo
-    echo "- **Status:** 🟡 proposed"
-    echo "- **Applies to:** everything"
-    echo "- **Supersedes:** [$(adr_id 1)](0001-decision.md)"
-    echo
-    echo "## Decision"
-    echo
-    echo "We will."
-  } > "$dir/docs/adr/$DRAFT-next.md"
-  {
-    echo "# Architecture Decision Records"
-    echo
-    echo "| ADR | Title | Applies to | Status |"
-    echo "|-----|-------|------------|--------|"
-    index_row 1 "🟢 accepted"
-    echo "| [$DRAFT-next]($DRAFT-next.md) | Next | everything | 🟡 proposed |"
-  } > "$dir/docs/adr/README.md"
-  echo "Decided in [$(draft_id next)](docs/adr/$DRAFT-next.md)." >> "$dir/README.md"
+# Verifies: NUC-adrs-record-decisions
+# adr_file <id> — the file of an identifier; status_of <status> — the status line it reads.
+adr_file() { if [[ "$1" == ADR-* ]]; then echo "${1#ADR-}-decision.md"; else echo "$1.md"; fi; }
+status_of() {
+  case "$1" in
+    accepted) echo "🟢 accepted" ;; proposed) echo "🟡 proposed" ;; rejected) echo "🔴 rejected" ;;
+    superseded:*) echo "⚪ superseded by ${1#superseded:}" ;;
+  esac
 }
 
-d="$(repo draft)"
-drafted "$d"
-GITHUB_BASE_REF=feat/topic expect pass "a draft, its index row, a link, and a supersession, landing on a feat/ branch" "$d"
-GITHUB_BASE_REF="" GITHUB_ACTIONS="" expect pass "a draft outside CI, where nothing names the branch" "$d"
-GITHUB_BASE_REF=main PULL_REQUEST_DRAFT=false \
-  expect fail "a draft in a pull request into main ready for review" "$d" "$DRAFT-next.md: a draft lands on main"
-GITHUB_BASE_REF=main PULL_REQUEST_DRAFT=true \
-  expect pass "a draft in a draft pull request into main, a feat/ branch under rework" "$d"
-GITHUB_BASE_REF="" GITHUB_ACTIONS=true GITHUB_REF_NAME=main PULL_REQUEST_DRAFT="" \
-  expect fail "a draft in a push to main" "$d" "$DRAFT-next.md: a draft lands on main"
+# step <dir> <step> — apply one step of a tree to the fixture.
+step() {
+  local dir="$1" op id arg rest file key list item sep=""
+  local index="$1/docs/adr/README.md"
+  read -r op id arg <<< "$2"
+  rest="${2#"$op" }" rest="${rest#"$id" }"
+  file="$(adr_file "$id")" key="${id#ADR-}"
+  case "$op" in
+    adr)
+      step "$dir" "file $id $arg"
+      case "$arg" in superseded:* | rejected) step "$dir" "row archive $id $arg" ;; *) step "$dir" "row binding $id $arg" ;; esac ;;
+    file) printf '# %s: decision\n\n- **Status:** %s\n- **Applies to:** everything\n\n## Decision\n\nWe will.\n' \
+            "$id" "$(status_of "$arg")" > "$dir/docs/adr/$file" ;;
+    row)
+      read -r _ _ id arg <<< "$2"
+      file="$(adr_file "$id")" key="${id#ADR-}"
+      rest="| [$key]($file) | Decision | everything | $(status_of "$arg") |"
+      if [[ "$2" == "row binding "* ]]; then insert_before "$index" "### Superseded" "$rest"; else echo "$rest" >> "$index"; fi ;;
+    deciders) insert_before "$dir/docs/adr/$file" "- **Applies to:**" "- **Deciders:** $rest" ;;
+    status) sed_in "$dir/docs/adr/$file" "s/^- \*\*Status:\*\* .*/- **Status:** $(status_of "$arg")/" ;;
+    supersedes)
+      list="- **Supersedes:**"
+      for item in ${arg//,/ }; do
+        [[ "$item" == +* ]] && sep+="\n  " item="${item#+}"
+        list+="$sep [$item]($(adr_file "$item"))" sep=","
+      done
+      insert_before "$dir/docs/adr/$file" "- **Applies to:**" "$list" ;;
+    heading) sed_in "$dir/docs/adr/$file" "1s|.*|$rest|" ;;
+    text) mkdir -p "$(dirname "$dir/$id")" && echo "$rest" >> "$dir/$id" ;;
+    category) insert_before "$index" "### Binding" "- **$id** — a category of the project." ;;
+    commit) g "$dir" add -A && g "$dir" commit -q -m "$op" ;;
+    delete) g "$dir" rm -q "docs/adr/$file" && sed_in "$index" "/^| \[$key\]/d" && step "$dir" commit \
+              && DELETED="$(g "$dir" rev-parse --short HEAD)" ;;
+    branch) g "$dir" switch -q -c "$id" ;;
+    back) g "$dir" switch -q - ;;
+    merge) g "$dir" merge -q --no-ff -m "$op" "$id" ;;
+    *) echo "fixture table: unknown step '$op'" >&2; exit 1 ;;
+  esac
+}
 
-d="$(repo draft-ref-missing)"
-drafted "$d"
-echo "Also $(draft_id gone)." >> "$d/README.md"
-GITHUB_BASE_REF="" expect fail "a draft identifier with no draft file" "$d" "reference '$(draft_id gone)' matches no ADR file"
+# g <dir> <git args...> — git in a fixture, committing as a fixed author.
+g() { local dir="$1"; shift; fixture "$dir"; git -C "$dir" -c user.name=t -c user.email=t@t -c commit.gpgsign=false "$@"; }
 
-d="$(repo draft-heading)"
-drafted "$d"
-sed_in "$d/docs/adr/$DRAFT-next.md" "1s/$(draft_id next)/$(draft_id other)/"
-GITHUB_BASE_REF="" expect fail "a draft whose heading names another draft" "$d" "$DRAFT-next.md: heading says '# $(draft_id other)'"
+n=0
+while IFS= read -r line; do
+  [[ "$line" =~ ^[0-9] ]] || continue
+  n=$((n + 1))
+  line="$(table_hyphens "$line")"
+  IFS=$'\x1f' read -r check want needle name tree <<< "${line// | /$'\x1f'}"
+  [[ "$needle" == - ]] && needle=""
+  DELETED=""
+  d="$(repo "record-$n")"
+  rm "$d/docs/adr/0001-decision.md"
+  printf '# ADRs\n\n### Categories\n\n- **NUC** — the template.\n\n### Binding\n\n%s\n%s\n### Superseded and rejected\n\n%s\n%s\n' \
+    "| ADR | Title | Applies to | Status |" "|-----|-------|------------|--------|" \
+    "| ADR | Title | Applies to | Status |" "|-----|-------|------------|--------|" > "$d/docs/adr/README.md"
+  while IFS= read -r s; do step "$d" "$s"; done <<< "${tree//; /$'\n'}"
+  needle="${needle//<deleted>/$DELETED}"
+  expect "$want" "check $check: $name" "$d" "$needle"
+done < "$TABLE"
+((n > 0)) || { echo "FAIL: no case read from $TABLE" >&2; failed=$((failed + 1)); }
 
-d="$(repo draft-slug)"
-drafted "$d"
-adr "$d" 2 "🟡 proposed"
-mv "$d/docs/adr/0002-decision.md" "$d/docs/adr/$DRAFT-Next_one.md"
-GITHUB_BASE_REF="" expect fail "a draft whose slug is not lower case and hyphens" "$d" "$DRAFT-Next_one.md: a draft's slug"
-
-d="$(repo draft-link)"
-drafted "$d"
-echo "See [$(draft_id next)](docs/adr/0001-decision.md)." >> "$d/README.md"
-GITHUB_BASE_REF="" expect fail "a link that cites a draft and points at another ADR" "$d" "cites $(draft_id next) but points at '0001-decision.md'"
+# A git that cannot read the history, as one before 2.31 rejects --diff-merges, fails check 2.
+d="$(repo old-git)"
+g "$d" add -A && g "$d" commit -q -m base
+mkdir -p "$work/old-git-bin"
+printf '#!/usr/bin/env bash
+[[ " $* " == *" --diff-merges="* ]] && { echo "fatal: unrecognized argument: --diff-merges=first-parent" >&2; exit 128; }
+exec %q "$@"
+' \
+  "$(command -v git)" > "$work/old-git-bin/git"
+chmod +x "$work/old-git-bin/git"
+PATH="$work/old-git-bin:$PATH" expect fail "check 2: a git too old to read the history" "$d" \
+  "git log cannot read the deleted ADRs (git 2.31 or later is needed): fatal: unrecognized argument"
 
 # --- summary -------------------------------------------------------------------------------
 

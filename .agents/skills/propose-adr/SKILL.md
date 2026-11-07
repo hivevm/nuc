@@ -42,8 +42,8 @@ in the record.
 
 ## 3. Write the record
 
-1. Copy [`docs/adr/template.md`](../../../docs/adr/template.md) to `draft-<slug>.md` and head it
-   `# ADR-draft-<slug>`; the number comes with the pull request into `main`
+1. Copy [`docs/adr/template.md`](../../../docs/adr/template.md) to `<CAT>-<slug>.md` and head it
+   `# <CAT>-<slug>: <title>`. The identifier is picked now and stays
    ([mechanics](../../../docs/adr/README.md#mechanics)). Complete the header and delete the
    instruction paragraph.
 2. One decision per ADR: one "We will …" sentence. A second one is a second ADR, unless the
@@ -56,7 +56,7 @@ in the record.
    sources included, and nothing recalled is passed off as verified
    ([§4](../../../AGENTS.md#4-working-style)).
 5. **Consequences:** weighed against the specification's quality goals. Follow-ups by topic,
-   never by a number that does not exist yet.
+   never by an identifier that does not exist yet.
 6. **Enforcement:** the test that will cite this ADR with a `Verifies:` marker, or a paragraph
    starting `**Not mechanically decidable:**` with the reason
    ([ADR-0002](../../../docs/adr/0002-decisions-verified-by-tests.md)).

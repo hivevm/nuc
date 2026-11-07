@@ -182,22 +182,38 @@ adr "$d" 0002 "🟢 accepted"
 mark "G-1 $(adr_id 1) $(adr_id 2)" > "$d/tests/t.txt"
 expect fail "marker citing a superseded ADR" "$d" "'$(adr_id 1)', which is superseded or rejected"
 
-# Verifies: ADR-0002
-# A draft is cited by its draft identifier, assembled for the same reason as adr_id.
-draft_id() { printf 'ADR-%s-%s' draft "$1"; }
+# --- cases: identifiers of the new form, read from the fixture table ----------------------
 
-d="$(repo draft-cited)"
-spec "$d" "**G-1** — it works."
-adr "$d" 0001 "🟢 accepted"
-printf '# %s: next\n\n- **Status:** 🟡 proposed\n' "$(draft_id next)" > "$d/docs/adr/draft-next.md"
-mark "$(adr_id 1) $(draft_id next) G-1" > "$d/tests/t.txt"
-expect pass "a marker citing a draft that exists" "$d"
-
-d="$(repo draft-unknown)"
-spec "$d" "**G-1** — it works."
-adr "$d" 0001 "🟢 accepted"
-mark "$(adr_id 1) $(draft_id gone) G-1" > "$d/tests/t.txt"
-expect fail "a marker citing a draft that does not exist" "$d" "'$(draft_id gone)', which does not exist"
+# Verifies: NUC-adrs-record-decisions
+# The table's format and its notation are those of scripts/fixtures/check-docs-record.txt, with
+# four fields, no check number, and the steps its header names.
+TABLE="$ROOT/scripts/fixtures/check-traceability.txt"
+n=0
+while IFS= read -r line; do
+  [[ "$line" =~ ^(pass|fail) ]] || continue
+  n=$((n + 1))
+  line="$(table_hyphens "$line")"
+  IFS=$'\x1f' read -r want needle name tree <<< "${line// | /$'\x1f'}"
+  [[ "$needle" == - ]] && needle=""
+  d="$(repo "table-$n")"
+  while IFS= read -r s; do
+    read -r op id arg <<< "$s"
+    case "$op" in
+      spec) spec "$d" "${s#spec }" ;;
+      adr)
+        file="${id#ADR-}-decision" status="🟢 accepted"
+        [[ "$id" == ADR-* ]] || file="$id"
+        [[ "$arg" == superseded:* ]] && status="⚪ superseded by ${arg#superseded:}"
+        [[ "$arg" == proposed ]] && status="🟡 proposed"
+        printf '# %s: decision\n\n- **Status:** %s\n\n## Enforcement\n\nReview only.\n' "$id" "$status" \
+          > "$d/docs/adr/$file.md" ;;
+      mark) mark "${s#mark "$id" }" > "$d/$id" ;;
+      *) echo "fixture table: unknown step '$op'" >&2; exit 1 ;;
+    esac
+  done <<< "${tree//; /$'\n'}"
+  expect "$want" "$name" "$d" "$needle"
+done < "$TABLE"
+((n > 0)) || { echo "FAIL: no case read from $TABLE" >&2; failed=$((failed + 1)); }
 
 d="$(repo markdown-not-counted)"
 spec "$d" "**G-1** — it works."

@@ -166,10 +166,6 @@ run "Documentation self-test" scripts/test-check-docs.sh
 run "Documentation consistency" scripts/check-docs.sh
 run "Template setup self-test" scripts/test-template-setup.sh
 run "Normalize map self-test" scripts/test-normalize-remap.sh
-# The numbering script commits and runs on a human's instruction, before the pull request that
-# brings drafts to main (ADR-0002); its self-test runs here.
-# On instruction: scripts/number-adrs.sh
-run "Numbering script self-test" scripts/test-number-adrs.sh
 # The readiness script merges and commits on a human's instruction, as step 7 of
 # Integration branches in CONTRIBUTING.md; its self-test runs here.
 # On instruction: scripts/ready-for-main.sh

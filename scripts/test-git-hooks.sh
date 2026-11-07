@@ -106,18 +106,6 @@ d="$(repo green)"
 git -C "${d:?}" switch -q -c feature
 checks "$d" 0
 expect pass "a push while the checks are green" "$d" "" push -q origin feature
-out="$(g "$d" push -q origin feature 2>&1)"
-check "a push without a draft ADR says nothing of numbering" test -z "$(grep 'draft ADR' <<< "$out")"
-
-# A push that carries a draft ADR is told how many it carries and where they take their numbers;
-# the notice passes the push, and a file named like a draft that is no Markdown is no draft.
-mkdir -p "$d/docs/adr" && : > "$d/docs/adr/draft-x.md" && : > "$d/docs/adr/0001-y.md"
-: > "$d/docs/adr/draft-notes.txt"
-g "$d" add docs && g "$d" commit -q -m draft
-out="$(g "$d" push -q origin feature 2>&1)"; rc=$?
-check "a push that carries a draft ADR passes" test "$rc" -eq 0
-check "and counts the drafts and names the script that numbers them" \
-  grep -qF "feature carries 1 draft ADR(s); they take their numbers on the branch of the pull request into main, by scripts/ready-for-main.sh (CONTRIBUTING.md, Integration branches, step 7)." <<< "$out"
 
 # A tree the checks passed on passes again without them: the committed check script reads its
 # verdict from outside the tree, so the same tree can turn red. A rework that keeps the tree, an
@@ -295,7 +283,7 @@ indexed() {
   edit_index "$index" "$2" "| [0002](0002-b.md) |" one
   g "$d" commit -q --no-verify -am row
   git -C "${d:?}" switch -q -C feat/x main
-  edit_index "$index" "$3" "| [draft-c](draft-c.md) |" "$4"
+  edit_index "$index" "$3" "| [0003](0003-c.md) |" "$4"
   g "$d" commit -q --no-verify -am row
   echo "$d"
 }
@@ -308,12 +296,12 @@ rows() {
 d="$(indexed index-rows one one one)"
 expect pass "the driver keeps the rows both sides appended to the index" "$d" "" merge -q -m m feature
 check "both rows stand in the index after the merge" \
-  test "$(rows "$d")" = "Rule: one. | [0001](0001-a.md) | | [draft-c](draft-c.md) | | [0002](0002-b.md) | After: one. "
+  test "$(rows "$d")" = "Rule: one. | [0001](0001-a.md) | | [0003](0003-c.md) | | [0002](0002-b.md) | After: one. "
 
 d="$(indexed index-prose-one two one one)"
 expect pass "the driver takes a rule one side changed" "$d" "" merge -q -m m feature
 check "the rule one side changed stands once" \
-  test "$(rows "$d")" = "Rule: two. | [0001](0001-a.md) | | [draft-c](draft-c.md) | | [0002](0002-b.md) | After: one. "
+  test "$(rows "$d")" = "Rule: two. | [0001](0001-a.md) | | [0003](0003-c.md) | | [0002](0002-b.md) | After: one. "
 
 d="$(indexed index-prose-both two three one)"
 expect refuse "the driver stops on a rule both sides changed" "$d" "CONFLICT (content): Merge conflict in docs/adr/README.md" merge -q -m m feature

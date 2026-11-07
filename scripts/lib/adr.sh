@@ -2,17 +2,40 @@
 # The header of an ADR, read one way by every script that reads it: a header field is the list
 # item '- **<Name>:** …' that docs/adr/template.md writes (ADR-0001). check-docs.sh fails on a
 # field written in any other form, so every other reader may take the list item for granted.
-# The identifier of an ADR is read one way too: its number, or the draft identifier of an ADR that
-# has not reached main, 'ADR-draft-<slug>' in the file 'draft-<slug>.md' (ADR-0002).
+# The identifier of an ADR is read one way too: '<CAT>-<slug>' in the file '<CAT>-<slug>.md'
+# (NUC-adrs-record-decisions), or the old form, its number, until the old ADRs retire.
 # Sourced by the checks and sensors that read an ADR's file name, identifier, or header.
 
-# The slug of a draft identifier: lower case letters and digits, joined by single hyphens.
-ADR_SLUG_RE='[a-z0-9]+(-[a-z0-9]+)*'
-# An ADR as it is cited: 'ADR-' and the key of its file, its number or 'draft-<slug>'.
+# An identifier of the new form: a category key of two to five capital letters, a hyphen, and a
+# slug of two to five lower case words or numbers joined by hyphens.
+ADR_SLUG_RE='[a-z0-9]+(-[a-z0-9]+){1,4}'
+ADR_NEW_RE="[A-Z]{2,5}-$ADR_SLUG_RE"
 ADR_NUMBER_RE='[0-9]{4}'
-ADR_REF_RE="ADR-($ADR_NUMBER_RE|draft-$ADR_SLUG_RE)"
-# An identifier a 'Verifies:' marker cites: an ADR, a goal, or a quality goal (ADR-0002).
-ADR_ID_RE="$ADR_REF_RE|[GQ]-[0-9]+"
+# The fixed categories; a project defines its others in the category list of the ADR index.
+ADR_FIXED_CATEGORIES=(NUC SEC OPS API)
+# What a 'Verifies:' marker cites, read whole: capital letters, a hyphen, and the rest of the word.
+# The reader holds each against the forms of an ADR's identifier, a goal, and a quality goal.
+ADR_ID_RE='[A-Z]+-[A-Za-z0-9_-]+'
+# The characters next to a reference: one of them on either side makes it part of a longer word.
+ADR_WORD_CHARS='A-Za-z0-9_-'
+
+# adr_categories <index> — sets ADR_CATEGORIES to the fixed categories and those the category list
+# of the index defines, each a list item '- **<KEY>** …' below a heading '... Categories';
+# ADR_REF_RE to an ADR as prose cites it, 'ADR-NNNN' or an identifier of a known category; and
+# ADR_REF_WORD_RE to such a reference standing as a word of its own, the reference its group 2.
+adr_categories() {
+  local key
+  ADR_CATEGORIES=("${ADR_FIXED_CATEGORIES[@]}")
+  if [[ -f "$1" ]]; then
+    while IFS= read -r key; do ADR_CATEGORIES+=("$key"); done < <(awk '
+      /^#+ / { p = ($0 ~ /^#+ Categories[[:space:]]*$/); next }
+      p && match($0, /^- [*][*][A-Z]+[*][*]/) { print substr($0, 5, RLENGTH - 6) }' "$1")
+  fi
+  local IFS='|'
+  ADR_REF_RE="ADR-$ADR_NUMBER_RE|(${ADR_CATEGORIES[*]})-$ADR_SLUG_RE"
+  ADR_REF_WORD_RE="(^|[^$ADR_WORD_CHARS])($ADR_REF_RE)([^$ADR_WORD_CHARS]|\$)"
+}
+adr_categories ""
 
 # The fields of docs/adr/template.md, an item's start, a field's item, a field anywhere (awk-safe).
 ADR_FIELDS='Status|Date|Deciders|Applies to|Supersedes'
@@ -25,26 +48,30 @@ adr_field_line() { grep -m1 -E "$ADR_ITEM_RE$2:[*][*]" "$1"; }
 # adr_field_value <line> <name> — sets ADR_VALUE to what follows the field's name on the line.
 adr_field_value() { ADR_VALUE="${1##*\*\*"$2":\*\*}"; }
 
-# The names of ADR files: a numbered ADR, then a draft. ADR_FILE_RE matches the same names.
-ADR_GLOBS=('[0-9][0-9][0-9][0-9]-*.md' 'draft-*.md')
-ADR_FILE_RE="($ADR_NUMBER_RE-[^/]*|draft-[^/]*)\\.md"
+# The names of ADR files: a numbered one, then any name of letters before its first hyphen, so
+# that check 2 of check-docs.sh sees a misnamed ADR, such as 'Sec-x.md'. ADR_FILE_RE matches the
+# same names.
+ADR_GLOBS=('[0-9][0-9][0-9][0-9]-*.md' '[A-Za-z]*-*.md')
+ADR_FILE_RE="($ADR_NUMBER_RE-[^/]*|[A-Za-z]+-[^/]*)\\.md"
 
-# adr_files <dir> [draft] — every ADR file in the directory, the numbered ones in order, then the
-# drafts; with 'draft', the drafts only.
+# adr_files <dir> — every ADR file in the directory, the numbered ones in order, then the others.
 adr_files() {
-  local names=(-name "${ADR_GLOBS[1]}")
-  [[ "${2:-}" == draft ]] || names=(\( -name "${ADR_GLOBS[0]}" -o "${names[@]}" \))
-  find "$1" -maxdepth 1 -type f "${names[@]}" | LC_ALL=C sort
+  LC_ALL=C find "$1" -maxdepth 1 -type f \( -name "${ADR_GLOBS[0]}" -o -name "${ADR_GLOBS[1]}" \) \
+    | LC_ALL=C sort
 }
 
-# adr_is_file <name>, adr_is_draft <file or key> — true when it names an ADR file, or a draft.
+# adr_is_file <name> — true when it names an ADR file.
 adr_is_file() { [[ "${1##*/}" =~ ^$ADR_FILE_RE$ ]]; }
-adr_is_draft() { [[ "${1##*/}" == draft-* ]]; }
 
-# adr_key_of <file> — sets ADR_KEY to what follows 'ADR-' in the identifier of the ADR file: its
-# number, or 'draft-<slug>' for a draft. adr_key prints it.
-adr_key_of() { if adr_is_draft "$1"; then ADR_KEY="${1##*/}" ADR_KEY="${ADR_KEY%.md}"; else ADR_KEY="${1##*/}" ADR_KEY="${ADR_KEY%%-*}"; fi; }
-adr_key() { adr_key_of "$1"; printf '%s\n' "$ADR_KEY"; }
+# adr_key_of <file> — sets ADR_KEY to the key of the ADR file, as its index row names it: its
+# number, or its identifier; and ADR_ID to its identifier, 'ADR-NNNN' or '<CAT>-<slug>'. adr_id
+# prints the identifier.
+adr_key_of() {
+  ADR_KEY="${1##*/}" ADR_KEY="${ADR_KEY%.md}" ADR_ID="$ADR_KEY"
+  [[ "$ADR_KEY" == [0-9]* ]] && ADR_KEY="${ADR_KEY%%-*}" ADR_ID="ADR-${ADR_KEY%%-*}"
+  return 0
+}
+adr_id() { adr_key_of "$1"; printf '%s\n' "$ADR_ID"; }
 
 # The sections of an ADR a session reads, in order, and the writing rule of AGENTS.md section 4 covers.
 ADR_RULE_SECTIONS='Decision|Enforcement'
