@@ -158,4 +158,19 @@ after "$r" AGENTS.md "## 1. Rules" "- $SHORT"
 out="$(PATH="$broken:$PATH" bash "$SENSOR" --root "$r" main 2>&1)"; rc=$?
 check "a reader that fails: exit 2, naming the file" test "$rc" -eq 2 -a "${out/could not read the rules of AGENTS.md/}" != "$out"
 
+# A listing that breaks: a git on PATH that fails on '--name-only', which only rule_stream asks for
+# when it lists the files a change touches, and hands every other command to the real git.
+unlisted="$work/broken-git"
+mkdir -p "$unlisted"
+# shellcheck disable=SC2016 # the script is written as it runs, its variables unexpanded
+printf '#!/usr/bin/env bash\nfor a; do [[ "$a" == --name-only ]] && { echo "fatal: broken" >&2; exit 128; }; done\nexec %q "$@"\n' \
+  "$(command -v git)" > "$unlisted/git"
+chmod +x "$unlisted/git"
+
+r="$(repo broken-listing)"
+after "$r" AGENTS.md "## 1. Rules" "- $SHORT"
+out="$(PATH="$unlisted:$PATH" bash "$SENSOR" --root "$r" main 2>&1)"; rc=$?
+check "a listing that fails: exit 2, saying it could not list the rules" \
+  test "$rc" -eq 2 -a "${out/could not list the rules the change touches/}" != "$out"
+
 summary "Plain rules sensor self-test"

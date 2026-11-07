@@ -45,8 +45,9 @@ range="$(git rev-parse --short "$base")..$(git rev-parse --short "$head")"
 ((worktree)) && range="${range%..*}..working tree"
 
 if ! stream="$(rule_stream "$base" "$( ((worktree)) || echo "$head")")"; then
-  unread="$(awk -F '\t' '$1 == "E" { printf "%s%s", sep, $2; sep = ", " }' <<< "$stream")"
-  echo "Plain rules sensor ($range): could not read the rules${unread:+ of $unread}." >&2
+  awk -F '\t' -v range="$range" '
+    $1 == "E" && $2 == "" { print "Plain rules sensor (" range "): could not list the rules the change touches." }
+    $1 == "E" && $2 != "" { print "Plain rules sensor (" range "): could not read the rules of " $2 "." }' <<< "$stream" >&2
   exit 2
 fi
 findings=()

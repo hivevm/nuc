@@ -9,8 +9,8 @@
 # 0><TAB><text>', the text without code spans, link targets, and words in italics, '*word*' or
 # '_word_', which a rule uses to name a word, each italic a space; 'P' where a paragraph, a list item, a
 # heading, a block quote, a table, or fenced code ends a run of prose. An italic may wrap.
-# 'E<TAB><path>' where a reader of that file fails; the status is then 1, as it is when git
-# cannot list the files, since a rule that cannot be read is no rule that passes.
+# 'E<TAB><path>' where a reader of that file fails, and 'E<TAB>' with no path where git cannot list
+# the files; the status is then 1, since a rule that cannot be read is no rule that passes.
 rule_stream() {
   local base="$1" head="${2:-}" p lines files failed=0
   local -a refs=("$base")
@@ -22,7 +22,7 @@ rule_stream() {
         && git -c core.quotePath=false ls-files --others --exclude-standard
     else
       git -c core.quotePath=false diff --name-only --no-renames "$base" "$head"
-    fi | LC_ALL=C sort -u)" || return 1
+    fi | LC_ALL=C sort -u)" || { printf 'E\t\n'; return 1; }
   while IFS= read -r p; do
     [[ -n "$p" ]] || continue
     [[ "$p" == AGENTS.md ]] || { [[ "$p" == docs/adr/* && "$p" != docs/adr/*/* ]] && adr_is_file "$p"; } || continue

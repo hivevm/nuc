@@ -1024,6 +1024,22 @@ echo "Be brief." >> "$d/AGENTS.md"
 PATH="$broken:$PATH" CHECK_DOCS_BASE="$(base_of "$d")" expect fail \
   "a reader that fails: check 17 fails and names the file" "$d" "AGENTS.md: could not read the rules"
 
+# A listing that breaks: a git on PATH that fails on '--name-only', which only rule_stream asks for
+# when it lists the files a change touches, and hands every other command to the real git.
+unlisted="$work/broken-git"
+mkdir -p "$unlisted"
+# shellcheck disable=SC2016 # the script is written as it runs, its variables unexpanded
+printf '#!/usr/bin/env bash\nfor a; do [[ "$a" == --name-only ]] && { echo "fatal: broken" >&2; exit 128; }; done\nexec %q "$@"\n' \
+  "$(command -v git)" > "$unlisted/git"
+chmod +x "$unlisted/git"
+
+d="$(avoided avoid-broken-listing)"
+echo "Be brief." >> "$d/AGENTS.md"
+git -C "$d" add -A
+out="$(PATH="$unlisted:$PATH" CHECK_DOCS_BASE="$(base_of "$d")" bash "$CHECK" "$d" 2>&1)"; rc=$?
+check "a listing that fails: check 17 fails and says it could not list the rules" \
+  test "$rc" -ne 0 -a "${out/could not list the rules the change touches/}" != "$out"
+
 # --- summary -------------------------------------------------------------------------------
 
 summary "Documentation self-test"
