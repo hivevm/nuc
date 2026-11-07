@@ -75,16 +75,16 @@ The rules of the record stand in `NUC-` ADRs. The mechanics of the record are in
 1. When an ADR is due: [NUC-adrs-record-decisions §1](docs/adr/NUC-adrs-record-decisions.md).
    Skill: `propose-adr`.
 2. Calibration: [NUC-adrs-record-decisions §2](docs/adr/NUC-adrs-record-decisions.md).
-3. Proposal: [NUC-adrs-record-decisions §3](docs/adr/NUC-adrs-record-decisions.md). A
-   normalization and the template repository's correction of its own ADRs carry the restated or
-   corrected ADRs with the text that cites them.
+3. Proposal: [NUC-adrs-record-decisions §3](docs/adr/NUC-adrs-record-decisions.md). The
+   exception for a normalization and for the template's correction:
+   [NUC-adrs-record-decisions §4](docs/adr/NUC-adrs-record-decisions.md).
 4. Implementation: [NUC-adrs-record-decisions §4](docs/adr/NUC-adrs-record-decisions.md). Status:
    [NUC-adrs-record-decisions §5](docs/adr/NUC-adrs-record-decisions.md).
 5. Immutability: [NUC-adrs-record-decisions §6](docs/adr/NUC-adrs-record-decisions.md). Fixed
    identifiers: [NUC-adrs-record-decisions §8](docs/adr/NUC-adrs-record-decisions.md). Conflict
    with the specification: [NUC-adrs-record-decisions §7](docs/adr/NUC-adrs-record-decisions.md).
-   Normalization: [NUC-adrs-record-decisions §17](docs/adr/NUC-adrs-record-decisions.md). A
-   normalization is rare, at a milestone or a release. Skill: `normalize`.
+   Normalization: [NUC-adrs-record-decisions §17](docs/adr/NUC-adrs-record-decisions.md). Skill:
+   `normalize`.
 6. Glossary: [NUC-documents-are-fixed §5](docs/adr/NUC-documents-are-fixed.md).
 7. Change of the specification: [NUC-documents-are-fixed §2](docs/adr/NUC-documents-are-fixed.md).
 
