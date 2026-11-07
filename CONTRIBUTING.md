@@ -54,8 +54,9 @@ scripts/sensor-*.sh   # sensors: report for the reviewer; sensor-repo-settings.s
 scripts/test-*.sh     # self-tests of the checks, the sensors, the hooks, the setup, and the scripts
                       # run by hand
 scripts/lib/          # what the scripts share: the ADR header, git, the ticket path, the self-tests
-scripts/*.sh          # run by hand, steps 7 and 8 of the integration branches: number-adrs.sh,
-                      # ready-for-main.sh, drop-merged-branch.sh
+scripts/fixtures/     # the cases of a check as a table, which its self-test reads
+scripts/*.sh          # run by hand, steps 7 and 8 of the integration branches: ready-for-main.sh,
+                      # drop-merged-branch.sh
 .githooks/            # git hooks: nothing lands on main locally; checks before a merge and a push
 .github/workflows/    # checks.yml runs the checks; review-binding.yml reads each pull request's hand-off
 .github/              # Dependabot, issue & pull request templates, code owners
@@ -193,10 +194,8 @@ Each step waits for a human's instruction.
    them by hand: `gh workflow run checks.yml --ref feat/<topic>`. A rework already pushed goes out
    with `git push --force-with-lease`.
 7. Make the pull request ready: [`scripts/ready-for-main.sh`](scripts/ready-for-main.sh) refuses
-   a fixup steps 4 to 6 left, takes up the remote's `main`, and numbers the draft ADRs
-   ([ADR-0002](docs/adr/0002-decisions-verified-by-tests.md)); then the push it names and
-   `gh pr ready`. What `main` gains later is taken up the same way, and an ADR it gains moves the
-   branch's numbers on ([mechanics](docs/adr/README.md#mechanics)).
+   a fixup steps 4 to 6 left and takes up the remote's `main`; then the push it names and
+   `gh pr ready`. What `main` gains later is taken up the same way.
 8. Once the pull request into `main` has merged as a merge commit, take it up and drop the branch:
    on it, [`scripts/drop-merged-branch.sh`](scripts/drop-merged-branch.sh) refuses a branch
    `origin/main` lacks, takes up the remote's `main`, and deletes the local branch; then the
@@ -218,7 +217,7 @@ configured once by a maintainer and worth re-checking after a repository move or
   a job by its name, a job with a matrix by one check run per entry, such as
   `build (ubuntu-latest)`, which this list then names instead of the job) and a branch up to date
   with `main` before it merges, so that the checks see what the merge produces, such as two ADRs
-  proposed in parallel under one number, and blocks force pushes and branch deletion;
+  proposed in parallel under one identifier, and blocks force pushes and branch deletion;
 - enable **require a review from Code Owners** on that ruleset, so the two artifacts only a human
   decides, [`docs/SPECIFICATION.md`](docs/SPECIFICATION.md) and everything under
   [`docs/adr/`](docs/adr/) ([`AGENTS.md` §3](AGENTS.md#3-adr-rules)), cannot be merged without the
