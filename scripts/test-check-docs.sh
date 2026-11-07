@@ -230,6 +230,15 @@ mkdir -p "$d/.claude/skills/review"
 printf -- '---\nname: review\ndescription: Review.\n---\n' > "$d/.claude/skills/review/SKILL.md"
 expect fail "skills only in the pointer directory, none for the other agents" "$d" ".claude/skills/review: is not a symlink"
 
+d="$(repo skill-front-matter-open)"
+printf -- '---\nname: review\ndescription: Review a change,\nwrapped onto a second line. ---\n\n# Review\n' \
+  > "$d/.agents/skills/review/SKILL.md"
+expect fail "a skill whose front matter is wrapped and not closed" "$d" \
+  ".agents/skills/review/SKILL.md: no front matter an agent reads"
+d="$(repo skill-front-matter-name)"
+printf -- '---\nname: other\ndescription: Review a change.\n---\n' > "$d/.agents/skills/review/SKILL.md"
+expect fail "a skill whose name is not its directory" "$d" ".agents/skills/review/SKILL.md: no front matter"
+
 d="$(repo no-skills)"
 rm -r "$d/.agents" "$d/.claude"
 sed_in "$d/CONTRIBUTING.md" '/^\.agents\/skills\/ /d; /^\.claude\/skills\/ /d'

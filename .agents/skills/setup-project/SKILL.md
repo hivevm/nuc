@@ -1,8 +1,7 @@
 ---
 name: setup-project
-description: Set a project up from this template interactively, one question at a time, through the
-steps of TEMPLATE-SETUP.md. Use when TEMPLATE-SETUP.md exists and the human starts or initialises a
-project, or asks to write its specification from the beginning. ---
+description: Set a project up from this template interactively, one question at a time, through the steps of TEMPLATE-SETUP.md. Use when TEMPLATE-SETUP.md exists and the human starts or initialises a project, or asks to write its specification from the beginning.
+---
 
 # Set the project up
 

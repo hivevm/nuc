@@ -90,7 +90,9 @@
 #      other agent — nobody notices; a copy instead of a symlink is a second source that drifts,
 #      and a skill that lives only in the pointer directory is one no other agent finds. Each
 #      message says the command that fixes it. A repository with neither directory has nothing to
-#      check.
+#      check. Each SKILL.md opens with a front matter that an agent can read: '---' on the first
+#      line, a 'name:' that is the skill's directory and a 'description:', each on one line of
+#      its own, and '---' closing it on a line of its own; a wrapped field hides the skill.
 #  12. Base held by its blob list: every 'NUC-' file in docs/adr/ has the git blob identifier its
 #      line in docs/adr/NUC.blobs names, and every line names a file that exists
 #      (NUC-adrs-record-decisions §12). The template rewrites the list in the commit that changes a
@@ -1159,6 +1161,14 @@ check_skill_pointers() {
   for d in "$skills"/*/; do
     [[ -f "$d/SKILL.md" ]] || continue
     name="$(basename "$d")"
+    awk -v name="$name" '
+      NR == 1 { if ($0 != "---") exit 1; next }
+      $0 == "---" { closed = 1; exit }
+      /^name: / { n = (substr($0, 7) == name); next }
+      /^description: ./ { desc = 1; next }
+      !/^[a-z][a-z-]*: / { exit 1 }
+      END { exit !(closed && n && desc) }' "$d/SKILL.md" \
+      || add_error ".agents/skills/$name/SKILL.md: no front matter an agent reads — '---', 'name: $name' and 'description: …' each on one line, then '---' on a line of its own"
     p="$pointers/$name"
     if [[ -L "$p" ]]; then
       continue
