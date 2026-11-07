@@ -57,7 +57,7 @@ release it carries in its README.
 
 **Out of scope:**
 
-- a changelog file and release automation beyond the blob list;
+- a changelog file and release automation;
 - how a derived project merges the files of a release other than the `NUC-` files;
 - which releases receive fixes, which `SECURITY.md` states;
 - the correction of `NUC-` ADRs in place, which
