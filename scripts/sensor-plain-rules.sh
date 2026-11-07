@@ -13,7 +13,8 @@
 #     scripts/sensor-plain-rules.sh [--root <dir>] [base [head]]
 # Without a base, the merge base of head with origin/main (else main) is used; CI passes the pull
 # request's base, and a base of zeros counts as none. Without a head, the change is the working
-# tree, untracked files included. Exit code 0, except 2 on a base or head that does not resolve.
+# tree, untracked files included. Exit code 0, except 2 on a base or head that does not resolve
+# and on a reader of the rules that fails.
 
 set -uo pipefail
 
@@ -43,9 +44,15 @@ done
 range="$(git rev-parse --short "$base")..$(git rev-parse --short "$head")"
 ((worktree)) && range="${range%..*}..working tree"
 
+if ! stream="$(rule_stream "$base" "$( ((worktree)) || echo "$head")")"; then
+  awk -F '\t' -v range="$range" '
+    $1 == "E" && $2 == "" { print "Plain rules sensor (" range "): could not list the rules the change touches." }
+    $1 == "E" && $2 != "" { print "Plain rules sensor (" range "): could not read the rules of " $2 "." }' <<< "$stream" >&2
+  exit 2
+fi
 findings=()
 while IFS= read -r finding; do findings+=("$finding"); done < <(
-  rule_stream "$base" "$( ((worktree)) || echo "$head")" | awk -F '\t' -v max="$MAX_WORDS" '
+  awk -F '\t' -v max="$MAX_WORDS" '
     function flush(  i, any) {
       if (count > max) {
         any = 0
@@ -72,7 +79,7 @@ while IFS= read -r finding; do findings+=("$finding"); done < <(
         if (words[i] ~ /[.!?][)*_"]*$/) flush()
       }
     }
-    END { flush() }')
+    END { flush() }' <<< "$stream")
 
 if ((${#findings[@]} == 0)); then
   echo "Plain rules sensor ($range): no long sentence and no soft modal verb on the lines the change adds to the rules."
