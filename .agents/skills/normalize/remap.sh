@@ -16,8 +16,8 @@
 # An identifier moves wherever it stands as a word: on its own, before a clause '§n', and in the
 # name of its file, so a link moves with its text. A clause line moves only that clause, and the
 # file of a link whose text cites it. A numbered ADR, the form a project carries until it migrates
-# once, is mapped by its file name: its old identifier, its file name, and an index row move to
-# the new identifier. NEW is '-' for an ADR or a criterion with no successor, and several
+# once, is mapped by its file name: its old identifier, its file name, and a row that links it move
+# to the new identifier. NEW is '-' for an ADR or a criterion with no successor, and several
 # identifiers for a split: their references are listed and left for the hand. On a line with a
 # marker of the traceability check that already names a successor, the old identifier is dropped.
 # A criterion, 'G-n' or 'Q-n', moves in Markdown and on a marker line; elsewhere it may be an
@@ -26,8 +26,10 @@
 # Every match is looked up in the map once. Identifiers are never used twice
 # (NUC-adrs-record-decisions §8), so a map whose successor is itself mapped is refused, and a
 # second run of a map changes nothing. Criteria are renumbered by a normalization and may swap; a
-# map of criteria is one pass. The script never edits docs/adr/, whose record the normalization
-# writes, nor a criterion in docs/SPECIFICATION.md.
+# map of criteria is one pass. The script never edits a criterion in docs/SPECIFICATION.md, nor
+# docs/adr/, whose record the normalization writes. With --record, for the migration to identifiers
+# (NUC-adrs-record-decisions §17), it edits docs/adr/ too, the index and the headings among it, but
+# never a NUC- file, and renames each numbered ADR file that the map moves to one identifier.
 #
 # The files are the ones git tracks plus new ones it does not ignore, as check-docs.sh reads
 # them. A file is written only when the map changes its text, and then keeps every other byte,
@@ -35,17 +37,20 @@
 # skipped, and so is the map file itself, so that a map shipped in the tree applies as it stands.
 #
 # Pure bash, git, and awk. Usage, anywhere in the repository:
-#     .agents/skills/normalize/remap.sh [--check] <map file>
+#     .agents/skills/normalize/remap.sh [--check] [--record] <map file>
 # Prints each file it changed. Exit code 0 when every reference moved, 2 when references are left
 # for the hand, 1 on anything else; an invalid map changes nothing. With --check it changes
-# nothing, prints each reference the map would move as 'file:line: OLD -> NEW', lists those it
-# would leave, and exits 1 when one would move.
+# nothing, prints each reference the map would move as 'file:line: OLD -> NEW' and each rename as
+# 'OLD -> NEW', lists the references it would leave, and exits 1 when one would move.
 set -uo pipefail
 
 # The script may rewrite its own text, so bash reads all of it before running any: one block.
 {
-check=0
-[[ "${1:-}" == --check ]] && { check=1; shift; }
+check=0 record=0
+while [[ "${1:-}" == --check || "${1:-}" == --record ]]; do
+  [[ "$1" == --check ]] && check=1 || record=1
+  shift
+done
 map="${1:-}"
 [[ -n "$map" && -f "$map" ]] || { echo "remap: '$map' is no map file" >&2; exit 1; }
 map="$(cd "$(dirname "$map")" && pwd -P)/$(basename "$map")"
@@ -230,7 +235,7 @@ while IFS= read -r f; do
   [[ -f "$f" && ! -L "$f" && "$top/$f" != "$map" ]] || continue
   grep -Iq . "$f" 2>/dev/null || continue
   adr_on=1 crit_on=1 all_crit=0
-  [[ "$f" == docs/adr/* ]] && adr_on=0
+  [[ "$f" == docs/adr/* && ( $record -eq 0 || "$f" == docs/adr/NUC-* ) ]] && adr_on=0
   [[ "$f" == docs/SPECIFICATION.md ]] && crit_on=0
   [[ "$f" == *.md ]] && all_crit=1
   # A file whose last byte is no newline keeps it so, and awk reads bytes, not characters of the
@@ -247,6 +252,13 @@ while IFS= read -r f; do
   fi
 done < <(git ls-files --cached --others --exclude-standard | sort -u)
 
+# With --record, each numbered ADR the map moves to one identifier takes its file name.
+while ((record)) && read -r old new rest; do
+  [[ "$old" =~ $num_re && "$new" =~ $new_re && -z "$rest" && -f "docs/adr/$old" ]] || continue
+  changed=1
+  if ((check)); then echo "docs/adr/$old -> docs/adr/$new.md" >> "$moves"
+  else git mv -- "docs/adr/$old" "docs/adr/$new.md" 2>/dev/null || mv -- "docs/adr/$old" "docs/adr/$new.md"; echo "docs/adr/$new.md"; fi
+done < <(grep -vE '^[[:space:]]*(#|$)' "$map")
 ((check)) && cat "$moves"
 if [[ -s "$left" ]]; then
   echo "remap: references left to rewrite by hand:" >&2

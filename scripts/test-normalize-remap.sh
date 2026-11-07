@@ -4,14 +4,14 @@
 # Verifies: NUC-adrs-record-decisions
 #
 # Each case builds a throwaway git repository under a temporary directory, writes a map, runs the
-# script in it, and asserts the exit code and the files afterwards. The cases cover an ADR moved
-# to a new identifier, a clause moved to another ADR, the one migration of a numbered ADR, a split
-# left for the hand, a marker that already names the successor, a refused chain, the --check
-# mode, a second run that changes nothing, a swap of two criteria, the record left untouched, a
-# criterion outside Markdown and outside a marker line, a reference to an ADR with no successor, an
-# ignored file, files without a final newline and a binary one, the release's map applied from the
-# tree, each invalid map, which changes nothing, and every ADR of a copy of this repository moved to a new identifier, after which the
-# other self-tests still pass.
+# script in it, and asserts the exit code and the files afterwards. The cases cover an ADR moved to
+# a new identifier, a clause moved to another ADR, the one migration of a numbered ADR, a split left
+# for the hand, a marker that already names the successor, a refused chain, the --check mode, a
+# second run that changes nothing, a swap of two criteria, the record left untouched, a criterion
+# outside Markdown and outside a marker line, a reference to an ADR with no successor, an ignored
+# file, files without a final newline and a binary one, the release's map applied from the tree, the
+# record moved with --record, each invalid map, which changes nothing, and every ADR of a copy of
+# this repository moved to a new identifier, after which the other self-tests still pass.
 #
 # The identifiers in the fixtures are assembled at run time: a literal one would be a reference
 # that check-docs.sh and check-traceability.sh hold against this repository.
@@ -129,6 +129,31 @@ run "$d" "0002-beta.md $(id six)"; rc=$?
 check "a numbered ADR mapped to an identifier exits 0" "[[ $rc -eq 0 ]]"
 check "a numbered ADR moves with its file and its index row" \
   "grep -qF 'See [$(id six)](docs/adr/$(id six).md) and $(id six).' '$d/README.md' && grep -qxF '| [$(id six)]($(id six).md) |' '$d/README.md'"
+
+# With --record, the one migration moves the record too: a numbered ADR's file, heading, status,
+# links, and index row, and a split it cites is listed. A NUC- file stays as it was.
+d="$(repo record)"
+base="$(printf '%s-base-rule' NUC)"
+printf '# %s: a\n\nSee [%s](0008-beta.md) and %s.\n' "$(old 7)" "$(old 8)" "$(old 1)" > "$d/docs/adr/0007-alpha.md"
+printf '# %s: b\n\n- **Status:** superseded by %s\n' "$(old 8)" "$(old 7)" > "$d/docs/adr/0008-beta.md"
+printf '| [0007](0007-alpha.md) |\n' > "$d/docs/adr/README.md"
+printf '# %s: c\n\nNot %s.\n' "$base" "$(old 7)" > "$d/docs/adr/$base.md"
+git -C "$d" add -A
+printf '0001-x.md %s %s\n0007-alpha.md %s\n0008-beta.md %s\n' "$(id one)" "$(id two)" "$(id seven)" "$(id eight)" > "$work/map-record"
+(cd "$d" && bash "$REMAP" --record --check "$work/map-record") > "$work/out" 2>&1; rc=$?
+check "--record --check exits 1, names the rename, and changes nothing" \
+  "[[ $rc -eq 1 ]] && grep -qF 'docs/adr/0007-alpha.md -> docs/adr/$(id seven).md' '$work/out' && [[ -f '$d/docs/adr/0007-alpha.md' ]]"
+(cd "$d" && bash "$REMAP" --record "$work/map-record") > "$work/out" 2>&1; rc=$?
+check "--record exits 2 on a split the record cites, and lists it" \
+  "[[ $rc -eq 2 ]] && grep -qF '0007-alpha.md:3: $(old 1) is split into' '$work/out'"
+check "--record renames a numbered ADR and moves its heading and links" \
+  "[[ ! -e '$d/docs/adr/0007-alpha.md' ]] && grep -qxF '# $(id seven): a' '$d/docs/adr/$(id seven).md' && grep -qF 'See [$(id eight)]($(id eight).md) and $(old 1).' '$d/docs/adr/$(id seven).md'"
+check "--record moves a status line and an index row" \
+  "grep -qF 'superseded by $(id seven)' '$d/docs/adr/$(id eight).md' && grep -qxF '| [$(id seven)]($(id seven).md) |' '$d/docs/adr/README.md'"
+check "--record leaves a NUC- file as it was" "grep -qxF 'Not $(old 7).' '$d/docs/adr/$base.md'"
+cp "$d/docs/adr/$(id seven).md" "$work/seven.before"
+(cd "$d" && bash "$REMAP" --record "$work/map-record") > "$work/out" 2>&1
+check "a second run with --record changes nothing" "cmp -s '$d/docs/adr/$(id seven).md' '$work/seven.before'"
 
 # A split: references are left for the hand and listed, but a marker that already names one of
 # the successors drops the old identifier.
