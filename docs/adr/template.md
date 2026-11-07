@@ -44,9 +44,10 @@ already narrow.
 
 ## Latitude
 
-The choices this decision leaves to a project, one per item, each linking its entry of the
-[catalogue](../../.agents/skills/propose-adr/concepts/README.md) where it has one. Name no tool and
-no project value. Write "None." when the decision leaves no choice.
+The choices this decision leaves to a project, one per item. A choice links its entry of the
+[catalogue](../../.agents/skills/propose-adr/concepts/README.md) where one exists. A choice with no
+entry says that it needs no ADR. Name no tool and no project value. Write "None." when the
+decision leaves no choice.
 
 ## Alternatives considered
 
