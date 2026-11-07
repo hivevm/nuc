@@ -38,8 +38,8 @@
 #      Markdown. AGENTS.md is the only numbered document in this repository; extend the check if
 #      another one appears. The headings there must themselves run 1..N in order: a gap or a
 #      repeat is a botched renumbering, and it is the only half of the renumbering hazard a check
-#      can see (AGENTS.md, section 3). A clause citation, an ADR's identifier, a space, and the
-#      section sign with a number, cites a clause of that ADR and is no section reference.
+#      can see (NUC-documents-are-fixed §3). A clause citation, an ADR's identifier, a space, and
+#      the section sign with a number, cites a clause of that ADR and is no section reference.
 #   5. ADR-reference integrity: every 'ADR-NNNN' reference (with actual digits) and every
 #      identifier of a known category, a clause citation's among them, names an ADR file that
 #      exists in docs/adr/ — anticipated follow-ups are described by topic, never by an

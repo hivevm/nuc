@@ -51,7 +51,8 @@ We will keep the procedures of the rule file as Agent Skills, each carrying a ho
 
 - whether a skill may run unattended, which its ticket decides by
   [`AGENTS.md` §4](../../AGENTS.md#4-working-style);
-- that only the rule file states rules, which `NUC-documents-are-fixed` decides;
+- that only the rule file states rules, which [NUC-documents-are-fixed](NUC-documents-are-fixed.md)
+  decides;
 - a check on the front matter of a skill.
 
 ## Latitude

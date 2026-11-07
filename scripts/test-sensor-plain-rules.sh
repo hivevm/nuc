@@ -2,7 +2,7 @@
 #
 # Self-test of scripts/sensor-plain-rules.sh. Verifies: ADR-0002
 #
-# Verifies: ADR-0001
+# Verifies: ADR-0001 NUC-documents-are-fixed
 #
 # Each case builds a throwaway git repository under a temporary directory: main holds an
 # AGENTS.md and one ADR, a branch changes them, and the sensor runs against main. The cases are a

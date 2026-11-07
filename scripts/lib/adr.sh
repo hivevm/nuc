@@ -1,7 +1,8 @@
 # shellcheck shell=bash disable=SC2034 # the variables are the sourcing script's
 # The header of an ADR, read one way by every script that reads it: a header field is the list
-# item '- **<Name>:** …' that docs/adr/template.md writes (ADR-0001). check-docs.sh fails on a
-# field written in any other form, so every other reader may take the list item for granted.
+# item '- **<Name>:** …' that docs/adr/template.md writes (NUC-adrs-record-decisions).
+# check-docs.sh fails on a field written in any other form, so every other reader may take the
+# list item for granted.
 # The identifier of an ADR is read one way too: '<CAT>-<slug>' in the file '<CAT>-<slug>.md'
 # (NUC-adrs-record-decisions), or the old form, its number, until the old ADRs retire.
 # Sourced by the checks and sensors that read an ADR's file name, identifier, or header.

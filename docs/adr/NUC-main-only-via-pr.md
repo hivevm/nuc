@@ -73,7 +73,8 @@ through merged pull requests.
 
 **Out of scope:**
 
-- making and releasing a claim: `NUC-large-work-is-planned` and the `work-tickets` skill;
+- making and releasing a claim: [NUC-large-work-is-planned](NUC-large-work-is-planned.md) and the
+  `work-tickets` skill;
 - the review and the checks before a push:
   [`AGENTS.md` §5](../../AGENTS.md#5-quality-bar--definition-of-done);
 - the commands, refusals, and settings, which `CONTRIBUTING.md` lists.

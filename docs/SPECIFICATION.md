@@ -3,7 +3,7 @@
 > The **specification** of this project: the problem it solves, where it is going, and what has to
 > be true for it to have succeeded, written in the vocabulary of [`GLOSSARY.md`](GLOSSARY.md). It
 > is the **constitution**: every Architecture Decision Record in [`adr/`](adr/) derives from it and
-> must not contradict it ([ADR-0001](adr/0001-agent-governance-model.md)).
+> must not contradict it ([NUC-adrs-record-decisions §7](adr/NUC-adrs-record-decisions.md)).
 
 ## Problem
 
