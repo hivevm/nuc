@@ -8,9 +8,10 @@ name: Checks
 #
 # The sensors report for the reviewer and fail on nothing they count, except the plain rules,
 # which this workflow runs with --require, and the action references once a project runs that
-# sensor with --require; their self-tests fail like any check's. The sensors job checks out the full history because five sensors read it. The review
-# binding sensor runs in review-binding.yml, the repository settings sensor on a human's
-# instruction (NUC-checks-are-bash §7); this workflow runs the self-test of each.
+# sensor with --require; their self-tests fail like any check's. The sensors job checks out the
+# full history because five sensors read it. The review binding sensor runs in
+# review-binding.yml, the repository settings sensor on a human's instruction
+# (NUC-checks-are-bash §7); this workflow runs the self-test of each.
 #
 # A build, test, and lint job is absent until the project has a toolchain. The catalogue entry
 # Toolchain of the propose-adr skill says how the job is added; it is the one job of this workflow
@@ -128,8 +129,7 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
       - name: Self-test the plain rules sensor
         run: bash scripts/test-sensor-plain-rules.sh
-      # With --require it fails on a soft modal verb or an avoided word in a project ADR.
-      - name: Report the rules the change adds that are not plain, failing on a project ADR's
+      - name: Check the rules the change adds to a project ADR, and report the rest
         run: bash scripts/sensor-plain-rules.sh --require "$BASE"
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}

@@ -183,8 +183,6 @@ run "Tests-kept sensor" scripts/sensor-tests-kept.sh
 run "Binding ADRs sensor self-test" scripts/test-sensor-binding-adrs.sh
 run "Binding ADRs sensor" scripts/sensor-binding-adrs.sh
 run "Plain rules sensor self-test" scripts/test-sensor-plain-rules.sh
-# With --require the plain rules sensor fails on a soft modal verb or an avoided word in a project
-# ADR (NUC-documents-are-fixed §5).
 run "Plain rules sensor" scripts/sensor-plain-rules.sh --require
 run "Revision-due sensor self-test" scripts/test-sensor-revision-due.sh
 run "Revision-due sensor" scripts/sensor-revision-due.sh
