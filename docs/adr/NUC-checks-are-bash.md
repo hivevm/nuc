@@ -33,14 +33,14 @@ git hooks and CI run alike.
    `CONTRIBUTING.md` must list the same checks. A job with a matrix is listed by the check runs it
    reports. A workflow that publishes rather than checks is no gate, and `scripts/check-all.sh`
    names it so. Its jobs may run their own commands, and the scripts it runs count.
-6. **Local gate.** The git hooks run the checks before a commit, a merge, and a push. They refuse
-   what [NUC-main-only-via-pr §6](NUC-main-only-via-pr.md) keeps from `main`. With `--changed`,
+6. **Local gate.** The git hooks run the checks before a commit, a merge, and a push. Their other
+   refusals are [NUC-main-only-via-pr §6](NUC-main-only-via-pr.md). With `--changed`,
    `scripts/check-all.sh` runs a self-test only where its `# Inputs:` line names a changed path. CI
    must run every self-test.
 7. **Sensors of the GitHub repository.** A sensor that reads what only the GitHub repository holds
-   may need the GitHub CLI, signed in through its web flow. It runs only on a human's instruction,
-   never in `scripts/check-all.sh` or `checks.yml`. Its self-test runs on fixture responses
-   without the CLI and stays in the three lists.
+   may need the GitHub CLI, signed in as [NUC-main-only-via-pr §3](NUC-main-only-via-pr.md)
+   says. It runs only on a human's instruction, never in `scripts/check-all.sh` or `checks.yml`.
+   Its self-test runs on fixture responses without the CLI and stays in the three lists.
 8. **Binary.** A project may run a binary in place of the scripts only through an ADR that narrows
    clause 1 ([NUC-adrs-record-decisions §11](NUC-adrs-record-decisions.md)). The binary must pass
    the fixture tables under `scripts/fixtures/`.
