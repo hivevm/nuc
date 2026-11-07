@@ -238,7 +238,7 @@ while ((record)) && read -r old new rest; do
   [[ "$old" =~ $num_re && "$new" =~ $new_re && -z "$rest" && -f "docs/adr/$old" ]] || continue
   [[ -e "docs/adr/$new.md" || -n "${target[$new]:-}" ]] && { echo "remap: $old: docs/adr/$new.md is taken" >&2; exit 1; }
   target[$new]="$old"
-done < <(grep -vE '^[[:space:]]*(#|$)' "$map")
+done <<< "$(grep -vE '^[[:space:]]*(#|$)' "$map")"
 
 changed=0
 while IFS= read -r f; do

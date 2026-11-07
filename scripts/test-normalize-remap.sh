@@ -69,9 +69,9 @@ run() {
   (cd "$dir" && bash "$REMAP" "$work/map-$(basename "$dir")") > "$work/out" 2>&1
 }
 
-# rerun <dir> [--check] — run the script again with the map the last run wrote for the directory.
+# rerun <dir> [--check] — run the script again with the map the last run wrote, SIGPIPE ignored.
 rerun() {
-  (cd "$1" && bash "$REMAP" ${2:+"$2"} "$work/map-$(basename "$1")") > "$work/out" 2>&1
+  (trap '' PIPE; cd "$1" && bash "$REMAP" ${2:+"$2"} "$work/map-$(basename "$1")") > "$work/out" 2>&1
 }
 
 # An ADR moved to a new identifier: a citation, a clause, a link and its file, and a marker.
@@ -156,11 +156,13 @@ cp "$d/docs/adr/$(id seven).md" "$work/seven.before"
 check "a second run with --record changes nothing" "cmp -s '$d/docs/adr/$(id seven).md' '$work/seven.before'"
 # A rename onto an existing file, a NUC- one among them, or two renames onto one file are refused.
 printf 'c\n' > "$d/docs/adr/0009-c.md"; printf 'd\n' > "$d/docs/adr/0010-d.md"
+# Filler longer than a pipe holds keeps the map's reader writing when the refusal exits.
+pad="$(printf '%9000s' '' | tr ' ' a)"
 for m in "0009-c.md $base" "0009-c.md $(id nine)|0010-d.md $(id nine)"; do
-  tr '|' '\n' <<< "$m" > "$work/map-record"
+  { tr '|' '\n' <<< "$m"; for i in 1 2 3 4 5 6 7 8; do echo "$(id f)$pad$i $(id g)$pad$i"; done; } > "$work/map-record"
   (cd "$d" && bash "$REMAP" --record --check "$work/map-record") > "$work/out" 2>&1; rc=$?
-  (cd "$d" && bash "$REMAP" --record "$work/map-record") >> "$work/out" 2>&1; rc=$rc$?
-  check "--record refuses a rename onto a taken name: $m" "[[ $rc == 11 ]] && grep -qxF c '$d/docs/adr/0009-c.md' && grep -qxF d '$d/docs/adr/0010-d.md' && grep -qF 'Not $(old 7).' '$d/docs/adr/$base.md'"
+  (trap '' PIPE; cd "$d" && bash "$REMAP" --record "$work/map-record") >> "$work/out" 2>&1; rc=$rc$?
+  check "--record refuses a rename onto a taken name: $m" "[[ $rc == 11 ]] && ! grep -q 'Broken pipe' '$work/out' && grep -qxF c '$d/docs/adr/0009-c.md' && grep -qxF d '$d/docs/adr/0010-d.md' && grep -qF 'Not $(old 7).' '$d/docs/adr/$base.md'"
 done
 
 # A split: references are left for the hand and listed, but a marker that already names one of
