@@ -21,59 +21,46 @@ repository, and the workflow token cannot read all of them.
 We will ship every check and sensor of the template as a bash script under `scripts/`, which the
 git hooks and CI run alike.
 
-1. **Scripts.** The template ships every check and sensor as a bash script under `scripts/`.
-   - A script must need nothing beyond bash 4.4 or later, git, and the standard tools of the base
-     image.
-   - The standard tools are coreutils, grep, sed, awk, find, and tar.
-   - The shell lint may need ShellCheck as well.
-2. **Self-test.** Each script must have a self-test that runs it on fixture repositories. A script
-   runs after its self-test.
-3. **Hooks.** A git hook under `.githooks/` must need no more than bash 3.2. It runs before any
-   check can say which bash it found.
-4. **Sensors.** A sensor is a script `scripts/sensor-<name>.sh`.
-   - Its header must say what it counts.
-   - A sensor must not fail on what it counts.
-   - Only a decision turns a sensor into a check.
-5. **Sensor self-tests.** The self-test of a sensor is `scripts/test-sensor-<name>.sh`. It must
-   cite this ADR with a `Verifies:` marker.
-6. **Three lists.** `scripts/check-all.sh`, the `checks.yml` workflow, and the required checks of
-   `CONTRIBUTING.md` must list the same checks. A job with a matrix is listed by the check runs it
-   reports.
-7. **No gate.** A workflow that publishes rather than checks, such as a release, is no gate.
-   - `scripts/check-all.sh` must name it as no gate.
-   - Its jobs may run commands of their own.
-   - The scripts it runs count in the lists.
-8. **Local gate.** The git hooks run the checks before a commit, a merge, and a push. They refuse
-   what [`AGENTS.md` §6](../../AGENTS.md#6-project-rules) keeps from `main`.
-9. **Changed paths.** With `--changed`, `scripts/check-all.sh` runs a self-test only where its
-   `# Inputs:` line names a path the branch changed. CI must run every self-test.
-10. **Sensors of the GitHub repository.** A sensor may read what only the GitHub repository holds,
-    such as its rulesets and its security settings.
-    - Such a sensor may need the GitHub CLI as well, authenticated through its web flow.
-    - It runs on a human's instruction only.
-    - It must not run in `scripts/check-all.sh` or `checks.yml`.
-    - Its self-test must run on fixture responses in place of the API, without the GitHub CLI.
-    - That self-test stays in the three lists.
+1. **Scripts.** The template ships every check and sensor as a bash script under `scripts/`. A
+   script must need nothing beyond bash 4.4 or later, git, coreutils, grep, sed, awk, find, and
+   tar. The shell lint may also need ShellCheck.
+2. **Self-test.** Each script runs after its own self-test, which runs it on fixture repositories.
+3. **Hooks.** A git hook under `.githooks/` must need no more than bash 3.2.
+4. **Sensors.** A sensor is a script `scripts/sensor-<name>.sh` whose header says what it counts.
+   It must not fail on what it counts until a decision turns it into a check. Its self-test
+   `scripts/test-sensor-<name>.sh` must cite this ADR.
+5. **Three lists.** `scripts/check-all.sh`, the `checks.yml` workflow, and the required checks of
+   `CONTRIBUTING.md` must list the same checks, a job with a matrix by its check runs. A workflow
+   that publishes rather than checks is no gate, and `scripts/check-all.sh` names it so. Its jobs
+   may run their own commands, and the scripts it runs count.
+6. **Local gate.** The git hooks run the checks before a commit, a merge, and a push. They refuse
+   what `NUC-main-only-via-pr` keeps from `main`. With `--changed`, `scripts/check-all.sh` runs a
+   self-test only where its `# Inputs:` line names a changed path. CI must run every self-test.
+7. **Sensors of the GitHub repository.** A sensor that reads what only the GitHub repository holds
+   may need the GitHub CLI, signed in through its web flow. It runs only on a human's instruction,
+   never in `scripts/check-all.sh` or `checks.yml`. Its self-test runs on fixture responses
+   without the CLI and stays in the three lists.
+8. **Binary.** A project may run a binary in place of the scripts only through an ADR that narrows
+   clause 1 ([NUC-adrs-record-decisions §11](NUC-adrs-record-decisions.md)). The binary must pass
+   the fixture tables under `scripts/fixtures/`.
 
 **Out of scope:**
 
-- the language and the build, test, and lint of a project's own code, which its `toolchain` role
-  ADR decides ([NUC-adrs-record-decisions §13](NUC-adrs-record-decisions.md));
-- which test cites a decision, which [NUC-decisions-cite-tests](NUC-decisions-cite-tests.md)
-  decides;
-- what the hooks keep from `main`, which [`AGENTS.md` §6](../../AGENTS.md#6-project-rules) states;
-- whether the template's own checks move to a binary, which is a decision of its own.
+- the language and build of a project's own code, which its `toolchain` role ADR decides
+  ([NUC-adrs-record-decisions §13](NUC-adrs-record-decisions.md));
+- which test cites a decision ([NUC-decisions-cite-tests](NUC-decisions-cite-tests.md));
+- whether the template's own checks move to a binary.
 
 ## Latitude
 
 A project may choose:
 
-- to run a binary that implements the template's checks and sensors, in place of the bash
-  scripts. Whether the template itself switches stays open;
+- a binary in place of the bash scripts, under clause 8. Whether the template itself switches
+  stays open;
 - further checks and sensors of its own, in the language of its toolchain, from the entry
   `toolchain` of the [catalogue](../../.agents/skills/propose-adr/concepts/toolchain.md).
 
-The catalogue has no entry for the binary, and choosing it needs no ADR.
+The catalogue has no entry for the binary, and choosing it needs an ADR that narrows clause 1.
 
 ## Alternatives considered
 
@@ -81,12 +68,11 @@ The catalogue has no entry for the binary, and choosing it needs no ADR.
   of a current bash. It costs a rewrite of the `mapfile` calls, the associative arrays, and the
   case conversions of the checks. The Dev Container and CI carry a current bash, and a check that
   refuses an old one says so at once.
-- **A compiled binary as the template's own checks.** One binary runs the same on every host and
-  needs no bash. The template would then ship a release artefact to download on every host. This
-  ADR leaves the switch open and lets a project take the binary.
+- **A binary as the template's own checks.** This ADR leaves the switch open and lets a project
+  take the binary under clause 8.
 - **Run the sensor of the repository settings in CI.** The workflow token reads the rules of a
   branch, but the security settings only with admin rights. CI would need a stored token, which
-  [`AGENTS.md` §6](../../AGENTS.md#6-project-rules) forbids, or would report half of them.
+  `NUC-main-only-via-pr` forbids, or would report half of them.
 - **A pre-push hook that reads the GitHub repository.** It refuses work for a reason the work
   does not have, whenever the network fails.
 
@@ -94,8 +80,7 @@ The catalogue has no entry for the binary, and choosing it needs no ADR.
 
 - Birgitta Böckeler, *Harness engineering* —
   <https://martinfowler.com/articles/harness-engineering.html>: a harness is guides that feed
-  forward and sensors that feed back. Computational sensors are cheap and decide the same way
-  each run, which is why the template's sensors are scripts.
+  forward and sensors that feed back.
 
 ## Consequences
 
@@ -108,26 +93,21 @@ The catalogue has no entry for the binary, and choosing it needs no ADR.
 
 ## Enforcement
 
-- Check 9 of `scripts/check-docs.sh` holds the three lists (clauses 6, 7, and 10).
-  - It fails on a job that runs no script under `scripts/`, except in a workflow named as no gate.
-  - It fails on a job with a matrix that `CONTRIBUTING.md` names by its bare name.
-  - It fails on a script that neither list runs, unless `scripts/check-all.sh` names it as run on
-    instruction.
-- `scripts/check-shell.sh` lints every script (clause 1).
-- `scripts/check-all.sh` refuses a bash below 4.4, with a message that names the bash it found
-  (clause 1).
-- `scripts/test-check-all.sh` holds the `--changed` mode (clause 9).
-- `scripts/test-git-hooks.sh` exercises every refusal of the hooks (clause 8).
-- `scripts/check-traceability.sh` fails on a sensor without its self-test (clause 5). It also
-  fails on a self-test of a sensor that does not cite this ADR. It reads this ADR's identifier as
-  it reads the others, not as a literal.
+- Check 9 of `scripts/check-docs.sh` holds the three lists and the scripts run on instruction
+  (clauses 5 and 7).
+- `scripts/check-shell.sh` lints every script, and `scripts/check-all.sh` refuses a bash below 4.4
+  by name (clause 1).
+- `scripts/test-check-all.sh` holds `--changed`, and `scripts/test-git-hooks.sh` every refusal of
+  the hooks (clause 6).
+- `scripts/check-traceability.sh` fails on a sensor without its self-test, or a self-test that does
+  not cite this ADR (clause 4). It reads this ADR's identifier as it reads every other.
 
 The self-tests of these checks cite this ADR.
 
-**Not mechanically decidable:** four judgements rest with the review:
+**Not mechanically decidable:** the review holds these judgements:
 
-- whether a script stays free of further dependencies (clause 1);
+- whether a script needs a further tool (clause 1);
 - whether a script runs after its self-test (clause 2);
 - whether a hook stays within bash 3.2 (clause 3);
-- whether a sensor of the GitHub repository runs on instruction only, and its self-test without
-  the GitHub CLI (clause 10).
+- whether a sensor of the GitHub repository runs on instruction only (clause 7);
+- whether a binary passes the fixture tables, which the narrowing ADR holds (clause 8).

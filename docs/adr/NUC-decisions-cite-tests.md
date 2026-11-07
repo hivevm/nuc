@@ -24,42 +24,31 @@ can prescribe only what the tests of every language can carry.
 We will fail CI on an accepted ADR that no test cites, and report each criterion of the
 specification that no test cites.
 
-1. **Criterion identifiers.** Every list item under **Goals / Success Criteria** must start with
-   a bold `G-n`. Every list item under **Quality Goals** must start with a bold `Q-n`. The form
-   is `- **G-n** — …`. An item without an identifier fails.
-2. **No reuse.** Nobody may reuse the identifier of a criterion. Only a normalization renumbers
-   criteria ([NUC-adrs-record-decisions §17](NUC-adrs-record-decisions.md)). It must move every
-   marker with them.
-3. **Marker.** A test cites what it verifies by a marker: `Verifies:` and one or more identifiers
-   of ADRs or criteria.
-   - A marker may stand in any file that git does not ignore, except a Markdown file.
-   - A marker is plain text, so that every language can carry it.
-4. **Coverage.** The check fails on an accepted ADR that no marker cites. A proposed ADR is out
-   of its scope. Its tests land while it is proposed, and its acceptance lands with them
-   ([NUC-adrs-record-decisions §4](NUC-adrs-record-decisions.md),
-   [NUC-adrs-record-decisions §5](NUC-adrs-record-decisions.md)).
-5. **Exception.** An ADR whose decision no test can decide must say so in its *Enforcement*.
-   - It carries a paragraph that starts with `**Not mechanically decidable:**` and gives the
-     reason.
-   - A decision qualifies when only a human can decide it.
-   - A decision also qualifies when it governs how the project works, not what the system does.
-   - The paragraph exempts the ADR from clause 4.
-6. **Pending criteria.** A criterion that no marker cites is pending work. The check lists it and
-   does not fail. The specification marks no state, so meeting a goal touches the tests only.
-7. **No exception for criteria.** A criterion has no exception. A criterion that no test can
-   decide is no acceptance criterion. Its author must rewrite it until a test can decide it.
-8. **Invalid citation.** A marker fails when it names an identifier that does not exist. A marker
-   also fails when it names a superseded or rejected ADR.
+1. **Criterion identifiers.** Every item under **Goals / Success Criteria** must start with a bold
+   `G-n`, and every item under **Quality Goals** with a bold `Q-n`. Nobody may reuse one. Only a
+   normalization renumbers them, and it must move every marker
+   ([NUC-adrs-record-decisions §17](NUC-adrs-record-decisions.md)).
+2. **Marker.** A test cites what it verifies by `Verifies:` and one or more identifiers of ADRs or
+   criteria. The marker is plain text in any file git does not ignore, except Markdown.
+3. **Coverage.** The check fails on an accepted ADR that no marker cites. It ignores proposed ADRs,
+   whose tests land before the acceptance
+   ([NUC-adrs-record-decisions §4](NUC-adrs-record-decisions.md)).
+4. **Exception.** An ADR whose decision no test can decide must say so in its *Enforcement*, in a
+   paragraph `**Not mechanically decidable:**` with the reason. It qualifies only when a human
+   decides it, or when it governs how the project works. The paragraph exempts it from clause 3.
+5. **Criteria.** A criterion that no marker cites is pending work, which the check lists without
+   failing. The specification marks no state of a criterion. A criterion has no exception: one
+   that no test can decide must be rewritten until a test can.
+6. **Invalid citation.** A marker fails when it names an unknown identifier, or a superseded or
+   rejected ADR.
 
 **Out of scope:**
 
-- whether a citing test is adequate, which stays with review;
-- whether the tests pass, which the project's build and test decide;
-- which test framework, layout, or kind of test a project uses, which its `toolchain` role ADR
-  decides ([NUC-adrs-record-decisions §13](NUC-adrs-record-decisions.md));
-- the form of an ADR's identifier, which
-  [NUC-adrs-record-decisions §8](NUC-adrs-record-decisions.md) decides;
-- what the checks are written in, which [NUC-checks-are-bash](NUC-checks-are-bash.md) decides.
+- the adequacy of a citing test, which stays with review;
+- whether the tests pass, and the test framework, layout, and kinds, which the `toolchain` role
+  ADR decides ([NUC-adrs-record-decisions §13](NUC-adrs-record-decisions.md));
+- the form of an identifier ([NUC-adrs-record-decisions §8](NUC-adrs-record-decisions.md)) and
+  the language of the checks ([NUC-checks-are-bash](NUC-checks-are-bash.md)).
 
 ## Latitude
 
@@ -68,7 +57,7 @@ A project may choose:
 - its test framework, layout, and kinds of test, from the entry `toolchain` of the
   [catalogue](../../.agents/skills/propose-adr/concepts/toolchain.md);
 - a language-specific mechanism on top of the marker, such as annotations or tags;
-- a narrower place for the marker, such as test files only. That choice narrows clause 3 in an
+- a narrower place for the marker, such as test files only. That choice narrows clause 2 in an
   ADR of its own ([NUC-adrs-record-decisions §11](NUC-adrs-record-decisions.md)).
 
 The catalogue has no entry for the second choice, and it needs no ADR.
@@ -84,7 +73,7 @@ The catalogue has no entry for the second choice, and it needs no ADR.
   unmarked criterion. Every pull request that meets a goal would change the specification, which
   only a human may land. The report says the same without touching the document.
 - **A marker counts only in test files.** It is stronger, but "test file" has no
-  language-neutral definition. A project that has one narrows clause 3 in its own ADR.
+  language-neutral definition. A project that has one narrows clause 2 in its own ADR.
 - **A language-specific mechanism,** such as annotations, tags, or ArchUnit-style rule classes.
   It is stronger where it exists, but a template without a toolchain cannot prescribe one. A
   project may add one on top of the marker.
@@ -120,17 +109,8 @@ The catalogue has no entry for the second choice, and it needs no ADR.
 its own job in [`checks.yml`](../../.github/workflows/checks.yml). Its self-test
 `scripts/test-check-traceability.sh` cites this ADR.
 
-- It fails on a criterion without an identifier, and on an identifier that appears twice
-  (clauses 1 and 2).
-- It reads a marker in every file git does not ignore, except Markdown (clause 3).
-- It fails on an accepted ADR that no marker cites and that carries no exception (clauses 4
-  and 5).
-- It lists the criteria that no marker cites, and does not fail on them (clause 6).
-- It fails on a marker that names an unknown identifier or a superseded or rejected ADR
-  (clause 8).
+**Not mechanically decidable:** the review holds three judgements:
 
-**Not mechanically decidable:** three judgements rest with the review:
-
-- whether an identifier of a deleted criterion is used again (clause 2);
-- whether the reason of an exception holds (clause 5);
-- whether a test can decide a criterion (clause 7).
+- whether the identifier of a deleted criterion is used again (clause 1);
+- whether the reason of an exception holds (clause 4);
+- whether a test can decide a criterion (clause 5).
