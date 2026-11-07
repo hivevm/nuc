@@ -28,30 +28,27 @@ release it carries in its README.
 
 1. **Tags.** A release is an annotated tag `vX.Y.Z` on `main`, versioned by
    [SemVer 2.0.0](https://semver.org/spec/v2.0.0.html). A tag carries no pre-release suffix and no
-   build metadata. Work that is not ready is not tagged.
+   build metadata.
 2. **Cut.** Only a human cuts a release. A pull request moves the release line to the new
    version. The human tags the merge commit. The tag's annotation and the GitHub release built
    from it must say what changed and what a derived project does to take it up.
 3. **Version.** The maintainer picks the part of the version by the change:
-   - a major is a change a derived project must act on. Examples are a check that fails on its
-     tree, a `NUC-` clause changed in meaning or removed, and a re-cut base;
+   - a major is a change a derived project must act on, such as a `NUC-` clause changed in
+     meaning;
    - a minor adds a check, an ADR, a skill, a catalogue entry, or a document;
    - a patch changes wording, or fixes a script without changing what it decides.
 
    Before `v1.0.0` a minor may break, per SemVer item 4.
-4. **Release line.** The **Template** section of `README.md` carries a `Template release` line.
-   - In the template, it names the last release cut.
-   - In a derived project, it names the release the project carries.
-   - Before the first release, it reads `unreleased`.
-5. **Moving the line.** A derived project moves the line when it takes up a later release, and
-   only then. A line never moved still names what the project carries.
+4. **Release line.** The `Template release` line of the README names the release the
+   repository carries, or `unreleased` before the first.
+5. **Moving the line.** A derived project moves the line only when it takes up a release.
 6. **Take-up.** A derived project takes up a release in these steps:
    - It replaces the `NUC-` files and the blob list with those of the release.
    - It takes up the other files the release notes name.
-   - It moves the release line.
-   - It runs the checks and fixes its own files until they pass.
+   - It moves the citations of `NUC-` clauses by the release's map.
+   - It moves the release line and runs the checks.
 
-   The project's own ADRs stay as they are. A take-up needs no normalization.
+   The project's ADRs keep their identifiers. A take-up needs no normalization.
 7. **Re-cut.** A release that merges, splits, or removes a `NUC-` ADR is a major. Its notes must
    carry the map from each old identifier and clause to its new home.
 
@@ -117,14 +114,9 @@ The catalogue has no entry for these choices, and none of them needs an ADR.
 
 ## Enforcement
 
-- Check 14 of `scripts/check-docs.sh` holds the release line (clause 4). It fails when
-  `README.md` has no `Template release` line. It also fails when the line names neither a
-  `vX.Y.Z` tag nor `unreleased`. Its self-test cites this ADR.
-- The check on the blob list holds the replaced `NUC-` files of a take-up (clause 6).
+- Check 14 of `scripts/check-docs.sh` fails on a missing or malformed release line (clause 4).
+  Its self-test cites this ADR.
+- Check 12 holds the replaced `NUC-` files of a take-up (clause 6).
 
-**Not mechanically decidable:** two clauses rest on judgement. The review of the release pull
-request holds them:
-
-- whether the version part fits the change (clause 3);
-- whether the tag exists and the line moved with the release (clauses 2 and 5), since tags do not
-  travel with the copy.
+**Not mechanically decidable:** clauses 2, 3, and 5. The review of the release pull request holds
+whether the version fits the change, and whether the tag exists and the line moved.
