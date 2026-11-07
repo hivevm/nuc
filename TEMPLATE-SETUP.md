@@ -8,7 +8,11 @@ for it: the notes of [`README.md`](README.md), the layout row of
 [`setup-project`](.agents/skills/setup-project/SKILL.md) skill, and the setup's own self-test.
 Documents that mention the setup in passing, such as the ADRs, keep their sentence.
 Its function `close_setup` in [`scripts/test-template-setup.sh`](scripts/test-template-setup.sh)
-lists them.
+lists them. The close also removes the template's own open work, so the project starts with an
+empty plan and an empty backlog. That work is the files under `docs/plan/` and `docs/backlog/`
+that the committed copy of the template brought. A file the project wrote there itself stays. The
+close lists each file it removed there and each it kept. On a copy not yet committed, the close
+refuses and asks to commit it first.
 
 Choose the **profile** first, because it decides how much of each step you take. A small
 project takes the path of [A small project](#a-small-project) at each step; a complex one takes
