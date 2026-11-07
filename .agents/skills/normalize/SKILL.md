@@ -135,9 +135,9 @@ own ADRs stay as they are; no inherited ADR is merged into its record. Work on a
    ([NUC-releases-are-semver-tags §5](../../../docs/adr/NUC-releases-are-semver-tags.md)).
 5. **The checks.** Run [`scripts/check-all.sh`](../../../scripts/check-all.sh) and fix the
    project's own files until it passes. Where a map from step 1 moves a clause the project cites,
-   list the citations with `git grep -nwE '<old identifiers>'`. A citation in an accepted ADR of
-   the project moves only as
-   [NUC-adrs-record-decisions §6](../../../docs/adr/NUC-adrs-record-decisions.md) allows; raise
-   each with the human.
+   list the citations with `git grep -nwE '<old identifiers>'` and move each as the map says, in
+   accepted ADRs too
+   ([NUC-adrs-record-decisions §6](../../../docs/adr/NUC-adrs-record-decisions.md)). Where the
+   cited clause changed its meaning, hand the ADR to the human for a supersession instead.
 6. **Hand-off.** Hand the branch to the human with the two tags and, for a re-cut, the citations
    that moved. One pull request lands it ([`AGENTS.md` §6](../../../AGENTS.md#6-project-rules)).
