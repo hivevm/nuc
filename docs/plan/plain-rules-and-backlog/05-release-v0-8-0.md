@@ -11,12 +11,15 @@ derived project takes up and what it may leave:
 - the corrections of ADR-0001 and ADR-0006 in place, by clause.
 
 The spec of this plan closes by a design revision before the release
-([`AGENTS.md` §5](../../../AGENTS.md#5-quality-bar--definition-of-done)).
+([`AGENTS.md` §5](../../../AGENTS.md#5-quality-bar--definition-of-done)). The revision sensor
+reports a revision due as well. This one revision covers both: the modules the tickets touched,
+and the changes the sensor counts since the last revision. No revision runs before ticket 01.
 
 ## Acceptance criteria
 
 - [ ] Given tickets 01 to 04 merged into the `feat/` branch, when the design revision runs, then it
-      deletes the spec and files what it finds.
+      covers the tickets' modules and the changes the revision sensor counts, deletes the spec,
+      moves the `Last design revision` line, and files what it finds.
 - [ ] Given the release notes, when a maintainer of a derived project reads them, then each change
       says whether it must act, may act, or need not.
 - [ ] Given the release, when `scripts/check-all.sh` runs on the tagged tree, then it is green.
