@@ -930,6 +930,86 @@ drafted "$d"
 echo "See [$(draft_id next)](docs/adr/0001-decision.md)." >> "$d/README.md"
 GITHUB_BASE_REF="" expect fail "a link that cites a draft and points at another ADR" "$d" "cites $(draft_id next) but points at '0001-decision.md'"
 
+# --- cases: avoided terms (check 17) ------------------------------------------------------
+
+# avoided <name> [glossary entry] — a fixture whose glossary has the entry, by default "Git hook"
+# with _Avoid:_ "hook script" and "trigger", committed as the base of a change; prints its path.
+avoided() {
+  local d
+  d="$(repo "$1")"
+  printf '# Glossary\n\n%s\n' "${2:-$(printf -- '- **Git hook** — a script git runs.\n  _Avoid:_ hook script, trigger.')}" \
+    > "$d/docs/GLOSSARY.md"
+  git -C "${d:?}" add -A
+  git -C "${d:?}" -c user.name=fixture -c user.email=fixture@example.invalid commit -q -m base
+  echo "$d"
+}
+
+# base_of <dir> — the commit a case compares with.
+base_of() { git -C "${1:?}" rev-parse HEAD; }
+
+DECISION="docs/adr/0001-decision.md"
+AVOID_MSG='is listed under _Avoid:_ in docs/GLOSSARY.md — write "Git hook"'
+
+d="$(avoided avoid-decision)"
+echo "It runs a hook script." >> "$d/$DECISION"
+CHECK_DOCS_BASE="$(base_of "$d")" expect fail "an avoided term added to a Decision" "$d" \
+  "$DECISION:9: \"hook script\" $AVOID_MSG"
+
+d="$(avoided avoid-agents)"
+echo "Each Trigger runs." >> "$d/AGENTS.md"
+CHECK_DOCS_BASE="$(base_of "$d")" expect fail "an avoided term added to AGENTS.md, in another case" "$d" \
+  "AGENTS.md:10: \"trigger\" $AVOID_MSG"
+
+d="$(avoided avoid-context)"
+insert_before "$d/$DECISION" "## Decision" "## Context\n\nIt runs a hook script.\n"
+CHECK_DOCS_BASE="$(base_of "$d")" expect pass "an avoided term in the Context of an ADR" "$d"
+
+d="$(avoided avoid-old-line)"
+echo "It runs a hook script." >> "$d/$DECISION"
+git -C "$d" -c user.name=fixture -c user.email=fixture@example.invalid commit -qam old
+echo "Be brief." >> "$d/AGENTS.md"
+CHECK_DOCS_BASE="$(base_of "$d")" expect pass "an avoided term on a line the change did not add" "$d"
+
+d="$(avoided avoid-mentions)"
+# shellcheck disable=SC2016 # the backticks are a Markdown code span
+printf '%s\n' 'Each `trigger` and each *trigger* is named, and triggers run.' >> "$d/$DECISION"
+CHECK_DOCS_BASE="$(base_of "$d")" expect pass "an avoided term in a code span, in italics, or inside a longer word" "$d"
+
+d="$(avoided avoid-empty "- **Git hook** — a script git runs.")"
+echo "It runs a hook script." >> "$d/$DECISION"
+CHECK_DOCS_BASE="$(base_of "$d")" expect pass "a glossary without _Avoid:_ entries" "$d"
+
+d="$(repo avoid-no-base)"
+printf '# Glossary\n\n- **Git hook** — a script git runs.\n  _Avoid:_ hook script.\n' > "$d/docs/GLOSSARY.md"
+echo "It runs a hook script." >> "$d/$DECISION"
+CHECK_DOCS_BASE="" expect pass "no commit, so no base to compare with" "$d"
+
+d="$(avoided avoid-scaffold-prose "$(printf '%s\n' \
+  'One term per concept. Say what a term *is*, and list under _Avoid:_ the synonyms it' \
+  'displaces, where there are any.' '' '- **Git hook** — a script git runs.')")"
+echo "Each entry names the synonyms it displaces, where there are any." >> "$d/AGENTS.md"
+CHECK_DOCS_BASE="$(base_of "$d")" expect pass "the glossary's intro prose lists nothing" "$d"
+
+d="$(avoided avoid-parser "$(printf '%s\n' \
+  '- **Ticket** — one slice of work.' '  _Avoid:_ story; task,' '  and card.' '' \
+  '- **Spec** — the destination of a feature.' '  It is disposable.' '  _Avoid:_ epic.')")"
+printf '%s\n' "A card is cut." "Then an epic closes." "It is disposable." >> "$d/$DECISION"
+out="$(cd "$d" && git add -A && CHECK_DOCS_BASE="$(base_of "$d")" bash "$CHECK" "$d" 2>&1)"
+check "the parser: a continuation line and a leading 'and' list a word" \
+  grep -qF '"card" is listed under _Avoid:_ in docs/GLOSSARY.md — write "Ticket"' <<< "$out"
+check "the parser: each entry names its own term" \
+  grep -qF '"epic" is listed under _Avoid:_ in docs/GLOSSARY.md — write "Spec"' <<< "$out"
+check "the parser: an entry's description lists nothing" \
+  test "$(grep -cF '"disposable" is listed' <<< "$out")" -eq 0
+
+d="$(avoided avoid-bad-base)"
+git -C "$d" rev-parse -q --verify main >/dev/null || git -C "$d" branch main
+echo "It runs a hook script." >> "$d/$DECISION"
+CHECK_DOCS_BASE=0000000000000000000000000000000000000000 expect fail \
+  "a base of zeros falls back to the merge base with main" "$d" "\"hook script\" $AVOID_MSG"
+CHECK_DOCS_BASE=no-such-commit expect fail \
+  "a base that does not resolve falls back to the merge base with main" "$d" "\"hook script\" $AVOID_MSG"
+
 # --- summary -------------------------------------------------------------------------------
 
 summary "Documentation self-test"
