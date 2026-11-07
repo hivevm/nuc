@@ -1,0 +1,32 @@
+name: Release
+
+# On a release tag vX.Y.Z (ADR-0005), writes the blob list docs/adr/NUC.blobs from the tagged
+# NUC- files (NUC-adrs-record-decisions §12) and runs the documentation checks on it. The template
+# rewrites the list in each commit that changes a NUC- file, so that a project created from main
+# carries a list that holds; the job fails when the tag does not carry the list it writes.
+#
+# The job is bounded by a timeout, and the checkout runs with 'persist-credentials: false', as in
+# checks.yml. The whole history is fetched: check 2 reads the identifiers of deleted ADRs off it.
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: read
+
+jobs:
+  blob-list:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Write the blob list of the NUC- files
+        run: bash -c 'source scripts/lib/adr.sh && adr_blobs docs/adr' > docs/adr/NUC.blobs
+      - name: Fail when the tag does not carry the list it writes
+        run: git diff --exit-code -- docs/adr/NUC.blobs
+      - name: Check documentation consistency on the list
+        run: bash scripts/check-docs.sh

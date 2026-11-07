@@ -10,16 +10,17 @@
 # baseline passes; every other case breaks one thing. The skill pointer check (check 11 of
 # check-docs.sh) is covered in every direction; of the older checks, one case each pins the message
 # a maintainer would meet first — check 9 gets two more for the toolchain job a derived project
-# adds, checks 12 and 13 (inherited ADRs decided and the template's identity replaced once the setup
-# file is gone) have a case for each of their conditions, and check 14 (the template release named)
-# one for each form the line may take. The cases of the record checks, 1, 2, 5, 6, 8, and a part of
-# 12, stand in the fixture table scripts/fixtures/check-docs-record.txt, which says its format.
+# adds, check 13 (the setup done) has a case for each placeholder, and check 14 (the template
+# release named) one for each form the line may take. The cases of the record checks, 1, 2, 5, 6,
+# 8, 12, and the roles of 13, stand in the fixture table scripts/fixtures/check-docs-record.txt,
+# which says its format. Every fixture has its setup done, so it carries an accepted ADR for each
+# required role.
 #
 # Section references and ADR identifiers inside fixtures are assembled, never written literally,
 # so that check-docs.sh does not read this script's own fixtures as references into this
 # repository.
 #
-# Inputs: scripts/check-docs.sh scripts/lib/ scripts/fixtures/
+# Inputs: scripts/check-docs.sh scripts/lib/ scripts/fixtures/ .github/workflows/release.yml
 #
 # Usage:
 #     scripts/test-check-docs.sh
@@ -80,6 +81,14 @@ index_row() {
   n="$(printf '%04d' "$1")"
   echo "| [$n]($n-decision.md) | Decision $n | everything | $2 |"
 }
+
+# role_adr <dir> <role> — the accepted ADR that fills the role, and role_row <role> its index row.
+role_adr() {
+  local cat=OPS
+  printf '# %s: decision\n\n- **Status:** 🟢 accepted\n- **Role:** %s\n- **Applies to:** everything\n' \
+    "$cat-fixture-$2" "$2" > "$1/docs/adr/$cat-fixture-$2.md"
+}
+role_row() { local cat=OPS; echo "| [$cat-fixture-$1]($cat-fixture-$1.md) | Decision | everything | 🟢 accepted |"; }
 
 # repo <name> — a fixture repository that passes every check, printed as its path.
 repo() {
@@ -150,12 +159,14 @@ repo() {
   } > "$dir/docs/adr/template.md"
 
   adr "$dir" 1 "🟡 proposed"
+  role_adr "$dir" harness && role_adr "$dir" toolchain
   {
     echo "# Architecture Decision Records"
     echo
     echo "| ADR | Title | Applies to | Status |"
     echo "|-----|-------|------------|--------|"
     index_row 1 "🟡 proposed"
+    role_row harness && role_row toolchain
   } > "$dir/docs/adr/README.md"
 
   printf -- '---\nname: review\ndescription: Review a change.\n---\n\n# Review\n' \
@@ -223,66 +234,6 @@ d="$(repo no-skills)"
 rm -r "$d/.agents" "$d/.claude"
 sed_in "$d/CONTRIBUTING.md" '/^\.agents\/skills\/ /d; /^\.claude\/skills\/ /d'
 expect pass "a repository without skills has nothing to check" "$d"
-
-# --- cases: inherited ADRs after setup (check 12) ---------------------------------------
-
-# inherited <dir> <status emoji + word> <deciders> — ADR 1 as an ADR inherited from the template,
-# with the given status in the file and the index and the given Deciders line.
-inherited() {
-  local dir="$1" status="$2" deciders="$3"
-  adr "$dir" 1 "$status"
-  insert_before "$dir/docs/adr/0001-decision.md" "- **Applies to:**" "- **Deciders:** $deciders"
-  {
-    echo "# Architecture Decision Records"
-    echo
-    echo "| ADR | Title | Applies to | Status |"
-    echo "|-----|-------|------------|--------|"
-    index_row 1 "$status"
-  } > "$dir/docs/adr/README.md"
-}
-
-d="$(repo inherited-undecided)"
-inherited "$d" "🟡 proposed" "NUC maintainer"
-expect fail "an inherited ADR nobody here decided, with the setup file gone" "$d" "0001-decision.md: inherited from the template and not decided by this project"
-
-d="$(repo inherited-pending)"
-inherited "$d" "🟡 proposed" "NUC maintainer"
-echo "# Template setup" > "$d/TEMPLATE-SETUP.md"
-layout "$d" TEMPLATE-SETUP.md
-expect pass "an inherited ADR still proposed while the setup file exists" "$d"
-
-d="$(repo inherited-accepted)"
-inherited "$d" "🟢 accepted" "NUC maintainer, project maintainer"
-expect pass "an inherited ADR accepted by the project's maintainer" "$d"
-
-d="$(repo inherited-accepted-undecided)"
-inherited "$d" "🟢 accepted" "NUC maintainer"
-expect fail "an inherited ADR shipped accepted, nobody here added to Deciders" "$d" "0001-decision.md: inherited from the template and not decided by this project"
-
-d="$(repo inherited-accepted-and)"
-inherited "$d" "🟢 accepted" "NUC maintainer and project maintainer"
-expect pass "an inherited ADR accepted, the project's maintainer joined with 'and'" "$d"
-
-d="$(repo inherited-rejected)"
-inherited "$d" "🔴 rejected" "NUC maintainer"
-{
-  echo "# Architecture Decision Records"
-  echo
-  echo "### Superseded and rejected"
-  echo
-  echo "| ADR | Title | Applies to | Status |"
-  echo "|-----|-------|------------|--------|"
-  index_row 1 "🔴 rejected"
-} > "$d/docs/adr/README.md"
-expect pass "an inherited ADR the project rejected is history, not read" "$d"
-
-d="$(repo own-proposed)"
-inherited "$d" "🟡 proposed" "project maintainer"
-expect pass "the project's own proposed ADR after setup" "$d"
-
-d="$(repo inherited-wrapped)"
-inherited "$d" "🟡 proposed" "project maintainer (reviewing),\n  NUC maintainer"
-expect fail "an inherited ADR whose Deciders field wraps, the template's name on the second line" "$d" "0001-decision.md: inherited from the template and still proposed after setup"
 
 # --- cases: template identity after setup (check 13) ------------------------------------
 
@@ -715,7 +666,7 @@ d="$(repo layout-plan-absent)"
 layout "$d" "docs/plan/"
 expect pass "docs/plan/ named while there is no open work" "$d"
 
-# --- cases: the record (checks 1, 2, 5, 6, 8, and 12), read from the fixture table -------
+# --- cases: the record (checks 1, 2, 5, 6, 8, 12, and 13), read from the fixture table ---
 
 TABLE="$ROOT/scripts/fixtures/check-docs-record.txt"
 
@@ -747,7 +698,7 @@ step() {
       file="$(adr_file "$id")" key="${id#ADR-}"
       rest="| [$key]($file) | Decision | everything | $(status_of "$arg") |"
       if [[ "$2" == "row binding "* ]]; then insert_before "$index" "### Superseded" "$rest"; else echo "$rest" >> "$index"; fi ;;
-    deciders) insert_before "$dir/docs/adr/$file" "- **Applies to:**" "- **Deciders:** $rest" ;;
+    field) insert_before "$dir/docs/adr/$file" "- **Applies to:**" "- **${arg%% *}:** ${rest#"${arg%% *}" }" ;;
     status) sed_in "$dir/docs/adr/$file" "s/^- \*\*Status:\*\* .*/- **Status:** $(status_of "$arg")/" ;;
     supersedes)
       list="- **Supersedes:**"
@@ -759,6 +710,9 @@ step() {
     heading) sed_in "$dir/docs/adr/$file" "1s|.*|$rest|" ;;
     text) mkdir -p "$(dirname "$dir/$id")" && echo "$rest" >> "$dir/$id" ;;
     category) insert_before "$index" "### Binding" "- **$id** — a category of the project." ;;
+    blobs) (cd "$dir/docs/adr" && bash -c 'source "$1" && adr_blobs .' _ "$ROOT/scripts/lib/adr.sh") > "$dir/docs/adr/NUC.blobs" ;;
+    release) sed_in "$dir/README.md" "s/^- \*\*Template release:\*\* .*/- **Template release:** ${2#release }/" ;;
+    setup) echo "# Template setup" > "$dir/TEMPLATE-SETUP.md" && layout "$dir" TEMPLATE-SETUP.md ;;
     commit) g "$dir" add -A && g "$dir" commit -q -m "$op" ;;
     delete) g "$dir" rm -q "docs/adr/$file" && sed_in "$index" "/^| \[$key\]/d" && step "$dir" commit \
               && DELETED="$(g "$dir" rev-parse --short HEAD)" ;;
@@ -782,8 +736,8 @@ while IFS= read -r line; do
   DELETED=""
   d="$(repo "record-$n")"
   rm "$d/docs/adr/0001-decision.md"
-  printf '# ADRs\n\n### Categories\n\n- **NUC** — the template.\n\n### Binding\n\n%s\n%s\n### Superseded and rejected\n\n%s\n%s\n' \
-    "| ADR | Title | Applies to | Status |" "|-----|-------|------------|--------|" \
+  printf '# ADRs\n\n### Categories\n\n- **NUC** — the template.\n\n### Binding\n\n%s\n%s\n%s\n%s\n### Superseded and rejected\n\n%s\n%s\n' \
+    "| ADR | Title | Applies to | Status |" "|-----|-------|------------|--------|" "$(role_row harness)" "$(role_row toolchain)" \
     "| ADR | Title | Applies to | Status |" "|-----|-------|------------|--------|" > "$d/docs/adr/README.md"
   while IFS= read -r s; do step "$d" "$s"; done <<< "${tree//; /$'\n'}"
   needle="${needle//<deleted>/$DELETED}"
@@ -803,6 +757,16 @@ exec %q "$@"
 chmod +x "$work/old-git-bin/git"
 PATH="$work/old-git-bin:$PATH" expect fail "check 2: a git too old to read the history" "$d" \
   "git log cannot read the deleted ADRs (git 2.31 or later is needed): fatal: unrecognized argument"
+
+# The release workflow on a tag: its step that writes the blob list, run in a fixture with a base
+# file, writes a list check 12 passes.
+d="$(repo release-blobs)"
+nuc=NUC
+printf '# %s: base\n\n- **Status:** 🟢 accepted\n- **Applies to:** everything\n' "$nuc-base-rule" \
+  > "$d/docs/adr/$nuc-base-rule.md"
+cmd="$(sed -n 's/^ *run: \(.*> docs\/adr\/NUC\.blobs\)$/\1/p' "$ROOT/.github/workflows/release.yml")"
+(cd "$d" && eval "${cmd//scripts\/lib\//$ROOT/scripts/lib/}")
+expect pass "check 12: the list the release workflow writes on a tag" "$d"
 
 # --- summary -------------------------------------------------------------------------------
 

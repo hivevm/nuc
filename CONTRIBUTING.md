@@ -58,7 +58,8 @@ scripts/fixtures/     # the cases of a check as a table, which its self-test rea
 scripts/*.sh          # run by hand, steps 7 and 8 of the integration branches: ready-for-main.sh,
                       # drop-merged-branch.sh
 .githooks/            # git hooks: nothing lands on main locally; checks before a merge and a push
-.github/workflows/    # checks.yml runs the checks; review-binding.yml reads each pull request's hand-off
+.github/workflows/    # checks.yml runs the checks; review-binding.yml reads each pull request's hand-off;
+                      # release.yml writes the blob list of the base on a release tag
 .github/              # Dependabot, issue & pull request templates, code owners
 .devcontainer/        # Dev Container definition (base image + Features)
 .vscode/              # shared editor settings

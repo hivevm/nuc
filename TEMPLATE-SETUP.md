@@ -33,9 +33,9 @@ place of steps 2 and 3: the project's own decisions and the inherited ADRs becom
    - **Project name.** Replace **NUC** in the title of [`README.md`](README.md) and in `"name"`
      of `.devcontainer/devcontainer.json`, rewrite the README's intro sentence, which explains
      the template's name, and delete its **Why NUC** section, which presents the template. Keep
-     `NUC maintainer` in the `Deciders` lines of the ADRs: it names who decided, and it is how
-     check 12 of [`scripts/check-docs.sh`](scripts/check-docs.sh) tells an inherited ADR from
-     your own.
+     `NUC maintainer` in the `Deciders` lines of the ADRs: it names who decided. Leave the `NUC-`
+     files of [`docs/adr/`](docs/adr/) as they are: check 12 of
+     [`scripts/check-docs.sh`](scripts/check-docs.sh) holds them against their blob list.
    - **Repository.** The badges of checks, release, and license in [`README.md`](README.md)
      point at the template's repository, `hivevm/nuc`. Repoint them to this project's
      `owner/name` (`git remote get-url origin` says it where a remote exists), or delete a badge
@@ -65,10 +65,11 @@ place of steps 2 and 3: the project's own decisions and the inherited ADRs becom
    your own decision: add yourself to its `Deciders`, with its `Status` at `🟢 accepted` in the
    index and the file, or supersede it with an ADR of your own
    ([`AGENTS.md` §3](AGENTS.md#3-adr-rules)). Nothing in between: an inherited ADR nobody here
-   has accepted is a rule nobody decided, and check 12 of
-   [`scripts/check-docs.sh`](scripts/check-docs.sh) fails on one in force without a decider of
-   this project once this file is gone. The template ships each with its test or its exemption,
-   so the checks stay green. The Dev Container waits for step 4, where it is decided beside the
+   has accepted is a rule nobody decided. The `NUC-` ADRs are the base: the project accepts them
+   by the release its README names, and extends or narrows a clause in an ADR of its own
+   ([NUC-adrs-record-decisions §11](docs/adr/NUC-adrs-record-decisions.md)). The template ships
+   each with its test or its exemption, so the checks stay green. The Dev Container waits for
+   step 4, where it is decided beside the
    environment: whether the project needs one rests on where its work runs, which the
    specification of step 3 says. The shape of the code is not an inherited ADR: it is a
    founding decision of step 4.
@@ -101,6 +102,9 @@ place of steps 2 and 3: the project's own decisions and the inherited ADRs becom
      and models work here, who reviews what, and what may run unattended.
    - **The toolchain** ([catalogue](.agents/skills/propose-adr/concepts/toolchain.md)): the
      language, its build, test, and lint commands, and its sensors in three kinds.
+
+     These two carry the header field `Role:`, `harness` or `toolchain`. Once this file is gone,
+     check 13 fails unless each role has exactly one accepted ADR.
    - **The shape of the code,** from the catalogue's group of that name, with the rule a
      structural test decides, or no prescribed shape, as the template ships. A decision about
      the shape is the one entropy erodes first.

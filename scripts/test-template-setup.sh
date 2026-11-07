@@ -3,7 +3,7 @@
 # Self-test of the template setup (TEMPLATE-SETUP.md) against this repository's own files.
 #
 # The setup promises two things the fixture tests of the single checks cannot see, because they
-# hold only on the real scaffold: that check 12 and check 13 of scripts/check-docs.sh name every
+# hold only on the real scaffold: that check 13 of scripts/check-docs.sh names every
 # placeholder the setup leaves behind once its file is gone, and that a project which has done
 # every step is green. Each case copies the repository's files into a throwaway git repository
 # and runs the checks against the copy:
@@ -271,7 +271,6 @@ PLACEHOLDERS=(
   "docs/GLOSSARY.md|^- \*\*<Term>\*\*|docs/GLOSSARY.md: the scaffold's entry is still listed"
   "docs/CONVENTIONS.md|^- \*\*<Convention>\*\*|docs/CONVENTIONS.md: the scaffold's entry is still listed"
   "README.md|^- \*\*(Build|Test|Lint|Run):\*\* TODO|README.md: a Build, Test, Lint, or Run command is still TODO"
-  "docs/adr/0001-agent-governance-model.md|^- \*\*Deciders:\*\* NUC maintainer$|inherited from the template and not decided by this project"
   "README.md|\(TEMPLATE-SETUP\.md\)|README.md: broken relative link -> 'TEMPLATE-SETUP.md'"
   "CONTRIBUTING.md|^TEMPLATE-SETUP\.md |CONTRIBUTING.md: Project Layout lists 'TEMPLATE-SETUP.md'"
   ".agents/skills/setup-project/SKILL.md|\(\.\./\.\./\.\./TEMPLATE-SETUP\.md\)|.agents/skills/setup-project/SKILL.md: broken relative link -> '../../../TEMPLATE-SETUP.md'"
@@ -400,6 +399,15 @@ setup_steps() {
   for f in "$d"/docs/adr/[0-9][0-9][0-9][0-9]-*.md; do
     edit "$d" "docs/adr/$(basename "$f")" \
       's/^- \*\*Deciders:\*\* NUC maintainer$/- **Deciders:** NUC maintainer, Fixture Owner/'
+  done
+  # Step 4: an accepted ADR for each required role, with its row in the index.
+  local role cat=OPS
+  for role in harness toolchain; do
+    printf '# %s: The %s\n\n- **Status:** 🟢 accepted\n- **Role:** %s\n- **Applies to:** the %s\n\n## Enforcement\n\n**Not mechanically decidable:** the fixture.\n' \
+      "$cat-fixture-$role" "$role" "$role" "$role" > "$d/docs/adr/$cat-fixture-$role.md"
+    awk -v row="| [$cat-fixture-$role]($cat-fixture-$role.md) | The $role | the $role | 🟢 accepted |" \
+      '{ print } /^\|-----/ && !done { print row; done = 1 }' "$d/docs/adr/README.md" > "$d/adr.tmp" \
+      && mv "$d/adr.tmp" "$d/docs/adr/README.md"
   done
   # Step 3: the project idea, and the documents of docs/ named and without scaffold entries.
   for doc in SPECIFICATION ARCHITECTURE GLOSSARY CONVENTIONS; do
