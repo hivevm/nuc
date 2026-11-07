@@ -20,11 +20,11 @@ These properties shape the security posture of the coding agents working here:
 - **The Dev Container has no access to the host container engine.** The agents run inside the Dev
   Container defined in [`.devcontainer/devcontainer.json`](.devcontainer/devcontainer.json). The
   host Docker or Podman socket is **not** mounted into the container
-  ([ADR-0004](docs/adr/0004-dev-container-runtime.md)), so code or agents running inside cannot
-  control the host engine. Host containers are managed from a host-side VS Code extension (see
-  [`CONTRIBUTING.md`](CONTRIBUTING.md#host-container-management)), which keeps that capability
-  outside the container's reach. The container is still not a strong security boundary, so run only
-  agents and code you trust in it.
+  ([NUC-container-hides-host-daemon §2](docs/adr/NUC-container-hides-host-daemon.md)), so code
+  or agents running inside cannot control the host engine. Host containers are managed from a
+  host-side VS Code extension (see [`CONTRIBUTING.md`](CONTRIBUTING.md#host-container-management)),
+  which keeps that capability outside the container's reach. The container is still not a strong
+  security boundary, so run only agents and code you trust in it.
 - **Nothing leaves the machine without a human.** The rule is
   [`AGENTS.md` §6](AGENTS.md#6-project-rules). It is documentation: no file in the repository can
   stop an agent from running `git push`, and a tool's own configuration enforces none.
