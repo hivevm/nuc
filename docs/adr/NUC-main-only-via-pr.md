@@ -50,8 +50,8 @@ through merged pull requests.
 3. **Credentials.** A human authenticates `gh` through its web flow and enters its one-time code.
    An agent must not request, store, or hard-code a personal access token.
 4. **`main`.** A change must reach `main` through a pull request that merges as a merge commit.
-   The local `main` must only take up the remote's, by `git merge --ff-only origin/main`. Nobody
-   may rewrite what has reached `main`.
+   The local `main` must only move to a commit that the remote's `main` has. Nobody may rewrite
+   what has reached `main`.
 5. **Integration branch.** On a human's instruction, a branch reviewed per
    [`AGENTS.md` §5](../../AGENTS.md#5-quality-bar--definition-of-done) may integrate first on a
    `feat/` branch. It integrates by a local merge or a pull request.
