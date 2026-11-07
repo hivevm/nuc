@@ -173,11 +173,9 @@ fi
 # §4 Host side, only in a tree that uses VS Code: the pair has to sit inside the
 # 'remote.extensionKind' object, so the text is flattened and matched from that key up to the
 # first closing brace.
-if [[ ! -d "$ROOT/.vscode" ]]; then
-  :
-elif [[ ! -f "$ROOT/$SETTINGS" ]]; then
+if [[ -d "$ROOT/.vscode" && ! -f "$ROOT/$SETTINGS" ]]; then
   add_error "$SETTINGS: not found — it pins the container-management extension to the host side (NUC-container-hides-host-daemon §4)"
-elif ! grep -qE '"remote\.extensionKind":\{[^}]*"ms-azuretools\.vscode-containers":\["ui"\]' \
+elif [[ -d "$ROOT/.vscode" ]] && ! grep -qE '"remote\.extensionKind":\{[^}]*"ms-azuretools\.vscode-containers":\["ui"\]' \
        <<< "$(uncommented "$ROOT/$SETTINGS" | tr -d ' \t\n')"; then
   add_error "$SETTINGS: does not pin 'ms-azuretools.vscode-containers' to [\"ui\"] under 'remote.extensionKind' — without it the extension runs in the container and asks for the socket (NUC-container-hides-host-daemon §4)"
 fi

@@ -10,7 +10,8 @@
 # NUC-container-hides-host-daemon. A socket mount fails also in a config longer than a pipe holds.
 # The mount path passes when left to the default or set to it, and fails when set to a path every
 # project shares. The cases of scripts/fixtures/check-devcontainer.txt pin what binds when the
-# project has no Dev Container or no VS Code settings, and the clause each message names.
+# project has no Dev Container or no VS Code settings, and one failure of each clause with the
+# clause its message names.
 #
 # Inputs: scripts/check-devcontainer.sh scripts/lib/ scripts/fixtures/check-devcontainer.txt
 #
@@ -112,11 +113,6 @@ expect() {
 d="$(repo baseline)"
 expect pass "a container without a socket, pinned and locked, passes" "$d" "1 Features pinned and locked"
 
-d="$(repo socket-mount)"
-config "$d" "ghcr.io/devcontainers/features/github-cli:1" \
-  '"mounts": ["source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"],'
-expect fail "a host socket mount" "$d" "mounts the host Docker socket"
-
 # A config longer than a pipe holds, the socket before the rest: a grep that exits at the socket
 # before the config is written cuts the writer off, and the mount goes unreported.
 d="$(repo socket-mount-long)"
@@ -150,10 +146,6 @@ config "$d" "ghcr.io/devcontainers/features/github-cli"
 lock "$d" "ghcr.io/devcontainers/features/github-cli"
 expect fail "a Feature without a tag" "$d" "major version tag alone"
 
-d="$(repo lock-missing)"
-rm "$d/.devcontainer/devcontainer-lock.json"
-expect fail "no lock committed" "$d" "devcontainer-lock.json: not found"
-
 d="$(repo lock-behind)"
 config "$d" "ghcr.io/devcontainers/features/node:1"
 expect fail "a Feature the lock does not resolve" "$d" "has no entry for Feature 'ghcr.io/devcontainers/features/node:1'"
@@ -173,10 +165,6 @@ printf '{ "image": "x", "features": { "ghcr.io/devcontainers/features/docker-out
 lock "$d" "ghcr.io/devcontainers/features/docker-outside-of-docker:1" "ghcr.io/devcontainers/features/node:1"
 expect fail "a features block on one line, with a string-valued Feature, is read like any other" "$d" \
   "Feature 'ghcr.io/devcontainers/features/docker-outside-of-docker:1' would mount"
-
-d="$(repo extension-in-container)"
-settings "$d" '{ "ms-azuretools.vscode-containers": ["workspace"] }'
-expect fail "the container-management extension not pinned to the host" "$d" "does not pin 'ms-azuretools.vscode-containers'"
 
 d="$(repo extension-under-other-key)"
 {
@@ -228,22 +216,12 @@ config "$d" "ghcr.io/devcontainers/features/github-cli:1" \
   "\"workspaceMount\": \"source=\${localWorkspaceFolder},type=bind,dst=$own\","
 expect pass "a mount whose target comes last, under another of its names" "$d" "a path of its own"
 
-d="$(repo mount-shared-folder)"
-config "$d" "ghcr.io/devcontainers/features/github-cli:1" '"workspaceFolder": "/workspace",'
-expect fail "a workspaceFolder every project shares" "$d" "workspaceFolder is not '$own'"
-
 d="$(repo mount-shared-target)"
 # shellcheck disable=SC2016  # the variable is devcontainer.json's, not the shell's
 config "$d" "ghcr.io/devcontainers/features/github-cli:1" "\"workspaceFolder\": \"$own\"," \
   '"workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",'
 expect fail "a workspaceMount that targets a path every project shares" "$d" \
   "workspaceMount does not target '$own'"
-
-d="$(repo post-start-missing)"
-post_start=""
-config "$d" "ghcr.io/devcontainers/features/github-cli:1"
-post_start="$POST_START"
-expect fail "no postStartCommand at all" "$d" "postStartCommand does not run 'git config core.hooksPath .githooks'"
 
 d="$(repo post-start-elsewhere)"
 post_start='"echo started"'
