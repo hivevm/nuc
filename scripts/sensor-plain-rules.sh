@@ -31,31 +31,24 @@ enter_root "Plain rules sensor" "${BASH_SOURCE[0]}" "$@"
 shift "$ROOT_TAKEN"
 
 MAX_WORDS=25
-base="${1:-}" head="${2:-}" worktree=0
-[[ -n "$head" ]] || { head=HEAD; worktree=1; }
-[[ "$base" =~ ^0+$ ]] && base=""
-[[ -n "$base" ]] || base="$(main_merge_base "$head")"
-if [[ -z "$base" ]]; then
-  echo "Plain rules sensor: nothing to compare — no base given and no main to compare with."
-  exit 0
-fi
-for ref in "$base" "$head"; do
-  git rev-parse --verify -q "$ref^{commit}" >/dev/null \
-    || { echo "Plain rules sensor: '$ref' does not resolve to a commit." >&2; exit 2; }
-done
+resolve_change "Plain rules sensor" "${1:-}" "${2:-}" || exit 0
+base="$CHANGE_BASE" head="$CHANGE_HEAD"
+# at — the head a file is read at, empty for the working tree, as rule_stream and change_file take it.
+at="$( ((CHANGE_WORKTREE)) || echo "$head")"
 range="$(git rev-parse --short "$base")..$(git rev-parse --short "$head")"
-((worktree)) && range="${range%..*}..working tree"
+[[ -n "$at" ]] || range="${range%..*}..working tree"
 
-if ! stream="$(rule_stream "$base" "$( ((worktree)) || echo "$head")")"; then
+if ! stream="$(rule_stream "$base" "$at")"; then
   awk -F '\t' -v range="$range" '
     $1 == "E" && $2 == "" { print "Plain rules sensor (" range "): could not list the rules the change touches." }
     $1 == "E" && $2 != "" { print "Plain rules sensor (" range "): could not read the rules of " $2 "." }' <<< "$stream" >&2
   exit 2
 fi
 # The glossary as the change has it: the working tree's, or the head's.
-if ((worktree)); then glossary=docs/GLOSSARY.md; else glossary="$(mktemp)"; git show "$head:docs/GLOSSARY.md" > "$glossary" 2>/dev/null; fi
+glossary="$(mktemp)"
+change_file "$at" docs/GLOSSARY.md > "$glossary" 2>/dev/null
 avoid="$(avoid_terms "$glossary")"
-((worktree)) || rm -f "$glossary"
+rm -f "$glossary"
 findings=()
 while IFS= read -r finding; do findings+=("$finding"); done < <(
   awk -F '\t' -v max="$MAX_WORDS" -v avoid="$avoid" '
