@@ -93,6 +93,16 @@ expect refuse "the push refusal names the clause that runs the checks before a p
 expect refuse "the refusal shows the check output" "$d" "check output for the test" push -q origin feature
 expect refuse "the hook runs the checks with --changed" "$d" "args: --changed" push -q origin feature
 expect pass "a commit is not gated by the checks" "$d" "" commit -q --allow-empty -m x
+docs "$d" 1
+expect refuse "a commit on a branch while the documentation check is red" "$d" \
+  "pre-commit: refused — the documentation check is red" commit -q --allow-empty -m x
+expect refuse "the commit refusal names the clause that runs the checks before a commit" "$d" \
+  "(NUC-checks-are-bash §6)" commit -q --allow-empty -m x
+expect refuse "the commit refusal shows the documentation check's output" "$d" \
+  "docs output for the test" commit -q --allow-empty -m x
+docs "$d" 0
+expect pass "a commit on a branch while the documentation check is green" "$d" "" \
+  commit -q --allow-empty -m x
 
 # A deletion sends nothing to check: it passes while the checks are red, and a push that sends a
 # branch besides is checked as any other.
@@ -203,7 +213,7 @@ merging() {
   git -C "${d:?}" switch -q -c feature
   echo feature > "$d/f"
   g "$d" add f
-  g "$d" commit -q -m feature
+  g "$d" commit -q --no-verify -m feature
   git -C "${d:?}" switch -q -c feat/x main
   echo "$d"
 }

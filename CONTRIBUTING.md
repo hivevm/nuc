@@ -152,7 +152,7 @@ two branches append conflicts.
 | Hook | Refuses | Bypassed by |
 |---|---|---|
 | `reference-transaction` | moving the local `main` to a commit `origin/main` lacks: by a commit, merge, cherry-pick, reset, or `git branch -f`. It lets through `git merge --ff-only origin/main`, a reset to it, `git fetch origin main:main`, a write of `main` where it already is, and a deletion. Needs git 2.28 or later. | running git without the hooks (`git -c core.hooksPath=/dev/null`), or moving `origin/main` by hand; not by `--no-verify` |
-| `pre-commit` | a commit on `main`; the conclusion of a conflicted merge while `scripts/check-all.sh --changed` is red | `--no-verify` |
+| `pre-commit` | a commit on `main`; any other commit while `scripts/check-docs.sh` is red on the working tree; the conclusion of a conflicted merge while `scripts/check-all.sh --changed` is red | `--no-verify` |
 | `pre-merge-commit` | a merge on `main`; a merge into any other branch while `scripts/check-docs.sh` is red | `--no-verify` |
 | `pre-push` | a push to the remote's `main`, a deletion included; any other push while `scripts/check-all.sh --changed` is red, except one that only deletes, and one from a clean working tree whose tree the checks passed on before, as after a rework that only regroups | `--no-verify`, as the claim on a ticket does ([NUC-main-only-via-pr §6](docs/adr/NUC-main-only-via-pr.md)); a tree written by hand into `checks-green-trees` of the git directory |
 
