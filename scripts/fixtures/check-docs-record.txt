@@ -105,7 +105,7 @@
 13 | pass | - | while the setup file exists, no role is required | setup; commit; delete OPS:fixture-harness
 11 | fail | review/SKILL.md: no front matter an agent reads | the ticket-10 break: a description wrapped unindented and the fence ending its line | skill ---\nname: review\ndescription: Review a change,\nwrapped onto a second line. ---\n\n# Review\n
 11 | fail | review/SKILL.md: no front matter an agent reads | a front matter never closed | skill ---\nname: review\ndescription: Review a change.\n\n# Review\n
-11 | fail | review/SKILL.md: no front matter an agent reads | a first line that is not the opening fence | skill \n---\nname: review\ndescription: Review a change.\n---\n
+11 | fail | review/SKILL.md: no front matter an agent reads | a first line that is not the opening fence | skill # Review\nname: review\ndescription: Review a change.\n---\n
 11 | fail | review/SKILL.md: no front matter an agent reads | a name that is not the skill's directory | skill ---\nname: other\ndescription: Review a change.\n---\n
 11 | fail | review/SKILL.md: no front matter an agent reads | no description | skill ---\nname: review\n---\n\n# Review\n
 11 | fail | review/SKILL.md: no front matter an agent reads | an unindented line that starts no key, the fence closed | skill ---\nname: review\ndescription: Review a change,\nwrapped unindented.\n---\n
@@ -113,3 +113,8 @@
 11 | pass | - | a folded and a literal block scalar | skill ---\nname: review\ndescription: >\n  Review a change,\n  folded.\ncompatibility: |-\n  Any agent.\n---\n
 11 | pass | - | nested metadata | skill ---\nname: review\ndescription: Review a change.\nmetadata:\n  author: example\n  version: "1.0"\n---\n
 11 | pass | - | a description wrapped onto an indented line | skill ---\nname: review\ndescription: Review a change,\n  wrapped indented.\n---\n
+11 | fail | review/SKILL.md: no front matter an agent reads | a description only nested under metadata | skill ---\nname: review\nmetadata:\n  description: Review a change.\n---\n
+11 | pass | - | a name in single quotes | skill ---\nname: 'review'\ndescription: Review a change.\n---\n
+11 | pass | - | an unindented block sequence | skill ---\nname: review\ndescription: Review a change.\nallowed-tools:\n- Read\n- Grep\n---\n
+11 | pass | - | fences with trailing spaces | skill ---  \nname: review\ndescription: Review a change.\n--- \n
+11 | pass | - | a comment and an empty line inside the fences | skill ---\n# the skill\nname: review\n\ndescription: Review a change.\n---\n

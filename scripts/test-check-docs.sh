@@ -662,7 +662,7 @@ d="$(repo layout-plan-absent)"
 layout "$d" "docs/plan/"
 expect pass "docs/plan/ named while there is no open work" "$d"
 
-# --- cases: the record (checks 1, 2, 5, 6, 8, 12, and 13), read from the fixture table ---
+# --- cases: the record (1, 2, 5, 6, 8, 12, 13) and front matter (11), read from the table ---
 
 TABLE="$ROOT/scripts/fixtures/check-docs-record.txt"
 

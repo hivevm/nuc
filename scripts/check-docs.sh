@@ -89,8 +89,8 @@
 #      such a symlink (NUC-procedures-are-skills §6); Claude Code reads only that directory, and a
 #      copy drifts. Each SKILL.md opens with '---', closes with '---', and between them has a
 #      'name' equal to its directory and a 'description' (§7); an unindented line there starts a
-#      key, as a wrap that hides the skill does not, and indented lines pass unread. Each message
-#      says the fix. A repository with neither directory has nothing to check.
+#      key or a '- ' item, as a wrap that hides the skill does not, and indented lines pass
+#      unread. Each message says the fix. A repository with neither directory has nothing to check.
 #  12. Base held by its blob list (NUC-base-is-fixed §2): every 'NUC-' file in
 #      docs/adr/ and the rule file AGENTS.md has the git blob identifier its line in
 #      docs/adr/NUC.blobs names, and every line names a file that exists. The template rewrites
@@ -1138,9 +1138,9 @@ check_skill_pointers() {  # check 11
   for d in "$skills"/*/; do
     [[ -f "$d/SKILL.md" ]] || continue
     name="$(basename "$d")"
-    awk -v name="$name" 'NR == 1 { if ($0 != "---") exit; next }
-      $0 == "---" { closed = 1; exit }
-      /^([ \t#]|$)/ { next }
+    awk -v name="$name" 'NR == 1 { if ($0 !~ /^---[ \t]*$/) exit; next }
+      /^---[ \t]*$/ { closed = 1; exit }
+      /^([ \t#]|-([ \t]|$)|$)/ { next }
       !/^[A-Za-z0-9_-]+:([ \t]|$)/ { exit }
       /^name:/ { v = $0; sub(/^name:[ \t]*/, "", v); gsub(/^["\047]|["\047]?[ \t]*$/, "", v); n = v == name }
       /^description:/ { desc = 1 }
