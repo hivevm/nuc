@@ -25,9 +25,9 @@ ADR extends or narrows a clause of a `NUC-` ADR, which no project ADR supersedes
 required role ([NUC-base-is-fixed §3](NUC-base-is-fixed.md)).
 For a decision recorded only because a
 reader would take it for a mistake, cheap to reverse and constraining nothing
-([`AGENTS.md` §3](../../AGENTS.md#3-adr-rules), rule 2), a sentence each under Context and Decision
-and `None — cheap to reverse` under Alternatives, Sources, and Consequences is the whole record;
-Enforcement stays. Then delete this paragraph.*
+([NUC-decisions-are-proposed-then-accepted §2](NUC-decisions-are-proposed-then-accepted.md)), a
+sentence each under Context and Decision and `None — cheap to reverse` under Alternatives, Sources,
+and Consequences is the whole record; Enforcement stays. Then delete this paragraph.*
 
 ## Context
 
@@ -35,15 +35,16 @@ What is the issue, and which forces are at play: requirements from
 [`docs/SPECIFICATION.md`](../SPECIFICATION.md), constraints from other ADRs, technical forces?
 
 Interrogate the request with the human before writing this section
-([`AGENTS.md` §3](../../AGENTS.md#3-adr-rules), rule 3); the `propose-adr` skill under
-[`.agents/skills/`](../../.agents/skills/) lists the questions.
+([NUC-decisions-are-proposed-then-accepted §3](NUC-decisions-are-proposed-then-accepted.md)); the
+`propose-adr` skill under [`.agents/skills/`](../../.agents/skills/) lists the questions.
 
 ## Decision
 
 What we decided, in one clear, active sentence ("We will …"). A second "We will …" sentence is a
-sign of two ADRs ([`AGENTS.md` §3](../../AGENTS.md#3-adr-rules)). Everything that binds stands
-here or under *Enforcement*. A session whose change only follows the ADR reads these two and the
-header ([`AGENTS.md` §2](../../AGENTS.md#2-start-here)).
+sign of two ADRs
+([NUC-decisions-are-proposed-then-accepted §1](NUC-decisions-are-proposed-then-accepted.md)).
+Everything that binds stands here or under *Enforcement*. A session whose change only follows the
+ADR reads these two and the header ([`AGENTS.md` §2](../../AGENTS.md#2-start-here)).
 
 **Out of scope:** what this decision deliberately leaves open, so a later ADR can take it up
 without contradicting this one. Write "nothing beyond the sentence above" when the decision is
@@ -79,4 +80,5 @@ informed the decision. Write "None — trivial/reversible" only when that is gen
 What keeps this decision true and where it lives: the check, test, CI job, or review step that
 fails when it is violated. Name the test that cites this ADR, or write a paragraph starting
 `**Not mechanically decidable:**` with the reason no test can decide it.
-Accepting an ADR that has neither fails CI ([ADR-0002](0002-decisions-verified-by-tests.md)).
+Accepting an ADR that has neither fails CI
+([NUC-decisions-cite-tests §3](NUC-decisions-cite-tests.md)).

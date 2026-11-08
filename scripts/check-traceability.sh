@@ -28,7 +28,7 @@
 # Whether the citing test asserts anything is review, not this check.
 #
 # 🟡 proposed ADRs are out of scope: their tests land while they are proposed, and the acceptance
-# lands with them (AGENTS.md, section 3).
+# lands with them (NUC-decisions-cite-tests §3).
 #
 # Pure bash + coreutils/grep/sed, plus git to enumerate the repository's files. The file list
 # comes from git — tracked plus new, not-yet-added files, minus everything .gitignore excludes.

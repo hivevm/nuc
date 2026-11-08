@@ -72,8 +72,8 @@ Then the criteria of [`docs/SPECIFICATION.md`](../../../docs/SPECIFICATION.md) t
 named as served; without a spec, the criteria a `Verifies:` marker cites from the directories
 in scope. One whose text no longer says what the tests decide, one the work moved past: each is
 a candidate for a specification change. The specification is the human's
-([`AGENTS.md` §3](../../../AGENTS.md#3-adr-rules), rule 7): draft the change and the accepted
-ADRs it would move; never land it.
+([NUC-documents-are-fixed §2](../../../docs/adr/NUC-documents-are-fixed.md)): draft the change and
+the accepted ADRs it would move; never land it.
 
 ## 5. Go through the mistakes
 
@@ -84,7 +84,7 @@ Then it is an entry in [`docs/CONVENTIONS.md`](../../../docs/CONVENTIONS.md).
 
 Then the reverse: a convention or a check that prevented nothing during the work in scope is
 dropped, unless an ADR or a criterion cites it
-([ADR-0002](../../../docs/adr/0002-decisions-verified-by-tests.md)).
+([NUC-decisions-cite-tests §2](../../../docs/adr/NUC-decisions-cite-tests.md)).
 
 Then the rules added since the last revision: every rule written into
 [`AGENTS.md`](../../../AGENTS.md), the mechanics of [`CONTRIBUTING.md`](../../../CONTRIBUTING.md),
@@ -96,10 +96,10 @@ fallback for what no check can decide
 ([`AGENTS.md` §5](../../../AGENTS.md#5-quality-bar--definition-of-done)), so each names the
 mistake it prevents, or it is a candidate to drop. Each that stays is set against the older ones
 beside it, and an older one it makes needless is a candidate too. One an ADR decides is dropped
-only as that ADR may change ([`AGENTS.md` §3](../../../AGENTS.md#3-adr-rules), rule 5). The
-hand-off of the revision lists what was added and what it proposes to drop, with the lines each
-file gained and lost (`git diff --stat`), so the growth of the rule set is seen once per
-revision.
+only as that ADR may change
+([NUC-decisions-are-proposed-then-accepted §6](../../../docs/adr/NUC-decisions-are-proposed-then-accepted.md)).
+The hand-off of the revision lists what was added and what it proposes to drop, with the lines each
+file gained and lost (`git diff --stat`), so the growth of the rule set is seen once per revision.
 
 ## 6. File, do not fix
 

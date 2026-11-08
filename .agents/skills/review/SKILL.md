@@ -19,8 +19,8 @@ The reviewer runs in a context that did not write the change and is handed only:
   [§5](../../../AGENTS.md#5-quality-bar--definition-of-done);
 - the *Doubts* section of the hand-off draft under `.scratch/`, the pull request description or
   merge message that fills the sections of the pull request template
-  ([`AGENTS.md` §6](../../../AGENTS.md#6-project-rules)): what the implementer disagreed with
-  and what it could not confirm;
+  ([NUC-main-only-via-pr §5](../../../docs/adr/NUC-main-only-via-pr.md)): what the implementer
+  disagreed with and what it could not confirm;
 - [`docs/CONVENTIONS.md`](../../../docs/CONVENTIONS.md);
 - the golden path named in [`docs/ARCHITECTURE.md`](../../../docs/ARCHITECTURE.md);
 - the ADRs in force whose *Applies to* the diff touches: those that name a path of the diff, as
@@ -34,7 +34,7 @@ The reviewer runs in a context that did not write the change and is handed only:
   [`scripts/check-all.sh`](../../../scripts/check-all.sh) `--verbose`, whose tests-kept sensor
   lists the test files deleted and the skip markers added since the base;
 - for a normalization, its map and its clause table, and the record at the base commit
-  ([`AGENTS.md` §3](../../../AGENTS.md#3-adr-rules), rule 5).
+  ([NUC-decisions-are-proposed-then-accepted §8](../../../docs/adr/NUC-decisions-are-proposed-then-accepted.md)).
 
 A light review ([`AGENTS.md` §5](../../../AGENTS.md#5-quality-bar--definition-of-done)) is
 handed the diff, the task, the doubts, and that output, and nothing else. It judges whether every

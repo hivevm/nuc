@@ -51,7 +51,7 @@
   "features": {
     // GitHub CLI (`gh`) — used by the coding agent for GitHub operations and as the git
     // credential helper. A push and every gh action wait for a human instruction
-    // (AGENTS.md, section 6).
+    // (NUC-main-only-via-pr §2).
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
 

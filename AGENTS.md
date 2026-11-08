@@ -1,13 +1,14 @@
 # Agent Guide
 
-> **The single rule file of this project** ([ADR-0001](docs/adr/0001-agent-governance-model.md)).
+> **The single rule file of this project**
+> ([NUC-documents-are-fixed §3](docs/adr/NUC-documents-are-fixed.md)).
 > Every working rule lives here. Where another document repeats one, this wording governs. The
 > file belongs to the template and is not edited per project, except the ADR rules of
 > [§3](#3-adr-rules): a derived project changes them by an ADR on the ADR process, which edits
 > them in the change that lands it. Project conventions go into
 > [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md), into checks, and into ADRs. A procedure is a skill
 > under [`.agents/skills/`](.agents/skills/). It cites a rule here and states none of its own
-> ([ADR-0003](docs/adr/0003-procedures-as-skills.md)).
+> ([NUC-procedures-are-skills §3](docs/adr/NUC-procedures-are-skills.md)).
 
 ## 1. Principles
 
@@ -88,12 +89,12 @@ restates nothing. A rule this file does not state is not a rule of this project.
    the implementation. **Only a human changes the status.** The flip to `accepted`, a header
    line and no text, may land with the implementation.
 5. **Accepted ADRs are binding and immutable.** Never violate or work around one; change it only
-   by superseding it. Outside a normalization, never rewrite or delete one. Two edits are
-   permitted, both by a human. One flips the `Status` line. The other adds the project's decider
-   to the `Deciders` line of an ADR inherited from the template, when the project accepts it as
-   its own. ADR numbers are permanent between normalizations. The template repository corrects
-   its own ADRs in place ([ADR-0005](docs/adr/0005-template-releases.md)). If the specification
-   and an ADR conflict, the specification wins. Raise the conflict; never choose silently.
+   by superseding it. Outside a normalization, never rewrite or delete one. One edit is
+   permitted, by a human: it flips the `Status` line. ADR numbers are permanent between
+   normalizations. The template repository corrects its own ADRs in place
+   ([NUC-decisions-are-proposed-then-accepted §6](docs/adr/NUC-decisions-are-proposed-then-accepted.md)).
+   If the specification and an ADR conflict, the specification wins. Raise the conflict; never
+   choose silently.
 
    **A normalization restates the record, only on a human's instruction.** The specification is
    restated first, under rule 7. The ADRs it invalidates are superseded next. Then the ADRs in
@@ -130,11 +131,11 @@ restates nothing. A rule this file does not state is not a rule of this project.
   change adds.
 - **Plan work larger than one session in the tree, under `docs/plan/`.** A feature spec is cut
   into tracer-bullet tickets. The change that lands a ticket's work deletes its file
-  ([ADR-0006](docs/adr/0006-feature-layer.md)). Skill: `plan-feature`. The skill `work-tickets`
-  works the tickets, one at a time or in parallel.
+  ([NUC-large-work-is-planned §5](docs/adr/NUC-large-work-is-planned.md)). Skill: `plan-feature`.
+  The skill `work-tickets` works the tickets, one at a time or in parallel.
 - **Record a finding outside your ticket in the backlog.** A finding is a defect, a doubt, or an
   idea that no ticket covers. Do not widen the ticket for it. The human decides which entry becomes
-  a ticket ([ADR-0006](docs/adr/0006-feature-layer.md)).
+  a ticket ([NUC-large-work-is-planned §8](docs/adr/NUC-large-work-is-planned.md)).
 - **Work with the human:** small steps, reasoning surfaced, feedback sought early. A task runs
   unattended only when its ticket answers for all of the following:
   - a test decides its criteria;
@@ -159,7 +160,8 @@ restates nothing. A rule this file does not state is not a rule of this project.
   topic lasts until the fixes it asked for are judged.
 - **Session artifacts are not tracked.** Session plans, handoff notes, and scratch files live under
   `.scratch/` (gitignored) or outside the tree. What has to outlive the session becomes a ticket,
-  a `proposed` ADR, or a change to one of the six documents of ADR-0001. An agent's own memory
+  a `proposed` ADR, or a change to one of the six documents of
+  [NUC-documents-are-fixed §1](docs/adr/NUC-documents-are-fixed.md). An agent's own memory
   keeps how the human works, not the state of the work, which the tree and its history hold:
   every session loads that memory first.
 - **Research before a decision that is costly to reverse,** external sources included. Cite them
@@ -184,8 +186,8 @@ restates nothing. A rule this file does not state is not a rule of this project.
   against the new implementation.
 - **Every accepted ADR, and every specification criterion (`G-n`, `Q-n`) a change meets, is
   cited by a test** with a `Verifies: <id>` marker
-  ([ADR-0002](docs/adr/0002-decisions-verified-by-tests.md)). An ADR no test can decide says so
-  in its *Enforcement* section. A criterion no test cites yet is pending work.
+  ([NUC-decisions-cite-tests §3](docs/adr/NUC-decisions-cite-tests.md)). An ADR no test can
+  decide says so in its *Enforcement* section. A criterion no test cites yet is pending work.
 - **Never weaken the suite to make it pass. A flaky test is a defect, not noise:** no retries, no
   re-running until green.
 - **Review in a fresh context before handing off.** The session that wrote a change never reviews
@@ -196,15 +198,16 @@ restates nothing. A rule this file does not state is not a rule of this project.
   reason. The hand-off names the commit the review saw, and a sensor lists what landed after it. A
   rework replaces the commits a review saw, so after one the review that binds is a review of the
   whole branch at its head. The review scales with the change ([§1](#1-principles)): one that only
-  touches `.github/ISSUE_TEMPLATE/` or documents under `docs/` other than those ADR-0001 names and
+  touches `.github/ISSUE_TEMPLATE/` or documents under `docs/` other than those
+  [NUC-documents-are-fixed §1](docs/adr/NUC-documents-are-fixed.md) names and
   `docs/plan/`, its checks green, gets a light review of the diff, the task, the doubts, and the
   check output; every other change gets the full one. Skill: `review`.
 - **A feature spec closes only after a design revision.** A fresh session revisits the modules
   its tickets touched, the ADRs that bind them, and the criteria they serve. It files what it
   finds as tickets, checks, a `proposed` ADR, or a drafted specification change. With no spec
   open, a revision runs when the revision sensor says it is due
-  ([ADR-0006](docs/adr/0006-feature-layer.md)). A sensor is a script that reports to the reviewer
-  and fails nothing. Skill: `design-revision`.
+  ([NUC-design-is-revised §4](docs/adr/NUC-design-is-revised.md)). A sensor is a script that
+  reports to the reviewer and fails nothing. Skill: `design-revision`.
 - **A mistake a check could have caught becomes a check,** shipped with the fix. A rule in prose
   is the fallback for what no check can decide. The design revision drops what prevented nothing.
 - **Keep the diff releasable.** No commented-out code, stray debug output, or `TODO` standing in
@@ -219,16 +222,17 @@ restates nothing. A rule this file does not state is not a rule of this project.
   `restore`, `clean`) wait for an instruction. The instruction names the action and implies no
   next one. A standing instruction may cover one push only: the claim on a ticket across clones,
   where the harness ADR grants it. The session releases a local claim, a human one on a remote
-  ([ADR-0006](docs/adr/0006-feature-layer.md)). The git hooks under [`.githooks/`](.githooks/)
-  enforce what a file can of this section and of [§5](#5-quality-bar--definition-of-done); what
-  each refuses is under [Git hooks](CONTRIBUTING.md#git-hooks). **An agent never bypasses this
-  repository's hooks:** no `--no-verify`, no git run without them, no hand-moved `origin/main`, no
-  hand-written record of a green tree. The one exception is the push of a claim, which skips the
+  ([NUC-large-work-is-planned §4](docs/adr/NUC-large-work-is-planned.md)). The git hooks under
+  [`.githooks/`](.githooks/) enforce what a file can of this section and of
+  [§5](#5-quality-bar--definition-of-done); what each refuses is under
+  [Git hooks](CONTRIBUTING.md#git-hooks). **An agent never bypasses this repository's hooks:** no
+  `--no-verify`, no git run without them, no hand-moved `origin/main`, no hand-written record of a
+  green tree. The one exception is the push of a claim, which skips the
   pre-push hook. A human may bypass one, deliberately.
 - **A rule is enforced only by what every agent hits:** the git hooks, the checks, and the
   repository settings. A tool's own configuration enforces none, because a gate one agent
   honours and the next does not looks like a rule and is not one. It may close a path for its
-  agent as defence in depth ([ADR-0001](docs/adr/0001-agent-governance-model.md)).
+  agent as defence in depth ([NUC-main-only-via-pr §7](docs/adr/NUC-main-only-via-pr.md)).
 - **Authenticate `gh` through its web flow;** a human enters the one-time code. Never request,
   store, or hard-code personal access tokens.
 - **Changes reach `main` through a pull request,** merged as a merge commit. The local `main`
