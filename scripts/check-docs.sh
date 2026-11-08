@@ -306,7 +306,7 @@ is_inactive_adr() {
   [[ "$status" == *⚪* || "$status" == *🔴* ]]
 }
 
-check_adr_index() {
+check_adr_index() {  # check 1
   if [[ ! -f "$ADR_INDEX" ]]; then
     add_error "ADR index not found: docs/adr/README.md"
     return
@@ -401,7 +401,7 @@ check_adr_index() {
 # Check 2 (see the header). An identifier is never reused, so a deleted one, read off the
 # history, stays taken. The history is the first-parent line of HEAD, each merge read against the
 # branch it landed on: a side branch that deleted an ADR and wrote it anew deleted nothing there.
-check_adr_identifiers() {
+check_adr_identifiers() {  # check 2
   local f base heading id commit
   local -A deleted=()
   [[ -d "$ADR_DIR" ]] && while IFS= read -r f; do
@@ -458,7 +458,7 @@ instruction_needle() {
 # list of alternatives ('🟡 proposed | 🟢 accepted | …') as whatever stands first, and a line whose word
 # and emoji disagree passes there on the strength of the emoji — while the word is what a reader
 # believes. A missing or emoji-less status line is left to check_adr_index, which reports it.
-check_adr_headers() {
+check_adr_headers() {  # check 7
   local f base line expected word stray
   for f in "${ADR_LIST[@]}"; do
     base="${f##*/}"
@@ -517,7 +517,7 @@ adr_refs() {
 # are verified here; a cited number that names no file is left to check_adr_refs, which reports
 # it repository-wide. A Supersedes field wraps at the line width like any other header field,
 # and a name on its second line counts.
-check_adr_supersessions() {
+check_adr_supersessions() {  # check 8
   local f base nr line target target_file succ_file named accepted field rest re="(NUC-$ADR_SLUG_RE) ?§ ?([0-9]+)"
   for f in "${ADR_LIST[@]}"; do
     base="${f##*/}"
@@ -697,7 +697,7 @@ link_target() {
   LINK_TARGET="$target"
 }
 
-check_relative_links() {
+check_relative_links() {  # check 3
   local md rel linkexpr target path_part frag dir target_file
   for md in "${TEXT_FILES[@]}"; do
     case "$md" in *.md) ;; *) continue ;; esac
@@ -767,7 +767,7 @@ clauses_out() {
 # Named gap (AGENTS.md, section 5): outside Markdown there are no links, so a '§N' in a workflow or
 # a script comment is still only checked for the number existing. Those references live in files a
 # maintainer edits next to AGENTS.md; the weaker guarantee is recorded here rather than hidden.
-check_section_refs() {
+check_section_refs() {  # check 4
   local agents="$ROOT/AGENTS.md"
   if [[ ! -f "$agents" ]]; then
     add_error "AGENTS.md not found in the repository root"
@@ -886,10 +886,7 @@ check_section_refs() {
   done
 }
 
-# Every reference — an identifier of a known category, on its own and not inside a longer word —
-# must name an ADR file that already exists. Anticipated follow-up decisions are described by
-# topic (docs/adr/README.md). In Markdown, a code span is a literal.
-check_adr_refs() {
+check_adr_refs() {  # check 5
   local f files=() lineno line match
   for f in "${TEXT_FILES[@]}"; do
     [[ "$f" == "$ADR_DIR/template.md" ]] && continue
@@ -908,13 +905,7 @@ check_adr_refs() {
   done < <(grep -Hn --null -E "$ADR_REF_RE" "${files[@]}")
 }
 
-# A Markdown link that cites an ADR in its text must point at that ADR's own file. Both
-# halves resolve on their own — the identifier names a file that exists, the target is a file that
-# exists — so a copied line, a renamed file, or a consolidated decision set leaves the two naming
-# different ADRs without any single check noticing. Only links into docs/adr/ are compared; a
-# reference that deliberately points elsewhere (an index, a section about the decision) is left
-# alone.
-check_adr_link_targets() {
+check_adr_link_targets() {  # check 6
   local f rel linkexpr text target base id dir
   for f in "${TEXT_FILES[@]}"; do
     case "$f" in *.md) ;; *) continue ;; esac
@@ -943,14 +934,7 @@ check_adr_link_targets() {
   done
 }
 
-# The three places that list this repository's checks have to agree: the jobs in
-# .github/workflows/checks.yml, the invocations in scripts/check-all.sh, and the required status
-# checks named in CONTRIBUTING.md. AGENTS.md, section 5 makes check-all.sh the local equivalent of
-# the workflow, and that list is what a maintainer configures the ruleset from — a check that runs
-# in only one of the three is a gate somebody believes in and does not have. Both files say in their
-# own header that a check added to one is added to the other in the same change; this is that
-# sentence, verified.
-check_check_lists() {
+check_check_lists() {  # check 9
   local rel_wf=".github/workflows/checks.yml" rel_all="scripts/check-all.sh"
   local wf="$ROOT/$rel_wf" all="$ROOT/$rel_all" readme="$ROOT/CONTRIBUTING.md"
   local f
@@ -1093,14 +1077,7 @@ check_check_lists() {
   done
 }
 
-# The Project Layout block in CONTRIBUTING.md is a hand-written inventory, and nothing tells a
-# reader that a line of it has gone stale: a renamed or deleted path leaves the block describing a
-# repository that no longer exists. Every path it lists therefore has to exist, a trailing '/'
-# meaning a directory.
-#
-# Only that direction is checked. The block is a tour of the parts a newcomer needs, not a listing
-# of every file, so a path missing from it is an editorial judgment rather than a defect.
-check_project_layout() {
+check_project_layout() {  # check 10
   local readme="$ROOT/CONTRIBUTING.md"
   if [[ ! -f "$readme" ]]; then
     add_error "CONTRIBUTING.md: not found — the Project Layout block cannot be checked"
@@ -1156,7 +1133,7 @@ check_project_layout() {
 
 # Check 11 (see the header). A pointer is resolved with 'cd -P', which every shell has, rather
 # than realpath, whose flags differ between GNU and BSD.
-check_skill_pointers() {
+check_skill_pointers() {  # check 11
   local skills="$ROOT/.agents/skills" pointers="$ROOT/.claude/skills"
   local d name p target want
   for d in "$skills"/*/; do
@@ -1191,7 +1168,7 @@ check_skill_pointers() {
 }
 
 # Check 12 (see the header), both ways, one message for the template and a derived project.
-check_base_blobs() {
+check_base_blobs() {  # check 12
   local list="$ADR_DIR/NUC.blobs" f name blob fix out
   fix="a derived project restores the file of its release and narrows a rule by an ADR of its own; the template rewrites the list: bash -c 'source scripts/lib/adr.sh && adr_blobs docs/adr' > docs/adr/NUC.blobs (NUC-base-is-fixed §2)"
   local -A want=() have=()
@@ -1217,7 +1194,7 @@ check_base_blobs() {
 
 # Check 13 (see the header). Each placeholder is a pattern in one file; the file is skipped when
 # it does not exist, so a project that dropped one of them is not asked to edit it.
-check_template_identity() {
+check_template_identity() {  # check 13
   [[ -f "$ROOT/TEMPLATE-SETUP.md" ]] && return
   # placeholder <file> <grep -E pattern> <message>
   placeholder() {
@@ -1267,7 +1244,7 @@ LINK_SPACE_RE='(\[[^] ]*) ([^]]*\]\()'
 
 # Check 15 (see the header). Characters are counted, not bytes, so an em dash is one column;
 # scan_markdown hands over only the lines longer than 100 bytes outside front matter and fences.
-check_prose_width() {
+check_prose_width() {  # check 15
   local f rel n line indent body in_adr attr
   local LC_ALL=C.UTF-8
   # A file git marks as generated is written by a tool, not wrapped by hand; asked once for all.
@@ -1312,7 +1289,7 @@ check_prose_width() {
 # it — a sentence, a link target — is not read. After the version only a space, a punctuation
 # mark, or the end of the line may follow: a pre-release suffix, build metadata, and a fourth
 # number are not a tag NUC-releases-are-semver-tags §1 cuts, and SemVer allows no leading zero.
-check_template_release() {
+check_template_release() {  # check 14
   local readme="$ROOT/README.md"
   if [[ ! -f "$readme" ]]; then
     add_error "README.md: not found — the Template section names the release this repository carries (NUC-releases-are-semver-tags §4)"
