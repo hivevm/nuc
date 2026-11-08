@@ -41,9 +41,9 @@ sed_in() {
 # CONTRIBUTING.md, for a case that adds a top-level file for another reason (check 10).
 layout() {
   local dir="$1"; shift
-  awk -v add="$(printf '%s\n' "$@")" '
+  ADD="$*" awk '
     { print }
-    $1 == "AGENTS.md" && !done { n = split(add, p, "\n"); for (i = 1; i <= n; i++) if (p[i] != "") print p[i] "  # added"; done = 1 }
+    $1 == "AGENTS.md" && !done { n = split(ENVIRON["ADD"], p, " "); for (i = 1; i <= n; i++) if (p[i] != "") print p[i] "  # added"; done = 1 }
   ' "$dir/CONTRIBUTING.md" > "$dir/CONTRIBUTING.md.tmp" && mv "$dir/CONTRIBUTING.md.tmp" "$dir/CONTRIBUTING.md"
 }
 

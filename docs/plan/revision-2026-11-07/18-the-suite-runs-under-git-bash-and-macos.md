@@ -18,7 +18,7 @@ whether `checks.yml` gains a job on `windows-latest` and `macos-latest` that run
 
 - [ ] Given a Windows machine with Git Bash and a Mac, when `scripts/check-all.sh` runs on a clone
       of the release branch, then it is green, or each failure is fixed with a test.
-- [ ] Given the plain-rules self-test under BWK awk, when it runs, then it passes.
+- [x] Given the plain-rules self-test under BWK awk, when it runs, then it passes.
 - [ ] Given the decision on CI, when it is taken, then `checks.yml`, `scripts/check-all.sh`, and
       the required checks of `CONTRIBUTING.md` agree (check 9).
 
@@ -34,3 +34,16 @@ whether `checks.yml` gains a job on `windows-latest` and `macos-latest` that run
 ## Mode
 
 with the human: it needs a Windows machine and a Mac, and a CI job adds required checks.
+
+## Where it stands
+
+Every self-test passes with BWK awk first on `PATH`, run on Linux with two builds of Debian's
+`original-awk`: 20220912, which reads bytes as the awk of macOS does, and 20250116, which reads
+UTF-8. The plain-rules self-test passed under both before this branch changed it. The one
+failure, in `scripts/test-check-docs.sh` and through it the tree cycle of
+`scripts/test-normalize-remap.sh`, was a fixture helper that passed a newline in a `-v` value; it
+now passes its paths through the environment.
+
+What remains needs the machines: a run of `scripts/check-all.sh` on a Mac, whose awk is 20200816,
+and under Git Bash on Windows, for `git hash-object` with `core.autocrlf`, the `LC_ALL=C` glob,
+and the old-git shim; and the decision on a CI job on `windows-latest` and `macos-latest`.
