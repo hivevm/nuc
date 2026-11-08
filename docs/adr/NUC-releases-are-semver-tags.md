@@ -43,7 +43,7 @@ release it carries in its README.
    repository carries, or `unreleased` before the first.
 5. **Moving the line.** A derived project moves the line only when it takes up a release.
 6. **Take-up.** A derived project takes up a release in these steps:
-   - It replaces the `NUC-` files and the blob list with those of the release.
+   - It replaces the `NUC-` files, `AGENTS.md`, and the blob list with those of the release.
    - It takes up the other files the release notes name.
    - It moves the citations of `NUC-` clauses by the release's map.
    - It moves the release line and runs the checks.
