@@ -12,7 +12,8 @@
 # wrong instead of the first thing. The exit code is what a pre-push decision is made on.
 #
 # A check or self-test that passes shows its last line, its summary, and any line that says it
-# skipped something, such as the shell lint without ShellCheck. A sensor shows its first line, the
+# skipped something, such as the shell lint without ShellCheck; so does a sensor run with
+# --require, which is a check (NUC-checks-are-bash §4). A sensor shows its first line, the
 # headline that says what it found, and how many more lines its report has, blank ones not
 # counted. One that fails shows all it printed. A session reads every line a run prints, so a
 # green run costs a line a check. With --verbose every check and sensor shows all it printed; the
@@ -144,7 +145,7 @@ run() {
   local label="$1" script="$2" i="${#labels[@]}"
   shift 2
   labels+=("$label")
-  kinds+=("$([[ "$script" == scripts/sensor-*.sh ]] && echo sensor || echo check)")
+  kinds+=("$([[ "$script" == scripts/sensor-*.sh && " $* " != *" --require "* ]] && echo sensor || echo check)")
   if ((changed_mode)) && ! needs_run "$script"; then
     echo "skipped — neither it nor its inputs changed against main; CI runs it" > "$out/$i"
     echo 0 > "$out/$i.rc"
@@ -183,7 +184,7 @@ run "Tests-kept sensor" scripts/sensor-tests-kept.sh
 run "Binding ADRs sensor self-test" scripts/test-sensor-binding-adrs.sh
 run "Binding ADRs sensor" scripts/sensor-binding-adrs.sh
 run "Plain rules sensor self-test" scripts/test-sensor-plain-rules.sh
-run "Plain rules sensor" scripts/sensor-plain-rules.sh --require
+run "Plain rules check" scripts/sensor-plain-rules.sh --require
 run "Revision-due sensor self-test" scripts/test-sensor-revision-due.sh
 run "Revision-due sensor" scripts/sensor-revision-due.sh
 run "Plan frontier sensor self-test" scripts/test-sensor-plan-frontier.sh
