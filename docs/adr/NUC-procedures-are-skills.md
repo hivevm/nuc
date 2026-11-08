@@ -125,9 +125,10 @@ The catalogue has no entry for the first choice, and it needs no ADR.
   without a symlink there, and on an entry that is no symlink, dangles, or resolves to another
   skill. Its self-test cites this ADR.
 - Check 11 also holds clause 7. It fails on a `SKILL.md` whose first line is not `---` or that has
-  no closing `---` line. It fails on one without a top-level `name` equal to its directory or a
-  top-level `description`. It fails on an unindented line between the fences that starts no key
-  and is no comment. Indented lines, such as nested keys and block scalars, pass unread.
+  no closing `---` line; a fence may carry trailing spaces. It fails on one without a top-level
+  `name` equal to its directory or a top-level `description`. It fails on a non-empty unindented
+  line between the fences that starts no key, no sequence item, and no comment. Indented lines,
+  such as nested keys and block scalars, pass unread.
 - Checks 3 and 4 of `scripts/check-docs.sh` fail on a link or a section reference of a skill
   that does not resolve.
 
