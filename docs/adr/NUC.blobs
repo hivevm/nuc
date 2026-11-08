@@ -1,7 +1,9 @@
-09f271aec464cc0e99f131b650d3de3c69b7653d NUC-adrs-are-named-by-category.md
+fd2b5b65ba59ac1ef9c276c35a6384bf7c74b08c NUC-adrs-are-named-by-category.md
 e1111606487e7a7d0e5d5540a72cd700c5c4b4dd NUC-base-is-fixed.md
-ad2103aacdd78506ffd2fc4b441af2ca6bce0c35 NUC-container-hides-host-daemon.md
+fcf72ad7e9f2620406f33b62085284bbea8b659f NUC-checks-are-bash.md
+ccc47dac698b1223d21d4f219186d2d6d3deb92e NUC-container-hides-host-daemon.md
 429ebde16e75c2ac2685fd7dfdf9bf61961b1498 NUC-decisions-are-proposed-then-accepted.md
+56251bf2c29aee58fb51a9a757fdcf41fa3eb969 NUC-decisions-cite-tests.md
 fb2bb48fec62be72e8c743f362c72c75e2b9ffb0 NUC-design-is-revised.md
 b1b5338d4a3984506e97f13415db6210cd4c3285 NUC-documents-are-fixed.md
 b93fec6b3847590578b9084523c098a90f8bb502 NUC-large-work-is-planned.md

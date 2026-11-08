@@ -50,7 +50,7 @@ project under a path of its own.
 - work outside the container;
 - hardening the container;
 - refreshing the lock;
-- the local gate, which `NUC-checks-are-bash §6` decides.
+- the local gate, which [NUC-checks-are-bash §6](NUC-checks-are-bash.md) decides.
 
 ## Latitude
 

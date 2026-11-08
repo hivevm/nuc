@@ -62,7 +62,7 @@ by category.
 - when an ADR is due and how it is accepted
   ([NUC-decisions-are-proposed-then-accepted](NUC-decisions-are-proposed-then-accepted.md));
 - the fixed base ([NUC-base-is-fixed](NUC-base-is-fixed.md));
-- which test cites a decision (`NUC-decisions-cite-tests`).
+- which test cites a decision ([NUC-decisions-cite-tests](NUC-decisions-cite-tests.md)).
 
 ## Latitude
 
