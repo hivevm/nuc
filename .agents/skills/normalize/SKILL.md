@@ -127,17 +127,16 @@ own ADRs stay as they are; no inherited ADR is merged into its record. Work on a
    A project on a release before `v0.9.0` still has numbered ADRs and migrates its record once:
    walk [section 8](#8-migrate-a-numbered-record) in place of step 2, and take the other steps as
    they stand.
-2. **The base.** Replace the `NUC-` files under `docs/adr/` and the blob list
+2. **The base.** Replace the `NUC-` files under `docs/adr/`, `AGENTS.md`, and the blob list
    ([NUC-adrs-record-decisions §12](../../../docs/adr/NUC-adrs-record-decisions.md)) with those
-   at the new tag, for example by `git checkout <tag> -- 'docs/adr/NUC-*' docs/adr/NUC.blobs` from
-   a remote that carries the template's tags. Delete a `NUC-` file the new tag no longer has.
-   Change no `NUC-` file beyond the copy
+   at the new tag, for example by
+   `git checkout <tag> -- 'docs/adr/NUC-*' AGENTS.md docs/adr/NUC.blobs` from a remote that
+   carries the template's tags. Delete a `NUC-` file the new tag no longer has. Change none of
+   them beyond the copy; a project narrows a rule in an ADR of its own
    ([NUC-adrs-record-decisions §11](../../../docs/adr/NUC-adrs-record-decisions.md)).
 3. **The other files.** Take up each other file the notes name. Where the project changed the file
-   too, merge the two in the way the project chose. `AGENTS.md` is taken up as the release has it:
-   a project narrows a rule of the record in an ADR of its own, not in the rule file
-   ([NUC-adrs-record-decisions §11](../../../docs/adr/NUC-adrs-record-decisions.md)). The git hooks
-   and the repository settings follow as [section 1](#1-entry-point-and-inputs) says.
+   too, merge the two in the way the project chose. The git hooks and the repository settings
+   follow as [section 1](#1-entry-point-and-inputs) says.
 4. **The release line.** Move the `Template release` line to the new tag in the same change
    ([NUC-releases-are-semver-tags §5](../../../docs/adr/NUC-releases-are-semver-tags.md)).
 5. **The checks.** Run [`scripts/check-all.sh`](../../../scripts/check-all.sh) and fix the
@@ -166,10 +165,12 @@ every clause with the `NUC-` clause that carries it.
 
 1. **What the project added.** List what the project wrote into an inherited ADR, with
    `git diff <tag of the release line> HEAD -- 'docs/adr/000[1-6]-*.md'` against the template's
-   tag. A decider it added goes with the file. Note each clause it added for step 5.
+   tag. A decider it added goes with the file. Note for step 5 each clause it added, and each rule
+   it added to `AGENTS.md`, from `git diff <tag of the release line> HEAD -- AGENTS.md`.
 2. **The base.** Delete the inherited files `docs/adr/0001-*.md` to `docs/adr/0006-*.md`, and copy
-   the `NUC-` files and the blob list as step 2 of [section 7](#7-take-up-a-template-release)
-   says ([NUC-adrs-record-decisions §12](../../../docs/adr/NUC-adrs-record-decisions.md)).
+   the `NUC-` files, `AGENTS.md`, and the blob list as step 2 of
+   [section 7](#7-take-up-a-template-release) says
+   ([NUC-adrs-record-decisions §12](../../../docs/adr/NUC-adrs-record-decisions.md)).
 3. **The project map.** Write a map under `.scratch/`, one line per numbered ADR of the project,
    superseded and rejected ones included, since the migration keeps every ADR
    ([NUC-adrs-record-decisions §17](../../../docs/adr/NUC-adrs-record-decisions.md)), in the form
@@ -183,7 +184,7 @@ every clause with the `NUC-` clause that carries it.
    on the base, and the project's rows by category, without the inherited ADRs
    ([NUC-adrs-record-decisions §15](../../../docs/adr/NUC-adrs-record-decisions.md)). The rows may
    keep their numbered links; step 8 moves them.
-5. **The added clauses.** Turn each clause from step 1 into a project ADR through
+5. **The added clauses.** Turn each clause and rule from step 1 into a project ADR through
    [`propose-adr`](../propose-adr/SKILL.md). Its `Extends:` or `Narrows:` field names the `NUC-`
    clause that carries the inherited clause
    ([NUC-adrs-record-decisions §11](../../../docs/adr/NUC-adrs-record-decisions.md)). A clause that

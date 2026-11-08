@@ -36,7 +36,7 @@ follow.
      of `.devcontainer/devcontainer.json`, rewrite the README's intro sentence, which explains
      the template's name, and delete its **Why NUC** section, which presents the template. Keep
      `NUC maintainer` in the `Deciders` lines of the ADRs: it names who decided. Leave the `NUC-`
-     files of [`docs/adr/`](docs/adr/) as they are: check 12 of
+     files of [`docs/adr/`](docs/adr/) and [`AGENTS.md`](AGENTS.md) as they are: check 12 of
      [`scripts/check-docs.sh`](scripts/check-docs.sh) holds them against their blob list.
    - **Repository.** The badges of checks, release, and license in [`README.md`](README.md)
      point at the template's repository, `hivevm/nuc`. Repoint them to this project's

@@ -68,8 +68,8 @@ verifies.
 ## Index
 
 **The base:** the template's `NUC-` ADRs in this directory, each named with its blob in
-[`NUC.blobs`](NUC.blobs). They bind like any ADR in force, and a project extends or narrows a
-clause in an ADR of its own, never edits one
+[`NUC.blobs`](NUC.blobs), as `AGENTS.md` is. They bind like any ADR in force, and a project
+extends or narrows a clause in an ADR of its own, never edits one
 ([NUC-adrs-record-decisions §11](NUC-adrs-record-decisions.md)).
 
 ### Categories

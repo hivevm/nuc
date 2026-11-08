@@ -224,6 +224,9 @@ check "a sensor shows its headline and counts the rest" \
 check "a sensor hides the rest of its report" test "${out/RAN $sensor/}" = "$out"
 check "a passing check keeps a line that says it skipped something" \
   grep -qxF "    ShellCheck skipped" <<< "$out"
+required="$(grep -m1 -E '^run "[^"]*" scripts/sensor-[^ ]+ --require' "$RUNNER")"
+check "a sensor run with --require shows its line as a check does" \
+  grep -qxF "ok: $(cut -d'"' -f2 <<< "$required") — RAN $(grep -oE 'scripts/sensor-[^ ]+' <<< "$required")" <<< "$out"
 out="$(bash "$d/scripts/check-all.sh" --verbose 2>&1)"
 check "--verbose shows a sensor's report in full" grep -qF "RAN $sensor" <<< "$out"
 
