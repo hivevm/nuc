@@ -201,7 +201,8 @@ The rules of the record stand in `NUC-` ADRs. The mechanics of the record are in
     named in the doubts of the hand-off.
   - Each existing test that the diff changes or removes must have a reason.
   - The hand-off must name the commit the review saw. A sensor lists what landed after it. A
-    sensor is a script that reports and fails nothing
+    sensor is a script that reports. It fails only where a decision makes it a check, as
+    `--require` makes the plain-rules sensor
     ([NUC-checks-are-bash §4](docs/adr/NUC-checks-are-bash.md)).
   - A rework replaces the commits a review saw. After a rework, only a review of the whole branch
     at its head binds.
