@@ -15,8 +15,8 @@
 #      accepted or proposed one above it: the first table is what a session reads, and a
 #      row in the wrong one is either a dead decision read as binding or a binding one
 #      never read (docs/adr/README.md).
-#   2. ADR identifier integrity: every identifier has the form of NUC-adrs-record-decisions
-#      clause 8, its category is fixed or in the category list of the index (clause 9), and the
+#   2. ADR identifier integrity: every identifier has the form of NUC-adrs-are-named-by-category
+#      clause 1, its category is fixed or in the category list of the index (clause 2), and the
 #      file's heading starts with '# <identifier>:'. No ADR deleted on the first-parent line of
 #      HEAD carried the identifier; the message names the commit that deleted it, and a git that
 #      cannot read the history fails the check. Every file in docs/adr/ named with letters before
@@ -43,9 +43,9 @@
 #      the section sign with a number, cites a clause of that ADR and is no section reference.
 #   5. ADR-reference integrity: every identifier of a known category, a clause citation's among
 #      them, names an ADR file that exists in docs/adr/ — anticipated follow-ups are described by
-#      topic, never by an identifier that does not exist yet (NUC-adrs-record-decisions clause 16).
+#      topic, never by an identifier that does not exist yet (NUC-adrs-are-named-by-category §6).
 #      A reference is a word of its own: a one-word slug, such as API-first, or a longer chain is
-#      none. An identifier in a Markdown code span is no citation (clause 16) and is not read.
+#      none. An identifier in a Markdown code span is no citation (clause 6) and is not read.
 #   6. ADR link agreement: a Markdown link whose text cites an ADR points at that ADR's own
 #      file — the identifier and the file it links to must name the same decision
 #      (docs/adr/README.md).
@@ -66,7 +66,7 @@
 #      see a missing half: it only mirrors the index against whatever status the file carries.
 #      Every name of a Supersedes field counts, on whichever line it sits. No project ADR
 #      supersedes a 'NUC-' ADR, and each clause an 'Extends:' or 'Narrows:' field names, as
-#      'NUC-<slug> §n', is a numbered clause of that ADR's Decision (NUC-adrs-record-decisions §11).
+#      'NUC-<slug> §n', is a numbered clause of that ADR's Decision (NUC-base-is-fixed §1).
 #   9. Check-list agreement: the jobs of .github/workflows/checks.yml and the required status
 #      checks named between the 'required-checks' markers in CONTRIBUTING.md list the same jobs, and
 #      the workflows under .github/workflows/ and scripts/check-all.sh run the same scripts. A
@@ -92,7 +92,7 @@
 #      and a skill that lives only in the pointer directory is one no other agent finds. Each
 #      message says the command that fixes it. A repository with neither directory has nothing to
 #      check.
-#  12. Base held by its blob list (NUC-adrs-record-decisions §12): every 'NUC-' file in
+#  12. Base held by its blob list (NUC-base-is-fixed §2): every 'NUC-' file in
 #      docs/adr/ and the rule file AGENTS.md has the git blob identifier its line in
 #      docs/adr/NUC.blobs names, and every line names a file that exists. The template rewrites
 #      the list in the commit that changes one, and a derived project never changes one. Without
@@ -100,7 +100,7 @@
 #      README.md names the release a fork forked, 'vX.Y.Z, forked'.
 #  13. Setup done: once TEMPLATE-SETUP.md is gone, each required role of ADR_ROLES in
 #      scripts/lib/adr.sh has exactly one 🟢 accepted ADR whose 'Role:' field names it
-#      (NUC-adrs-record-decisions §13), and none of the template's placeholders is left.
+#      (NUC-base-is-fixed §3), and none of the template's placeholders is left.
 #      Step 1 of the setup: the project name NUC in the README title, its
 #      intro, its Why NUC section, and the Dev Container name, the template's repository in the
 #      README badges, the copyright holder in LICENSE, the security contact in SECURITY.md, the
@@ -339,7 +339,7 @@ check_adr_index() {
     indexed_applies+=("$applies")
     indexed_status+=("$status")
     [[ "$number" == NUC-* ]] && add_error \
-      "ADR index: lists $number, an ADR of the base — the index links the base in one line and lists no NUC- ADR (NUC-adrs-record-decisions §15)"
+      "ADR index: lists $number, an ADR of the base — the index links the base in one line and lists no NUC- ADR (NUC-adrs-are-named-by-category §5)"
     [[ "$filename" == "$number.md" ]] \
       || add_error "ADR index: row for $number links to '$filename', not to '$number.md'"
     case "$status" in
@@ -534,7 +534,7 @@ check_adr_supersessions() {
     adr_refs "${ADR_SUPERSEDES["$f"]-}"
     for target in "${REFS[@]}"; do
       [[ "$target" == NUC-* && "$base" != NUC-* ]] && add_error \
-        "$base: supersedes $target — no project ADR supersedes the base; extend or narrow its clause, or fork the template (NUC-adrs-record-decisions §11)"
+        "$base: supersedes $target — no project ADR supersedes the base; extend or narrow its clause, or fork the template (NUC-base-is-fixed §1)"
       target_file="${ADR_BY_ID["$target"]-}"
       if [[ -n "$target_file" ]] && ((accepted)); then
         superseding_id "${ADR_STATUS["$target_file"]-}"
@@ -566,7 +566,7 @@ check_adr_supersessions() {
     for field in Extends Narrows; do
       rest="${ADR_REL["$field $f"]-}"
       [[ -n "$rest" ]] || continue
-      [[ "$rest" =~ $re ]] || add_error "$base: the $field field names no clause of a NUC- ADR, 'NUC-<slug> §n' (NUC-adrs-record-decisions §11)"
+      [[ "$rest" =~ $re ]] || add_error "$base: the $field field names no clause of a NUC- ADR, 'NUC-<slug> §n' (NUC-base-is-fixed §1)"
       while [[ "$rest" =~ $re ]]; do
         rest="${rest#*"${BASH_REMATCH[0]}"}" target="${BASH_REMATCH[1]} §${BASH_REMATCH[-1]}"
         target_file="${ADR_BY_ID["${BASH_REMATCH[1]}"]-}"
@@ -1193,7 +1193,7 @@ check_skill_pointers() {
 # Check 12 (see the header), both ways, one message for the template and a derived project.
 check_base_blobs() {
   local list="$ADR_DIR/NUC.blobs" f name blob fix out
-  fix="a derived project restores the file of its release and narrows a rule by an ADR of its own; the template rewrites the list: bash -c 'source scripts/lib/adr.sh && adr_blobs docs/adr' > docs/adr/NUC.blobs (NUC-adrs-record-decisions §12)"
+  fix="a derived project restores the file of its release and narrows a rule by an ADR of its own; the template rewrites the list: bash -c 'source scripts/lib/adr.sh && adr_blobs docs/adr' > docs/adr/NUC.blobs (NUC-base-is-fixed §2)"
   local -A want=() have=()
   out="$(adr_blobs "$ADR_DIR" 2>&1)" || { add_error "docs/adr/NUC.blobs: no blob identifiers computed: ${out##*$'\n'}"; return; }
   while read -r blob name; do [[ -n "$name" ]] && have["$name"]="$blob"; done <<< "$out"
@@ -1202,7 +1202,7 @@ check_base_blobs() {
     # shellcheck disable=SC2016  # the backticks are Markdown to match, not a command substitution
     grep -qE '^[[:space:]]*([-*] )?\*\*Template release:\*\*[[:space:]]*[[`]?v[0-9]+\.[0-9]+\.[0-9]+[]`]?(\([^)]*\))?, forked([^[:alnum:]]|$)' \
       "$ROOT/README.md" 2>/dev/null \
-      || add_error "docs/adr/NUC.blobs: not found — it names each NUC- file and AGENTS.md with its blob; a fork names the release it forked on the Template release line of README.md, 'vX.Y.Z, forked' (NUC-adrs-record-decisions §11)"
+      || add_error "docs/adr/NUC.blobs: not found — it names each NUC- file and AGENTS.md with its blob; a fork names the release it forked on the Template release line of README.md, 'vX.Y.Z, forked' (NUC-base-is-fixed §1)"
     return
   fi
   while read -r blob name; do [[ -n "$name" ]] && want["$name"]="$blob"; done < "$list"
@@ -1257,8 +1257,8 @@ check_template_identity() {
       adr_field_value "${ADR_REL["Role $f"]-}" Role && trim "$ADR_VALUE"
       [[ "$TRIMMED" == "$role" && "${ADR_STATUS["$f"]-}" == *🟢* ]] && n=$((n + 1))
     done
-    ((n == 0)) && add_error "docs/adr/: no accepted ADR fills the role $role — one carries '- **Role:** $role' (NUC-adrs-record-decisions §13)"
-    ((n > 1)) && add_error "docs/adr/: $n accepted ADRs fill the role $role — exactly one does (NUC-adrs-record-decisions §13)"
+    ((n == 0)) && add_error "docs/adr/: no accepted ADR fills the role $role — one carries '- **Role:** $role' (NUC-base-is-fixed §3)"
+    ((n > 1)) && add_error "docs/adr/: $n accepted ADRs fill the role $role — exactly one does (NUC-base-is-fixed §3)"
   done
 }
 

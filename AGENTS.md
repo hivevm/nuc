@@ -5,7 +5,7 @@
 > It states each working rule or links the `NUC-` clause that carries it. Where another document
 > repeats a rule, the wording here governs. The file belongs to the template, and a derived
 > project must not edit it. A project extends or narrows a `NUC-` clause only by an ADR of its own
-> ([NUC-adrs-record-decisions §11](docs/adr/NUC-adrs-record-decisions.md)). A project writes its
+> ([NUC-base-is-fixed §1](docs/adr/NUC-base-is-fixed.md)). A project writes its
 > conventions into [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md), into checks, and into ADRs. A
 > procedure is a skill under [`.agents/skills/`](.agents/skills/) and states no rule of its own
 > ([NUC-procedures-are-skills §3](docs/adr/NUC-procedures-are-skills.md)).
@@ -14,8 +14,8 @@
 
 The human decides *why* and *what*. The agent works out *how*. The human also decides a *how*
 that binds future choices. An ADR records it with its *why*
-([NUC-adrs-record-decisions §1](docs/adr/NUC-adrs-record-decisions.md)). Five principles win over
-speed and cleverness:
+([NUC-decisions-are-proposed-then-accepted §1](docs/adr/NUC-decisions-are-proposed-then-accepted.md)).
+Five principles win over speed and cleverness:
 
 - **Simplicity.** The agent must build the simplest thing that satisfies the specification. It
   may add a dependency or an abstraction only for a present need. Removing code is progress. An
@@ -44,7 +44,7 @@ read only what the work needs.
    - The sensor prints the `NUC-` ADRs like any other. It reads each *Applies to* from the ADR
      file, not from the index [`docs/adr/README.md`](docs/adr/README.md).
    - Accepted ADRs are binding
-     ([NUC-adrs-record-decisions §5](docs/adr/NUC-adrs-record-decisions.md)).
+     ([NUC-decisions-are-proposed-then-accepted §5](docs/adr/NUC-decisions-are-proposed-then-accepted.md)).
    - The agent must match each *Applies to* written in prose against the work by hand. Of each ADR
      that binds the work, it must read the header, *Decision*, and *Enforcement*.
    - The agent must read the rest of an ADR when the change questions, revises, or supersedes it.
@@ -68,23 +68,33 @@ section, or a `TODO`. The agent must say so and elaborate it with the human befo
 The rules of the record stand in `NUC-` ADRs. The mechanics of the record are in
 [`docs/adr/README.md`](docs/adr/README.md).
 
-- Authority: [NUC-adrs-record-decisions §7](docs/adr/NUC-adrs-record-decisions.md).
+- Authority:
+  [NUC-decisions-are-proposed-then-accepted §7](docs/adr/NUC-decisions-are-proposed-then-accepted.md).
 - The one rule file and citation by anchor:
   [NUC-documents-are-fixed §3](docs/adr/NUC-documents-are-fixed.md).
 
-1. When an ADR is due: [NUC-adrs-record-decisions §1](docs/adr/NUC-adrs-record-decisions.md).
+1. When an ADR is due:
+   [NUC-decisions-are-proposed-then-accepted §1](docs/adr/NUC-decisions-are-proposed-then-accepted.md).
    Skill: `propose-adr`.
-2. Calibration: [NUC-adrs-record-decisions §2](docs/adr/NUC-adrs-record-decisions.md).
-3. Proposal: [NUC-adrs-record-decisions §3](docs/adr/NUC-adrs-record-decisions.md). The
-   exception for a normalization and for the template's correction:
-   [NUC-adrs-record-decisions §4](docs/adr/NUC-adrs-record-decisions.md).
-4. Implementation: [NUC-adrs-record-decisions §4](docs/adr/NUC-adrs-record-decisions.md). Status:
-   [NUC-adrs-record-decisions §5](docs/adr/NUC-adrs-record-decisions.md).
-5. Immutability: [NUC-adrs-record-decisions §6](docs/adr/NUC-adrs-record-decisions.md). Fixed
-   identifiers: [NUC-adrs-record-decisions §8](docs/adr/NUC-adrs-record-decisions.md). Conflict
-   with the specification: [NUC-adrs-record-decisions §7](docs/adr/NUC-adrs-record-decisions.md).
-   Normalization: [NUC-adrs-record-decisions §17](docs/adr/NUC-adrs-record-decisions.md). Skill:
-   `normalize`.
+2. Calibration:
+   [NUC-decisions-are-proposed-then-accepted §2](docs/adr/NUC-decisions-are-proposed-then-accepted.md).
+3. Proposal:
+   [NUC-decisions-are-proposed-then-accepted §3](docs/adr/NUC-decisions-are-proposed-then-accepted.md).
+   The exception for a normalization and for the template's correction:
+   [NUC-decisions-are-proposed-then-accepted §4](docs/adr/NUC-decisions-are-proposed-then-accepted.md).
+4. Implementation:
+   [NUC-decisions-are-proposed-then-accepted §4](docs/adr/NUC-decisions-are-proposed-then-accepted.md).
+   Status:
+   [NUC-decisions-are-proposed-then-accepted §5](docs/adr/NUC-decisions-are-proposed-then-accepted.md).
+5. Immutability:
+   [NUC-decisions-are-proposed-then-accepted §6](docs/adr/NUC-decisions-are-proposed-then-accepted.md).
+   Fixed identifiers:
+   [NUC-adrs-are-named-by-category §1](docs/adr/NUC-adrs-are-named-by-category.md). Conflict with
+   the specification:
+   [NUC-decisions-are-proposed-then-accepted §7](docs/adr/NUC-decisions-are-proposed-then-accepted.md).
+   Normalization:
+   [NUC-decisions-are-proposed-then-accepted §8](docs/adr/NUC-decisions-are-proposed-then-accepted.md).
+   Skill: `normalize`.
 6. Glossary: [NUC-documents-are-fixed §5](docs/adr/NUC-documents-are-fixed.md).
 7. Change of the specification: [NUC-documents-are-fixed §2](docs/adr/NUC-documents-are-fixed.md).
 
@@ -129,7 +139,7 @@ The rules of the record stand in `NUC-` ADRs. The mechanics of the record are in
   - it names the stop past which the session hands off instead of trying on.
 
   The harness ADR is the project's ADR in the role `harness`
-  ([NUC-adrs-record-decisions §13](docs/adr/NUC-adrs-record-decisions.md)). It decides who
+  ([NUC-base-is-fixed §3](docs/adr/NUC-base-is-fixed.md)). It decides who
   decides, which agents work, and how much agent work may be open at once.
 - **Keep the context lean.**
   - Besides a review, the agent may delegate to a subagent only independent work or a search
@@ -167,8 +177,8 @@ The rules of the record stand in `NUC-` ADRs. The mechanics of the record are in
   locally and in CI. Nobody may hand off a red change or propose merging it.
 - **Run [`scripts/check-all.sh`](scripts/check-all.sh) before pushing.** It runs the repository's
   checks and the build, test, and lint commands of the README's **Build, Test & Run** section.
-  CI runs the same on every pull request. The git hooks run the checks before a push
-  ([NUC-checks-are-bash §6](docs/adr/NUC-checks-are-bash.md)).
+  CI runs the same on every pull request. The git hooks run the checks before a commit, a merge,
+  and a push ([NUC-checks-are-bash §6](docs/adr/NUC-checks-are-bash.md)).
 - **New behaviour must ship with tests.** A bug fix must ship with a regression test that fails
   before the fix and passes after. For behaviour that is genuinely untestable, the agent must say
   so and why.
@@ -178,7 +188,8 @@ The rules of the record stand in `NUC-` ADRs. The mechanics of the record are in
   when the old suite passes against the new implementation.
 - **Tests cite the ADRs and criteria they verify:**
   [NUC-decisions-cite-tests §2](docs/adr/NUC-decisions-cite-tests.md) to
-  [NUC-decisions-cite-tests §5](docs/adr/NUC-decisions-cite-tests.md).
+  [NUC-decisions-cite-tests §5](docs/adr/NUC-decisions-cite-tests.md). An invalid citation fails:
+  [NUC-decisions-cite-tests §6](docs/adr/NUC-decisions-cite-tests.md).
 - **Never weaken the suite to make it pass.** A flaky test is a defect, not noise. Nobody may
   retry it or re-run it until green.
 - **Review in a fresh context before handing off.** Skill: `review`.

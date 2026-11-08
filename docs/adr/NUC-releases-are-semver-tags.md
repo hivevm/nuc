@@ -18,7 +18,7 @@ maintainers are few and its releases rare, so a chore on every pull request cost
 returns. Tags do not travel with the copy, so a tracked file must name the release.
 
 The template's ADRs are a fixed base that a project never edits
-([NUC-adrs-record-decisions §11](NUC-adrs-record-decisions.md)). So a release can carry its ADRs
+([NUC-base-is-fixed §1](NUC-base-is-fixed.md)). So a release can carry its ADRs
 as files, and a take-up can replace them.
 
 ## Decision
@@ -45,10 +45,14 @@ release it carries in its README.
 6. **Take-up.** A derived project takes up a release in these steps:
    - It replaces the `NUC-` files, `AGENTS.md`, and the blob list with those of the release.
    - It takes up the other files the release notes name.
-   - It moves the citations of `NUC-` clauses by the release's map.
+   - It moves the citations of `NUC-` clauses by the release's map, in accepted ADRs as
+     [NUC-decisions-are-proposed-then-accepted §6](NUC-decisions-are-proposed-then-accepted.md)
+     allows.
    - It moves the release line and runs the checks.
 
-   The project's ADRs keep their identifiers. A take-up needs no normalization.
+   The project's ADRs keep their identifiers. A take-up needs no normalization, except the one
+   migration of
+   [NUC-decisions-are-proposed-then-accepted §8](NUC-decisions-are-proposed-then-accepted.md).
 7. **Re-cut.** A release that merges, splits, or removes a `NUC-` ADR is a major. Before `v1.0.0`
    it may be a minor, per clause 3. Its notes must carry the map from each old identifier and
    clause to its new home.
@@ -59,7 +63,8 @@ release it carries in its README.
 - how a derived project merges the files of a release other than the `NUC-` files;
 - which releases receive fixes, which `SECURITY.md` states;
 - the correction of `NUC-` ADRs in place, which
-  [NUC-adrs-record-decisions §6](NUC-adrs-record-decisions.md) decides.
+  [NUC-decisions-are-proposed-then-accepted §6](NUC-decisions-are-proposed-then-accepted.md)
+  decides.
 
 ## Latitude
 

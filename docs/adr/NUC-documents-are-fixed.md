@@ -39,7 +39,9 @@ rules in one rule file.
 1. **The set.** Every repository must keep these six documents, each in its one role:
    - [`docs/SPECIFICATION.md`](../SPECIFICATION.md), the specification: what the project is for;
    - [`docs/adr/`](.), the record: the decisions, kept as
-     [NUC-adrs-record-decisions](NUC-adrs-record-decisions.md) decides;
+     [NUC-decisions-are-proposed-then-accepted](NUC-decisions-are-proposed-then-accepted.md),
+     [NUC-adrs-are-named-by-category](NUC-adrs-are-named-by-category.md), and
+     [NUC-base-is-fixed](NUC-base-is-fixed.md) decide;
    - [`AGENTS.md`](../../AGENTS.md), the rule file: the working rules;
    - [`docs/ARCHITECTURE.md`](../ARCHITECTURE.md), the overview: the system as it stands;
    - [`docs/GLOSSARY.md`](../GLOSSARY.md), the glossary: the vocabulary;
@@ -54,9 +56,9 @@ rules in one rule file.
      names none.
    - The human reconsiders each named ADR in the same review and supersedes each it invalidates.
    - A project must narrow a `NUC-` clause the change invalidates by an ADR of its own, or fork
-     the template ([NUC-adrs-record-decisions §11](NUC-adrs-record-decisions.md)).
+     the template ([NUC-base-is-fixed §1](NUC-base-is-fixed.md)).
    - The template repository corrects its own `NUC-` ADR in place instead
-     ([NUC-adrs-record-decisions §6](NUC-adrs-record-decisions.md)).
+     ([NUC-decisions-are-proposed-then-accepted §6](NUC-decisions-are-proposed-then-accepted.md)).
 3. **Rule file.** A repository must have exactly one rule file. It is vendor-neutral and the one
    source of working rules.
    - Another document must cite a working rule by a link to its section anchor and must not

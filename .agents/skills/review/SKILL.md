@@ -34,7 +34,7 @@ The reviewer runs in a context that did not write the change and is handed only:
   [`scripts/check-all.sh`](../../../scripts/check-all.sh) `--verbose`, whose tests-kept sensor
   lists the test files deleted and the skip markers added since the base;
 - for a normalization, its map and its clause table, and the record at the base commit
-  ([NUC-adrs-record-decisions §17](../../../docs/adr/NUC-adrs-record-decisions.md)).
+  ([NUC-decisions-are-proposed-then-accepted §8](../../../docs/adr/NUC-decisions-are-proposed-then-accepted.md)).
 
 A light review ([`AGENTS.md` §5](../../../AGENTS.md#5-quality-bar--definition-of-done)) is
 handed the diff, the task, the doubts, and that output, and nothing else. It judges whether every

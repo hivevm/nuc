@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Self-test of scripts/sensor-binding-adrs.sh. Verifies: NUC-adrs-record-decisions
+# Self-test of scripts/sensor-binding-adrs.sh. Verifies: NUC-decisions-are-proposed-then-accepted
 #
 # Each case builds a throwaway git repository with ADRs under docs/adr/, commits a change on
 # top of a tagged base, runs the sensor against the base, and asserts the exit code and a line a

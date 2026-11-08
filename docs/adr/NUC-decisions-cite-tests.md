@@ -8,11 +8,12 @@
 ## Context
 
 This template drives development from a specification. Authority runs from the specification to
-the accepted ADRs to the task ([NUC-adrs-record-decisions §7](NUC-adrs-record-decisions.md)).
-Neither end of that chain is connected to anything executable. The Definition of Done requires
-tests for new behaviour ([`AGENTS.md` §5](../../AGENTS.md#5-quality-bar--definition-of-done)).
-Nothing says which decision or goal a test protects, and nothing notices a decision that no test
-protects. The cheapest *Enforcement* an ADR can carry is "review only", and it protects nothing.
+the accepted ADRs to the task
+([NUC-decisions-are-proposed-then-accepted §7](NUC-decisions-are-proposed-then-accepted.md)).
+Neither end of that chain is connected to anything executable. The Definition of Done requires tests
+for new behaviour ([`AGENTS.md` §5](../../AGENTS.md#5-quality-bar--definition-of-done)). Nothing
+says which decision or goal a test protects, and nothing notices a decision that no test protects.
+The cheapest *Enforcement* an ADR can carry is "review only", and it protects nothing.
 
 Two forces bound the answer. Some decisions cannot be decided by a program: only a human flips an
 ADR's status, and only a reviewer sees that a large effort was planned before it was built. Tests
@@ -27,12 +28,12 @@ specification that no test cites.
 1. **Criterion identifiers.** Every item under **Goals / Success Criteria** must start with a bold
    `G-n`, and every item under **Quality Goals** with a bold `Q-n`. Nobody may reuse one. Only a
    normalization renumbers them, and it must move every marker
-   ([NUC-adrs-record-decisions §17](NUC-adrs-record-decisions.md)).
+   ([NUC-decisions-are-proposed-then-accepted §8](NUC-decisions-are-proposed-then-accepted.md)).
 2. **Marker.** A test cites what it verifies by `Verifies:` and one or more identifiers of ADRs or
    criteria. The marker is plain text in any file git does not ignore, except Markdown.
 3. **Coverage.** The check fails on an accepted ADR that no marker cites. It ignores proposed ADRs,
    whose tests land before the acceptance
-   ([NUC-adrs-record-decisions §4](NUC-adrs-record-decisions.md)).
+   ([NUC-decisions-are-proposed-then-accepted §4](NUC-decisions-are-proposed-then-accepted.md)).
 4. **Exception.** An ADR whose decision no test can decide must say so in its *Enforcement*, in a
    paragraph `**Not mechanically decidable:**` with the reason. It qualifies only when a human
    decides it, or when it governs how the project works. The paragraph exempts it from clause 3.
@@ -46,9 +47,9 @@ specification that no test cites.
 
 - the adequacy of a citing test, which stays with review;
 - whether the tests pass, and the test framework, layout, and kinds, which the `toolchain` role
-  ADR decides ([NUC-adrs-record-decisions §13](NUC-adrs-record-decisions.md));
-- the form of an identifier ([NUC-adrs-record-decisions §8](NUC-adrs-record-decisions.md)) and
-  the language of the checks ([NUC-checks-are-bash](NUC-checks-are-bash.md)).
+  ADR decides ([NUC-base-is-fixed §3](NUC-base-is-fixed.md));
+- the form of an identifier ([NUC-adrs-are-named-by-category §1](NUC-adrs-are-named-by-category.md))
+  and the language of the checks ([NUC-checks-are-bash](NUC-checks-are-bash.md)).
 
 ## Latitude
 
@@ -58,7 +59,7 @@ A project may choose:
   [catalogue](../../.agents/skills/propose-adr/concepts/toolchain.md);
 - a language-specific mechanism on top of the marker, such as annotations or tags;
 - a narrower place for the marker, such as test files only. That choice narrows clause 2 in an
-  ADR of its own ([NUC-adrs-record-decisions §11](NUC-adrs-record-decisions.md)).
+  ADR of its own ([NUC-base-is-fixed §1](NUC-base-is-fixed.md)).
 
 The catalogue has no entry for the second choice, and it needs no ADR.
 

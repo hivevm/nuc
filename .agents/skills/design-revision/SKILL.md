@@ -97,9 +97,9 @@ fallback for what no check can decide
 mistake it prevents, or it is a candidate to drop. Each that stays is set against the older ones
 beside it, and an older one it makes needless is a candidate too. One an ADR decides is dropped
 only as that ADR may change
-([NUC-adrs-record-decisions §6](../../../docs/adr/NUC-adrs-record-decisions.md)). The hand-off of
-the revision lists what was added and what it proposes to drop, with the lines each file gained and
-lost (`git diff --stat`), so the growth of the rule set is seen once per revision.
+([NUC-decisions-are-proposed-then-accepted §6](../../../docs/adr/NUC-decisions-are-proposed-then-accepted.md)).
+The hand-off of the revision lists what was added and what it proposes to drop, with the lines each
+file gained and lost (`git diff --stat`), so the growth of the rule set is seen once per revision.
 
 ## 6. File, do not fix
 

@@ -15,7 +15,9 @@
 - Implements:  <!-- the ADR this implements or relates to, by its identifier,
      or none -->
 - ADRs reviewed at:  <!-- the commit of ADRs only the human reviewed before the implementation,
-     or none ([NUC-adrs-record-decisions §4](../docs/adr/NUC-adrs-record-decisions.md)) -->
+     or none
+     ([NUC-decisions-are-proposed-then-accepted §4](../docs/adr/NUC-decisions-are-proposed-then-accepted.md))
+     -->
 
 ## Proof
 
@@ -45,10 +47,10 @@
 ## Documents and decisions
 
 <!-- One statement each, verifiable against the diff. ADR: new, revised, or none, and why none
-     ([NUC-adrs-record-decisions §2](../docs/adr/NUC-adrs-record-decisions.md)); a new or revised
-     `proposed` ADR ships in commits of ADRs only
-     ([NUC-adrs-record-decisions §3](../docs/adr/NUC-adrs-record-decisions.md)). ARCHITECTURE.md:
-     updated, or unchanged because the structure is unchanged
+     ([NUC-decisions-are-proposed-then-accepted §2](../docs/adr/NUC-decisions-are-proposed-then-accepted.md));
+     a new or revised `proposed` ADR ships in commits of ADRs only
+     ([NUC-decisions-are-proposed-then-accepted §3](../docs/adr/NUC-decisions-are-proposed-then-accepted.md)).
+     ARCHITECTURE.md: updated, or unchanged because the structure is unchanged
      ([§5](../AGENTS.md#5-quality-bar--definition-of-done)). Glossary: the terms this change
      settled, or none. Specification: the accepted ADRs a change to it moves
      ([NUC-documents-are-fixed §2](../docs/adr/NUC-documents-are-fixed.md)), or untouched. -->

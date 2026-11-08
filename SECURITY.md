@@ -32,8 +32,8 @@ These properties shape the security posture of the coding agents working here:
   git hooks guarantee for every agent and every human, and what bypasses each, is under
   [Git hooks](CONTRIBUTING.md#git-hooks) in the contributing guide.
 - **The specification and the decision record change only by human decision**
-  ([NUC-adrs-record-decisions §5](docs/adr/NUC-adrs-record-decisions.md) and
-  [NUC-documents-are-fixed §2](docs/adr/NUC-documents-are-fixed.md)). The gate is
+  ([NUC-decisions-are-proposed-then-accepted §5](docs/adr/NUC-decisions-are-proposed-then-accepted.md)
+  and [NUC-documents-are-fixed §2](docs/adr/NUC-documents-are-fixed.md)). The gate is
   [`.github/CODEOWNERS`](.github/CODEOWNERS) together with the Code-Owner review requirement listed
   under [**Repository settings**](CONTRIBUTING.md#repository-settings). It does not stop the edit;
   it routes it to a human before it reaches `main`, and it holds for every agent alike. Two limits

@@ -14,7 +14,8 @@ the interface, never a plugin.
 - Third parties or other teams extend the system without changing it.
 - Variants ship from one code base, chosen by configuration.
 - The extension interface is stable enough to publish: it is a public interface, and an ADR of
-  its own under [NUC-adrs-record-decisions §1](../../../../docs/adr/NUC-adrs-record-decisions.md).
+  its own under
+  [NUC-decisions-are-proposed-then-accepted §1](../../../../docs/adr/NUC-decisions-are-proposed-then-accepted.md).
 
 ## Does not fit
 

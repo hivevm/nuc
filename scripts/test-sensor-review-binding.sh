@@ -279,6 +279,8 @@ reviewed="$(g "$d" rev-parse HEAD)"
 change "$d" src/b.py "fix the findings"
 hand_off 0 "commits after the hand-off's review are listed" "$d" \
   "the hand-off: 1 commit after the review at ${reviewed:0:7}, unreviewed:" "" "- Reviewed at: $reviewed"
+hand_off 0 "a comma after the hash leaves it readable" "$d" \
+  "the hand-off: 1 commit after the review at ${reviewed:0:7}" "" "- Reviewed at: ${reviewed:0:7}, two rounds"
 hand_off 0 "a hand-off not reviewed at the head leaves the merges read" "$d" \
   "1 merge since" "" "- Reviewed at: $reviewed"
 

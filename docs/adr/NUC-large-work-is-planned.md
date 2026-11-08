@@ -8,10 +8,10 @@
 ## Context
 
 Authority runs from the specification to the accepted ADRs to the task
-([NUC-adrs-record-decisions §7](NUC-adrs-record-decisions.md)). Nothing in that chain says what
-this month's work is. A change that fits one session is planned in the conversation. A change
-that does not has no place to keep its state: each session starts without memory, re-derives the
-plan, and drifts. The rule to cut work into vertical slices
+([NUC-decisions-are-proposed-then-accepted §7](NUC-decisions-are-proposed-then-accepted.md)).
+Nothing in that chain says what this month's work is. A change that fits one session is planned in
+the conversation. A change that does not has no place to keep its state: each session starts without
+memory, re-derives the plan, and drifts. The rule to cut work into vertical slices
 ([`AGENTS.md` §4](../../AGENTS.md#4-working-style)) has no artifact that carries a slice, and the
 conditions for unattended work have nothing to be written in.
 
@@ -69,7 +69,7 @@ findings outside the plan in a backlog.
    - The merge of the pull request that names an issue with a closing keyword closes the issue.
      An agent must not close an issue by a write of its own.
    - The assignment of a ticket's issue is its claim. An agent may assign an issue only under the
-     harness ADR's grant, as `NUC-main-only-via-pr §2` allows.
+     harness ADR's grant, as [NUC-main-only-via-pr §2](NUC-main-only-via-pr.md) allows.
    - The host's list of open, unblocked, unassigned ticket issues is the frontier, in place of
      the frontier sensor.
 
@@ -82,7 +82,7 @@ findings outside the plan in a backlog.
 - the claim push and its hook exception, which [NUC-main-only-via-pr](NUC-main-only-via-pr.md)
   decides;
 - the isolation, number, and limits of parallel sessions, which the harness ADR decides
-  ([NUC-adrs-record-decisions §13](NUC-adrs-record-decisions.md)).
+  ([NUC-base-is-fixed §3](NUC-base-is-fixed.md)).
 
 ## Latitude
 

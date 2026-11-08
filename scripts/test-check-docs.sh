@@ -473,7 +473,7 @@ printf '\n## Last' >> "$d/AGENTS.md"
 echo "See [the last section](AGENTS.md#last)." >> "$d/README.md"
 expect pass "a heading on a last line without a newline anchors" "$d"
 
-# Verifies: NUC-adrs-record-decisions
+# Verifies: NUC-adrs-are-named-by-category
 d="$(repo header-not-a-list-item)"
 sed 's/^- \*\*Status:\*\*/**Status:**/' "$d/docs/adr/$(adr_id 1).md" > "$d/adr.tmp" \
   && mv "$d/adr.tmp" "$d/docs/adr/$(adr_id 1).md"
@@ -674,7 +674,7 @@ expect pass "docs/plan/ named while there is no open work" "$d"
 
 TABLE="$ROOT/scripts/fixtures/check-docs-record.txt"
 
-# Verifies: NUC-adrs-record-decisions
+# Verifies: NUC-adrs-are-named-by-category NUC-base-is-fixed
 # adr_file <id> — the file of an identifier; status_of <status> — the status line it reads.
 adr_file() { echo "$1.md"; }
 status_of() {
