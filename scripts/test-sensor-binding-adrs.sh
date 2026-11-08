@@ -13,9 +13,11 @@
 # ADR_RULE_SECTIONS lists, and the Applies to of each other ADR in force whose Applies to is
 # prose, read from the ADR files and never from the index, also where the prose comes before a
 # list longer than a pipe holds. A 'NUC-' ADR of the base binds like any other, read from its file.
+# A change inside one numbered check binds the ADRs that name that check, any other line every ADR
+# that names the file; the numbers the checks of scripts/check-docs.sh carry are its header items.
 #
 # Verifies: NUC-checks-are-bash
-# Inputs: scripts/sensor-binding-adrs.sh scripts/lib/
+# Inputs: scripts/sensor-binding-adrs.sh scripts/lib/ scripts/check-docs.sh
 #
 # Usage:
 #     scripts/test-sensor-binding-adrs.sh
@@ -64,21 +66,9 @@ repo() {
   echo "$dir"
 }
 
-# expect <exit code> <name> <dir> <needle> [base] — run the sensor in the repository against the
-# given base (default 'base'); the output must contain the needle.
-expect() {
-  local want="$1" name="$2" dir="$3" needle="$4" base="${5-base}"
-  local out rc
-  fixture "$dir"
-  out="$(bash "$SENSOR" --root "$dir" "$base" ${HEADREF:+"$HEADREF"} 2>&1)"; rc=$?
-  if [[ $rc -eq "$want" && "$out" == *"$needle"* ]]; then
-    passed=$((passed + 1))
-    return
-  fi
-  failed=$((failed + 1))
-  echo "FAIL: $name (expected exit $want with \"$needle\", got exit $rc)" >&2
-  while IFS= read -r l; do printf '    %s\n' "$l"; done <<< "$out" >&2
-}
+# expect <exit code> <name> <dir> <needle> [base] — expect_with against the given base (default
+# 'base') and HEADREF, if set.
+expect() { expect_with "$1" "$2" "$3" "$4" "${5-base}" ${HEADREF:+"$HEADREF"}; }
 
 # expect_with <exit code> <name> <dir> <needle> <argument>... — run the sensor in the repository
 # with the given arguments; the output must contain the needle.
@@ -112,19 +102,8 @@ lacks_with() {
   while IFS= read -r l; do printf '    %s\n' "$l"; done <<< "$out" >&2
 }
 
-# reject <name> <dir> <needle> — the sensor's output must not contain the needle.
-reject() {
-  local name="$1" dir="$2" needle="$3" out
-  fixture "$dir"
-  out="$(bash "$SENSOR" --root "$dir" base 2>&1)"
-  if [[ "$out" != *"$needle"* ]]; then
-    passed=$((passed + 1))
-    return
-  fi
-  failed=$((failed + 1))
-  echo "FAIL: $name (\"$needle\" in the output)" >&2
-  while IFS= read -r l; do printf '    %s\n' "$l"; done <<< "$out" >&2
-}
+# reject <name> <dir> <needle> — lacks_with against the base.
+reject() { lacks_with "$1" "$2" "$3" base; }
 
 # --- cases -----------------------------------------------------------------------------------
 
@@ -326,6 +305,35 @@ SENSOR="$d/scripts/sensor-binding-adrs.sh" expect_with 0 "--sections prints each
   "It costs." --sections --path README.md
 expect_with 0 "--sections names the two sections of the template" "$d" \
   "): the header, the Decision, and the Enforcement ===" --sections --path README.md
+
+d="$(repo checks)"
+checks() {
+  printf 'check_a() {  # check 1\n  :\n}\nh() {\n  %s\n}\ncheck_b() {  # check 2\n  %s\n}\n' \
+    "$2" "$3" > "$1/scripts/c.sh"
+}
+mkdir -p "$d/scripts" && checks "$d" : :
+# shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
+adr "$d" 0004 "🟢 accepted" 'check 1 of `scripts/c.sh`'
+# shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
+adr "$d" 0005 "🟢 accepted" 'checks 2 and 3 of `scripts/c.sh`'
+base "$d"
+checks "$d" : true
+expect 0 "a change inside one check binds the ADR that names it" "$d" "- $(adr_id 5) (docs"
+reject "a change inside one check binds no ADR that names only another" "$d" "- $(adr_id 4) ("
+checks "$d" true :
+expect 0 "a change between two checks binds every ADR that names the file" "$d" "- $(adr_id 4) ("
+expect 0 "a change between two checks binds the other ADR too" "$d" "- $(adr_id 5) ("
+checks "$d" : : && printf '%s\n' "$(sed '$d' "$d/scripts/c.sh")" > "$d/scripts/c.sh.new"
+mv "$d/scripts/c.sh.new" "$d/scripts/c.sh"
+expect 0 "a deleted last line, its next line past the end, binds every ADR" "$d" "- $(adr_id 4) ("
+checks "$d" : true && sed '2d' "$d/scripts/c.sh" > "$d/c.new" && mv "$d/c.new" "$d/scripts/c.sh"
+expect 0 "a deletion inside a check binds its ADR beside an edit in another" "$d" "- $(adr_id 4) ("
+
+docs="$ROOT/scripts/check-docs.sh"
+tags="$(grep -oE '^check_[a-z_]+\(\) \{  # check [0-9]+$' "$docs" | grep -oE '[0-9]+$' | sort -n)"
+check "the check numbers of check-docs.sh are its header items, one each" \
+  test "$tags" = "$(sed -nE '/^set /q; s/^# +([0-9]+)\. .*/\1/p' "$docs")"
+check "no check of check-docs.sh lacks its number" test "$(grep -cE '^check_.*\{$' "$docs")" = 0
 
 # --- summary ---------------------------------------------------------------------------------
 
