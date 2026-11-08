@@ -189,11 +189,15 @@ expect fail "marker citing a superseded ADR" "$d" "'$(adr_id 1)', which is super
 # The table's format and its notation are those of scripts/fixtures/check-docs-record.txt, with
 # four fields, no check number, and the steps its header names.
 TABLE="$ROOT/scripts/fixtures/check-traceability.txt"
+# The table writes the ADR on the checks in its own notation, which no map moves; it stands for the
+# identifier the check names, which must be a file of this tree.
+checks_adr="$(sed -n 's/^CHECKS_ADR="\(.*\)"$/\1/p' "$CHECK")"
+check "the check names the ADR on the checks by a file of this tree" test -f "$ROOT/docs/adr/$checks_adr.md"
 n=0
 while IFS= read -r line; do
   [[ "$line" =~ ^(pass|fail) ]] || continue
   n=$((n + 1))
-  line="$(table_hyphens "$line")"
+  line="$(table_hyphens "${line//NUC:checks-are-bash/$checks_adr}")"
   IFS=$'\x1f' read -r want needle name tree <<< "${line// | /$'\x1f'}"
   [[ "$needle" == - ]] && needle=""
   d="$(repo "table-$n")"
