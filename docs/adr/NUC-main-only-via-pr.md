@@ -1,7 +1,7 @@
 # NUC-main-only-via-pr: Work is committed on branches, a human decides what leaves the machine, and `main` changes only through a merged pull request
 
-- **Status:** 🟡 proposed
-- **Date:** 2026-11-07
+- **Status:** 🟢 accepted
+- **Date:** 2026-11-08
 - **Deciders:** NUC maintainer
 - **Applies to:** the git hooks under `.githooks/`, the git settings the Dev Container sets for them, every commit, merge, and push, the integration steps on `feat/` branches, the repository settings of the remote, the sections *Git hooks*, *Integration branches*, and *Repository settings* of `CONTRIBUTING.md`, `scripts/ready-for-main.sh`, `scripts/drop-merged-branch.sh`, and `scripts/sensor-repo-settings.sh`
 

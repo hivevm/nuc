@@ -1,7 +1,7 @@
 # NUC-documents-are-fixed: Six documents with one role each carry what a repository knows, and one rule file carries its working rules
 
-- **Status:** 🟡 proposed
-- **Date:** 2026-11-07
+- **Status:** 🟢 accepted
+- **Date:** 2026-11-08
 - **Deciders:** NUC maintainer
 - **Applies to:** `docs/SPECIFICATION.md`, `AGENTS.md`, `docs/ARCHITECTURE.md`, `docs/GLOSSARY.md`, `docs/CONVENTIONS.md`, `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `.github/CODEOWNERS`, `.github/ISSUE_TEMPLATE/`, `.github/PULL_REQUEST_TEMPLATE.md`, every per-agent pointer file, checks 3 and 4 of `scripts/check-docs.sh`, `scripts/sensor-plain-rules.sh`, and `scripts/lib/rules.sh`
 

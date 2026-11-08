@@ -1,7 +1,7 @@
 # NUC-decisions-cite-tests: Every accepted decision and every criterion of the specification is verified by a test that cites it
 
-- **Status:** 🟡 proposed
-- **Date:** 2026-11-07
+- **Status:** 🟢 accepted
+- **Date:** 2026-11-08
 - **Deciders:** NUC maintainer
 - **Applies to:** every accepted ADR and its *Enforcement*, the Goals and Quality Goals of `docs/SPECIFICATION.md`, every `Verifies:` marker, `scripts/check-traceability.sh`, and `scripts/test-check-traceability.sh`
 

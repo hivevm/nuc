@@ -1,7 +1,7 @@
 # NUC-adrs-record-decisions: Decisions are recorded as ADRs named by category and slug, on a fixed base of the template's `NUC-` ADRs
 
-- **Status:** 🟡 proposed
-- **Date:** 2026-11-07
+- **Status:** 🟢 accepted
+- **Date:** 2026-11-08
 - **Deciders:** NUC maintainer
 - **Applies to:** every ADR under `docs/adr/`, the ADR index `docs/adr/README.md`, the ADR template `docs/adr/template.md`, the blob list `docs/adr/NUC.blobs`, the record checks of `scripts/check-docs.sh`, the ADR readers of `scripts/lib/adr.sh`, `scripts/sensor-binding-adrs.sh`, `scripts/test-normalize-remap.sh`, the map script `.agents/skills/normalize/remap.sh`, and the skills `propose-adr` and `normalize`
 

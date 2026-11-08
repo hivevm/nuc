@@ -1,7 +1,7 @@
 # NUC-procedures-are-skills: The procedures of the rule file are Agent Skills under `.agents/skills/`, each carrying a how and no rule of its own
 
-- **Status:** 🟡 proposed
-- **Date:** 2026-11-07
+- **Status:** 🟢 accepted
+- **Date:** 2026-11-08
 - **Deciders:** NUC maintainer
 - **Applies to:** `.agents/skills/`, `.claude/skills/`, checks 3, 4, and 11 of `scripts/check-docs.sh`, `AGENTS.md` where it names a procedure, `docs/adr/template.md`, `.github/ISSUE_TEMPLATE/`, and `.github/PULL_REQUEST_TEMPLATE.md`
 
