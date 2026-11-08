@@ -84,14 +84,13 @@
 #      (NUC-large-work-is-planned §2). The reverse holds for the top level only: every tracked
 #      top-level file and directory is named, by itself or by a path under it. Below it the block
 #      is a tour of the parts a newcomer needs, not a file listing.
-#  11. Skill pointer integrity: every skill under .agents/skills/ (a directory with a SKILL.md)
-#      has a symlink of the same name under .claude/skills/ that resolves to it, and every entry
-#      under .claude/skills/ is such a symlink (NUC-procedures-are-skills §6). Claude Code reads
-#      only the pointer directory, so a skill without its pointer is invisible to it and to no
-#      other agent — nobody notices; a copy instead of a symlink is a second source that drifts,
-#      and a skill that lives only in the pointer directory is one no other agent finds. Each
-#      message says the command that fixes it. A repository with neither directory has nothing to
-#      check.
+#  11. Skills an agent reads: every skill under .agents/skills/ (a directory with a SKILL.md) has
+#      a symlink of its name under .claude/skills/ that resolves to it, and every entry there is
+#      such a symlink (NUC-procedures-are-skills §6); Claude Code reads only that directory, and a
+#      copy drifts. Each SKILL.md opens with '---', closes with '---', and between them has a
+#      'name' equal to its directory and a 'description' (§7); an unindented line there starts a
+#      key, as a wrap that hides the skill does not, and indented lines pass unread. Each message
+#      says the fix. A repository with neither directory has nothing to check.
 #  12. Base held by its blob list (NUC-base-is-fixed §2): every 'NUC-' file in
 #      docs/adr/ and the rule file AGENTS.md has the git blob identifier its line in
 #      docs/adr/NUC.blobs names, and every line names a file that exists. The template rewrites
@@ -1139,6 +1138,14 @@ check_skill_pointers() {  # check 11
   for d in "$skills"/*/; do
     [[ -f "$d/SKILL.md" ]] || continue
     name="$(basename "$d")"
+    awk -v name="$name" 'NR == 1 { if ($0 != "---") exit; next }
+      $0 == "---" { closed = 1; exit }
+      /^([ \t#]|$)/ { next }
+      !/^[A-Za-z0-9_-]+:([ \t]|$)/ { exit }
+      /^name:/ { v = $0; sub(/^name:[ \t]*/, "", v); gsub(/^["\047]|["\047]?[ \t]*$/, "", v); n = v == name }
+      /^description:/ { desc = 1 }
+      END { exit !(closed && n && desc) }' "$d/SKILL.md" \
+      || add_error ".agents/skills/$name/SKILL.md: no front matter an agent reads — '---' first, a 'name: $name' and a 'description:' line, unindented lines only keys, then '---' (NUC-procedures-are-skills §7)"
     p="$pointers/$name"
     if [[ -L "$p" ]]; then
       continue
