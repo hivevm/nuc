@@ -94,15 +94,12 @@ expect refuse "the refusal shows the check output" "$d" "check output for the te
 expect refuse "the hook runs the checks with --changed" "$d" "args: --changed" push -q origin feature
 expect pass "a commit is not gated by the checks" "$d" "" commit -q --allow-empty -m x
 docs "$d" 1
-expect refuse "a commit on a branch while the documentation check is red" "$d" \
-  "pre-commit: refused — the documentation check is red" commit -q --allow-empty -m x
-expect refuse "the commit refusal names the clause that runs the checks before a commit" "$d" \
-  "(NUC-checks-are-bash §6)" commit -q --allow-empty -m x
-expect refuse "the commit refusal shows the documentation check's output" "$d" \
-  "docs output for the test" commit -q --allow-empty -m x
-docs "$d" 0
-expect pass "a commit on a branch while the documentation check is green" "$d" "" \
+expect refuse "a commit on a branch while the documentation check is red, naming the clause" "$d" \
+  "pre-commit: refused — the documentation check is red, and the checks pass before a commit (NUC-checks-are-bash §6)" \
   commit -q --allow-empty -m x
+expect refuse "the commit refusal shows the documentation check's output" "$d" "docs output for the test" \
+  commit -q --allow-empty -m x
+docs "$d" 0 && expect pass "a commit while the documentation check is green" "$d" "" commit -q --allow-empty -m x
 
 # A deletion sends nothing to check: it passes while the checks are red, and a push that sends a
 # branch besides is checked as any other.
@@ -159,10 +156,8 @@ git init -q "$work/worktree-fixture" && git -C "$work/worktree-fixture" config h
 EOF
 expect pass "a push from a linked worktree hands the checks no git environment" \
   "$work/worktree-linked" "" push -q origin feature
-if [[ -n "$(git -C "$d" config hooktest.leak)" ]]; then
-  failed=$((failed + 1))
-  echo "FAIL: a fixture the checks build in a linked worktree wrote into the pushed repository" >&2
-fi
+check "a fixture the checks build in a linked worktree writes nothing into the pushed repository" \
+  test -z "$(git -C "$d" config hooktest.leak)"
 
 # The shared library of the self-tests guards the same: a self-test that sources it inherits no
 # variable that binds git to a repository, and its fixture guard refuses any path but a fixture
@@ -170,8 +165,7 @@ fi
 lib="$ROOT/scripts/lib/selftest.sh"
 # shellcheck disable=SC2016 # expanded by the inner shell
 leaked="$(GIT_DIR="$ROOT/.git" GIT_WORK_TREE="$ROOT" bash -c 'source "$1"; echo "${GIT_DIR-}${GIT_WORK_TREE-}"' _ "$lib")"
-if [[ -z "$leaked" ]]; then passed=$((passed + 1)); else
-  failed=$((failed + 1)); echo "FAIL: a self-test sourcing the library keeps GIT_DIR or GIT_WORK_TREE" >&2; fi
+check "a self-test sourcing the library keeps neither GIT_DIR nor GIT_WORK_TREE" test -z "$leaked"
 # '$outside' is shaped like a fixture but lies outside $work: it decides the clause on $work
 # where '$ROOT' cannot, in a linked worktree, whose .git is a file.
 outside="$(mktemp -d)"
@@ -354,10 +348,7 @@ expect refuse "a fast-forward of main to a local branch" "$d" "main moves only t
 g "$d" restore --source=HEAD --staged --worktree .
 expect pass "a refused fast-forward leaves main where it was" "$d" "" diff --quiet origin/main main
 expect pass "the documented restore takes the index and the working tree back" "$d" "" diff --quiet HEAD
-if [[ -e "$d/a" ]]; then
-  failed=$((failed + 1))
-  echo "FAIL: the documented restore leaves the file the refused fast-forward brought" >&2
-fi
+check "the documented restore removes the file the refused fast-forward brought" test ! -e "$d/a"
 expect refuse "a commit on main that skips pre-commit" "$d" "main moves only to what origin/main has" commit -q --no-verify --allow-empty -m x
 expect refuse "a cherry-pick onto main" "$d" "main moves only to what origin/main has" cherry-pick ahead
 g "$d" cherry-pick --abort >/dev/null 2>&1
@@ -384,10 +375,8 @@ expect refuse "main ahead still moves no further" "$d" "main moves only to what 
 expect refuse "the refusal says how to keep the commits of a main ahead" "$d" "git switch -c feat/<topic> main, then git branch -f main origin/main" commit -q --no-verify --allow-empty -m more
 expect pass "the commits of a main ahead move to a branch" "$d" "" switch -q -c feat/kept main
 expect pass "main is taken back to the remote's main" "$d" "" branch -f main origin/main
-if [[ "$(git -C "$d" log -1 --format=%s feat/kept)" != "unpushed" ]]; then
-  failed=$((failed + 1))
-  echo "FAIL: the branch does not keep the commit the main ahead had" >&2
-fi
+check "the branch keeps the commit the main ahead had" \
+  test "$(git -C "$d" log -1 --format=%s feat/kept)" = unpushed
 d="$(moves delete-main)"
 git -C "${d:?}" switch -q ahead
 expect pass "a deletion of the local main" "$d" "" branch -q -D main

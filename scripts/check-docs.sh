@@ -1190,8 +1190,7 @@ check_skill_pointers() {
   done
 }
 
-# Check 12 (see the header). The list is compared both ways, with the same message for the
-# template, which rewrites the list, and for a derived project, which restores the file.
+# Check 12 (see the header), both ways, one message for the template and a derived project.
 check_base_blobs() {
   local list="$ADR_DIR/NUC.blobs" f name blob fix out
   fix="a derived project restores the file of its release and narrows a rule by an ADR of its own; the template rewrites the list: bash -c 'source scripts/lib/adr.sh && adr_blobs docs/adr' > docs/adr/NUC.blobs (NUC-adrs-record-decisions §12)"
