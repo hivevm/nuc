@@ -11,7 +11,7 @@
 # every direction; of the older checks, one case each pins the message a maintainer would meet
 # first — check 9 gets two more for a derived project's toolchain job, check 13 one for each
 # placeholder, and check 14 one for each form of its line. The cases of checks 1, 2, 5, 6, 8, 12,
-# the roles of 13, and the front matter of 11 stand in the fixture table
+# the roles of 13, check 4's clause lists, and the front matter of 11 stand in the fixture table
 # scripts/fixtures/check-docs-record.txt, which says its format. Every fixture has its setup done.
 #
 # Section references and ADR identifiers inside fixtures are assembled, never written literally,
@@ -662,7 +662,7 @@ d="$(repo layout-plan-absent)"
 layout "$d" "docs/plan/"
 expect pass "docs/plan/ named while there is no open work" "$d"
 
-# --- cases: the record (1, 2, 5, 6, 8, 12, 13) and front matter (11), read from the table ---
+# --- cases: the record (1, 2, 5, 6, 8, 12, 13), clause lists (4), front matter (11), in the table ---
 
 TABLE="$ROOT/scripts/fixtures/check-docs-record.txt"
 

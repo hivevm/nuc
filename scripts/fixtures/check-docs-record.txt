@@ -1,5 +1,5 @@
-# Cases of the record checks and of the skill front matter (check 11) of scripts/check-docs.sh,
-# read by scripts/test-check-docs.sh.
+# Cases of the record checks, of check 4's clause lists, and of the skill front matter (check 11)
+# of scripts/check-docs.sh, read by scripts/test-check-docs.sh.
 #
 # One case per line, five fields separated by ' | ':
 #
@@ -59,6 +59,9 @@
 2 | fail | OPS:gone-rule.md: the identifier OPS:gone-rule was taken | an ADR a merged side branch deleted, taken again | adr OPS:gone-rule proposed; commit; branch side; delete OPS:gone-rule; back; merge side; adr OPS:gone-rule proposed
 2 | pass | - | a deleted ADR whose identifier nobody takes again | adr OPS:old-rule proposed; commit; delete OPS:old-rule; adr OPS:new-rule proposed
 2 | fail | 0001-old.md: a numbered ADR, a form no check reads | a numbered ADR file left from before the migration | text docs/adr/0001-old.md # old decision
+4 | pass | - | a list of clauses after one identifier, in Markdown | adr SEC:x-rule proposed; text README.md See SEC:x-rule §4, §5, SEC:x-rule §4 and §5, SEC:x-rule §4, §5, and §6, and SEC:x-rule §2–§5.
+4 | pass | - | a list of clauses after one identifier, in a script | adr SEC:x-rule proposed; text scripts/lib/run.sh # SEC:x-rule §1, §9.
+4 | fail | reference '§9' matches no numbered section | a section after a list of clauses | adr SEC:x-rule proposed; text scripts/lib/run.sh # SEC:x-rule §1, §2, not AGENTS.md §9.
 5 | pass | - | a clause citation of an existing ADR | adr SEC:x-rule proposed; text README.md See [SEC:x-rule §3](docs/adr/SEC:x-rule.md) and SEC:x-rule §1.
 5 | fail | reference 'SEC:y-rule' matches no ADR file | a clause citation of a missing ADR | adr SEC:x-rule proposed; text README.md See SEC:y-rule §3.
 5 | fail | reference 'UX:dark-mode' matches no ADR file | a project category cited and missing | category UX; text README.md See UX:dark-mode.
