@@ -121,7 +121,7 @@ The rules of the record stand in `NUC-` ADRs. The mechanics of the record are in
 
   [`scripts/sensor-plain-rules.sh`](scripts/sensor-plain-rules.sh) reports each sentence over 25
   words, each soft modal verb, and each word the glossary lists under _Avoid:_ on the lines a
-  change adds.
+  change adds. With `--require`, it fails on a soft modal verb or an avoided word in a project ADR.
 - **Plan work larger than one session:**
   [NUC-large-work-is-planned §1](docs/adr/NUC-large-work-is-planned.md) to
   [NUC-large-work-is-planned §5](docs/adr/NUC-large-work-is-planned.md). Skill: `plan-feature`.
