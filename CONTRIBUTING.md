@@ -85,11 +85,12 @@ version cannot be repointed and a version suffix is VS Code-specific.
 ### Host container management
 
 The Dev Container deliberately has **no access to the host Docker daemon**: the socket is not
-mounted ([ADR-0004](docs/adr/0004-dev-container-runtime.md)). To manage the host's containers from
-VS Code, run the **Container Tools** extension (`ms-azuretools.vscode-containers`) on the **host**
-side: install it in your host VS Code. [`.vscode/settings.json`](.vscode/settings.json) already pins
-it to run locally via `remote.extensionKind`, so it keeps talking to the host engine even when this
-folder is reopened in the container.
+mounted ([NUC-container-hides-host-daemon §2](docs/adr/NUC-container-hides-host-daemon.md)).
+To manage the host's containers from VS Code, run the **Container Tools** extension
+(`ms-azuretools.vscode-containers`) on the **host** side: install it in your host VS Code.
+[`.vscode/settings.json`](.vscode/settings.json) already pins it to run locally via
+`remote.extensionKind`, so it keeps talking to the host engine even when this folder is reopened in
+the container.
 
 ## Coding Agents
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Self-test of scripts/check-docs.sh. Verifies: ADR-0001 ADR-0003 ADR-0005
+# Self-test of scripts/check-docs.sh. Verifies: ADR-0001 ADR-0003
 #
 # Each case builds a throwaway git repository under a temporary directory — a rule file with
 # numbered sections, a README with the Template release line, a CONTRIBUTING.md with a Project
@@ -406,13 +406,15 @@ expect fail "a bold label outside an ADR header is prose" "$d" "columns — wrap
 
 # --- cases: the template release named (check 14) ---------------------------------------
 
+# Verifies: NUC-releases-are-semver-tags ADR-0005
+
 # release_line <dir> <text> — replace the baseline's Template release line with the given text.
 release_line() { sed_in "$1/README.md" "s/^- \*\*Template release:\*\* unreleased$/$2/"; }
 
 d="$(repo release-no-readme)"
 rm "$d/README.md"
 sed_in "$d/CONTRIBUTING.md" '/^README\.md /d'
-expect fail "no README to carry the Template release line" "$d" "README.md: not found"
+expect fail "no README to carry the Template release line" "$d" "README.md: not found — the Template section names the release this repository carries (NUC-releases-are-semver-tags §4)"
 
 d="$(repo release-tag)"
 release_line "$d" '- **Template release:** v1.4.0 of the template ([tags](https:\/\/example.invalid\/tags)).'
@@ -433,11 +435,13 @@ expect pass "the tag in backticks" "$d"
 
 d="$(repo release-leading-zero)"
 release_line "$d" '- **Template release:** v01.4.0'
-expect fail "a leading zero, which SemVer forbids" "$d" "names neither a 'vX.Y.Z' tag nor 'unreleased'"
+expect fail "a leading zero, which SemVer forbids" "$d" \
+  "names neither a 'vX.Y.Z' tag nor 'unreleased' — a release moves it to the tag it cuts (NUC-releases-are-semver-tags §1, §4)"
 
 d="$(repo release-missing)"
 release_line "$d" 'Created from the template.'
-expect fail "no Template release line" "$d" "no '**Template release:**' line"
+expect fail "no Template release line" "$d" \
+  "no '**Template release:**' line — the Template section names the release of the template this repository carries, or 'unreleased' (NUC-releases-are-semver-tags §4)"
 
 d="$(repo release-malformed)"
 release_line "$d" '- **Template release:** 1.4'

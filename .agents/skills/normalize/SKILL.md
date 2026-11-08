@@ -21,17 +21,8 @@ Run in a fresh session. Name the entry point with the human:
   walk step 1 of `TEMPLATE-SETUP.md`, which comes with the copy, for the identity. The inputs
   add the project's existing record, wherever and in whatever form it lives, its documents, and
   the decisions its code shows and no record holds.
-- **A template release:** a derived project takes up a later release. The inputs add the
-  template's ADRs and specification scaffold at the tag the `Template release` line of
-  [`README.md`](../../../README.md) names and at the new tag, and the release notes. What changed
-  between the two tags is what enters. A template ADR the release corrected in place enters by
-  the normalization, a correction that changes a decision as one of its
-  [supersessions](#3-the-supersessions), never as an edit of an accepted ADR outside a normalization
-  ([ADR-0005](../../../docs/adr/0005-template-releases.md)). Where the project has normalized
-  before, the maps in the commit bodies of its normalizations, read in order, say which of its
-  ADRs restates which template ADR. `AGENTS.md` is taken up as the release has it, except the
-  ADR rules of [§3](../../../AGENTS.md#3-adr-rules) that an ADR of the project on the ADR
-  process changed: those keep the project's wording, as its opening note says.
+- **A template release:** a derived project takes up a later release. A take-up is no
+  normalization: walk [section 7](#7-take-up-a-template-release) instead of the sections between.
 
 An adoption or a template release brings the template's git hooks and its repository settings
 with its files:
@@ -115,6 +106,38 @@ Commit with the map in the commit body, and hand the branch to the human with bo
 cut, the clause table, and the review in its hand-off. One pull request lands the branch
 ([`AGENTS.md` §6](../../../AGENTS.md#6-project-rules)).
 
-In the template, the release that lands a normalization is a major, and its notes carry the map
-([ADR-0005](../../../docs/adr/0005-template-releases.md)). In a derived project that took up a
-release, the `Template release` line moves to it in the same change.
+In the template, a release that merges, splits, or removes a `NUC-` ADR is a major, and its notes
+carry the map
+([NUC-releases-are-semver-tags §7](../../../docs/adr/NUC-releases-are-semver-tags.md)).
+
+## 7. Take up a template release
+
+A derived project takes up a later release in the steps of
+[NUC-releases-are-semver-tags §6](../../../docs/adr/NUC-releases-are-semver-tags.md). The project's
+own ADRs stay as they are; no inherited ADR is merged into its record. Work on a branch of its own.
+
+1. **Inputs.** Name with the human the tag the `Template release` line of
+   [`README.md`](../../../README.md) names and the tag to take up. Read the release notes of every
+   release between the two. Keep for step 5 each map of a re-cut a note carries
+   ([NUC-releases-are-semver-tags §7](../../../docs/adr/NUC-releases-are-semver-tags.md)).
+2. **The base.** Replace the `NUC-` files under `docs/adr/` and the blob list
+   ([NUC-base-is-fixed §2](../../../docs/adr/NUC-base-is-fixed.md)) with those
+   at the new tag, for example by `git checkout <tag> -- 'docs/adr/NUC-*' docs/adr/NUC.blobs` from
+   a remote that carries the template's tags. Delete a `NUC-` file the new tag no longer has.
+   Change no `NUC-` file beyond the copy
+   ([NUC-base-is-fixed §1](../../../docs/adr/NUC-base-is-fixed.md)).
+3. **The other files.** Take up each other file the notes name. Where the project changed the file
+   too, merge the two in the way the project chose. `AGENTS.md` is taken up as the release has it,
+   except the ADR rules of [§3](../../../AGENTS.md#3-adr-rules) that an ADR of the project on the
+   ADR process changed: those keep the project's wording, as its opening note says. The git hooks
+   and the repository settings follow as [section 1](#1-entry-point-and-inputs) says.
+4. **The release line.** Move the `Template release` line to the new tag in the same change
+   ([NUC-releases-are-semver-tags §5](../../../docs/adr/NUC-releases-are-semver-tags.md)).
+5. **The checks.** Run [`scripts/check-all.sh`](../../../scripts/check-all.sh) and fix the
+   project's own files until it passes. Where a map from step 1 moves a clause the project cites,
+   list the citations with `git grep -nwE '<old identifiers>'` and move each as the map says, in
+   accepted ADRs too
+   ([NUC-decisions-are-proposed-then-accepted §6](../../../docs/adr/NUC-decisions-are-proposed-then-accepted.md)).
+   Where the cited clause changed its meaning, hand the ADR to the human for a supersession instead.
+6. **Hand-off.** Hand the branch to the human with the two tags and, for a re-cut, the citations
+   that moved. One pull request lands it ([`AGENTS.md` §6](../../../AGENTS.md#6-project-rules)).
