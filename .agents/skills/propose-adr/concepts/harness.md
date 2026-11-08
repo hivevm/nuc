@@ -7,7 +7,8 @@ golden path. Its **sensors** check what the agent did: the computational ones, t
 that are deterministic and cheap enough to run on every change, and the inferential one, the
 review in a fresh context. The harness ADR is the one
 [`AGENTS.md` §4](../../../../AGENTS.md#4-working-style) names for the parts kept with the human
-and the cap on open agent work.
+and the cap on open agent work. It carries the header field `Role: harness`
+([NUC-base-is-fixed §3](../../../../docs/adr/NUC-base-is-fixed.md)).
 
 ## Signals
 

@@ -6,11 +6,11 @@
 # docs/adr/README.md:
 #
 #   1. ADR index integrity: every ADR file, docs/adr/<CAT>-<slug>.md or of the old form
-#      docs/adr/NNNN-*.md, is listed in the index table in docs/adr/README.md once, every index
-#      row points to an existing file, and the status and the 'Applies to' cell shown in the
-#      index match the **Status:** and **Applies to:** lines inside each ADR — the index routes a
-#      reader from a change to the ADRs that bind it (AGENTS.md, section 2), so a row that
-#      misstates what its ADR governs misroutes them.
+#      docs/adr/NNNN-*.md, but the 'NUC-' base, which it lists in no row, is listed in the index
+#      table in docs/adr/README.md once, every index row points to an existing file, and the
+#      status and the 'Applies to' cell shown in the index match the **Status:** and **Applies
+#      to:** lines inside each ADR — the index routes a reader from a change to the ADRs that bind
+#      it (AGENTS.md, section 2), so a row that misstates what its ADR governs misroutes them.
 #      A superseded or rejected row sits below the 'Superseded and rejected' heading and an
 #      accepted or proposed one above it: the first table is what a session reads, and a
 #      row in the wrong one is either a dead decision read as binding or a binding one
@@ -64,7 +64,9 @@
 #      and the human flips the old lines when accepting the new one (docs/adr/README.md). A new
 #      ADR superseded in its turn counts as accepted, so a chain stays whole. Check 1 cannot
 #      see a missing half: it only mirrors the index against whatever status the file carries.
-#      Every name of a Supersedes field counts, on whichever line it sits.
+#      Every name of a Supersedes field counts, on whichever line it sits. No project ADR
+#      supersedes a 'NUC-' ADR, and each clause an 'Extends:' or 'Narrows:' field names, as
+#      'NUC-<slug> §n', is a numbered clause of that ADR's Decision (NUC-base-is-fixed §1).
 #   9. Check-list agreement: the jobs of .github/workflows/checks.yml and the required status
 #      checks named between the 'required-checks' markers in CONTRIBUTING.md list the same jobs, and
 #      the workflows under .github/workflows/ and scripts/check-all.sh run the same scripts. A
@@ -89,15 +91,17 @@
 #      nobody notices; a copy instead of a symlink is a second source that drifts, and a skill
 #      that lives only in the pointer directory is one no other agent finds. Each message says
 #      the command that fixes it. A repository with neither directory has nothing to check.
-#  12. Inherited ADRs decided: once TEMPLATE-SETUP.md is gone, every ADR in force whose
-#      '**Deciders:**' field names the NUC maintainer also names a decider of this project and is
-#      not 🟡 proposed. An inherited ADR binds a derived project once its own maintainer has added
-#      their name and accepted it, or it is superseded (docs/adr/README.md): an inherited ADR
-#      nobody here decided is a rule nobody decided. A superseded or rejected one is not read.
-#      While the setup file exists the decision is pending by design, and the check is silent.
-#      A 'NUC-' ADR is not read: a project never edits the base (NUC-base-is-fixed §1).
-#  13. Template identity replaced: once TEMPLATE-SETUP.md is gone, none of the template's
-#      placeholders is left. Step 1 of the setup: the project name NUC in the README title, its
+#  12. Base held by its blob list: every 'NUC-' file in docs/adr/ has the git blob identifier its
+#      line in docs/adr/NUC.blobs names, and every line names a file that exists
+#      (NUC-base-is-fixed §2). The template rewrites the list in the commit that changes a
+#      'NUC-' file, and a derived project never changes one, so in both the list and the files
+#      agree. Without a list the check passes when no 'NUC-' file exists, or when the Template
+#      release line of README.md names the release a fork forked, 'vX.Y.Z, forked'
+#      (NUC-base-is-fixed §1).
+#  13. Setup done: once TEMPLATE-SETUP.md is gone, each required role of ADR_ROLES in
+#      scripts/lib/adr.sh has exactly one 🟢 accepted ADR whose 'Role:' field names it
+#      (NUC-base-is-fixed §3), and none of the template's placeholders is left.
+#      Step 1 of the setup: the project name NUC in the README title, its
 #      intro, its Why NUC section, and the Dev Container name, the template's repository in the
 #      README badges, the copyright holder in LICENSE, the security contact in SECURITY.md, the
 #      reporting contact in CODE_OF_CONDUCT.md, and a CODEOWNERS with no active rule or with its TODO. Step 3: the
@@ -175,15 +179,15 @@ trim() {
 
 # The header of every ADR, read by one awk pass over the record instead of a grep per field, per
 # ADR, and per check. Keyed by the ADR's path: the first line of each header field anywhere in the
-# file, as adr_field_line reads it (ADR_STATUS, ADR_APPLIES); the Supersedes and Deciders fields
-# with their continuation lines, since a header field wraps (ADR_SUPERSEDES, ADR_DECIDERS); the
-# first '# ' heading (ADR_HEADING); every header field written in another form, as
-# adr_stray_fields reports it (ADR_STRAY); and whether the file still carries the template's
-# instruction paragraph (ADR_NEEDLE). ADR_LIST is every ADR file in the order adr_files gives,
-# ADR_BY_ID the file each identifier names.
+# file, as adr_field_line reads it (ADR_STATUS, ADR_APPLIES); the Supersedes, Extends, and Narrows
+# fields with their continuation lines, since a header field wraps (ADR_SUPERSEDES, and ADR_REL
+# keyed '<field> <path>' with the Role field); the first '# ' heading (ADR_HEADING); every header
+# field written in another form, as adr_stray_fields reports it (ADR_STRAY); and whether the file
+# still carries the template's instruction paragraph (ADR_NEEDLE). ADR_LIST is every ADR file in
+# the order adr_files gives, ADR_BY_ID the file each identifier names.
 ADR_LIST=()
-declare -A ADR_KNOWN=() ADR_BY_ID=() ADR_STATUS=() ADR_APPLIES=() ADR_SUPERSEDES=() ADR_DECIDERS=() ADR_HEADING=() \
-  ADR_STRAY=() ADR_NEEDLE=()
+declare -A ADR_KNOWN=() ADR_BY_ID=() ADR_STATUS=() ADR_APPLIES=() ADR_SUPERSEDES=() ADR_HEADING=() \
+  ADR_STRAY=() ADR_NEEDLE=() ADR_REL=()
 read_adr_headers() {
   local file field value
   adr_categories "$ADR_INDEX"
@@ -200,7 +204,7 @@ read_adr_headers() {
       Status) ADR_STATUS["$file"]="$value" ;;
       "Applies to") ADR_APPLIES["$file"]="$value" ;;
       Supersedes) ADR_SUPERSEDES["$file"]+="$value"$'\n' ;;
-      Deciders) ADR_DECIDERS["$file"]+="$value"$'\n' ;;
+      Extends | Narrows | Role) ADR_REL["$field $file"]+="$value"$'\n' ;;
       heading) ADR_HEADING["$file"]="$value" ;;
       stray) ADR_STRAY["$file"]+="$value"$'\n' ;;
       needle) ADR_NEEDLE["$file"]=1 ;;
@@ -219,7 +223,7 @@ read_adr_headers() {
         name = substr($0, 5, RLENGTH - 7)
         if (!(name in seen)) {
           seen[name]; out(name, $0)
-          if (name == "Supersedes" || name == "Deciders") cont = name
+          if (name == "Supersedes" || name == "Extends" || name == "Narrows") cont = name
         }
       }
     }
@@ -306,10 +310,10 @@ check_adr_index() {
     return
   fi
 
-  # ADR files on disk (basenames), of either form; the template is neither.
+  # ADR files on disk (basenames), of either form, but the base; the template is neither.
   local disk_files=()
   local f
-  for f in "${ADR_LIST[@]}"; do disk_files+=("${f##*/}"); done
+  for f in "${ADR_LIST[@]}"; do [[ "${f##*/}" == NUC-* ]] || disk_files+=("${f##*/}"); done
 
   # Parse the index into parallel arrays: filename, 'Applies to' cell, and status emoji per row.
   # Columns are '| ADR | Title | Applies to | Status |'; the cell is compared verbatim.
@@ -332,6 +336,8 @@ check_adr_index() {
     indexed_files+=("$filename")
     indexed_applies+=("$applies")
     indexed_status+=("$status")
+    [[ "$number" == NUC-* ]] && add_error \
+      "ADR index: lists $number, an ADR of the base — the index links the base in one line and lists no NUC- ADR (NUC-adrs-are-named-by-category §5)"
     if [[ "$number" != [0-9]* ]]; then
       [[ "$filename" == "$number.md" ]] \
         || add_error "ADR index: row for $number links to '$filename', not to '$number.md'"
@@ -425,9 +431,11 @@ check_adr_identifiers() {
   # without --diff-merges, is an error, not a pass.
   local log=""
   if git -C "$ROOT" rev-parse -q --verify 'HEAD^{commit}' > /dev/null 2>&1; then
-    log="$(git -C "$ROOT" log --first-parent --diff-merges=first-parent --no-renames --diff-filter=D \
-             --name-only --format='commit %h' HEAD -- ":(glob)docs/adr/${ADR_GLOBS[1]}" 2>&1)" \
-      || { add_error "ADR identifiers: git log cannot read the deleted ADRs (git 2.31 or later is needed): ${log%%$'\n'*}"; log=""; }
+    local args=(log --first-parent --diff-merges=first-parent --no-renames --diff-filter=D --name-only
+                --format='commit %h' HEAD -- ":(glob)docs/adr/${ADR_GLOBS[1]}")
+    # stderr stays out of the list: a warning on a success would be read as a file name.
+    log="$(git -C "$ROOT" "${args[@]}" 2>/dev/null)" || { log="$(git -C "$ROOT" "${args[@]}" 2>&1 >/dev/null)"
+      add_error "ADR identifiers: git log cannot read the deleted ADRs (git 2.31 or later is needed): ${log%%$'\n'*}"; log=""; }
   fi
   while IFS= read -r f; do
     if [[ "$f" == commit\ * ]]; then commit="${f#commit }"; elif [[ -n "$f" && ! -v deleted["${f##*/}"] ]]; then deleted["${f##*/}"]="$commit"; fi
@@ -517,7 +525,7 @@ adr_refs() {
 # it repository-wide. A Supersedes field wraps at the line width like any other header field,
 # and a name on its second line counts.
 check_adr_supersessions() {
-  local f base nr line target target_file succ_file named accepted
+  local f base nr line target target_file succ_file named accepted field rest re="(NUC-$ADR_SLUG_RE) ?§ ?([0-9]+)"
   for f in "${ADR_LIST[@]}"; do
     base="${f##*/}"
     adr_key_of "$f"
@@ -532,6 +540,8 @@ check_adr_supersessions() {
     [[ "$EMOJI" == "🟢" || "$EMOJI" == "⚪" ]] && accepted=1
     adr_refs "${ADR_SUPERSEDES["$f"]-}"
     for target in "${REFS[@]}"; do
+      [[ "$target" == NUC-* && "$base" != NUC-* ]] && add_error \
+        "$base: supersedes $target — no project ADR supersedes the base; extend or narrow its clause, or fork the template (NUC-base-is-fixed §1)"
       target_file="${ADR_BY_ID["$target"]-}"
       if [[ -n "$target_file" ]] && ((accepted)); then
         superseding_id "${ADR_STATUS["$target_file"]-}"
@@ -558,6 +568,19 @@ check_adr_supersessions() {
           "$base: superseded by $SUCCESSOR, which is not accepted — the status line flips when the human accepts $SUCCESSOR"
       fi
     fi
+
+    # An extension or a narrowing names clauses of the base that exist.
+    for field in Extends Narrows; do
+      rest="${ADR_REL["$field $f"]-}"
+      [[ -n "$rest" ]] || continue
+      [[ "$rest" =~ $re ]] || add_error "$base: the $field field names no clause of a NUC- ADR, 'NUC-<slug> §n' (NUC-base-is-fixed §1)"
+      while [[ "$rest" =~ $re ]]; do
+        rest="${rest#*"${BASH_REMATCH[0]}"}" target="${BASH_REMATCH[1]} §${BASH_REMATCH[-1]}"
+        target_file="${ADR_BY_ID["${BASH_REMATCH[1]}"]-}"
+        [[ -z "$target_file" ]] || grep -qE "^${BASH_REMATCH[-1]}\. " <<< "$(adr_section Decision < "$target_file")" \
+          || add_error "$base: $field $target, a clause its Decision does not have"
+      done
+    done
   done
 }
 
@@ -1174,25 +1197,29 @@ check_skill_pointers() {
   done
 }
 
-# Check 12 (see the header). Inherited means the Deciders field still names the template's
-# maintainer, on whichever of its lines; a derived project's own ADRs never do. Another decider
-# is whatever is left of the field once that name, commas, and the word 'and' are removed.
-check_inherited_adrs() {
-  [[ -f "$ROOT/TEMPLATE-SETUP.md" ]] && return
-  local f base deciders others status
-  for f in "${ADR_LIST[@]}"; do
-    deciders="${ADR_DECIDERS["$f"]-}"
-    [[ "$deciders" == *"NUC maintainer"* && "${f##*/}" != NUC-* ]] || continue
-    status_emoji "${ADR_STATUS["$f"]-}"
-    status="$EMOJI"
-    [[ "$status" == "⚪" || "$status" == "🔴" ]] && continue
-    base="${f##*/}"
-    others="$(sed -E "s/${ADR_ITEM_RE}Deciders:[*][*]//"'; s/NUC maintainer//g; s/(^|[[:space:],])and([[:space:],]|$)/ /g; s/[[:space:],]//g' <<< "$deciders" | tr -d '\n')"
-    if [[ -z "$others" ]]; then
-      add_error "$base: inherited from the template and not decided by this project — add your name to Deciders and accept it, or supersede it (docs/adr/README.md)"
-    elif [[ "$status" == "🟡" ]]; then
-      add_error "$base: inherited from the template and still proposed after setup — flip the status to accepted, or supersede it (docs/adr/README.md)"
-    fi
+# Check 12 (see the header). The list is compared both ways, with the same message for the
+# template, which rewrites the list, and for a derived project, which restores the file.
+check_base_blobs() {
+  local list="$ADR_DIR/NUC.blobs" f name blob fix out
+  fix="a derived project restores the NUC- file of its release; the template rewrites the list: bash -c 'source scripts/lib/adr.sh && adr_blobs docs/adr' > docs/adr/NUC.blobs (NUC-base-is-fixed §2)"
+  local -A want=() have=()
+  out="$(adr_blobs "$ADR_DIR" 2>&1)" || { add_error "docs/adr/NUC.blobs: no blob identifiers computed: ${out##*$'\n'}"; return; }
+  while read -r blob name; do [[ -n "$name" ]] && have["$name"]="$blob"; done <<< "$out"
+  if [[ ! -f "$list" ]]; then
+    ((${#have[@]})) || return 0
+    # shellcheck disable=SC2016  # the backticks are Markdown to match, not a command substitution
+    grep -qE '^[[:space:]]*([-*] )?\*\*Template release:\*\*[[:space:]]*[[`]?v[0-9]+\.[0-9]+\.[0-9]+[]`]?(\([^)]*\))?, forked([^[:alnum:]]|$)' \
+      "$ROOT/README.md" 2>/dev/null \
+      || add_error "docs/adr/NUC.blobs: not found — it names each NUC- file with its blob; a fork names the release it forked on the Template release line of README.md, 'vX.Y.Z, forked' (NUC-base-is-fixed §1)"
+    return
+  fi
+  while read -r blob name; do [[ -n "$name" ]] && want["$name"]="$blob"; done < "$list"
+  for name in "${!want[@]}"; do
+    [[ -v have["$name"] ]] || add_error "docs/adr/NUC.blobs: names $name, which does not exist — $fix"
+  done
+  for name in "${!have[@]}"; do
+    if [[ ! -v want["$name"] ]]; then add_error "$name: has no line in docs/adr/NUC.blobs — $fix"
+    elif [[ "${want["$name"]}" != "${have["$name"]}" ]]; then add_error "$name: differs from its line in docs/adr/NUC.blobs — $fix"; fi
   done
 }
 
@@ -1231,6 +1258,16 @@ check_template_identity() {
   placeholder docs/GLOSSARY.md '^- \*\*<Term>\*\*' "the scaffold's entry is still listed; write the first term, or delete the entry"
   placeholder docs/CONVENTIONS.md '^- \*\*<Convention>\*\*' "the scaffold's entry is still listed; write the first convention, or delete the entry"
   placeholder README.md '^- \*\*(Build|Test|Lint|Run):\*\* TODO' "a Build, Test, Lint, or Run command is still TODO; name the command the toolchain ADR chose"
+  local role n f
+  for role in "${ADR_ROLES[@]}"; do
+    n=0
+    for f in "${ADR_LIST[@]}"; do
+      adr_field_value "${ADR_REL["Role $f"]-}" Role && trim "$ADR_VALUE"
+      [[ "$TRIMMED" == "$role" && "${ADR_STATUS["$f"]-}" == *🟢* ]] && n=$((n + 1))
+    done
+    ((n == 0)) && add_error "docs/adr/: no accepted ADR fills the role $role — one carries '- **Role:** $role' (NUC-base-is-fixed §3)"
+    ((n > 1)) && add_error "docs/adr/: $n accepted ADRs fill the role $role — exactly one does (NUC-base-is-fixed §3)"
+  done
 }
 
 # LINK_SPACE_RE — a space inside the text of a link; check 15 reads a link as one word.
@@ -1318,7 +1355,7 @@ check_adr_link_targets
 check_check_lists
 check_project_layout
 check_skill_pointers
-check_inherited_adrs
+check_base_blobs
 check_template_identity
 check_template_release
 check_prose_width

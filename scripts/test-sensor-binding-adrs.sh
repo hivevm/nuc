@@ -11,7 +11,8 @@
 # Paths named with --path stand in for a change, and --sections prints the header, Decision, and
 # Enforcement of each ADR listed, and nothing else of it, under a banner that names the sections
 # ADR_RULE_SECTIONS lists, and the Applies to of each other ADR in force whose Applies to is
-# prose, also where the prose comes before a list longer than a pipe holds.
+# prose, read from the ADR files and never from the index, also where the prose comes before a
+# list longer than a pipe holds. A 'NUC-' ADR of the base binds like any other, read from its file.
 #
 # Verifies: ADR-0002
 # Inputs: scripts/sensor-binding-adrs.sh scripts/lib/
@@ -250,20 +251,27 @@ expect_with 0 "a named directory binds an ADR that names a path under it" "$d" \
   "- $(adr_id 1) (docs/adr/0001-fixture.md) — docs/" --path docs/
 expect_with 2 "--path without a path fails" "$d" "--path needs a path" --path
 
+# A path only an ADR of the base names lists that ADR, read from its file.
+d="$(repo base-adr)"
+nuc=NUC
+# shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
+printf '# %s: Base\n\n- **Status:** 🟡 proposed\n- **Applies to:** `scripts/base.sh`\n' "$nuc-base-rule" \
+  > "$d/docs/adr/$nuc-base-rule.md"
+expect_with 0 "a path only a base ADR names lists it" "$d" \
+  "- $nuc-base-rule (docs/adr/$nuc-base-rule.md) — scripts/base.sh" --path scripts/base.sh
+
 d="$(repo sections)"
 {
   printf '\n## Context\n\nWhy it came up.\n\n## Decision\n\nWe will plan in the tree.\n'
   printf '\n## Alternatives considered\n\n- None.\n\n## Enforcement\n\nA sensor lists it.\n'
 } >> "$d/docs/adr/0001-fixture.md"
 # shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
-{
-  printf '# ADRs\n\n## Mechanics\n\nHow the record is kept.\n\n## Index\n\n### Binding\n\n'
-  printf '| ADR | Title | Applies to | Status |\n|-----|-------|-----|-----|\n'
-  printf '| [0001](0001-fixture.md) | Fixture | the plan under `docs/plan/` and `README.md` | 🟢 |\n'
-  printf '| [0003](0003-fixture.md) | Code | the code under `src/`, and the `pull request` template | 🟡 |\n'
-  printf '| [0005](0005-fixture.md) | Paths | `tools/`, `lib/x.sh`, and `Makefile` | 🟢 |\n'
-  printf '\n### Superseded and rejected\n\n| [0002](0002-fixture.md) | Old | prose too | ⚪ |\n'
-} > "$d/docs/adr/README.md"
+adr "$d" 0005 "🟢 accepted" '`tools/`, `lib/x.sh`, and `Makefile`'
+nuc=NUC
+printf '# %s: Base\n\n- **Status:** 🟡 proposed\n- **Applies to:** every ADR\n' "$nuc-base-rule" \
+  > "$d/docs/adr/$nuc-base-rule.md"
+printf '# ADRs\n\n## Mechanics\n\nHow the record is kept.\n\n### Binding\n\n| [0009](0009-gone.md) | Gone | a row only |\n' \
+  > "$d/docs/adr/README.md"
 base "$d"
 expect_with 0 "--sections prints the Applies to of an ADR in force with prose" "$d" \
   "- $(adr_id 3): the code under" --sections --path README.md
@@ -277,16 +285,19 @@ lacks_with "--sections leaves out the Context" "$d" "Why it came up." --sections
 lacks_with "--sections leaves out the Alternatives" "$d" "- None." --sections --path README.md
 lacks_with "--sections leaves out the mechanics of the index" "$d" "How the record is kept." \
   --sections --path README.md
-lacks_with "--sections leaves out the rows of dead ADRs" "$d" "prose too" --sections --path README.md
+lacks_with "--sections reads no row of the index" "$d" "a row only" --sections --path README.md
+lacks_with "--sections leaves out a dead ADR" "$d" "everything under" --sections --path README.md
+expect_with 0 "--sections prints the Applies to of a base ADR, read from its file" "$d" \
+  "- $nuc-base-rule: every ADR" --sections --path README.md
 expect_with 0 "--sections points at the ADRs it prints, not at the index" "$d" \
   "Read these, and the ADRs whose Applies to is prose, below:" --sections --path README.md
 lacks_with "--sections sends no session to the index" "$d" "Read the index" --sections --path NOTES.txt
 expect_with 0 "without --sections the index is named" "$d" "Read the index" --path NOTES.txt
 lacks_with "without --sections nothing of an ADR is printed" "$d" "We will plan" --path README.md
-mv "$d/docs/adr/README.md" "$d/README.adr"
-expect_with 0 "--sections says so when it finds no Binding table" "$d" "No row found under '### Binding'" \
+mv "$d/docs/adr" "$d/adr.away"
+expect_with 0 "--sections says so when it finds no ADR in force" "$d" "No ADR in force found in docs/adr/" \
   --sections --path README.md
-mv "$d/README.adr" "$d/docs/adr/README.md"
+mv "$d/adr.away" "$d/docs/adr"
 expect_with 0 "--sections prints the ADRs with prose when nothing changed" "$d" \
   "- $(adr_id 1): the plan under" --sections base
 
@@ -294,12 +305,7 @@ expect_with 0 "--sections prints the ADRs with prose when nothing changed" "$d" 
 # the prose before the list is written cuts the writer off, and the ADR goes unlisted.
 d="$(repo sections-long)"
 pad="$(printf '%*s' 200000 '' | tr ' ' z)"
-# shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
-{
-  printf '# ADRs\n\n## Index\n\n### Binding\n\n'
-  printf '| ADR | Title | Applies to | Status |\n|-----|-------|-----|-----|\n'
-  printf '| [0007](0007-fixture.md) | Long | every document, `%s`, and `%s` | 🟢 |\n' "$pad" "$pad"
-} > "$d/docs/adr/README.md"
+adr "$d" 0007 "🟢 accepted" "every document, \`$pad\`, and \`$pad\`"
 base "$d"
 expect_with 0 "--sections prints prose before a list longer than a pipe holds" "$d" \
   "- $(adr_id 7): every document" --sections --path README.md
