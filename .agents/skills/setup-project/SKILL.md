@@ -7,8 +7,10 @@ description: Set a project up from this template interactively, one question at 
 
 The steps and what each one decides are [`TEMPLATE-SETUP.md`](../../../TEMPLATE-SETUP.md); the
 rules on ADRs are
-[NUC-adrs-are-named-by-category](../../../docs/adr/NUC-adrs-are-named-by-category.md). This skill is
-the order of the conversation and states no rule of its own
+[NUC-decisions-are-proposed-then-accepted](../../../docs/adr/NUC-decisions-are-proposed-then-accepted.md),
+[NUC-adrs-are-named-by-category](../../../docs/adr/NUC-adrs-are-named-by-category.md), and
+[NUC-base-is-fixed](../../../docs/adr/NUC-base-is-fixed.md). This skill is the order of the
+conversation and states no rule of its own
 ([NUC-procedures-are-skills §3](../../../docs/adr/NUC-procedures-are-skills.md)).
 
 ## How the conversation runs

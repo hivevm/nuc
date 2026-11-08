@@ -21,9 +21,9 @@ Authority runs **specification → accepted ADRs → task**
 1. **Settle scope and intent first** when they are not yet agreed
    ([`AGENTS.md` §4](AGENTS.md#4-working-style)).
 2. **Follow [`AGENTS.md`](AGENTS.md)**: when a decision needs an ADR and how it is reviewed
-   ([NUC-adrs-are-named-by-category](docs/adr/NUC-adrs-are-named-by-category.md)), when a change
-   counts as done ([§5](AGENTS.md#5-quality-bar--definition-of-done)), and the rules of integration
-   ([NUC-main-only-via-pr](docs/adr/NUC-main-only-via-pr.md)). Run
+   ([NUC-decisions-are-proposed-then-accepted](docs/adr/NUC-decisions-are-proposed-then-accepted.md)),
+   when a change counts as done ([§5](AGENTS.md#5-quality-bar--definition-of-done)), and the rules
+   of integration ([NUC-main-only-via-pr](docs/adr/NUC-main-only-via-pr.md)). Run
    [`scripts/check-all.sh`](scripts/check-all.sh) locally before pushing
    ([§5](AGENTS.md#5-quality-bar--definition-of-done)). It runs the same checks CI runs on every
    pull request, and the repository's git hooks run them for you ([Git hooks](#git-hooks)). They

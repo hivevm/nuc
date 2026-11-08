@@ -6,9 +6,12 @@ root). ADRs derive from the specification in [`docs/SPECIFICATION.md`](../SPECIF
 
 ## Mechanics
 
-The rules live in [NUC-adrs-are-named-by-category](NUC-adrs-are-named-by-category.md): when an ADR
-is written, how it is developed, who flips its status, that an accepted one is immutable and changed
-only by supersession. This section carries only the mechanics of the record;
+The rules live in three `NUC-` ADRs.
+[NUC-decisions-are-proposed-then-accepted](NUC-decisions-are-proposed-then-accepted.md) decides
+when an ADR is written, how it is developed, who flips its status, and that an accepted one is
+immutable. [NUC-adrs-are-named-by-category](NUC-adrs-are-named-by-category.md) decides how it is
+named, cited, superseded, and indexed. [NUC-base-is-fixed](NUC-base-is-fixed.md) decides the fixed
+base. This section carries only the mechanics of the record;
 [`scripts/check-docs.sh`](../../scripts/check-docs.sh) names in its header which of them it
 verifies.
 
@@ -22,10 +25,10 @@ verifies.
   ([NUC-adrs-are-named-by-category §5](NUC-adrs-are-named-by-category.md)). They change in the same
   commit as the ADR they describe, for additions, supersessions, and status flips alike. The status
   is shown via the legend's bullet and the ADR's `Applies to` header is mirrored verbatim in its own
-  column. The index routes a reader from a change to the decisions that bind it, so a row says
-  what its ADR governs without the file being opened. Two tables keep what a session reads apart
-  from what it looks up: an accepted or proposed ADR sits under **Binding**, a superseded or
-  rejected one under **Superseded and rejected**, and a status flip moves the row.
+  column. The index routes a reader from a change to the decisions that bind it, so a row says what
+  its ADR governs without the file being opened. Two tables keep what a session reads apart from
+  what it looks up: an accepted or proposed ADR sits under **Binding**, a superseded or rejected one
+  under **Superseded and rejected**, and a status flip moves the row.
 - **Identifiers are permanent once on `main`.** A normalization keeps them, and only a merged or
   split ADR takes a new one
   ([NUC-decisions-are-proposed-then-accepted §8](NUC-decisions-are-proposed-then-accepted.md)).

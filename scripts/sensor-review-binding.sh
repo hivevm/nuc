@@ -41,9 +41,10 @@
 # those of the merged branches included, that changes the text of an ADR and a path outside
 # docs/adr/ is listed too. Its Status, Date, and Deciders lines are not its text here: the flip to
 # accepted, which moves the date, may land with the implementation, and the Deciders line is the
-# human's record of who decided, not the decision. The index under docs/adr/ goes with its ADRs either
-# way. The commits of the exceptions the rules name, a normalization and the template repository's
-# correction of its own ADRs, are listed like any other, and the human reads them as such.
+# human's record of who decided, not the decision. The index under docs/adr/ goes with its ADRs
+# either way. The commits of the exceptions the rules name, a normalization and the template
+# repository's correction of its own ADRs, are listed like any other, and the human reads them as
+# such.
 #
 # Pure bash + git. Usage:
 #     scripts/sensor-review-binding.sh [--root <dir>] [--hand-off <file>] [base [head]]

@@ -5,10 +5,13 @@ description: Develop and submit an Architecture Decision Record, with a catalogu
 
 # Propose an ADR
 
-The rule is [NUC-adrs-are-named-by-category](../../../docs/adr/NUC-adrs-are-named-by-category.md);
-the mechanics of the record are in [`docs/adr/README.md`](../../../docs/adr/README.md). This skill
-is the order of work. It states no rule of its own
-([NUC-procedures-are-skills §3](../../../docs/adr/NUC-procedures-are-skills.md)).
+The rules are
+[NUC-decisions-are-proposed-then-accepted](../../../docs/adr/NUC-decisions-are-proposed-then-accepted.md),
+[NUC-adrs-are-named-by-category](../../../docs/adr/NUC-adrs-are-named-by-category.md), and, for
+the `Extends`, `Narrows`, and `Role` fields,
+[NUC-base-is-fixed](../../../docs/adr/NUC-base-is-fixed.md); the mechanics of the record are in
+[`docs/adr/README.md`](../../../docs/adr/README.md). This skill is the order of work. It states no
+rule of its own ([NUC-procedures-are-skills §3](../../../docs/adr/NUC-procedures-are-skills.md)).
 
 ## 1. Calibrate
 

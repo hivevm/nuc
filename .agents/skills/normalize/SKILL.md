@@ -161,9 +161,9 @@ the fixed base and to identifiers
 a normalization of identifiers only
 ([NUC-decisions-are-proposed-then-accepted §8](../../../docs/adr/NUC-decisions-are-proposed-then-accepted.md)),
 which covers its edits to accepted project ADRs: the renames, the headings, the `Status` and
-`Supersedes` fields, the `Role` lines, and the rewraps. The release's
-map is [`map-v0.9.0.txt`](map-v0.9.0.txt): the six inherited ADRs to the `NUC-` ADRs, and a table of
-every clause with the `NUC-` clause that carries it.
+`Supersedes` fields, the `Role` lines, and the rewraps. The release's map is
+[`map-v0.9.0.txt`](map-v0.9.0.txt): the six inherited ADRs to the `NUC-` ADRs, and a table of every
+clause with the `NUC-` clause that carries it.
 
 1. **What the project added.** List what the project wrote into an inherited ADR, with
    `git diff <tag of the release line> HEAD -- 'docs/adr/000[1-6]-*.md'` against the template's

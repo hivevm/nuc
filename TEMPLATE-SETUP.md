@@ -164,15 +164,14 @@ The steps still open follow.
 Project-specific conventions belong in [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md), in checks, and
 in ADRs; on what may and may not be edited, see
 [NUC-decisions-are-proposed-then-accepted §6](docs/adr/NUC-decisions-are-proposed-then-accepted.md)
-and [NUC-base-is-fixed §1](docs/adr/NUC-base-is-fixed.md). Leave the
-**Dev Container**, **Coding Agents**, and **Repository settings** sections of `CONTRIBUTING.md` and
-the **Template** section of the README as-is; they describe the scaffold. A project without a Dev
-Container changes the first two as [A small project](#a-small-project) says. The Template section
-names the release this project carries and is the one link to the template that stays. The
-**Project Layout** block of `CONTRIBUTING.md` inventories the top level, so a part you remove goes
-out of it, this file included, and a part you add goes in, such as the source tree and the
-toolchain's files of step 6; check 10 of [`scripts/check-docs.sh`](scripts/check-docs.sh) fails on
-one it does not name.
+and [NUC-base-is-fixed §1](docs/adr/NUC-base-is-fixed.md). Leave the **Dev Container**, **Coding
+Agents**, and **Repository settings** sections of `CONTRIBUTING.md` and the **Template** section of
+the README as-is; they describe the scaffold. A project without a Dev Container changes the first
+two as [A small project](#a-small-project) says. The Template section names the release this project
+carries and is the one link to the template that stays. The **Project Layout** block of
+`CONTRIBUTING.md` inventories the top level, so a part you remove goes out of it, this file
+included, and a part you add goes in, such as the source tree and the toolchain's files of step 6;
+check 10 of [`scripts/check-docs.sh`](scripts/check-docs.sh) fails on one it does not name.
 
 ## A small project
 
