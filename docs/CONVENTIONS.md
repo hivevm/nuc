@@ -18,4 +18,7 @@ skimmed. The design revision drops what prevented nothing
 - **A self-test asserts what it builds** — it takes its fixtures from the tree it copies or writes
   them itself, never from the template's own ADRs, scripts, or numbers, so it holds in a derived
   project and after a normalization.
+- **A check's cases are a table** — a new or changed check writes its cases into a table under
+  `scripts/fixtures/` before its code, and its self-test reads the table, so a port of the
+  checks is held to the same cases.
 - **<Convention>** — what is done, and why.
