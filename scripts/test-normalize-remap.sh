@@ -4,14 +4,14 @@
 # Verifies: NUC-decisions-are-proposed-then-accepted
 #
 # Each case builds a throwaway git repository under a temporary directory, writes a map, runs the
-# script in it, and asserts the exit code and the files afterwards. The cases cover an ADR moved
-# to a new identifier, a clause moved to another ADR, the one migration of a numbered ADR, a split
-# left for the hand, a marker that already names the successor, a refused chain, the --check
-# mode, a second run that changes nothing, a swap of two criteria, the record left untouched, a
-# criterion outside Markdown and outside a marker line, a reference to an ADR with no successor, an
-# ignored file, files without a final newline and a binary one, each invalid map, which changes
-# nothing, and every ADR of a copy of this repository moved to a new identifier, after which the
-# other self-tests still pass.
+# script in it, and asserts the exit code and the files afterwards. The cases cover an ADR moved to
+# a new identifier, a clause moved to another ADR, the one migration of a numbered ADR, a split left
+# for the hand, a marker that already names the successor, a refused chain, the --check mode, a
+# second run that changes nothing, a swap of two criteria, the record left untouched, a criterion
+# outside Markdown and outside a marker line, a reference to an ADR with no successor, an ignored
+# file, files without a final newline and a binary one, the release's map applied from the tree, the
+# record moved with --record, each invalid map, which changes nothing, and every ADR of a copy of
+# this repository moved to a new identifier, after which the other self-tests still pass.
 #
 # The identifiers in the fixtures are assembled at run time: a literal one would be a reference
 # that check-docs.sh and check-traceability.sh hold against this repository.
@@ -69,9 +69,9 @@ run() {
   (cd "$dir" && bash "$REMAP" "$work/map-$(basename "$dir")") > "$work/out" 2>&1
 }
 
-# rerun <dir> [--check] — run the script again with the map the last run wrote for the directory.
+# rerun <dir> [--check] — run the script again with the map the last run wrote, SIGPIPE ignored.
 rerun() {
-  (cd "$1" && bash "$REMAP" ${2:+"$2"} "$work/map-$(basename "$1")") > "$work/out" 2>&1
+  (trap '' PIPE; cd "$1" && bash "$REMAP" ${2:+"$2"} "$work/map-$(basename "$1")") > "$work/out" 2>&1
 }
 
 # An ADR moved to a new identifier: a citation, a clause, a link and its file, and a marker.
@@ -106,6 +106,11 @@ printf '%s %s\n' "$(id one)" "$(id four)" > "$work/map-check"
 check "--check exits 1 when something would move" "[[ $rc -eq 1 ]]"
 check "--check names the reference" "grep -qF 'README.md:1: $(id one) -> $(id four)' '$work/out'"
 check "--check changes nothing" "grep -qxF 'See $(id one).' '$d/README.md'"
+printf 'See %s and %s.\n' "$(old 1)" "$(old 3)" > "$d/README.md"
+printf '0001-alpha.md %s %s\n0003-gamma.md %s\n' "$(id one)" "$(id two)" "$(id four)" > "$work/map-check"
+(cd "$d" && bash "$REMAP" --check "$work/map-check") > "$work/out" 2>&1; rc=$?
+check "--check lists what it would leave beside what it would move" \
+  "[[ $rc -eq 1 ]] && grep -qF 'README.md:1: $(old 3) -> $(id four)' '$work/out' && grep -qF 'README.md:1: $(old 1) is split into' '$work/out'"
 
 # A clause moved to another ADR: the citation and the file of its link move together, and the
 # other clauses of the old ADR stay.
@@ -124,6 +129,41 @@ run "$d" "0002-beta.md $(id six)"; rc=$?
 check "a numbered ADR mapped to an identifier exits 0" "[[ $rc -eq 0 ]]"
 check "a numbered ADR moves with its file and its index row" \
   "grep -qF 'See [$(id six)](docs/adr/$(id six).md) and $(id six).' '$d/README.md' && grep -qxF '| [$(id six)]($(id six).md) |' '$d/README.md'"
+
+# With --record, the one migration moves the record too: a numbered ADR's file, heading, status,
+# links, and index row, and a split it cites is listed. A NUC- file stays as it was.
+d="$(repo record)"
+base="$(printf '%s-base-rule' NUC)"
+printf '# %s: a\n\nSee [%s](0008-beta.md) and %s.\n' "$(old 7)" "$(old 8)" "$(old 1)" > "$d/docs/adr/0007-alpha.md"
+printf '# %s: b\n\n- **Status:** superseded by %s\n' "$(old 8)" "$(old 7)" > "$d/docs/adr/0008-beta.md"
+printf '| [0007](0007-alpha.md) |\n' > "$d/docs/adr/README.md"; echo x > "$d/docs/adr/0006-gamma.md"
+printf '# %s: c\n\nNot %s.\n' "$base" "$(old 7)" > "$d/docs/adr/$base.md"; cp "$d/docs/adr/$base.md" "$d/AGENTS.md"
+git -C "$d" add -A
+printf '0001-x.md %s %s\n0008-beta.md %s\n0007-alpha.md %s\n0006-gamma.md %s\n' "$(id one)" "$(id two)" "$(id eight)" "$(id seven)" "$(id six)" > "$work/map-record"
+(cd "$d" && bash "$REMAP" --record --check "$work/map-record") > "$work/out" 2>&1; rc=$?
+check "--record --check exits 1, names the renames sorted by the old file name, and changes nothing" \
+  "[[ $rc -eq 1 && \"\$(grep -o '^docs/adr/000[678][^ ]* -> docs/adr/[^.]*' '$work/out' | tr '\n' ' ')\" == 'docs/adr/0006-gamma.md -> docs/adr/$(id six) docs/adr/0007-alpha.md -> docs/adr/$(id seven) docs/adr/0008-beta.md -> docs/adr/$(id eight) ' && -f '$d/docs/adr/0007-alpha.md' ]]"
+(cd "$d" && bash "$REMAP" --record "$work/map-record") > "$work/out" 2>&1; rc=$?
+check "--record exits 2 on a split the record cites, and lists it" \
+  "[[ $rc -eq 2 ]] && grep -qF '0007-alpha.md:3: $(old 1) is split into' '$work/out'"
+check "--record renames a numbered ADR and moves its heading and links" \
+  "[[ ! -e '$d/docs/adr/0007-alpha.md' ]] && grep -qxF '# $(id seven): a' '$d/docs/adr/$(id seven).md' && grep -qF 'See [$(id eight)]($(id eight).md) and $(old 1).' '$d/docs/adr/$(id seven).md'"
+check "--record moves a status line and an index row" \
+  "grep -qF 'superseded by $(id seven)' '$d/docs/adr/$(id eight).md' && grep -qxF '| [$(id seven)]($(id seven).md) |' '$d/docs/adr/README.md'"
+check "--record leaves a NUC- file and AGENTS.md as they were" "grep -qxF 'Not $(old 7).' '$d/docs/adr/$base.md' && grep -qxF 'Not $(old 7).' '$d/AGENTS.md'"
+cp "$d/docs/adr/$(id seven).md" "$work/seven.before"
+(cd "$d" && bash "$REMAP" --record "$work/map-record") > "$work/out" 2>&1
+check "a second run with --record changes nothing" "cmp -s '$d/docs/adr/$(id seven).md' '$work/seven.before'"
+# A rename onto an existing file, a NUC- one among them, or two renames onto one file are refused.
+printf 'c\n' > "$d/docs/adr/0009-c.md"; printf 'd\n' > "$d/docs/adr/0010-d.md"
+# Filler longer than a pipe holds keeps the map's reader writing when the refusal exits.
+pad="$(printf '%9000s' '' | tr ' ' a)"
+for m in "0009-c.md $base" "0009-c.md $(id nine)|0010-d.md $(id nine)"; do
+  { tr '|' '\n' <<< "$m"; for i in 1 2 3 4 5 6 7 8; do echo "$(id f)$pad$i $(id g)$pad$i"; done; } > "$work/map-record"
+  (cd "$d" && bash "$REMAP" --record --check "$work/map-record") > "$work/out" 2>&1; rc=$?
+  (trap '' PIPE; cd "$d" && bash "$REMAP" --record "$work/map-record") >> "$work/out" 2>&1; rc=$rc$?
+  check "--record refuses a rename onto a taken name: $m" "[[ $rc == 11 ]] && ! grep -q 'Broken pipe' '$work/out' && grep -qxF c '$d/docs/adr/0009-c.md' && grep -qxF d '$d/docs/adr/0010-d.md' && grep -qF 'Not $(old 7).' '$d/docs/adr/$base.md'"
+done
 
 # A split: references are left for the hand and listed, but a marker that already names one of
 # the successors drops the old identifier.
@@ -196,6 +236,20 @@ printf 'notes.md\n' > "$d/.gitignore"
 printf '%s\n' "$(id one)" > "$d/notes.md"
 run "$d" "$(id one) $(id four)"; rc=$?
 check "an ignored file is left alone" "[[ $rc -eq 0 ]] && grep -qxF '$(id one)' '$d/notes.md'"
+
+# The release's map, applied from where the tree ships it: it is valid, a whole ADR moves, a split
+# is left for the hand, and the map file itself stays as it was.
+d="$(repo shipped)"
+shipped=".agents/skills/normalize/map-v0.9.0.txt"
+mkdir -p "$d/${shipped%/*}"
+cp "$ROOT/$shipped" "$d/$shipped"
+to="$(awk '$1 ~ /^0003-/ { print $2 }' "$d/$shipped")"
+printf 'See %s and %s.\n' "$(old 3)" "$(old 1)" > "$d/README.md"
+(cd "$d" && bash "$REMAP" "$shipped") > "$work/out" 2>&1; rc=$?
+check "the release's map exits 2 on a split" "[[ $rc -eq 2 ]]"
+check "the release's map moves a whole ADR and leaves a split" \
+  "[[ -n '$to' ]] && grep -qxF 'See $to and $(old 1).' '$d/README.md'"
+check "the release's map leaves its own file as it was" "cmp -s '$d/$shipped' '$ROOT/$shipped'"
 
 # A file the map does not change keeps its bytes, a binary one and one without a final newline
 # among them, and a file it changes keeps a missing final newline.
