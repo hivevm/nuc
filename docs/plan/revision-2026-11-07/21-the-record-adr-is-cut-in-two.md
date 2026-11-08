@@ -3,7 +3,7 @@
 ## What to build
 
 The spec `fixed-base-and-recut` cut the base one decision each. One `NUC-` ADR still holds
-several: [NUC-adrs-record-decisions](../../adr/NUC-adrs-record-decisions.md) decides when an ADR
+several: `NUC-adrs-record-decisions` decides when an ADR
 is due, how it is proposed and accepted, and that it is immutable (clauses 1 to 7), how it is
 named (8 to 10), the fixed base, the blob list, and the roles (11 to 13), and supersession, the
 index, citations, and normalization (14 to 17). Its *Decision* and *Enforcement* are 1,531 words,

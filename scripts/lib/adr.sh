@@ -1,10 +1,10 @@
 # shellcheck shell=bash disable=SC2034 # the variables are the sourcing script's
 # The header of an ADR, read one way by every script that reads it: a header field is the list
-# item '- **<Name>:** …' that docs/adr/template.md writes (NUC-adrs-record-decisions).
+# item '- **<Name>:** …' that docs/adr/template.md writes (NUC-adrs-are-named-by-category).
 # check-docs.sh fails on a field written in any other form, so every other reader may take the
 # list item for granted.
 # The identifier of an ADR is read one way too: '<CAT>-<slug>' in the file '<CAT>-<slug>.md'
-# (NUC-adrs-record-decisions §8).
+# (NUC-adrs-are-named-by-category §1).
 # Sourced by the checks and sensors that read an ADR's file name, identifier, or header.
 
 # An identifier: a category key of two to five capital letters, a hyphen, and a
@@ -38,7 +38,7 @@ adr_categories() {
 adr_categories ""
 
 # The roles a project fills with one accepted ADR each, named in its 'Role:' field
-# (NUC-adrs-record-decisions §13).
+# (NUC-base-is-fixed §3).
 ADR_ROLES=(harness toolchain)
 
 # The fields of docs/adr/template.md, an item's start, a field's item, a field anywhere (awk-safe).
@@ -60,7 +60,7 @@ ADR_FILE_RE="[A-Za-z]+-[^/]*\\.md"
 # adr_files <dir> — every ADR file in the directory, in order.
 adr_files() { LC_ALL=C find "$1" -maxdepth 1 -type f -name "$ADR_GLOB" | LC_ALL=C sort; }
 
-# adr_blobs <dir> — the blob list (NUC-adrs-record-decisions §12), '<blob> <file name>' a line:
+# adr_blobs <dir> — the blob list (NUC-base-is-fixed §2), '<blob> <file name>' a line:
 # the 'NUC-' files in the directory, in the order adr_files gives, then the rule file
 # AGENTS.md two levels up; nothing without a 'NUC-' file. git reads each file as it would store it, its line endings
 # converted, so the list holds on every platform. Fails, saying so, when git cannot hash a file.

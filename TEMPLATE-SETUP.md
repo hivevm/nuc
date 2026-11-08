@@ -26,8 +26,8 @@ An **existing project** takes up the template by an adoption, with the
 step 1 gives the project its identity. Then the specification and the record are restated in
 place of steps 2 and 3: the project's own decisions become its record, and the `NUC-` base stays
 as the release brings it
-([NUC-adrs-record-decisions §17](docs/adr/NUC-adrs-record-decisions.md)). The steps still open
-follow.
+([NUC-decisions-are-proposed-then-accepted §8](docs/adr/NUC-decisions-are-proposed-then-accepted.md)).
+The steps still open follow.
 
 ## What only you can do
 
@@ -65,7 +65,7 @@ follow.
    because every later one rests on them; the container, integration, planning, the design
    revision, and the releases follow. The project accepts the base by the release its README
    names, never edits a `NUC-` file, and extends or narrows a clause in an ADR of its own
-   ([NUC-adrs-record-decisions §11](docs/adr/NUC-adrs-record-decisions.md)). The template ships
+   ([NUC-base-is-fixed §1](docs/adr/NUC-base-is-fixed.md)). The template ships
    each with its test or its exemption, so the checks stay green. The Dev Container waits for
    step 4, where it is decided beside the
    environment: whether the project needs one rests on where its work runs, which the
@@ -90,10 +90,10 @@ follow.
    [`.agents/skills/propose-adr/concepts/`](.agents/skills/propose-adr/concepts/README.md), the
    simplest among them, with what each one's *Does not fit* says about this project; you choose,
    and the choice becomes an ADR of your own
-   ([NUC-adrs-record-decisions §1](docs/adr/NUC-adrs-record-decisions.md)).
+   ([NUC-decisions-are-proposed-then-accepted §1](docs/adr/NUC-decisions-are-proposed-then-accepted.md)).
    One decision per ADR, all of them in commits of ADRs only, status `proposed`
-   ([NUC-adrs-record-decisions §3](docs/adr/NUC-adrs-record-decisions.md)). Keeping what the
-   template ships is a choice too, and gets the mini-ADR of
+   ([NUC-decisions-are-proposed-then-accepted §3](docs/adr/NUC-decisions-are-proposed-then-accepted.md)).
+   Keeping what the template ships is a choice too, and gets the mini-ADR of
    [`docs/adr/template.md`](docs/adr/template.md): this file goes once the setup is done, and
    without the record the next session proposes the question again. Decide these and no more;
    everything else is decided when the work first needs it.
@@ -118,8 +118,8 @@ follow.
 
    **When they bind.** These ADRs are a start, not a cage. While they are `proposed`, a finding
    revises one in a commit of ADRs only
-   ([NUC-adrs-record-decisions §4](docs/adr/NUC-adrs-record-decisions.md)). The
-   ones the golden path of step 7 proves wrong are rewritten before they bind. Each flips to
+   ([NUC-decisions-are-proposed-then-accepted §4](docs/adr/NUC-decisions-are-proposed-then-accepted.md)).
+   The ones the golden path of step 7 proves wrong are rewritten before they bind. Each flips to
    accepted with what decides it:
    - **The shape and the toolchain** flip with the golden path of step 7 and its tests.
    - **The environment** flips with `scripts/check-devcontainer.sh` and what its ADR adds. A
@@ -163,16 +163,15 @@ follow.
 
 Project-specific conventions belong in [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md), in checks, and
 in ADRs; on what may and may not be edited, see
-[NUC-adrs-record-decisions §6](docs/adr/NUC-adrs-record-decisions.md) and
-[NUC-adrs-record-decisions §11](docs/adr/NUC-adrs-record-decisions.md). Leave the
-**Dev Container**, **Coding Agents**, and **Repository settings** sections of `CONTRIBUTING.md` and
-the **Template** section of the README as-is; they describe the scaffold. A project without a Dev
-Container changes the first two as [A small project](#a-small-project) says. The Template section
-names the release this project carries and is the one link to the template that stays. The
-**Project Layout** block of `CONTRIBUTING.md` inventories the top level, so a part you remove goes
-out of it, this file included, and a part you add goes in, such as the source tree and the
-toolchain's files of step 6; check 10 of [`scripts/check-docs.sh`](scripts/check-docs.sh) fails on
-one it does not name.
+[NUC-decisions-are-proposed-then-accepted §6](docs/adr/NUC-decisions-are-proposed-then-accepted.md)
+and [NUC-base-is-fixed §1](docs/adr/NUC-base-is-fixed.md). Leave the **Dev Container**, **Coding
+Agents**, and **Repository settings** sections of `CONTRIBUTING.md` and the **Template** section of
+the README as-is; they describe the scaffold. A project without a Dev Container changes the first
+two as [A small project](#a-small-project) says. The Template section names the release this project
+carries and is the one link to the template that stays. The **Project Layout** block of
+`CONTRIBUTING.md` inventories the top level, so a part you remove goes out of it, this file
+included, and a part you add goes in, such as the source tree and the toolchain's files of step 6;
+check 10 of [`scripts/check-docs.sh`](scripts/check-docs.sh) fails on one it does not name.
 
 ## A small project
 

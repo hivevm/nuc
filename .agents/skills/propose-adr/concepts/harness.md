@@ -8,7 +8,7 @@ that are deterministic and cheap enough to run on every change, and the inferent
 review in a fresh context. The harness ADR is the one
 [`AGENTS.md` §4](../../../../AGENTS.md#4-working-style) names for the parts kept with the human
 and the cap on open agent work. It carries the header field `Role: harness`
-([NUC-adrs-record-decisions §13](../../../../docs/adr/NUC-adrs-record-decisions.md)).
+([NUC-base-is-fixed §3](../../../../docs/adr/NUC-base-is-fixed.md)).
 
 ## Signals
 

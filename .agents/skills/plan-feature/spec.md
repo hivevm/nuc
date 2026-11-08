@@ -41,7 +41,8 @@
 <!-- Modules touched and the interfaces that change, schema and contract changes, clarifications
      from the human, in the project vocabulary, without file paths or code snippets. Any decision
      that is architecture-relevant is an ADR, not a bullet here
-     ([NUC-adrs-record-decisions §1](../../../docs/adr/NUC-adrs-record-decisions.md)). -->
+     ([NUC-decisions-are-proposed-then-accepted §1](../../../docs/adr/NUC-decisions-are-proposed-then-accepted.md)).
+     -->
 
 -
 
@@ -63,5 +64,5 @@
 <!-- Which ADRs in force bind this work (by identifier, the `NUC-` ones included, as
      scripts/sensor-binding-adrs.sh lists them), and whether it needs a new `proposed` ADR before
      implementation starts
-     ([NUC-adrs-record-decisions §2](../../../docs/adr/NUC-adrs-record-decisions.md)). "None" is an
-     answer; write why. -->
+     ([NUC-decisions-are-proposed-then-accepted §2](../../../docs/adr/NUC-decisions-are-proposed-then-accepted.md)).
+     "None" is an answer; write why. -->

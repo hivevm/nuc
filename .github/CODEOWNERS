@@ -1,8 +1,8 @@
 # Code owners for the two artifacts only a human decides: the specification, and the decision
 # record — an ADR's Status line included. The rules themselves are stated in
-# NUC-documents-are-fixed §2 and NUC-adrs-record-decisions §5; the review this file drives is a
-# repository setting, listed under "Repository settings" in ../CONTRIBUTING.md, and until that
-# setting is enabled this file changes nothing.
+# NUC-documents-are-fixed §2 and NUC-decisions-are-proposed-then-accepted §5; the review this file
+# drives is a repository setting, listed under "Repository settings" in ../CONTRIBUTING.md, and
+# until that setting is enabled this file changes nothing.
 #
 # TODO: add a code owner — a GitHub handle (@user) or a team (@org/team) with write access — and
 # uncomment the two rules below. They ship commented out on purpose: an owner GitHub does not

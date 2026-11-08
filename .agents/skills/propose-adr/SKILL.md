@@ -5,17 +5,20 @@ description: Develop and submit an Architecture Decision Record, with a catalogu
 
 # Propose an ADR
 
-The rule is [NUC-adrs-record-decisions](../../../docs/adr/NUC-adrs-record-decisions.md); the
+The rules are
+[NUC-decisions-are-proposed-then-accepted](../../../docs/adr/NUC-decisions-are-proposed-then-accepted.md)
+and [NUC-adrs-are-named-by-category](../../../docs/adr/NUC-adrs-are-named-by-category.md); the
 mechanics of the record are in [`docs/adr/README.md`](../../../docs/adr/README.md). This skill is
 the order of work. It states no rule of its own
 ([NUC-procedures-are-skills §3](../../../docs/adr/NUC-procedures-are-skills.md)).
 
 ## 1. Calibrate
 
-Decide with [NUC-adrs-record-decisions §2](../../../docs/adr/NUC-adrs-record-decisions.md) whether
-this needs an ADR at all. The rule's third case, what a reader without this conversation would take
-for a mistake, is the deliberate deviation from the obvious path; record it, or the next session
-"fixes" it. When no ADR is needed, say so and stop here.
+Decide with
+[NUC-decisions-are-proposed-then-accepted §2](../../../docs/adr/NUC-decisions-are-proposed-then-accepted.md)
+whether this needs an ADR at all. The rule's third case, what a reader without this conversation
+would take for a mistake, is the deliberate deviation from the obvious path; record it, or the next
+session "fixes" it. When no ADR is needed, say so and stop here.
 
 ## 2. Interrogate the request
 
@@ -49,7 +52,7 @@ in the record.
    instruction paragraph.
 2. One decision per ADR: one "We will …" sentence. A second one is a second ADR, unless the
    decision is the interplay of an integration
-   ([NUC-adrs-record-decisions §1](../../../docs/adr/NUC-adrs-record-decisions.md)).
+   ([NUC-decisions-are-proposed-then-accepted §1](../../../docs/adr/NUC-decisions-are-proposed-then-accepted.md)).
 3. **Alternatives:** every one the interrogation surfaced, each with why not. For a concept of
    the catalogue, its entry's sections carry over: *Fits when* and *Does not fit* into the
    Context, *Alternatives* and *Sources* as they stand, checked against this project, and *The
@@ -71,5 +74,6 @@ in the record.
 ## 4. Submit
 
 Commit on a branch and hand the ADR to the human as
-[NUC-adrs-record-decisions §3](../../../docs/adr/NUC-adrs-record-decisions.md) asks. What follows is
-[NUC-adrs-record-decisions §4](../../../docs/adr/NUC-adrs-record-decisions.md).
+[NUC-decisions-are-proposed-then-accepted §3](../../../docs/adr/NUC-decisions-are-proposed-then-accepted.md)
+asks. What follows is
+[NUC-decisions-are-proposed-then-accepted §4](../../../docs/adr/NUC-decisions-are-proposed-then-accepted.md).

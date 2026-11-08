@@ -21,7 +21,7 @@
 # tests, not the constitution.
 #
 # A marker is the word 'Verifies', a colon, and one or more identifiers separated by spaces or
-# commas: an ADR's, such as NUC-adrs-record-decisions, G-1, or Q-2. A
+# commas: an ADR's, such as NUC-base-is-fixed, G-1, or Q-2. A
 # word of another form fails. Markers count in any file git does not ignore that is not Markdown,
 # which is excluded so that the specification and the ADRs can describe markers without being
 # counted as one.
@@ -49,7 +49,7 @@ SPEC="docs/SPECIFICATION.md"
 ADR_DIR="docs/adr"
 ID_RE="$ADR_ID_RE"
 # The ADR that decides the checks, which each self-test of a sensor cites: a NUC- identifier no
-# normalization moves (NUC-adrs-record-decisions §17).
+# normalization moves (NUC-decisions-are-proposed-then-accepted §8).
 CHECKS_ADR="NUC-checks-are-bash"
 
 

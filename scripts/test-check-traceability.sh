@@ -192,7 +192,7 @@ expect fail "marker citing a superseded ADR" "$d" "'$(adr_id 1)', which is super
 
 # --- cases: identifiers of the new form, read from the fixture table ----------------------
 
-# Verifies: NUC-adrs-record-decisions
+# Verifies: NUC-adrs-are-named-by-category
 # The table's format and its notation are those of scripts/fixtures/check-docs-record.txt, with
 # four fields, no check number, and the steps its header names.
 TABLE="$ROOT/scripts/fixtures/check-traceability.txt"

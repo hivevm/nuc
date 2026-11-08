@@ -5,7 +5,7 @@ wrote. Every project decides it at setup; the template ships none. The toolchain
 the review skill, the pull request template, and the shape entries of this catalogue name when
 they speak of "the sensors the toolchain ADR names". It carries the header field
 `Role: toolchain`
-([NUC-adrs-record-decisions §13](../../../../docs/adr/NUC-adrs-record-decisions.md)).
+([NUC-base-is-fixed §3](../../../../docs/adr/NUC-base-is-fixed.md)).
 
 The sensors come in three kinds:
 

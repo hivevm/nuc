@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Applies a map of ADR identifiers, clauses, and criteria to every reference in the tree
-# (NUC-adrs-record-decisions §17, NUC-releases-are-semver-tags §7).
+# (NUC-decisions-are-proposed-then-accepted §8, NUC-releases-are-semver-tags §7).
 #
 # The map is a reviewed file of lines 'OLD NEW'. Blank lines and lines starting with '#' are
 # ignored. An identifier is '<CAT>-<slug>'; a clause is written without a space, '<CAT>-<slug>§n'.
@@ -24,13 +24,14 @@
 # ordinary string.
 #
 # Every match is looked up in the map once. Identifiers are never used twice
-# (NUC-adrs-record-decisions §8), so a map whose successor is itself mapped is refused, and a
+# (NUC-adrs-are-named-by-category §1), so a map whose successor is itself mapped is refused, and a
 # second run of a map changes nothing. Criteria are renumbered by a normalization and may swap; a
 # map of criteria is one pass. The script never edits a criterion in docs/SPECIFICATION.md, nor
 # docs/adr/, whose record the normalization writes. With --record, for the migration to identifiers
-# (NUC-adrs-record-decisions §17), it edits docs/adr/ too, the index and the headings among it, but
-# never a NUC- file, the blob list, or AGENTS.md, which the release holds, and renames each numbered
-# ADR file that the map moves to one identifier, refusing a name that exists or that two take.
+# (NUC-decisions-are-proposed-then-accepted §8), it edits docs/adr/ too, the index and the headings
+# among it, but never a NUC- file, the blob list, or AGENTS.md, which the release holds, and renames
+# each numbered ADR file that the map moves to one identifier, refusing a name that exists or that
+# two take.
 #
 # The files are the ones git tracks plus new ones it does not ignore, as check-docs.sh reads
 # them. A file is written only when the map changes its text, and then keeps every other byte,

@@ -1,4 +1,4 @@
-# The map of release v0.9.0: the six numbered ADRs a project inherited, 0001 to 0006, to the ten
+# The map of release v0.9.0: the six numbered ADRs a project inherited, 0001 to 0006, to the twelve
 # NUC- ADRs that carry their clauses. The migration of the normalize skill applies it once with
 # remap.sh, whose header gives the form of a line; the release notes point here.
 #
@@ -8,11 +8,11 @@
 # home, such as an Out of scope that names another ADR, counts for nothing. Place each left
 # reference by hand at the NUC- clause that carries what it cites, from that table.
 
-0001-agent-governance-model.md       NUC-documents-are-fixed NUC-adrs-record-decisions NUC-main-only-via-pr NUC-releases-are-semver-tags
-0002-decisions-verified-by-tests.md  NUC-decisions-cite-tests NUC-checks-are-bash NUC-adrs-record-decisions NUC-main-only-via-pr
+0001-agent-governance-model.md       NUC-documents-are-fixed NUC-decisions-are-proposed-then-accepted NUC-adrs-are-named-by-category NUC-base-is-fixed NUC-main-only-via-pr NUC-releases-are-semver-tags
+0002-decisions-verified-by-tests.md  NUC-decisions-cite-tests NUC-checks-are-bash NUC-adrs-are-named-by-category NUC-main-only-via-pr
 0003-procedures-as-skills.md         NUC-procedures-are-skills
 0004-dev-container-runtime.md        NUC-container-hides-host-daemon NUC-checks-are-bash
-0005-template-releases.md            NUC-releases-are-semver-tags NUC-adrs-record-decisions
+0005-template-releases.md            NUC-releases-are-semver-tags NUC-decisions-are-proposed-then-accepted NUC-adrs-are-named-by-category NUC-base-is-fixed
 0006-feature-layer.md                NUC-large-work-is-planned NUC-design-is-revised NUC-main-only-via-pr
 
 # The clause table: each clause of an old ADR, shortened to a line, with its home. A row reads
@@ -27,11 +27,11 @@
 #   1.02 | Specification = the constitution: what the project is for | NUC-documents-are-fixed §1
 #   1.03 | A spec change is a decision, not an edit; a human makes it | NUC-documents-are-fixed §2 (b1)
 #   1.04 | It names every accepted ADR whose basis it moves | NUC-documents-are-fixed §2 (b2)
-#   1.05 | Each named ADR is reconsidered in the same review and superseded where invalidated | NUC-documents-are-fixed §2 (b3) for project ADRs. CM: a `NUC-` clause it invalidates is narrowed by a project ADR or forked (NUC-documents-are-fixed §2 b4), and the template corrects its own `NUC-` ADR in place (NUC-documents-are-fixed §2 b5 → NUC-adrs-record-decisions §6)
+#   1.05 | Each named ADR is reconsidered in the same review and superseded where invalidated | NUC-documents-are-fixed §2 (b3) for project ADRs. CM: a `NUC-` clause it invalidates is narrowed by a project ADR or forked (NUC-documents-are-fixed §2 b4), and the template corrects its own `NUC-` ADR in place (NUC-documents-are-fixed §2 b5 → NUC-decisions-are-proposed-then-accepted §6)
 #   1.06 | An agent drafts spec text; never lands it; never judges alone that no ADR is affected | NUC-documents-are-fixed §2 (b1)
 #   1.07 | While nothing derives from a passage, there is nothing to name | NUC-documents-are-fixed §2 (b2, "a passage no ADR derives from names none")
-#   1.08 | `docs/adr/` = the record of every architecture-relevant decision | NUC-documents-are-fixed §1 (role) → NUC-adrs-record-decisions §1 (when)
-#   1.09 | … derived from the specification | NUC-adrs-record-decisions §7 (authority)
+#   1.08 | `docs/adr/` = the record of every architecture-relevant decision | NUC-documents-are-fixed §1 (role) → NUC-decisions-are-proposed-then-accepted §1 (when)
+#   1.09 | … derived from the specification | NUC-decisions-are-proposed-then-accepted §7 (authority)
 #   1.10 | `AGENTS.md` = one vendor-neutral rule file, the single source of working rules | NUC-documents-are-fixed §3
 #   1.11 | Overview = current state: parts, responsibilities, how they fit | NUC-documents-are-fixed §1
 #   1.12 | Overview holds no rule and no decision | NUC-documents-are-fixed §4
@@ -55,26 +55,26 @@
 #   1.30 | Mechanics say how a rule is carried out and add no rule | NUC-documents-are-fixed §8
 #   1.31 | A per-agent configuration may close a path for its one agent as defence in depth; enforces no rule; no rule rests on it | NUC-main-only-via-pr §7 (NUC-documents-are-fixed OoS points there)
 #   1.32 | Load-bearing: exactly one rule file | NUC-documents-are-fixed §3
-#   1.33 | An ADR that supersedes any other part of this record restates the load-bearing clause | dropped, CM: no project ADR may supersede a `NUC-` ADR (NUC-adrs-record-decisions §11)
-#   1.34 | The ADR rules of `AGENTS.md` §3 are the one block with no ADR behind it — accepted here | dropped, CM: NUC-adrs-record-decisions now carries the §3 rules (spec, *The cut*)
-#   1.35 | In the template the §3 block changes as this ADR is corrected in place, release notes say so | NUC-adrs-record-decisions §6 (template corrects `NUC-` in place, a release ships it); notes → NUC-releases-are-semver-tags §2
-#   1.36 | In a derived project §3 changes by an ADR on the ADR process, which edits the block in the change that lands it | CM: a project ADR extends or narrows an NUC-adrs-record-decisions clause (NUC-adrs-record-decisions §11); the rule file is not edited. The normalize skill §7 step 3 follows
-#   1.37 | Rule 1 belongs to the block: the catalogue is what a decision is proposed from | NUC-adrs-record-decisions §1 (b3)
-#   1.38 | Rule 3: ADRs the same human decides may travel together, in commits of ADRs only | NUC-adrs-record-decisions §3 (head + b2)
-#   1.39 | … the founding decisions of a new project always, proposed as one start, revised while proposed | dropped as a rule, CM: NUC-adrs-record-decisions §3 b2 keeps "may"; the practice is the order of TEMPLATE-SETUP step 4 / `setup-project` §4
-#   1.40 | Rule 5 with its normalization: on instruction, record restated in reading order, without dead ADRs, no decision changed | NUC-adrs-record-decisions §17. CM: no "reading order" renumbering; identifiers stay except merged/split; `NUC-` files untouched
-#   1.41 | Why: a record that only grows costs every session the reconstruction | NUC-adrs-record-decisions Context / reason, no rule
+#   1.33 | An ADR that supersedes any other part of this record restates the load-bearing clause | dropped, CM: no project ADR may supersede a `NUC-` ADR (NUC-base-is-fixed §1)
+#   1.34 | The ADR rules of `AGENTS.md` §3 are the one block with no ADR behind it — accepted here | dropped, CM: NUC-decisions-are-proposed-then-accepted and NUC-adrs-are-named-by-category now carry the §3 rules (spec, *The cut*)
+#   1.35 | In the template the §3 block changes as this ADR is corrected in place, release notes say so | NUC-decisions-are-proposed-then-accepted §6 (template corrects `NUC-` in place, a release ships it); notes → NUC-releases-are-semver-tags §2
+#   1.36 | In a derived project §3 changes by an ADR on the ADR process, which edits the block in the change that lands it | CM: a project ADR extends or narrows a clause of NUC-decisions-are-proposed-then-accepted (NUC-base-is-fixed §1); the rule file is not edited. The normalize skill §7 step 3 follows
+#   1.37 | Rule 1 belongs to the block: the catalogue is what a decision is proposed from | NUC-decisions-are-proposed-then-accepted §1 (b3)
+#   1.38 | Rule 3: ADRs the same human decides may travel together, in commits of ADRs only | NUC-decisions-are-proposed-then-accepted §3 (head + b2)
+#   1.39 | … the founding decisions of a new project always, proposed as one start, revised while proposed | dropped as a rule, CM: NUC-decisions-are-proposed-then-accepted §3 b2 keeps "may"; the practice is the order of TEMPLATE-SETUP step 4 / `setup-project` §4
+#   1.40 | Rule 5 with its normalization: on instruction, record restated in reading order, without dead ADRs, no decision changed | NUC-decisions-are-proposed-then-accepted §8. CM: no "reading order" renumbering; identifiers stay except merged/split; `NUC-` files untouched
+#   1.41 | Why: a record that only grows costs every session the reconstruction | NUC-decisions-are-proposed-then-accepted Context / reason, no rule
 #   1.42 | OoS: what AGENTS.md says and how documents cite it | NUC-documents-are-fixed OoS (beyond §3); citing → NUC-documents-are-fixed §3 (b1)
 #   1.43 | OoS: which agents, which need a pointer file | NUC-documents-are-fixed Lat 1 (harness entry)
-#   1.44 | OoS: how the ADR record is kept | NUC-adrs-record-decisions (NUC-documents-are-fixed §1 links it)
+#   1.44 | OoS: how the ADR record is kept | NUC-decisions-are-proposed-then-accepted (NUC-documents-are-fixed §1 links it)
 #   1.45 | OoS: notation and depth of the overview | NUC-documents-are-fixed Lat 2
 #   1.46 | OoS: vocabulary with more than one bounded context | NUC-documents-are-fixed Lat 3
 #   1.47 | OoS: which documents a derived project drops | NUC-documents-are-fixed Lat 4 + §1. CM: the six of §1 may no longer be dropped, only those of §7
-#   1.48 | Enf: check-docs — record and index agree | NUC-adrs-record-decisions Enf (cl. 14–16; index §15)
+#   1.48 | Enf: check-docs — record and index agree | NUC-adrs-are-named-by-category Enf (cl. 4–6; index §5)
 #   1.49 | Enf: links resolve; section references point at their section; hence cite by anchor, never restate | NUC-documents-are-fixed Enf (checks 3, 4) + NUC-documents-are-fixed §3 (b1)
 #   1.50 | Enf: plain-rules sensor holds _Avoid:_ lists on added lines of AGENTS.md / Decision / Enforcement; names the term; skips code spans and italics; fails nothing | NUC-documents-are-fixed Enf (cl. 5); skip details → sensor header (mechanics)
-#   1.51 | Enf: binding sensor lists ADRs in force by *Applies to*; `--sections`; prose *Applies to* from the index Binding table; reads paths only, never fails; self-test cites | NUC-adrs-record-decisions Enf. CM: reads every ADR file, `NUC-` included, not the index
-#   1.52 | Enf: remap self-test — a map moves every reference once, a swap included; record left to the normalization. CODEOWNERS routes a spec change to the owner. Review list (no other doc holds a rule / overview matches / glossary terms in use / no convention where a check decides / normalization changed no decision) | NUC-adrs-record-decisions Enf (cl. 17); NUC-documents-are-fixed Enf (CODEOWNERS, cl. 2); NUC-documents-are-fixed NMD (cl. 1, 7, 8 / 4 / 5 / 6); NUC-adrs-record-decisions NMD (cl. 17)
+#   1.51 | Enf: binding sensor lists ADRs in force by *Applies to*; `--sections`; prose *Applies to* from the index Binding table; reads paths only, never fails; self-test cites | NUC-decisions-are-proposed-then-accepted Enf. CM: reads every ADR file, `NUC-` included, not the index
+#   1.52 | Enf: remap self-test — a map moves every reference once, a swap included; record left to the normalization. CODEOWNERS routes a spec change to the owner. Review list (no other doc holds a rule / overview matches / glossary terms in use / no convention where a check decides / normalization changed no decision) | NUC-decisions-are-proposed-then-accepted Enf (cl. 8); NUC-documents-are-fixed Enf (CODEOWNERS, cl. 2); NUC-documents-are-fixed NMD (cl. 1, 7, 8 / 4 / 5 / 6); NUC-decisions-are-proposed-then-accepted NMD (cl. 8)
 #
 # 0002-decisions-verified-by-tests.md
 #
@@ -82,11 +82,11 @@
 #   2.02 | Report each Goals / Quality Goals criterion no test cites | NUC-decisions-cite-tests §5
 #   2.03 | Each item of the two sections starts with bold `G-n` / `Q-n`; an item without one fails | NUC-decisions-cite-tests §1
 #   2.04 | Criterion identifiers are never reused | NUC-decisions-cite-tests §1
-#   2.05 | Only a normalization renumbers them and moves every marker | NUC-decisions-cite-tests §1 (→ NUC-adrs-record-decisions §17)
-#   2.06 | Marker = `Verifies:` + identifiers (`ADR-NNNN`, `ADR-draft-<slug>`, `G-n`) | NUC-decisions-cite-tests §2. CM: identifier forms now NUC-adrs-record-decisions §8; draft form gone
+#   2.05 | Only a normalization renumbers them and moves every marker | NUC-decisions-cite-tests §1 (→ NUC-decisions-are-proposed-then-accepted §8)
+#   2.06 | Marker = `Verifies:` + identifiers (`ADR-NNNN`, `ADR-draft-<slug>`, `G-n`) | NUC-decisions-cite-tests §2. CM: identifier forms now NUC-adrs-are-named-by-category §1; draft form gone
 #   2.07 | … in any non-ignored, non-Markdown file; plain text so every language carries it | NUC-decisions-cite-tests §2 (reason in Context)
-#   2.08 | Draft = `docs/adr/draft-<slug>.md`, slug form, cited `ADR-draft-<slug>` | dropped, CM: NUC-adrs-record-decisions §8 (no draft state)
-#   2.09 | `scripts/number-adrs.sh` numbers drafts on the branch to `main`, after taking up `main`, in add order | dropped, CM: NUC-adrs-record-decisions §8 ("no step numbers ADRs")
+#   2.08 | Draft = `docs/adr/draft-<slug>.md`, slug form, cited `ADR-draft-<slug>` | dropped, CM: NUC-adrs-are-named-by-category §1 (no draft state)
+#   2.09 | `scripts/number-adrs.sh` numbers drafts on the branch to `main`, after taking up `main`, in add order | dropped, CM: NUC-adrs-are-named-by-category §1 ("no step numbers ADRs")
 #   2.10 | Two commits (docs/adr only, then the rest), map in the body, rule 4 kept, first red | dropped with 2.09
 #   2.11 | Commits before numbering keep draft ids; the map resolves them | dropped with 2.09
 #   2.12 | No draft reaches `main` (ready PR fails, push fails, draft PR passes) | dropped with 2.08
@@ -110,7 +110,7 @@
 #   2.30 | GitHub-repository sensors may need `gh`, authenticated through its web flow | NUC-checks-are-bash §7; auth → NUC-main-only-via-pr §3 (NUC-checks-are-bash §7 now only cites it)
 #   2.31 | … run on a human's instruction, not in check-all / `checks.yml` (reasons) | NUC-checks-are-bash §7
 #   2.32 | … self-test on fixture responses, no `gh`, stays in the three lists | NUC-checks-are-bash §7
-#   2.33 | Proposed ADRs are out of the check's scope; tests land while proposed, acceptance with them | NUC-decisions-cite-tests §3 (→ NUC-adrs-record-decisions §4, §5)
+#   2.33 | Proposed ADRs are out of the check's scope; tests land while proposed, acceptance with them | NUC-decisions-cite-tests §3 (→ NUC-decisions-are-proposed-then-accepted §4, §5)
 #   2.34 | OoS: adequacy of a citing test | NUC-decisions-cite-tests OoS
 #   2.35 | OoS: whether tests pass (project's build-test job) | NUC-decisions-cite-tests OoS. CM (minor): attributed to the `toolchain` role ADR
 #   2.36 | OoS: test framework, layout, kind | NUC-decisions-cite-tests OoS + Lat 1
@@ -121,7 +121,7 @@
 #   2.41 | Enf: GitHub sensor on instruction only, self-test without `gh` — review | NUC-checks-are-bash Enf (check 9) + NMD (cl. 7)
 #   2.42 | Enf: check-all refuses bash < 4.4 by name | NUC-checks-are-bash Enf (cl. 1)
 #   2.43 | Enf: test-git-hooks exercises every refusal; each sensor self-test cites this ADR | NUC-checks-are-bash Enf (cl. 6, cl. 4)
-#   2.44 | Enf: checks 2 and 16 and number-adrs self-test hold drafts | dropped with 2.08–2.12; check 2 now holds the NUC-adrs-record-decisions §8/§9 form (NUC-adrs-record-decisions Enf)
+#   2.44 | Enf: checks 2 and 16 and number-adrs self-test hold drafts | dropped with 2.08–2.12; check 2 now holds the NUC-adrs-are-named-by-category §1/§2 form (NUC-adrs-are-named-by-category Enf)
 #
 # 0003-procedures-as-skills.md
 #
@@ -154,7 +154,7 @@
 #   4.08 | (Enforcement only) `postStartCommand` enables the hooks and merge settings | NUC-container-hides-host-daemon §6 (promoted to a clause)
 #   4.09 | (implicit) binds every project, a project without a container supersedes 0004 | CM: NUC-container-hides-host-daemon §1 — binds only with `.devcontainer/`; a project without one deletes it and supersedes nothing
 #   4.10 | OoS: base image, Features, extensions, extension pinning | NUC-container-hides-host-daemon OoS + Lat
-#   4.11 | OoS: toolchain | NUC-container-hides-host-daemon OoS → NUC-adrs-record-decisions §13 (role)
+#   4.11 | OoS: toolchain | NUC-container-hides-host-daemon OoS → NUC-base-is-fixed §3 (role)
 #   4.12 | OoS: engine inside / container access (catalogue *Container access*) | NUC-container-hides-host-daemon OoS + Lat (catalogue link)
 #   4.13 | OoS: work outside the container | NUC-container-hides-host-daemon OoS + Lat
 #   4.14 | OoS: hardening | NUC-container-hides-host-daemon OoS
@@ -178,12 +178,12 @@
 #   5.11 | Patch = wording, or a script fix that keeps what it decides | NUC-releases-are-semver-tags §3
 #   5.12 | Before `v1.0.0` a minor may break (SemVer item 4) | NUC-releases-are-semver-tags §3
 #   5.13 | A derived project moves the line on take-up, only then; a line never moved stays true | NUC-releases-are-semver-tags §5
-#   5.14 | The template corrects its own ADRs in place | NUC-adrs-record-decisions §6 (NUC-releases-are-semver-tags OoS points there)
-#   5.15 | A project takes them up by release, not by reference; corrections come with the notes | NUC-releases-are-semver-tags §6 + NUC-adrs-record-decisions §6 ("a release ships the correction") + NUC-adrs-record-decisions §11
+#   5.14 | The template corrects its own ADRs in place | NUC-decisions-are-proposed-then-accepted §6 (NUC-releases-are-semver-tags OoS points there)
+#   5.15 | A project takes them up by release, not by reference; corrections come with the notes | NUC-releases-are-semver-tags §6 + NUC-decisions-are-proposed-then-accepted §6 ("a release ships the correction") + NUC-base-is-fixed §1
 #   5.16 | A correction the project must act on makes a major | NUC-releases-are-semver-tags §3
-#   5.17 | Template ADR numbers permanent between normalizations | NUC-adrs-record-decisions §8. CM: identifiers permanent, no normalization renumbers
+#   5.17 | Template ADR numbers permanent between normalizations | NUC-adrs-are-named-by-category §1. CM: identifiers permanent, no normalization renumbers
 #   5.18 | A normalization of the template is a major; notes carry the old-to-new map | NUC-releases-are-semver-tags §7. CM: re-cut (merge/split/remove a `NUC-` ADR), map per identifier and clause
-#   5.19 | A derived project's ADRs, accepted inherited ones included, change only by supersession or its own normalization | NUC-adrs-record-decisions §6, §14, §17. CM: inherited ADRs are no longer the project's; `NUC-` files never edited (NUC-adrs-record-decisions §11)
+#   5.19 | A derived project's ADRs, accepted inherited ones included, change only by supersession or its own normalization | NUC-decisions-are-proposed-then-accepted §6, §8; NUC-adrs-are-named-by-category §4. CM: inherited ADRs are no longer the project's; `NUC-` files never edited (NUC-base-is-fixed §1)
 #   5.20 | A project takes up a release's ADRs by a normalization | dropped, CM: NUC-releases-are-semver-tags §6 ("A take-up needs no normalization")
 #   5.21 | OoS: changelog file, release automation | NUC-releases-are-semver-tags OoS 1
 #   5.22 | OoS: how a derived project merges a release | NUC-releases-are-semver-tags OoS 2 + Lat 2
@@ -191,7 +191,7 @@
 #   5.24 | Follow-up: taking up a release's files is a `normalize` procedure | NUC-releases-are-semver-tags Consequences; normalize skill §7
 #   5.25 | Enf: check 14 on missing/malformed line; self-test cites | NUC-releases-are-semver-tags Enf 1 (cl. 4)
 #   5.26 | Not checked: tag exists; line moved with a release | NUC-releases-are-semver-tags NMD (cl. 2, 5)
-#   5.27 | Applies to: "its own ADRs" | NUC-adrs-record-decisions *Applies to*
+#   5.27 | Applies to: "its own ADRs" | NUC-base-is-fixed *Applies to*
 #
 # 0006-feature-layer.md
 #
@@ -218,7 +218,7 @@
 #   6.21 | A project whose sessions share a repository grants none | dropped as redundant: follows from NUC-main-only-via-pr §2 (the claim push exists only across clones)
 #   6.22 | Claimable once on `main` | NUC-large-work-is-planned §4 ("open tickets on `main`")
 #   6.23 | Release a claim by deleting its branch; local by the session, remote by a human | `work-tickets` §3.3 (how; the remote deletion is a push under NUC-main-only-via-pr §2)
-#   6.24 | Parallel sessions each in a worktree or container of their own, as the harness ADR says | harness role ADR (NUC-large-work-is-planned OoS → NUC-adrs-record-decisions §13). CM: no template rule any more
+#   6.24 | Parallel sessions each in a worktree or container of their own, as the harness ADR says | harness role ADR (NUC-large-work-is-planned OoS → NUC-base-is-fixed §3). CM: no template rule any more
 #   6.25 | The harness ADR says how a claim is made among sessions sharing neither repo nor remote | NUC-large-work-is-planned Lat 3
 #   6.26 | A spec closes when its tickets merged and a fresh session revised the design | NUC-design-is-revised §1
 #   6.27 | The revision revisits modules, binding ADRs, criteria; files what it found | NUC-design-is-revised §2, §3
@@ -238,18 +238,18 @@
 #
 # The rules of AGENTS.md sections 3 and 6, which that file now links in their NUC- ADRs
 #
-#   3 | preamble: authority | NUC-adrs-record-decisions §7
+#   3 | preamble: authority | NUC-decisions-are-proposed-then-accepted §7
 #   3 | preamble: rules originate in the rule file, cited by anchor | NUC-documents-are-fixed §3
-#   3 | rule 1: when an ADR is written | NUC-adrs-record-decisions §1
-#   3 | rule 2: calibration | NUC-adrs-record-decisions §2
-#   3 | rule 3: proposal | NUC-adrs-record-decisions §3
-#   3 | rule 4: implementation; status | NUC-adrs-record-decisions §4, §5
-#   3 | rule 5: binding and immutable | NUC-adrs-record-decisions §5, §6
-#   3 | rule 5: an inherited ADR accepted by adding a decider | dropped, CM: the base is accepted by the release line, NUC-adrs-record-decisions §11
-#   3 | rule 5: numbers permanent | NUC-adrs-record-decisions §8, CM
-#   3 | rule 5: the template corrects its ADRs in place | NUC-adrs-record-decisions §6
-#   3 | rule 5: the specification wins | NUC-adrs-record-decisions §7
-#   3 | rule 5: normalization | NUC-adrs-record-decisions §17, CM
+#   3 | rule 1: when an ADR is written | NUC-decisions-are-proposed-then-accepted §1
+#   3 | rule 2: calibration | NUC-decisions-are-proposed-then-accepted §2
+#   3 | rule 3: proposal | NUC-decisions-are-proposed-then-accepted §3
+#   3 | rule 4: implementation; status | NUC-decisions-are-proposed-then-accepted §4, §5
+#   3 | rule 5: binding and immutable | NUC-decisions-are-proposed-then-accepted §5, §6
+#   3 | rule 5: an inherited ADR accepted by adding a decider | dropped, CM: the base is accepted by the release line, NUC-base-is-fixed §1
+#   3 | rule 5: numbers permanent | NUC-adrs-are-named-by-category §1, CM
+#   3 | rule 5: the template corrects its ADRs in place | NUC-decisions-are-proposed-then-accepted §6
+#   3 | rule 5: the specification wins | NUC-decisions-are-proposed-then-accepted §7
+#   3 | rule 5: normalization | NUC-decisions-are-proposed-then-accepted §8, CM
 #   3 | rule 6: glossary | NUC-documents-are-fixed §5
 #   3 | rule 7: specification change | NUC-documents-are-fixed §2
 #   6 | commit on a branch, never on main | NUC-main-only-via-pr §1
