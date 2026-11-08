@@ -167,8 +167,8 @@ The rules of the record stand in `NUC-` ADRs. The mechanics of the record are in
   locally and in CI. Nobody may hand off a red change or propose merging it.
 - **Run [`scripts/check-all.sh`](scripts/check-all.sh) before pushing.** It runs the repository's
   checks and the build, test, and lint commands of the README's **Build, Test & Run** section.
-  CI runs the same on every pull request. The git hooks run the checks before a push
-  ([NUC-checks-are-bash §6](docs/adr/NUC-checks-are-bash.md)).
+  CI runs the same on every pull request. The git hooks run the checks before a commit, a merge,
+  and a push ([NUC-checks-are-bash §6](docs/adr/NUC-checks-are-bash.md)).
 - **New behaviour must ship with tests.** A bug fix must ship with a regression test that fails
   before the fix and passes after. For behaviour that is genuinely untestable, the agent must say
   so and why.
@@ -178,7 +178,8 @@ The rules of the record stand in `NUC-` ADRs. The mechanics of the record are in
   when the old suite passes against the new implementation.
 - **Tests cite the ADRs and criteria they verify:**
   [NUC-decisions-cite-tests §2](docs/adr/NUC-decisions-cite-tests.md) to
-  [NUC-decisions-cite-tests §5](docs/adr/NUC-decisions-cite-tests.md).
+  [NUC-decisions-cite-tests §5](docs/adr/NUC-decisions-cite-tests.md). An invalid citation fails:
+  [NUC-decisions-cite-tests §6](docs/adr/NUC-decisions-cite-tests.md).
 - **Never weaken the suite to make it pass.** A flaky test is a defect, not noise. Nobody may
   retry it or re-run it until green.
 - **Review in a fresh context before handing off.** Skill: `review`.
