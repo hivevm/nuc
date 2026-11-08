@@ -127,8 +127,10 @@ These scripts fail nothing:
 - `scripts/sensor-review-binding.sh` lists each commit that changes the text of an ADR and a path
   outside `docs/adr/` (clause 4).
 - `scripts/sensor-binding-adrs.sh` lists the ADRs in force whose *Applies to* names a path the
-  change touches or the session names (clause 5). With `--sections` it prints the parts a session
-  reads. Its self-test cites this ADR.
+  change touches or the session names (clause 5). Where an *Applies to* names checks of a file by
+  number, it lists that ADR only for a change inside one of those checks. A change it cannot
+  attribute to a check lists every ADR that names the file. With `--sections` it prints the parts a
+  session reads. Its self-test cites this ADR.
 
 **Not mechanically decidable:** the review judges these (clauses 1 to 4, 8):
 
