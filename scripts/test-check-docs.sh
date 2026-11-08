@@ -12,9 +12,9 @@
 # a maintainer would meet first — check 9 gets two more for the toolchain job a derived project
 # adds, check 13 (the setup done) has a case for each placeholder, and check 14 (the template
 # release named) one for each form the line may take. The cases of the record checks, 1, 2, 5, 6,
-# 8, 12, and the roles of 13, stand in the fixture table scripts/fixtures/check-docs-record.txt,
-# which says its format. Every fixture has its setup done, so it carries an accepted ADR for each
-# required role.
+# 8, 12, the roles of 13, and check 4's clause lists stand in the fixture table
+# scripts/fixtures/check-docs-record.txt, which says its format. Every fixture has its setup done,
+# so it carries an accepted ADR for each required role.
 #
 # Section references and ADR identifiers inside fixtures are assembled, never written literally,
 # so that check-docs.sh does not read this script's own fixtures as references into this
@@ -670,7 +670,7 @@ d="$(repo layout-plan-absent)"
 layout "$d" "docs/plan/"
 expect pass "docs/plan/ named while there is no open work" "$d"
 
-# --- cases: the record (checks 1, 2, 5, 6, 8, 12, and 13), read from the fixture table ---
+# --- cases: the record (checks 1, 2, 5, 6, 8, 12, 13) and clause lists (check 4), in the table ---
 
 TABLE="$ROOT/scripts/fixtures/check-docs-record.txt"
 

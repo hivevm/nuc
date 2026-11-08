@@ -40,7 +40,7 @@
 #      another one appears. The headings there must themselves run 1..N in order: a gap or a
 #      repeat is a botched renumbering, and it is the only half of the renumbering hazard a check
 #      can see (NUC-documents-are-fixed §3). A clause citation, an ADR's identifier, a space, and
-#      the section sign with a number, cites a clause of that ADR and is no section reference.
+#      the section sign with a number or a list of them, cites that ADR and no section.
 #   5. ADR-reference integrity: every identifier of a known category, a clause citation's among
 #      them, names an ADR file that exists in docs/adr/ — anticipated follow-ups are described by
 #      topic, never by an identifier that does not exist yet (NUC-adrs-are-named-by-category §6).
@@ -749,9 +749,9 @@ code_spans_out() {
 }
 
 # clauses_out <line> — sets LINE to the line without its clause citations, an ADR's identifier, a
-# space, and the section sign with a number: the clause of an ADR, not a section of AGENTS.md.
+# space, and the section sign with a number, or a list of them ('§4, §5', '§4 and §5', '§2–§5').
 clauses_out() {
-  local re="($ADR_REF_RE) §[0-9]+"
+  local re="($ADR_REF_RE) §[0-9]+((, |,? and |–)§[0-9]+)*"
   LINE="$1"
   while [[ "$LINE" =~ $re ]]; do LINE="${LINE/"${BASH_REMATCH[0]}"/}"; done
 }
