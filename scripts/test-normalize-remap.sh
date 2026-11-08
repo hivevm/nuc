@@ -137,7 +137,7 @@ base="$(printf '%s-base-rule' NUC)"
 printf '# %s: a\n\nSee [%s](0008-beta.md) and %s.\n' "$(old 7)" "$(old 8)" "$(old 1)" > "$d/docs/adr/0007-alpha.md"
 printf '# %s: b\n\n- **Status:** superseded by %s\n' "$(old 8)" "$(old 7)" > "$d/docs/adr/0008-beta.md"
 printf '| [0007](0007-alpha.md) |\n' > "$d/docs/adr/README.md"; echo x > "$d/docs/adr/0006-gamma.md"
-printf '# %s: c\n\nNot %s.\n' "$base" "$(old 7)" > "$d/docs/adr/$base.md"
+printf '# %s: c\n\nNot %s.\n' "$base" "$(old 7)" > "$d/docs/adr/$base.md"; cp "$d/docs/adr/$base.md" "$d/AGENTS.md"
 git -C "$d" add -A
 printf '0001-x.md %s %s\n0008-beta.md %s\n0007-alpha.md %s\n0006-gamma.md %s\n' "$(id one)" "$(id two)" "$(id eight)" "$(id seven)" "$(id six)" > "$work/map-record"
 (cd "$d" && bash "$REMAP" --record --check "$work/map-record") > "$work/out" 2>&1; rc=$?
@@ -150,7 +150,7 @@ check "--record renames a numbered ADR and moves its heading and links" \
   "[[ ! -e '$d/docs/adr/0007-alpha.md' ]] && grep -qxF '# $(id seven): a' '$d/docs/adr/$(id seven).md' && grep -qF 'See [$(id eight)]($(id eight).md) and $(old 1).' '$d/docs/adr/$(id seven).md'"
 check "--record moves a status line and an index row" \
   "grep -qF 'superseded by $(id seven)' '$d/docs/adr/$(id eight).md' && grep -qxF '| [$(id seven)]($(id seven).md) |' '$d/docs/adr/README.md'"
-check "--record leaves a NUC- file as it was" "grep -qxF 'Not $(old 7).' '$d/docs/adr/$base.md'"
+check "--record leaves a NUC- file and AGENTS.md as they were" "grep -qxF 'Not $(old 7).' '$d/docs/adr/$base.md' && grep -qxF 'Not $(old 7).' '$d/AGENTS.md'"
 cp "$d/docs/adr/$(id seven).md" "$work/seven.before"
 (cd "$d" && bash "$REMAP" --record "$work/map-record") > "$work/out" 2>&1
 check "a second run with --record changes nothing" "cmp -s '$d/docs/adr/$(id seven).md' '$work/seven.before'"

@@ -29,8 +29,8 @@
 # map of criteria is one pass. The script never edits a criterion in docs/SPECIFICATION.md, nor
 # docs/adr/, whose record the normalization writes. With --record, for the migration to identifiers
 # (NUC-adrs-record-decisions §17), it edits docs/adr/ too, the index and the headings among it, but
-# never a NUC- file or the blob list, and renames each numbered ADR file that the map moves to one
-# identifier, refusing a name that exists or that two of them take.
+# never a NUC- file, the blob list, or AGENTS.md, which the release holds, and renames each numbered
+# ADR file that the map moves to one identifier, refusing a name that exists or that two take.
 #
 # The files are the ones git tracks plus new ones it does not ignore, as check-docs.sh reads
 # them. A file is written only when the map changes its text, and then keeps every other byte,
@@ -245,7 +245,7 @@ while IFS= read -r f; do
   [[ -f "$f" && ! -L "$f" && "$top/$f" != "$map" ]] || continue
   grep -Iq . "$f" 2>/dev/null || continue
   adr_on=1 crit_on=1 all_crit=0
-  [[ "$f" == docs/adr/* && ( $record -eq 0 || "$f" == docs/adr/NUC[-.]* ) ]] && adr_on=0
+  [[ "$f" == docs/adr/* && ( $record -eq 0 || "$f" == docs/adr/NUC[-.]* ) || $record -eq 1 && "$f" == AGENTS.md ]] && adr_on=0
   [[ "$f" == docs/SPECIFICATION.md ]] && crit_on=0
   [[ "$f" == *.md ]] && all_crit=1
   # A file whose last byte is no newline keeps it so, and awk reads bytes, not characters of the
