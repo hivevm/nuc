@@ -1,6 +1,6 @@
 # NUC-adrs-are-named-by-category: An ADR is named by a category key and a slug, cited by its clauses, and indexed by category
 
-- **Status:** 🟡 proposed
+- **Status:** 🟢 accepted
 - **Date:** 2026-11-08
 - **Deciders:** NUC maintainer
 - **Applies to:** every ADR under `docs/adr/`, the ADR index `docs/adr/README.md`, the ADR template `docs/adr/template.md`, checks 1, 2, 5, 6, 7, and 8 of `scripts/check-docs.sh`, and the ADR readers of `scripts/lib/adr.sh`

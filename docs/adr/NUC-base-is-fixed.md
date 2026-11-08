@@ -1,6 +1,6 @@
 # NUC-base-is-fixed: The template's `NUC-` ADRs are a fixed base that a project extends or narrows but never edits
 
-- **Status:** 🟡 proposed
+- **Status:** 🟢 accepted
 - **Date:** 2026-11-08
 - **Deciders:** NUC maintainer
 - **Applies to:** the `NUC-` ADRs, the `Extends:`, `Narrows:`, and `Role:` fields of project ADRs, the blob list `docs/adr/NUC.blobs`, `AGENTS.md` in a derived project, checks 8, 12, and 13 of `scripts/check-docs.sh`, and `adr_blobs` of `scripts/lib/adr.sh`
