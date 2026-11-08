@@ -21,13 +21,13 @@ change ([mechanics](README.md#mechanics)). `Supersedes` only when this ADR repla
 ADR or several whose decisions have grown into one, each linked; their status lines flip when a
 human accepts this one ([mechanics](README.md#mechanics)). `Extends` or `Narrows` only when this
 ADR extends or narrows a clause of a `NUC-` ADR, which no project ADR supersedes
-([NUC-adrs-record-decisions §11](NUC-adrs-record-decisions.md)); `Role` only when it fills a
-required role ([NUC-adrs-record-decisions §13](NUC-adrs-record-decisions.md)).
+([NUC-base-is-fixed §1](NUC-base-is-fixed.md)); `Role` only when it fills a
+required role ([NUC-base-is-fixed §3](NUC-base-is-fixed.md)).
 For a decision recorded only because a
 reader would take it for a mistake, cheap to reverse and constraining nothing
-([NUC-adrs-record-decisions §2](NUC-adrs-record-decisions.md)), a sentence each under Context and
-Decision and `None — cheap to reverse` under Alternatives, Sources, and Consequences is the whole
-record; Enforcement stays. Then delete this paragraph.*
+([NUC-decisions-are-proposed-then-accepted §2](NUC-decisions-are-proposed-then-accepted.md)), a
+sentence each under Context and Decision and `None — cheap to reverse` under Alternatives, Sources,
+and Consequences is the whole record; Enforcement stays. Then delete this paragraph.*
 
 ## Context
 
@@ -35,15 +35,16 @@ What is the issue, and which forces are at play: requirements from
 [`docs/SPECIFICATION.md`](../SPECIFICATION.md), constraints from other ADRs, technical forces?
 
 Interrogate the request with the human before writing this section
-([NUC-adrs-record-decisions §3](NUC-adrs-record-decisions.md)); the `propose-adr` skill under
-[`.agents/skills/`](../../.agents/skills/) lists the questions.
+([NUC-decisions-are-proposed-then-accepted §3](NUC-decisions-are-proposed-then-accepted.md)); the
+`propose-adr` skill under [`.agents/skills/`](../../.agents/skills/) lists the questions.
 
 ## Decision
 
 What we decided, in one clear, active sentence ("We will …"). A second "We will …" sentence is a
-sign of two ADRs ([NUC-adrs-record-decisions §1](NUC-adrs-record-decisions.md)). Everything that
-binds stands here or under *Enforcement*. A session whose change only follows the ADR reads these
-two and the header ([`AGENTS.md` §2](../../AGENTS.md#2-start-here)).
+sign of two ADRs
+([NUC-decisions-are-proposed-then-accepted §1](NUC-decisions-are-proposed-then-accepted.md)).
+Everything that binds stands here or under *Enforcement*. A session whose change only follows the
+ADR reads these two and the header ([`AGENTS.md` §2](../../AGENTS.md#2-start-here)).
 
 **Out of scope:** what this decision deliberately leaves open, so a later ADR can take it up
 without contradicting this one. Write "nothing beyond the sentence above" when the decision is

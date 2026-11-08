@@ -45,7 +45,7 @@ project under a path of its own.
 **Out of scope:**
 
 - the base image, Features, and extensions, and whether extensions are pinned;
-- the toolchain, a required role of [NUC-adrs-record-decisions §13](NUC-adrs-record-decisions.md);
+- the toolchain, a required role of [NUC-base-is-fixed §3](NUC-base-is-fixed.md);
 - an engine inside the container, and how the work reaches the containers it needs;
 - work outside the container;
 - hardening the container;

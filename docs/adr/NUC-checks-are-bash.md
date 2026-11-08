@@ -42,13 +42,13 @@ git hooks and CI run alike.
    says. It runs only on a human's instruction, never in `scripts/check-all.sh` or `checks.yml`.
    Its self-test runs on fixture responses without the CLI and stays in the three lists.
 8. **Binary.** A project may run a binary in place of the scripts only through an ADR that narrows
-   clause 1 ([NUC-adrs-record-decisions §11](NUC-adrs-record-decisions.md)). The binary must pass
+   clause 1 ([NUC-base-is-fixed §1](NUC-base-is-fixed.md)). The binary must pass
    the fixture tables under `scripts/fixtures/`.
 
 **Out of scope:**
 
 - the language and build of a project's own code, which its `toolchain` role ADR decides
-  ([NUC-adrs-record-decisions §13](NUC-adrs-record-decisions.md));
+  ([NUC-base-is-fixed §3](NUC-base-is-fixed.md));
 - which test cites a decision ([NUC-decisions-cite-tests](NUC-decisions-cite-tests.md));
 - whether the template's own checks move to a binary.
 
