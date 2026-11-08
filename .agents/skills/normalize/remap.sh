@@ -231,13 +231,13 @@ function resolve(tok, to,  n, parts, i, dedupe) {
 END { if (held) printf "%s%s", last, (open_end ? "" : "\n") }
 AWK
 
-# With --record, each numbered ADR the map moves to one identifier takes its file name. A name that
-# exists or that two of them take is refused before anything is written.
+# With --record, each numbered ADR the map moves to one identifier takes its file name, in the order
+# of the old names; a name that exists or that two of them take is refused before any is written.
 declare -A target=()
 while ((record)) && read -r old new rest; do
   [[ "$old" =~ $num_re && "$new" =~ $new_re && -z "$rest" && -f "docs/adr/$old" ]] || continue
-  [[ -e "docs/adr/$new.md" || -n "${target[$new]:-}" ]] && { echo "remap: $old: docs/adr/$new.md is taken" >&2; exit 1; }
-  target[$new]="$old"
+  [[ -e "docs/adr/$new.md" || " ${target[*]} " == *" $new "* ]] && { echo "remap: $old: docs/adr/$new.md is taken" >&2; exit 1; }
+  target[$old]="$new"
 done <<< "$(grep -vE '^[[:space:]]*(#|$)' "$map")"
 
 changed=0
@@ -262,8 +262,8 @@ while IFS= read -r f; do
   fi
 done < <(git ls-files --cached --others --exclude-standard | sort -u)
 
-for new in "${!target[@]}"; do
-  changed=1 old="${target[$new]}"
+for old in $(printf '%s\n' "${!target[@]}" | LC_ALL=C sort); do
+  changed=1 new="${target[$old]}"
   if ((check)); then echo "docs/adr/$old -> docs/adr/$new.md" >> "$moves"
   else git mv -- "docs/adr/$old" "docs/adr/$new.md" 2>/dev/null || mv -- "docs/adr/$old" "docs/adr/$new.md"; echo "docs/adr/$new.md"; fi
 done

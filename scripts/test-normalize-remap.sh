@@ -136,13 +136,13 @@ d="$(repo record)"
 base="$(printf '%s-base-rule' NUC)"
 printf '# %s: a\n\nSee [%s](0008-beta.md) and %s.\n' "$(old 7)" "$(old 8)" "$(old 1)" > "$d/docs/adr/0007-alpha.md"
 printf '# %s: b\n\n- **Status:** superseded by %s\n' "$(old 8)" "$(old 7)" > "$d/docs/adr/0008-beta.md"
-printf '| [0007](0007-alpha.md) |\n' > "$d/docs/adr/README.md"
+printf '| [0007](0007-alpha.md) |\n' > "$d/docs/adr/README.md"; echo x > "$d/docs/adr/0006-gamma.md"
 printf '# %s: c\n\nNot %s.\n' "$base" "$(old 7)" > "$d/docs/adr/$base.md"
 git -C "$d" add -A
-printf '0001-x.md %s %s\n0007-alpha.md %s\n0008-beta.md %s\n' "$(id one)" "$(id two)" "$(id seven)" "$(id eight)" > "$work/map-record"
+printf '0001-x.md %s %s\n0008-beta.md %s\n0007-alpha.md %s\n0006-gamma.md %s\n' "$(id one)" "$(id two)" "$(id eight)" "$(id seven)" "$(id six)" > "$work/map-record"
 (cd "$d" && bash "$REMAP" --record --check "$work/map-record") > "$work/out" 2>&1; rc=$?
-check "--record --check exits 1, names the rename, and changes nothing" \
-  "[[ $rc -eq 1 ]] && grep -qF 'docs/adr/0007-alpha.md -> docs/adr/$(id seven).md' '$work/out' && [[ -f '$d/docs/adr/0007-alpha.md' ]]"
+check "--record --check exits 1, names the renames sorted by the old file name, and changes nothing" \
+  "[[ $rc -eq 1 && \"\$(grep -o '^docs/adr/000[678][^ ]* -> docs/adr/[^.]*' '$work/out' | tr '\n' ' ')\" == 'docs/adr/0006-gamma.md -> docs/adr/$(id six) docs/adr/0007-alpha.md -> docs/adr/$(id seven) docs/adr/0008-beta.md -> docs/adr/$(id eight) ' && -f '$d/docs/adr/0007-alpha.md' ]]"
 (cd "$d" && bash "$REMAP" --record "$work/map-record") > "$work/out" 2>&1; rc=$?
 check "--record exits 2 on a split the record cites, and lists it" \
   "[[ $rc -eq 2 ]] && grep -qF '0007-alpha.md:3: $(old 1) is split into' '$work/out'"
