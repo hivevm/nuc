@@ -16,8 +16,8 @@
 # break, a sub-list that ends an _Avoid:_ list, a change outside the rules, the working tree with
 # an untracked ADR, and a base that does not resolve. The cases of '--require' stand in the fixture
 # table scripts/fixtures/plain-rules.txt: what fails in a project ADR and is reported in a NUC- ADR
-# and in AGENTS.md, the qualifiers of an _Avoid:_ item, a renamed ADR, and a take-up on comb's
-# glossary. Two cases read the glossary reader's rows directly.
+# and in AGENTS.md, the qualifiers of an _Avoid:_ item, an item a line break splits, a renamed ADR,
+# and a take-up on comb's glossary. Two cases read the glossary reader's rows directly.
 #
 # Inputs: scripts/sensor-plain-rules.sh scripts/lib/ scripts/fixtures/plain-rules.txt
 #
