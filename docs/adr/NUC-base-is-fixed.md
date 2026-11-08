@@ -77,7 +77,6 @@ A project may choose:
 - Positive: a take-up of a release replaces files and runs the checks.
 - Positive: a check can spare the template's files, because no project edits them.
 - Negative: a project can no longer adapt the template's text; it narrows by an ADR or forks.
-- Follow-ups: the checks on modal verbs and avoided terms that spare the base.
 
 ## Enforcement
 

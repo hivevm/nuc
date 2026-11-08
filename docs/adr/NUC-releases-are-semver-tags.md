@@ -122,7 +122,6 @@ The catalogue has no entry for these choices, and none of them needs an ADR.
 
 - Check 14 of `scripts/check-docs.sh` fails on a missing or malformed release line (clause 4).
   Its self-test cites this ADR.
-- Check 12 holds the replaced `NUC-` files of a take-up (clause 6).
 
 **Not mechanically decidable:** clauses 2, 3, and 5. The review of the release pull request holds
 whether the version fits the change, and whether the tag exists and the line moved.

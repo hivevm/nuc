@@ -135,7 +135,6 @@ The catalogue has no entry for the last two choices, and neither needs an ADR.
 - Positive: the binding sensor routes a change to the hooks or the integration steps here.
 - Negative: every push waits for a human, and an agent cannot finish an integration alone.
 - Negative: hooks are enabled per clone, so a clone without them relies on the remote alone.
-- Follow-ups: the hooks, the scripts, and their self-tests cite this ADR instead of the rule file.
 
 ## Enforcement
 
