@@ -84,8 +84,8 @@ accepts it.
   ([NUC-adrs-are-named-by-category](NUC-adrs-are-named-by-category.md));
 - the fixed base ([NUC-base-is-fixed](NUC-base-is-fixed.md));
 - the glossary and the change of the specification
-  (`NUC-documents-are-fixed §5` and
-  `NUC-documents-are-fixed §2`);
+  ([NUC-documents-are-fixed §5](NUC-documents-are-fixed.md) and
+  [NUC-documents-are-fixed §2](NUC-documents-are-fixed.md));
 - the order of work of a proposal or a normalization (the skills `propose-adr` and `normalize`).
 
 ## Latitude
