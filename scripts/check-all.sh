@@ -39,15 +39,15 @@
 
 set -uo pipefail
 
-# The checks need bash 4.4 or later (ADR-0002). This guard runs first and is written for bash
-# 3.2, so an older bash, such as the one macOS ships, gets a message instead of a check failing
-# on a construct it lacks. CHECK_ALL_BASH_VERSION stands in for the version found, for the
-# self-test.
+# The checks need bash 4.4 or later (NUC-checks-are-bash §1). This guard runs first and is
+# written for bash 3.2, so an older bash, such as the one macOS ships, gets a message instead of
+# a check failing on a construct it lacks. CHECK_ALL_BASH_VERSION stands in for the version
+# found, for the self-test.
 bash_found="${CHECK_ALL_BASH_VERSION:-${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]}}"
 bash_major="${bash_found%%.*}" bash_minor="${bash_found#*.}"
 bash_minor="${bash_minor%%.*}"
 if ((bash_major < 4 || (bash_major == 4 && bash_minor < 4))); then
-  echo "check-all: the checks need bash 4.4 or later (ADR-0002); this is bash $bash_found — run them in the Dev Container, or install a current bash" >&2
+  echo "check-all: the checks need bash 4.4 or later (NUC-checks-are-bash §1); this is bash $bash_found — run them in the Dev Container, or install a current bash" >&2
   exit 2
 fi
 
@@ -194,8 +194,8 @@ run "Action references sensor self-test" scripts/test-sensor-action-refs.sh
 run "Action references sensor" scripts/sensor-action-refs.sh
 run "Review binding sensor self-test" scripts/test-sensor-review-binding.sh
 run "Review binding sensor" scripts/sensor-review-binding.sh
-# The repository settings sensor reads GitHub and runs on a human's instruction (ADR-0002); its
-# self-test runs here.
+# The repository settings sensor reads GitHub and runs on a human's instruction
+# (NUC-checks-are-bash §7); its self-test runs here.
 # On instruction: scripts/sensor-repo-settings.sh
 run "Repository settings sensor self-test" scripts/test-sensor-repo-settings.sh
 run "Check runner self-test" scripts/test-check-all.sh

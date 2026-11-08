@@ -36,7 +36,7 @@ unset $(git rev-parse --local-env-vars)
 if [[ -n "$root" && -f "$root/scripts/check-all.sh" ]]; then
   if ! bash "$root/scripts/check-all.sh" --changed; then
     echo >&2
-    echo "pre-commit: refused — the checks are red on the resolved merge, and they pass before a branch takes up another (AGENTS.md, section 5). Fix them on the merged branch: git merge --abort, then merge again." >&2
+    echo "pre-commit: refused — the checks are red on the resolved merge, and they pass before a branch takes up another (NUC-checks-are-bash §6). Fix them on the merged branch: git merge --abort, then merge again." >&2
     exit 1
   fi
 fi

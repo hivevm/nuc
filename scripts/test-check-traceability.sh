@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
-# Self-test of scripts/check-traceability.sh. Verifies: ADR-0002
+# Self-test of scripts/check-traceability.sh.
+# Verifies: NUC-decisions-cite-tests NUC-checks-are-bash ADR-0002
 #
 # Each case builds a throwaway git repository under a temporary directory — a specification with
 # the two criteria sections, a few ADRs, and a file carrying markers — runs the check against it,
@@ -207,7 +208,8 @@ while IFS= read -r line; do
         [[ "$arg" == proposed ]] && status="🟡 proposed"
         printf '# %s: decision\n\n- **Status:** %s\n\n## Enforcement\n\nReview only.\n' "$id" "$status" \
           > "$d/docs/adr/$file.md" ;;
-      mark) mark "${s#mark "$id" }" > "$d/$id" ;;
+      mark) mkdir -p "$(dirname "$d/$id")"; mark "${s#mark "$id" }" > "$d/$id" ;;
+      file) mkdir -p "$(dirname "$d/$id")"; echo "text" > "$d/$id" ;;
       *) echo "fixture table: unknown step '$op'" >&2; exit 1 ;;
     esac
   done <<< "${tree//; /$'\n'}"
