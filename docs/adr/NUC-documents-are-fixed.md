@@ -39,8 +39,9 @@ rules in one rule file.
 1. **The set.** Every repository must keep these six documents, each in its one role:
    - [`docs/SPECIFICATION.md`](../SPECIFICATION.md), the specification: what the project is for;
    - [`docs/adr/`](.), the record: the decisions, kept as
-     [NUC-decisions-are-proposed-then-accepted](NUC-decisions-are-proposed-then-accepted.md)
-     decides;
+     [NUC-decisions-are-proposed-then-accepted](NUC-decisions-are-proposed-then-accepted.md),
+     [NUC-adrs-are-named-by-category](NUC-adrs-are-named-by-category.md), and
+     [NUC-base-is-fixed](NUC-base-is-fixed.md) decide;
    - [`AGENTS.md`](../../AGENTS.md), the rule file: the working rules;
    - [`docs/ARCHITECTURE.md`](../ARCHITECTURE.md), the overview: the system as it stands;
    - [`docs/GLOSSARY.md`](../GLOSSARY.md), the glossary: the vocabulary;

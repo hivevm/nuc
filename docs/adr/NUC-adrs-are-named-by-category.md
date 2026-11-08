@@ -66,8 +66,7 @@ by category.
 
 ## Latitude
 
-A project may choose further categories, defined in the category list of its index. They need no
-ADR.
+A project may choose further categories, defined in the category list of its index.
 
 ## Alternatives considered
 

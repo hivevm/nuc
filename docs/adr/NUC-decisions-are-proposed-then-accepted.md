@@ -83,7 +83,9 @@ accepts it.
 - how an ADR is named, cited, superseded, and indexed
   ([NUC-adrs-are-named-by-category](NUC-adrs-are-named-by-category.md));
 - the fixed base ([NUC-base-is-fixed](NUC-base-is-fixed.md));
-- the change of the specification ([NUC-documents-are-fixed §2](NUC-documents-are-fixed.md));
+- the glossary and the change of the specification
+  ([NUC-documents-are-fixed §5](NUC-documents-are-fixed.md) and
+  [NUC-documents-are-fixed §2](NUC-documents-are-fixed.md));
 - the order of work of a proposal or a normalization (the skills `propose-adr` and `normalize`).
 
 ## Latitude
@@ -117,7 +119,8 @@ None.
 
 `scripts/test-normalize-remap.sh` cites this ADR. It holds that a map moves every reference
 exactly once (clause 8). The map script refuses a chain or a cycle among ADR identifiers, so a
-second run changes nothing. A map of criteria may swap them in one pass.
+second run changes nothing ([NUC-adrs-are-named-by-category §1](NUC-adrs-are-named-by-category.md)).
+A map of criteria may swap them in one pass.
 
 These scripts fail nothing:
 
