@@ -1,13 +1,13 @@
-# ADR-draft-<slug>: <short title of the decision>
+# <CAT>-<slug>: <short title of the decision>
 
 - **Status:** 🟡 proposed
 - **Date:** YYYY-MM-DD
 - **Deciders:** <names / roles of the humans who decide>
 - **Applies to:** <the paths, components, or kinds of change this decision constrains>
-- **Supersedes:** [ADR-NNNN](NNNN-short-title.md)
+- **Supersedes:** [<CAT>-<slug>](<CAT>-<slug>.md)
 
 *Complete the header and delete what does not apply. `Status` ships as `🟡 proposed`; a human flips
-it to `🟢 accepted`, `🔴 rejected`, or `⚪ superseded by ADR-NNNN`, keeping exactly one emoji with
+it to `🟢 accepted`, `🔴 rejected`, or `⚪ superseded by <CAT>-<slug>`, keeping exactly one emoji with
 the word that belongs to it. `Date` is the date of the last status change: the date the ADR was
 proposed until the first flip. Revising a `proposed` ADR does not move it and needs no note; git
 carries the history. `Deciders` names the humans who accept or reject; an agent is never a
@@ -57,7 +57,7 @@ informed the decision. Write "None — trivial/reversible" only when that is gen
 
 - Positive: what becomes easier or possible.
 - Negative / trade-offs: what becomes harder, what we accept.
-- Follow-ups: the questions this decision raises, described by topic, never by an ADR number that
+- Follow-ups: the questions this decision raises, described by topic, never by an identifier that
   does not exist yet.
 
 ## Enforcement

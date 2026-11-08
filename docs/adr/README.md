@@ -12,14 +12,11 @@ supersession. This section carries only the mechanics of the record;
 [`scripts/check-docs.sh`](../../scripts/check-docs.sh) names in its header which of them it
 verifies.
 
-- **File.** Copy [`template.md`](template.md) to `draft-<slug>.md`, the slug in lower case letters
-  and digits joined by hyphens. Until it reaches `main` the ADR is a draft: its heading and every
-  reference name it `ADR-draft-<slug>`, its index row links it as `draft-<slug>`, and no number
-  is taken ([ADR-0002](0002-decisions-verified-by-tests.md)). On the branch whose pull request
-  brings it to `main`, once that branch has taken up the current `main`,
-  [`scripts/number-adrs.sh`](../../scripts/number-adrs.sh) gives it the next free number. A
-  numbered ADR is `NNNN-short-title.md`, its `# ADR-NNNN` heading matches the filename, and the
-  numbers run `0001..N` without gaps.
+- **File.** Copy [`template.md`](template.md) to `<CAT>-<slug>.md` and head it
+  `# <CAT>-<slug>: <title>`, the category from the [list](#categories). The author picks the
+  identifier when creating the file, and it never changes or returns
+  ([NUC-adrs-are-named-by-category §1](NUC-adrs-are-named-by-category.md)). An older ADR,
+  `NNNN-short-title.md` headed `# ADR-NNNN`, keeps its number until it retires.
 - **Wording.** The *Decision* and the *Enforcement* follow the writing rule of
   [`AGENTS.md` §4](../../AGENTS.md#4-working-style).
 - **Index.** The tables below change in the same commit as the ADR they describe, for
@@ -29,19 +26,19 @@ verifies.
   the file being opened. Two tables keep what a session reads apart from what it looks up: an
   accepted or proposed ADR sits under **Binding**, a superseded or rejected one under
   **Superseded and rejected**, and a status flip moves the row.
-- **Numbers are permanent once on `main`, until a normalization.** Between two normalizations,
-  never renumber, delete, or merge an ADR there: other ADRs, commits (`Implements ADR-NNNN`), and
-  code may reference a number. No draft reaches `main`. A branch that already carries a numbered
-  proposed ADR whose number another branch brought to `main` first gives it the next free number
-  before it merges, in every reference its own branch makes to it. Until a normalization, a
-  superseded ADR keeps its file and its body. The superseding ADR's `Supersedes` field names it
-  from the proposal on; its `Status` line stays as it is while the successor is proposed, and
-  flips to `⚪ superseded by ADR-NNNN` in the change where a human accepts the successor
-  ([`AGENTS.md` §3](../../AGENTS.md#3-adr-rules), rule 4), its index row moving with it.
+- **Identifiers are permanent once on `main`.** A normalization keeps them, and only a merged or
+  split ADR takes a new one
+  ([NUC-decisions-are-proposed-then-accepted §8](NUC-decisions-are-proposed-then-accepted.md)).
+  Between two normalizations, never rename, delete, or merge an ADR there: other ADRs, commits
+  (`Implements <CAT>-<slug>`), and code cite it. A superseded ADR keeps its file and its body. The
+  superseding ADR's `Supersedes` field names it from the proposal on; its `Status` line flips to
+  `⚪ superseded by <CAT>-<slug>` in the change where a human accepts the successor
+  ([NUC-adrs-are-named-by-category §4](NUC-adrs-are-named-by-category.md)), its index row moving
+  with it.
 - **Between normalizations, sprawl is curbed by supersession, never by editing.** One ADR may
   supersede several whose decisions have grown into one. Its `Supersedes` field names each, and
   each flips its status when the superseding ADR is accepted, so the set an agent reads shrinks
-  while every number and every body stays.
+  while every identifier and every body stays.
 - **A normalization restates the record** ([`AGENTS.md` §3](../../AGENTS.md#3-adr-rules), rule
   5).
   - **Start.** The tree has no proposed ADR, no feature spec or ticket under `docs/plan/`, and
@@ -67,9 +64,10 @@ verifies.
     script of the `normalize` skill. The map stands in the hand-off and the
     commit body, and in no document. A commit older than the normalization cites the numbers it
     had then.
-- **Cite only what exists.** Every `ADR-NNNN` reference names a file already in this directory.
-  An anticipated follow-up is described by topic ("a follow-up ADR on session storage"), never by
-  a number. In Markdown, cite an ADR as a link to its own file.
+- **Cite only what exists.** Every citation, `<CAT>-<slug>`, a clause `<CAT>-<slug> §n`, or
+  `ADR-NNNN`, names a file already in this directory. An anticipated follow-up is described by
+  topic ("a follow-up ADR on session storage"). What counts as a citation, and its form in
+  Markdown, is [NUC-adrs-are-named-by-category §6](NUC-adrs-are-named-by-category.md).
 
 ## Index
 
@@ -78,7 +76,22 @@ binds a derived project once its own maintainer adds their name to `Deciders` an
 line reads `🟢 accepted` ([`AGENTS.md` §3](../../AGENTS.md#3-adr-rules)). Change an inherited
 decision by superseding it, never by editing. Once the template setup is done, check 12 of
 [`scripts/check-docs.sh`](../../scripts/check-docs.sh) fails on an inherited ADR in force that
-names no decider of the project, or that is still proposed.
+names no decider of the project, or that is still proposed. It does not read a `NUC-` ADR, which a
+project never edits ([NUC-base-is-fixed §1](NUC-base-is-fixed.md)).
+
+### Categories
+
+The category of an identifier says what its decision is about
+([NUC-adrs-are-named-by-category §2](NUC-adrs-are-named-by-category.md)). The fixed ones:
+
+- **NUC** — the template's own ADRs, reserved to the template repository.
+- **SEC** — security.
+- **OPS** — build, release, deployment, and operation.
+- **API** — interfaces the system offers and consumes, adapters among them.
+
+The project's own follow here, each in the same form with one line on what it holds:
+
+None yet.
 
 **Status legend:** 🟢 accepted · 🟡 proposed · 🔴 rejected · ⚪ superseded
 
@@ -95,6 +108,9 @@ is the table a session reads.
 | [0004](0004-dev-container-runtime.md) | The Dev Container keeps the host daemon out of reach, its Features locked, and each project under a path of its own | `.devcontainer/`, `.vscode/settings.json`, `scripts/check-devcontainer.sh`, and everything the container pulls in | 🟢 accepted |
 | [0005](0005-template-releases.md) | The template is released as SemVer tags on `main`, and every repository names the release it carries | the tags of the template repository, its own ADRs, the **Template** section of `README.md`, check 14 of `scripts/check-docs.sh`, and the pull request that lands a release | 🟢 accepted |
 | [0006](0006-feature-layer.md) | Work larger than one session is planned in the tree as a feature spec cut into tracer-bullet tickets, files deleted when their work lands, findings outside the plan go to a backlog, and the design is revised when a spec closes or after a number of changes | every change larger than one agent session, `docs/plan/`, the spec and ticket templates of the `plan-feature` skill, the pull request template, the `Last design revision` line of `docs/ARCHITECTURE.md`, `scripts/sensor-revision-due.sh`, `scripts/sensor-plan-frontier.sh`, the claim script `.agents/skills/work-tickets/claim.sh`, `docs/backlog/`, and `scripts/sensor-backlog.sh` | 🟢 accepted |
+| [NUC-decisions-are-proposed-then-accepted](NUC-decisions-are-proposed-then-accepted.md) | A decision is proposed as an ADR before it is implemented, a human accepts it, and only a supersession or a normalization changes it | every ADR under `docs/adr/`, `scripts/sensor-review-binding.sh`, `scripts/sensor-binding-adrs.sh`, `scripts/test-normalize-remap.sh`, the map script `.agents/skills/normalize/remap.sh`, and the skills `propose-adr` and `normalize` | 🟡 proposed |
+| [NUC-adrs-are-named-by-category](NUC-adrs-are-named-by-category.md) | An ADR is named by a category key and a slug, cited by its clauses, and indexed by category | every ADR under `docs/adr/`, the ADR index `docs/adr/README.md`, the ADR template `docs/adr/template.md`, checks 1, 2, 5, 6, 7, and 8 of `scripts/check-docs.sh`, and the ADR readers of `scripts/lib/adr.sh` | 🟡 proposed |
+| [NUC-base-is-fixed](NUC-base-is-fixed.md) | The template's `NUC-` ADRs are a fixed base that a project extends or narrows but never edits | the `NUC-` ADRs, the `Extends:`, `Narrows:`, and `Role:` fields of project ADRs, the blob list `docs/adr/NUC.blobs`, `AGENTS.md` in a derived project, checks 8, 12, and 13 of `scripts/check-docs.sh`, and `adr_blobs` of `scripts/lib/adr.sh` | 🟡 proposed |
 
 ### Superseded and rejected
 

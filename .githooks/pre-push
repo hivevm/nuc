@@ -22,14 +22,7 @@
 # then the tree of HEAD. The hook keeps the last 50 green trees in 'checks-green-trees' of the
 # repository's git directory, shared by its worktrees.
 # Bypassable with 'git push --no-verify', or by writing a tree into that file by hand; AGENTS.md,
-# section 6 says who may.
-#
-# A push that sends a draft ADR is told how many it carries and where they take their numbers: on
-# the branch of the pull request into main, by scripts/ready-for-main.sh, as step 7 of the
-# Integration branches of CONTRIBUTING.md says. The notice passes or refuses nothing and asks for
-# nothing: a branch under rework carries drafts on purpose, and check 16 of scripts/check-docs.sh
-# fails on a draft in a pull request into main that is ready for review. scripts/test-git-hooks.sh
-# exercises this hook.
+# section 6 says who may. scripts/test-git-hooks.sh exercises this hook.
 
 set -uo pipefail
 
@@ -44,14 +37,7 @@ while read -r _ local_object remote_ref _; do
     exit 1
   fi
   refs=$((refs + 1))
-  [[ "$local_object" =~ ^0+$ ]] && continue
-  sent=$((sent + 1))
-  # A draft ADR takes its number on the branch of its pull request into main (ADR-0002); the
-  # notice says so on every push that carries one, and decides nothing.
-  drafts="$(git ls-tree --name-only "$local_object" docs/adr/ 2>/dev/null | grep -c '^docs/adr/draft-.*\.md$')"
-  if ((drafts > 0)); then
-    echo "pre-push: ${remote_ref#refs/heads/} carries $drafts draft ADR(s); they take their numbers on the branch of the pull request into main, by scripts/ready-for-main.sh (CONTRIBUTING.md, Integration branches, step 7)." >&2
-  fi
+  [[ "$local_object" =~ ^0+$ ]] || sent=$((sent + 1))
 done
 
 # A push that only deletes sends nothing to check.

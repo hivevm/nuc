@@ -105,14 +105,14 @@ finish() {
     for part in "${parts[@]}"; do
       [[ "$part" == "${parts[-1]}" ]] && banner+=", and the $part" || banner+=", the $part"
     done
-    for file in "${files[@]}"; do listed+="$(adr_key "$file") "; done
+    for file in "${files[@]}"; do adr_key_of "$file"; listed+="$ADR_KEY "; done
     # shellcheck disable=SC2016  # the backticks are Markdown to match, not a command substitution
     while IFS=$'\t' read -r key applies; do
       rows=$((rows + 1))
       [[ "$listed" == *" $key "* ]] && continue
       grep -qvE '^[[:space:]]*`[^`[:space:]]+`[[:space:]]*$' \
         <<< "$(sed -E 's/, and /\n/g; s/ and /\n/g; s/, /\n/g' <<< "$applies")" \
-        && prose+=("ADR-$key: $applies")
+        && prose+=("$([[ "$key" == [0-9]* ]] && echo ADR-)$key: $applies")
     done < <(show docs/adr/README.md 2>/dev/null | awk -F'|' '
       /^### Binding/ { p = 1; next } p && /^#/ { exit }
       p && /^\| \[/ {
@@ -132,7 +132,7 @@ finish() {
     for file in "${files[@]}"; do
       text="$(show "$file")"
       echo
-      echo "=== ADR-$(adr_key "$file") ($file): $banner ==="
+      echo "=== $(adr_id "$file") ($file): $banner ==="
       awk '/^## / { exit } { print }' <<< "$text"
       for part in "${parts[@]}"; do
         [[ "$part" == "${parts[0]}" ]] || echo
@@ -207,7 +207,7 @@ while IFS= read -r file; do
     done
   done
   ((${#hits[@]})) || continue
-  id="ADR-$(adr_key "$file")"
+  id="$(adr_id "$file")"
   more=""
   ((${#hits[@]} > 3)) && more=", and $((${#hits[@]} - 3)) more"
   found+=("$id ($file) — ${hits[*]:0:3}$more")

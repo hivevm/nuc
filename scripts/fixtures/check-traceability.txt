@@ -1,0 +1,24 @@
+# Cases of scripts/check-traceability.sh for identifiers of the new form, read by
+# scripts/test-check-traceability.sh.
+#
+# One case per line, four fields separated by ' | ':
+#
+#   <pass or fail> | <text the output contains, or -> | <name> | <tree>
+#
+# The tree is a list of steps separated by '; ', applied in order to a repository with an empty
+# docs/adr/ and an empty tests/, and nothing else:
+#
+#   spec <text>                 the specification, with the text as its one goal
+#   adr <id> <status>           the ADR file, headed '# <id>: decision', with no exemption
+#   mark <file> <ids>           the file, holding one 'Verifies:' marker that cites the ids
+#
+# An id and a status are written as in scripts/fixtures/check-docs-record.txt, and so is the
+# notation of that file's header: a colon after two to five capital letters, not preceded by a
+# letter, a digit, or '_', and before a letter or a digit, reads as a hyphen.
+
+pass | - | a marker citing an ADR of the new form that exists | spec **G-1** — it works.; adr SEC:host-socket-closed accepted; mark tests/t.txt SEC:host-socket-closed, G-1
+fail | 'SEC:gone-away', which does not exist | a marker citing an ADR of the new form that does not exist | spec **G-1** — it works.; mark tests/t.txt SEC:gone-away G-1
+fail | 'SEC:gone', which is no identifier | a marker citing a slug of one word | spec **G-1** — it works.; mark tests/t.txt SEC:gone G-1
+fail | 'API:a-b-c-d-e-f', which is no identifier | a marker citing a slug of six words, read whole | spec **G-1** — it works.; mark tests/t.txt API:a-b-c-d-e-f G-1
+fail | SEC:host-socket-closed is accepted but no test cites it | an accepted ADR of the new form nobody cites | spec **G-1** — it works.; adr SEC:host-socket-closed accepted; mark tests/t.txt G-1
+fail | 'SEC:old-rule', which is superseded or rejected | a marker citing a superseded ADR of the new form | spec **G-1** — it works.; adr SEC:old-rule superseded:SEC:new-rule; adr SEC:new-rule accepted; mark tests/t.txt SEC:old-rule SEC:new-rule G-1
