@@ -7,14 +7,12 @@
 # Layout block and the required-checks markers, a workflow and a local runner listing the same
 # check, an ADR record with its index, and one skill with its pointer — runs the check against it,
 # and asserts the exit code and, for a failing case, the message that names the violation. The
-# baseline passes; every other case breaks one thing. The skill pointer check (check 11 of
-# check-docs.sh) is covered in every direction; of the older checks, one case each pins the message
-# a maintainer would meet first — check 9 gets two more for the toolchain job a derived project
-# adds, check 13 (the setup done) has a case for each placeholder, and check 14 (the template
-# release named) one for each form the line may take. The cases of the record checks, 1, 2, 5, 6,
-# 8, 12, and the roles of 13, stand in the fixture table scripts/fixtures/check-docs-record.txt,
-# which says its format. Every fixture has its setup done, so it carries an accepted ADR for each
-# required role.
+# baseline passes; every other case breaks one thing. The skill pointers of check 11 are covered in
+# every direction; of the older checks, one case each pins the message a maintainer would meet
+# first — check 9 gets two more for a derived project's toolchain job, check 13 one for each
+# placeholder, and check 14 one for each form of its line. The cases of checks 1, 2, 5, 6, 8, 12,
+# the roles of 13, and the front matter of 11 stand in the fixture table
+# scripts/fixtures/check-docs-record.txt, which says its format. Every fixture has its setup done.
 #
 # Section references and ADR identifiers inside fixtures are assembled, never written literally,
 # so that check-docs.sh does not read this script's own fixtures as references into this
@@ -199,31 +197,25 @@ expect pass "a consistent repository passes" "$d"
 # --- cases: skill pointers (check 11) ----------------------------------------------------
 
 # Verifies: NUC-procedures-are-skills
-
 d="$(repo pointer-missing)"
 rm "$d/.claude/skills/review"
 expect fail "a skill without its pointer" "$d" ".claude/skills/review: no pointer"
-
 d="$(repo pointer-dangling)"
 rm -r "$d/.agents/skills/review"
 expect fail "a pointer whose skill is gone" "$d" ".claude/skills/review: dangles"
-
 d="$(repo pointer-copy)"
 rm "$d/.claude/skills/review"
 cp -r "$d/.agents/skills/review" "$d/.claude/skills/review"
 expect fail "a copy where a symlink belongs" "$d" ".claude/skills/review: is a copy"
-
 d="$(repo pointer-wrong-target)"
 mkdir -p "$d/.agents/skills/other"
 printf -- '---\nname: other\ndescription: Other.\n---\n' > "$d/.agents/skills/other/SKILL.md"
 ln -s ../../.agents/skills/review "$d/.claude/skills/other"
 expect fail "a pointer at a different skill" "$d" ".claude/skills/other: points at"
-
 d="$(repo pointer-only-skill)"
 mkdir -p "$d/.claude/skills/local"
 printf -- '---\nname: local\ndescription: Local.\n---\n' > "$d/.claude/skills/local/SKILL.md"
 expect fail "a skill that lives only in the pointer directory" "$d" ".claude/skills/local: is not a symlink"
-
 d="$(repo pointer-directory-only)"
 rm -r "$d/.agents" "$d/.claude/skills/review"
 mkdir -p "$d/.claude/skills/review"
@@ -670,7 +662,7 @@ d="$(repo layout-plan-absent)"
 layout "$d" "docs/plan/"
 expect pass "docs/plan/ named while there is no open work" "$d"
 
-# --- cases: the record (checks 1, 2, 5, 6, 8, 12, and 13), read from the fixture table ---
+# --- cases: the record (1, 2, 5, 6, 8, 12, 13) and front matter (11), read from the table ---
 
 TABLE="$ROOT/scripts/fixtures/check-docs-record.txt"
 
@@ -723,6 +715,7 @@ step() {
     branch) g "$dir" switch -q -c "$id" ;;
     back) g "$dir" switch -q - ;;
     merge) g "$dir" merge -q --no-ff -m "$op" "$id" ;;
+    skill) printf '%b' "${2#skill }" > "$dir/.agents/skills/review/SKILL.md" ;;
     *) echo "fixture table: unknown step '$op'" >&2; exit 1 ;;
   esac
 }

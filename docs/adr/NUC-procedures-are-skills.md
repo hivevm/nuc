@@ -46,14 +46,16 @@ We will keep the procedures of the rule file as Agent Skills, each carrying a ho
    skill and resolving to it, and nothing else. A copy or one symlink for the whole directory
    must not replace them. Claude Code reads only `.claude/skills/`, so that directory is a
    pointer directory.
+7. **Front matter.** A skill's `SKILL.md` must open with YAML front matter between two `---`
+   lines. It must set `name`, on the line of its key, to the skill's directory. It must set a
+   `description`.
 
 **Out of scope:**
 
 - whether a skill may run unattended, which its ticket decides by
   [`AGENTS.md` §4](../../AGENTS.md#4-working-style);
 - that only the rule file states rules, which [NUC-documents-are-fixed](NUC-documents-are-fixed.md)
-  decides;
-- a check on the front matter of a skill.
+  decides.
 
 ## Latitude
 
@@ -84,7 +86,11 @@ The catalogue has no entry for the first choice, and it needs no ADR.
 ## Sources / Prior art
 
 - Agent Skills specification — <https://agentskills.io/specification>; client list at
-  <https://agentskills.io/>.
+  <https://agentskills.io/>. Its front matter is YAML and requires `name`, equal to the parent
+  directory, and a non-empty `description`; `metadata` is a nested mapping.
+- Claude Code reads the front matter only when the opening `---` is the first line. If the YAML
+  does not parse, the skill loads with no fields set —
+  <https://code.claude.com/docs/en/skills>.
 - Skill locations — Claude Code: <https://code.claude.com/docs/en/skills>; Codex:
   <https://learn.chatgpt.com/docs/build-skills>; Gemini CLI:
   <https://geminicli.com/docs/cli/skills/>; Cursor: <https://cursor.com/docs/context/skills>.
@@ -109,14 +115,20 @@ The catalogue has no entry for the first choice, and it needs no ADR.
   nothing to that.
 - Negative: the pointers rest on observed behaviour of one Claude Code version, not on documented
   behaviour.
-- Follow-ups: delete the pointer directory and its check once Claude Code reads `.agents/skills/`;
-  a check on the front matter of a skill once the reference validator is worth the dependency.
+- Negative: check 11 reads the front matter without a YAML parser. YAML that breaks on a
+  top-level line, such as an unquoted `: ` in a value, passes it.
+- Follow-ups: delete the pointer directory and its check once Claude Code reads `.agents/skills/`.
 
 ## Enforcement
 
 - Check 11 of `scripts/check-docs.sh` holds `.claude/skills/` (clause 6). It fails on a skill
   without a symlink there, and on an entry that is no symlink, dangles, or resolves to another
   skill. Its self-test cites this ADR.
+- Check 11 also holds clause 7. It fails on a `SKILL.md` whose first line is not `---` or that has
+  no closing `---` line; a fence may carry trailing spaces. It fails on one without a top-level
+  `name` equal to its directory or a top-level `description`. It fails on a non-empty unindented
+  line between the fences that starts no key, no sequence item, and no comment. Indented lines,
+  such as nested keys and block scalars, pass unread.
 - Checks 3 and 4 of `scripts/check-docs.sh` fail on a link or a section reference of a skill
   that does not resolve.
 
