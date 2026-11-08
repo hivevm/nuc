@@ -33,7 +33,7 @@ never edits.
      list and names the release it forked in the **Template** section of its README. It writes
      `, forked` after the version on the release line.
    - A project accepts the base by naming the release it carries. It takes up a release by the
-     steps of `NUC-releases-are-semver-tags §6`.
+     steps of [NUC-releases-are-semver-tags §6](NUC-releases-are-semver-tags.md).
 2. **Blob list.** The blob list `docs/adr/NUC.blobs` names each `NUC-` file and `AGENTS.md` with
    its git blob identifier. A change to one of these files rewrites the list in the same commit.
    In every repository, each of them must match its line in the list.
@@ -44,7 +44,7 @@ never edits.
 **Out of scope:**
 
 - the correction of a `NUC-` ADR in the template repository
-  (`NUC-decisions-are-proposed-then-accepted §6`);
+  ([NUC-decisions-are-proposed-then-accepted §6](NUC-decisions-are-proposed-then-accepted.md));
 - what a project picks for each role (its role ADR).
 
 ## Latitude

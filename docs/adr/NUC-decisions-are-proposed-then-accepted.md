@@ -58,7 +58,7 @@ accepts it.
    nobody may violate or work around it.
 6. **Immutability.** Outside a normalization, nobody may rewrite or delete an accepted project
    ADR. A project changes one only by superseding it
-   (`NUC-adrs-are-named-by-category §4`). The template
+   ([NUC-adrs-are-named-by-category §4](NUC-adrs-are-named-by-category.md)). The template
    repository corrects its own `NUC-` ADRs in place, and a release ships the correction.
    - A take-up of a release may move each citation of a `NUC-` clause in an accepted project ADR,
      as the map of the release says.
@@ -119,7 +119,7 @@ None.
 
 `scripts/test-normalize-remap.sh` cites this ADR. It holds that a map moves every reference
 exactly once (clause 8). The map script refuses a chain or a cycle among ADR identifiers, so a
-second run changes nothing (`NUC-adrs-are-named-by-category §1`).
+second run changes nothing ([NUC-adrs-are-named-by-category §1](NUC-adrs-are-named-by-category.md)).
 A map of criteria may swap them in one pass.
 
 These scripts fail nothing:

@@ -1,3 +1,5 @@
 09f271aec464cc0e99f131b650d3de3c69b7653d NUC-adrs-are-named-by-category.md
-46e227d24f3ca537bfefb3377520147c3ac51468 NUC-base-is-fixed.md
-e214fda5dc1190f8299965439c676a7d1df22799 NUC-decisions-are-proposed-then-accepted.md
+e1111606487e7a7d0e5d5540a72cd700c5c4b4dd NUC-base-is-fixed.md
+ad2103aacdd78506ffd2fc4b441af2ca6bce0c35 NUC-container-hides-host-daemon.md
+5a37b0f4bde0b9d8ea9c044ce58d20482a4bfceb NUC-decisions-are-proposed-then-accepted.md
+f02ced93e2b1b3f4413ac15d0444916c928e3687 NUC-releases-are-semver-tags.md
