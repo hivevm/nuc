@@ -105,36 +105,36 @@ rule_stream() {
   return "$failed"
 }
 
-# avoid_terms <glossary> — what the glossary's entries list under _Avoid:_, split at commas and
-# semicolons, a leading 'and', a trailing period, the stars and underscores of italics, the
-# backticks of a code span, and a placeholder in angle brackets dropped. Each item it reads is 'A<TAB>word<TAB>term<TAB>qualifier':
-# one to three words in lower case, letters beyond ASCII among them, then 'alone' where the item
-# ends so, or nothing; 'in prose' at its end reads as nothing, since only prose is read. Each item
-# it cannot read is 'U<TAB>line<TAB>item<TAB>term', and each term 'T<TAB>term' in lower case. An
-# entry is its '- **Term**' line and the indented lines after it; prose outside an entry lists
-# nothing (NUC-documents-are-fixed §5). An indented list item, a sub-list of the entry, ends its
-# _Avoid:_ list.
+# avoid_terms <glossary> — the items an entry of the glossary lists under _Avoid:_, its lines
+# joined, split at commas and semicolons, without a leading 'and', a trailing period, italics, code
+# span backticks, or a placeholder in angle brackets. Each item it reads is 'A<TAB>word<TAB>term<TAB>
+# qualifier': one to three words in lower case, letters beyond ASCII among them, then 'alone' where
+# the item ends so, else nothing; 'in prose' at its end reads as nothing, since only prose is read.
+# Each item it cannot read is 'U<TAB>line<TAB>item<TAB>term', by the line it starts on, each term
+# 'T<TAB>term' in lower case. An entry is its '- **Term**' line and the indented lines after it;
+# prose outside one lists nothing (NUC-documents-are-fixed §5); an indented list item ends a list.
 avoid_terms() {
   [[ -f "$1" ]] || return 0
   awk '
-    function take(s,  n, i, k, w, q, parts, parts2) {
-      n = split(s, parts, /[,;]/)
-      for (i = 1; i <= n; i++) {
-        w = " " parts[i] " "; gsub(/[*`]/, "", w)
+    # take <list> <line> — the items of a list from that line, "\003" where a line of it breaks.
+    function take(s, line,  n, i, k, w, q, at, parts, parts2) {
+      n = split(s, parts, /[,;]/); for (i = 1; i <= n; i++) {
+        w = " " parts[i] " "; q = w; sub(/[^[:space:]\003].*/, "", q); at = line + gsub(/\003/, "", q); line += gsub(/\003/, "", w); gsub(/[*`]/, "", w)
         while (match(w, /[^[:alnum:]]_|_[^[:alnum:]]/)) w = substr(w, 1, RSTART - 1 + (substr(w, RSTART, 1) != "_")) substr(w, RSTART + 1 + (substr(w, RSTART, 1) != "_"))
         w = tolower(w); gsub(/[[:space:]]+/, " ", w); gsub(/^ (and )?| ?[.]? ?$/, "", w)
         if (w == "" || w ~ /[<>]/) continue
-        q = ""
-        if (w ~ / alone$/) { q = "alone"; sub(/ alone$/, "", w) } else sub(/ in prose$/, "", w)
+        q = ""; if (w ~ / alone$/) { q = "alone"; sub(/ alone$/, "", w) } else sub(/ in prose$/, "", w)
         k = split(w, parts2, " ")
-        if (k > 3 || w ~ /^[-.\047]/ || w ~ /[\[\]!"#$%&()*+,\/:;<=>?@\\^_`{|}~]/) printf "U\t%d\t%s\t%s\n", NR, w (q ? " " q : ""), term
+        if (k > 3 || w ~ /^[-.\047]/ || w ~ /[\[\]!"#$%&()*+,\/:;<=>?@\\^_`{|}~]/) printf "U\t%d\t%s\t%s\n", at, w (q ? " " q : ""), term
         else printf "A\t%s\t%s\t%s\n", w, term, q
       }
     }
-    /^- \*\*[^*]+\*\*/ { term = $0; sub(/^- \*\*/, "", term); sub(/\*\*.*/, "", term); open = 0; entry = 1; printf "T\t%s\n", tolower(term) }
-    !/^- \*\*/ && !/^[[:space:]]+[^[:space:]]/ { entry = 0; open = 0; term = "" }
-    /^[[:space:]]+([-*+]|[0-9]+\.)[[:space:]]/ { open = 0 }
-    entry && open && !index($0, "_Avoid:_") && /^[[:space:]]+[^[:space:]-]/ { take($0); next }
-    entry && term != "" && index($0, "_Avoid:_") { open = 1; take(substr($0, index($0, "_Avoid:_") + 8)) }
+    function done() { if (open) take(list, from); open = 0 }
+    /^- \*\*[^*]+\*\*/ { done(); term = $0; sub(/^- \*\*/, "", term); sub(/\*\*.*/, "", term); entry = 1; printf "T\t%s\n", tolower(term) }
+    !/^- \*\*/ && !/^[[:space:]]+[^[:space:]]/ { done(); entry = 0; term = "" }
+    /^[[:space:]]+([-*+]|[0-9]+\.)[[:space:]]/ { done() }
+    entry && open && !index($0, "_Avoid:_") && /^[[:space:]]+[^[:space:]-]/ { list = list "\003" $0; next }
+    entry && term != "" && index($0, "_Avoid:_") { done(); open = 1; from = NR; list = substr($0, index($0, "_Avoid:_") + 8) }
+    END { done() }
   ' "$1"
 }
