@@ -1,6 +1,6 @@
 # NUC-releases-are-semver-tags: The template is released as SemVer tags, and every repository names the release it carries
 
-- **Status:** 🟡 proposed
+- **Status:** 🟢 accepted
 - **Date:** 2026-11-08
 - **Deciders:** NUC maintainer
 - **Applies to:** the tags of the template repository, the **Template** section of `README.md`, check 14 of `scripts/check-docs.sh`, the pull request that lands a release, and the take-up of a release in a derived project

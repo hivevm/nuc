@@ -1,6 +1,6 @@
 # NUC-container-hides-host-daemon: A Dev Container keeps the host daemon out of reach, its Features locked, and each project under a path of its own
 
-- **Status:** 🟡 proposed
+- **Status:** 🟢 accepted
 - **Date:** 2026-11-08
 - **Deciders:** NUC maintainer
 - **Applies to:** `.devcontainer/`, `.vscode/settings.json`, `scripts/check-devcontainer.sh`, `scripts/test-check-devcontainer.sh`, and `scripts/fixtures/check-devcontainer.txt`

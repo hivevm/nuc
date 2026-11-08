@@ -1,6 +1,6 @@
 # NUC-design-is-revised: The design is revised when a feature spec closes, and after a number of changes without one
 
-- **Status:** 🟡 proposed
+- **Status:** 🟢 accepted
 - **Date:** 2026-11-08
 - **Deciders:** NUC maintainer
 - **Applies to:** the closing of a feature spec, the `Last design revision` line of `docs/ARCHITECTURE.md`, `scripts/sensor-revision-due.sh`, and the `design-revision` skill

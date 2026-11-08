@@ -1,6 +1,6 @@
 # NUC-checks-are-bash: The checks and sensors the template ships are bash scripts under `scripts/`, each held by its self-test and run alike by the hooks and CI
 
-- **Status:** 🟡 proposed
+- **Status:** 🟢 accepted
 - **Date:** 2026-11-08
 - **Deciders:** NUC maintainer
 - **Applies to:** the checks and sensors and their self-tests under `scripts/`, the git hooks under `.githooks/`, the workflows under `.github/workflows/`, and the required checks of `CONTRIBUTING.md`

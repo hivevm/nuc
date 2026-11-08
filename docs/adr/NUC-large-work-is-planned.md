@@ -1,6 +1,6 @@
 # NUC-large-work-is-planned: Work larger than one session is planned as a feature spec cut into tracer-bullet tickets, and findings outside the plan go to a backlog
 
-- **Status:** 🟡 proposed
+- **Status:** 🟢 accepted
 - **Date:** 2026-11-08
 - **Deciders:** NUC maintainer
 - **Applies to:** every change larger than one agent session, `docs/plan/`, the spec and ticket templates of the `plan-feature` skill, the `work-tickets` skill and its claim script `.agents/skills/work-tickets/claim.sh`, `scripts/sensor-plan-frontier.sh`, the pull request template, `docs/backlog/`, and `scripts/sensor-backlog.sh`

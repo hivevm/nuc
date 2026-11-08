@@ -1,6 +1,6 @@
 # NUC-decisions-are-proposed-then-accepted: A decision is proposed as an ADR before it is implemented, a human accepts it, and only a supersession or a normalization changes it
 
-- **Status:** 🟡 proposed
+- **Status:** 🟢 accepted
 - **Date:** 2026-11-08
 - **Deciders:** NUC maintainer
 - **Applies to:** every ADR under `docs/adr/`, `scripts/sensor-review-binding.sh`, `scripts/sensor-binding-adrs.sh`, `scripts/test-normalize-remap.sh`, the map script `.agents/skills/normalize/remap.sh`, and the skills `propose-adr` and `normalize`
