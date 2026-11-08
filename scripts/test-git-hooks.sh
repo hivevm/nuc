@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Self-test of the git hooks under .githooks/: every refusal and every passage the table under
-# "Git hooks" in CONTRIBUTING.md lists (AGENTS.md, sections 5 and 6).
+# "Git hooks" in CONTRIBUTING.md lists (NUC-main-only-via-pr §1, §4, §5, §6; AGENTS.md, section 5).
 #
 # Each case builds a throwaway repository under a temporary directory with core.hooksPath pointing
 # at this repository's .githooks/, runs a real 'git commit' or 'git push' in it — the push goes to
@@ -9,7 +9,7 @@
 # A push case ships its own scripts/check-all.sh, green or red, so the test decides what the hook
 # finds.
 #
-# Verifies: ADR-0002
+# Verifies: NUC-main-only-via-pr ADR-0002
 # Inputs: .githooks/ scripts/lib/
 #
 # Usage:
