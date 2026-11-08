@@ -69,7 +69,7 @@ findings outside the plan in a backlog.
    - The merge of the pull request that names an issue with a closing keyword closes the issue.
      An agent must not close an issue by a write of its own.
    - The assignment of a ticket's issue is its claim. An agent may assign an issue only under the
-     harness ADR's grant, as `NUC-main-only-via-pr §2` allows.
+     harness ADR's grant, as [NUC-main-only-via-pr §2](NUC-main-only-via-pr.md) allows.
    - The host's list of open, unblocked, unassigned ticket issues is the frontier, in place of
      the frontier sensor.
 

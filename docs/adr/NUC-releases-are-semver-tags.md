@@ -45,10 +45,12 @@ release it carries in its README.
 6. **Take-up.** A derived project takes up a release in these steps:
    - It replaces the `NUC-` files, `AGENTS.md`, and the blob list with those of the release.
    - It takes up the other files the release notes name.
-   - It moves the citations of `NUC-` clauses by the release's map.
+   - It moves the citations of `NUC-` clauses by the release's map, in accepted ADRs as
+     [NUC-adrs-record-decisions §6](NUC-adrs-record-decisions.md) allows.
    - It moves the release line and runs the checks.
 
-   The project's ADRs keep their identifiers. A take-up needs no normalization.
+   The project's ADRs keep their identifiers. A take-up needs no normalization, except the one
+   migration of [NUC-adrs-record-decisions §17](NUC-adrs-record-decisions.md).
 7. **Re-cut.** A release that merges, splits, or removes a `NUC-` ADR is a major. Before `v1.0.0`
    it may be a minor, per clause 3. Its notes must carry the map from each old identifier and
    clause to its new home.

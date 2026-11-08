@@ -56,7 +56,7 @@ template's `NUC-` ADRs are a fixed base that a project extends or narrows but ne
      against it until it is settled.
 4. **Implementation.** After the human's review, the agent may implement while the ADR is
    proposed, after its commits, on the same branch or a stacked one.
-   - A commit that changes the text of an ADR must change nothing else.
+   - A commit that changes the text of an ADR must change nothing outside `docs/adr/`.
    - A normalization may carry the restated ADRs together with the text that cites them.
    - The template repository's correction of its own `NUC-` ADRs may carry the corrected ADRs
      together with the text that cites them.
@@ -104,8 +104,8 @@ template's `NUC-` ADRs are a fixed base that a project extends or narrows but ne
     - A project that must contradict a `NUC-` clause forks the template. The fork removes the blob
       list and names the release it forked in the **Template** section of its README. It writes
       `, forked` after the version on the release line.
-    - A project takes up a release by replacing the `NUC-` files, `AGENTS.md`, and the blob list.
-      It accepts the base by naming the release it carries.
+    - A project accepts the base by naming the release it carries. It takes up a release by the
+      steps of [NUC-releases-are-semver-tags §6](NUC-releases-are-semver-tags.md).
 12. **Blob list.** The blob list `docs/adr/NUC.blobs` names each `NUC-` file and `AGENTS.md` with
     its git blob identifier. A change to one of these files rewrites the list in the same commit.
     In every repository, each of them must match its line in the list.
@@ -210,16 +210,17 @@ A project may choose:
   and the blob list (clauses 11 and 12);
 - one accepted ADR per required role after the setup (clause 13).
 
+`scripts/test-normalize-remap.sh` cites this ADR. It holds that a map moves every reference
+exactly once (clause 17). The map script refuses a chain or a cycle among ADR identifiers, so a
+second run changes nothing (clause 8). A map of criteria may swap them in one pass.
+
 These scripts fail nothing:
 
-- `scripts/sensor-review-binding.sh` lists each commit that changes the text of an ADR and another
-  path (clause 4).
+- `scripts/sensor-review-binding.sh` lists each commit that changes the text of an ADR and a path
+  outside `docs/adr/` (clause 4).
 - `scripts/sensor-binding-adrs.sh` lists the ADRs in force whose *Applies to* names a path the
   change touches or the session names (clause 5). With `--sections` it prints the parts a session
   reads. Its self-test cites this ADR.
-- `scripts/test-normalize-remap.sh` cites this ADR. It holds that a map moves every reference
-  exactly once (clause 17). The map script refuses a chain or a cycle among ADR identifiers, so a
-  second run changes nothing (clause 8). A map of criteria may swap them in one pass.
 
 **Not mechanically decidable:** the review judges these (clauses 1 to 4, 11, 17):
 
