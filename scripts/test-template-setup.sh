@@ -3,7 +3,7 @@
 # Self-test of the template setup (TEMPLATE-SETUP.md) against this repository's own files.
 #
 # The setup promises two things the fixture tests of the single checks cannot see, because they
-# hold only on the real scaffold: that check 12 and check 13 of scripts/check-docs.sh name every
+# hold only on the real scaffold: that check 13 of scripts/check-docs.sh names every
 # placeholder the setup leaves behind once its file is gone, and that a project which has done
 # every step is green. Each case copies the repository's files into a throwaway git repository
 # and runs the checks against the copy:
@@ -15,9 +15,10 @@
 #      no row knows of fails here.
 #   2. The remaining steps done, as an agent would do them from the steps' wording: no token is
 #      left, and check-docs.sh, check-traceability.sh, and check-devcontainer.sh pass.
-#   3. The same, on the path 'No Dev Container?' of 'A small project': ADR-0004 superseded and
-#      what the container brings removed as the path lists it. check-docs.sh and
-#      check-traceability.sh pass. It runs while the path is open, before a project has begun it.
+#   3. The same, on the path 'No Dev Container?' of 'A small project': .devcontainer/ deleted and
+#      the rest of what the container brings removed as the path lists it, nothing superseded.
+#      check-docs.sh, check-traceability.sh, and check-devcontainer.sh pass. It runs while the
+#      path is open, before a project has begun it.
 #   4. --close, run by a copy's own script: it refuses on a copy that carries the template's title
 #      (the template's own README, or that title put back where step 1 removed it), and after step 1,
 #      also once the setup file was deleted by hand, removes what close_setup lists and keeps a
@@ -271,7 +272,6 @@ PLACEHOLDERS=(
   "docs/GLOSSARY.md|^- \*\*<Term>\*\*|docs/GLOSSARY.md: the scaffold's entry is still listed"
   "docs/CONVENTIONS.md|^- \*\*<Convention>\*\*|docs/CONVENTIONS.md: the scaffold's entry is still listed"
   "README.md|^- \*\*(Build|Test|Lint|Run):\*\* TODO|README.md: a Build, Test, Lint, or Run command is still TODO"
-  "docs/adr/0001-agent-governance-model.md|^- \*\*Deciders:\*\* NUC maintainer$|inherited from the template and not decided by this project"
   "README.md|\(TEMPLATE-SETUP\.md\)|README.md: broken relative link -> 'TEMPLATE-SETUP.md'"
   "CONTRIBUTING.md|^TEMPLATE-SETUP\.md |CONTRIBUTING.md: Project Layout lists 'TEMPLATE-SETUP.md'"
   ".agents/skills/setup-project/SKILL.md|\(\.\./\.\./\.\./TEMPLATE-SETUP\.md\)|.agents/skills/setup-project/SKILL.md: broken relative link -> '../../../TEMPLATE-SETUP.md'"
@@ -383,7 +383,7 @@ if ((rc == 2)); then pass; else fail "an unknown argument exits $rc, not 2"; fi
 
 # setup_steps <dir> — the steps of the setup, done in the copy as an agent would do them.
 setup_steps() {
-  local d="$1" f doc
+  local d="$1" doc
   close_setup "$d" >/dev/null
   # Step 1: the project's identity.
   edit "$d" README.md 's/^# NUC — .*/# Fixture/'
@@ -396,10 +396,19 @@ setup_steps() {
   edit "$d" .github/CODEOWNERS '/^# TODO: add a code owner/,/^# would enforce nothing/d'
   edit "$d" SECURITY.md 's/<!-- TODO: add a security contact address -->/security@example.invalid/'
   edit "$d" CODE_OF_CONDUCT.md 's/<!-- TODO: add a contact address[^>]*-->/conduct@example.invalid/'
-  # Steps 2 and 4: every inherited ADR accepted by a decider of this project.
-  for f in "$d"/docs/adr/[0-9][0-9][0-9][0-9]-*.md; do
-    edit "$d" "docs/adr/$(basename "$f")" \
-      's/^- \*\*Deciders:\*\* NUC maintainer$/- **Deciders:** NUC maintainer, Fixture Owner/'
+  # Step 4: an accepted ADR for each required role, with its row in the index.
+  local role cat=OPS roles
+  read -r -a roles <<< "$(bash -c 'source "$1" && echo "${ADR_ROLES[*]}"' _ "$ROOT/scripts/lib/adr.sh")"
+  for role in "${roles[@]}"; do
+    printf '# %s: The %s\n\n- **Status:** 🟢 accepted\n- **Role:** %s\n- **Applies to:** the %s\n\n## Enforcement\n\n**Not mechanically decidable:** the fixture.\n' \
+      "$cat-fixture-$role" "$role" "$role" "$role" > "$d/docs/adr/$cat-fixture-$role.md"
+    awk -v row="| [$cat-fixture-$role]($cat-fixture-$role.md) | The $role | the $role | 🟢 accepted |" '
+      /^### Binding/ { binding = 1 }
+      binding && !done && $0 == "None yet." {
+        print "| ADR | Title | Applies to | Status |"; print "|-----|-------|------------|--------|"
+        print row; done = 1; next }
+      { print } /^\|-----/ && !done { print row; done = 1 }' "$d/docs/adr/README.md" > "$d/adr.tmp" \
+      && mv "$d/adr.tmp" "$d/docs/adr/README.md"
   done
   # Step 3: the project idea, and the documents of docs/ named and without scaffold entries.
   for doc in SPECIFICATION ARCHITECTURE GLOSSARY CONVENTIONS; do
@@ -446,101 +455,24 @@ fi
 
 # Only while the path is still open: a project that has walked it, or begun to, has no container
 # left to remove, and case 2 covers what it has.
-if [[ -d "$ROOT/.devcontainer" && -f "$ROOT/scripts/check-devcontainer.sh" ]] \
-  && grep -q '^- \*\*Status:\*\* 🟢 accepted$' "$ROOT/docs/adr/0004-dev-container-runtime.md" 2>/dev/null; then
+if [[ -d "$ROOT/.devcontainer" && -f "$ROOT/scripts/check-devcontainer.sh" ]]; then
   d="$(copy no-container)"
   setup_steps "$d"
-  # A check of the project's own in the devcontainer job, as a project adds one for its
-  # environment: the path has to take it out of the local runner together with the job.
-  printf '#!/usr/bin/env bash\necho "project environment check passed"\n' \
-    > "$d/scripts/check-project-environment.sh"
-  awk '{ print } /^  devcontainer:$/ { job = 1 }
-       job && /run: bash scripts\/check-devcontainer\.sh$/ {
-         print "      - name: Check the project'"'"'s environment"
-         print "        run: bash scripts/check-project-environment.sh"; job = 0 }' \
-    "$d/.github/workflows/checks.yml" > "$d/checks.yml.new" && mv "$d/checks.yml.new" "$d/.github/workflows/checks.yml"
-  edit "$d" scripts/check-all.sh \
-    '/scripts\/check-devcontainer\.sh$/a run "Project environment" scripts/check-project-environment.sh'
-  # The superseding ADR, with the next free number; assembled, so this file cites no ADR that
-  # does not exist here.
-  n="$(find "$d/docs/adr" -maxdepth 1 -name '[0-9][0-9][0-9][0-9]-*.md' | wc -l)"
-  id="$(printf 'ADR-%04d' "$((n + 1))")"
-  file="$(printf '%04d-work-on-the-host.md' "$((n + 1))")"
-  cat > "$d/docs/adr/$file" <<ADR
-# $id: The work runs on the host
-
-- **Status:** 🟢 accepted
-- **Date:** 2026-01-01
-- **Deciders:** Fixture Owner
-- **Applies to:** the development environment
-- **Supersedes:** [ADR-0004](0004-dev-container-runtime.md)
-
-## Context
-
-The project is a small tool, and its one maintainer works on the host.
-
-## Decision
-
-We will work on the host, without a Dev Container.
-
-**Out of scope:** nothing beyond the sentence above.
-
-## Alternatives considered
-
-None — cheap to reverse.
-
-## Sources / Prior art
-
-None — cheap to reverse.
-
-## Consequences
-
-None — cheap to reverse.
-
-## Enforcement
-
-**Not mechanically decidable:** where a maintainer works is outside the tree.
-ADR
-  edit "$d" docs/adr/0004-dev-container-runtime.md \
-    "s/^- \*\*Status:\*\* 🟢 accepted\$/- **Status:** ⚪ superseded by $id/"
-  # The index: the new row among the binding ones, the old row under the superseded ones.
-  row="$(grep -F '| [0004](0004-dev-container-runtime.md) |' "$d/docs/adr/README.md" | sed 's/🟢 accepted/⚪ superseded/')"
-  awk -v row="$row" -v new="| [$(printf '%04d' "$((n + 1))")]($file) | The work runs on the host | the development environment | 🟢 accepted |" '
-    index($0, "| [0004](0004-dev-container-runtime.md) |") == 1 { next }
-    /^### Superseded and rejected/ { print new; print ""; print; superseded = 1; next }
-    superseded && $0 == "None yet." { print "| ADR | Title | Applies to | Status |"; print "|-----|-------|------------|--------|"; print row; next }
-    { print }' "$d/docs/adr/README.md" > "$d/docs/adr/README.md.new" && mv "$d/docs/adr/README.md.new" "$d/docs/adr/README.md"
-  # What the container brings, removed as the small-project path lists it.
-  rm -r "$d/.devcontainer" "$d/scripts/check-devcontainer.sh" "$d/scripts/test-check-devcontainer.sh"
-  # Every script the devcontainer job runs leaves the local runner with the job, a project's own
-  # check included; check 9 holds the job list and the runner together.
-  awk '/^  devcontainer:$/ { job = 1; next } job && /^  [a-z][a-z0-9-]*:$/ { job = 0 }
-       job && match($0, /run: bash scripts\/[A-Za-z0-9._-]+\.sh/) { print substr($0, RSTART + 10, RLENGTH - 10) }' \
-    "$d/.github/workflows/checks.yml" > "$d/job-scripts"
-  awk 'NR == FNR { gone[$0] = 1; next }
-       match($0, /^[[:space:]]*run[[:space:]]+"[^"]*"[[:space:]]+scripts\/[A-Za-z0-9._-]+\.sh/) {
-         script = substr($0, RSTART, RLENGTH); sub(/.*[[:space:]]/, "", script)
-         if (script in gone) next
-       }
-       { print }' "$d/job-scripts" "$d/scripts/check-all.sh" > "$d/check-all.new" \
-    && cat "$d/check-all.new" > "$d/scripts/check-all.sh" && rm "$d/check-all.new"
-  # The scripts only the job ran go with it, or check 9 finds them in neither list.
-  while IFS= read -r f; do rm -f "${d:?}/$f"; done < "$d/job-scripts"
-  rm "$d/job-scripts"
-  edit "$d" .github/workflows/checks.yml '/^# - Dev Container: /d'
-  awk '/^  devcontainer:$/ { skip = 1; next } skip && /^  [a-z][a-z0-9-]*:$/ { skip = 0 } !skip' \
-    "$d/.github/workflows/checks.yml" > "$d/checks.yml.new" && mv "$d/checks.yml.new" "$d/.github/workflows/checks.yml"
-  # shellcheck disable=SC2016  # the backticks are Markdown, not a command substitution
-  edit "$d" CONTRIBUTING.md 's/`devcontainer`, //'
+  # What the container brings, removed as the small-project path lists it. The Dev Container
+  # check, its self-test, and its job stay: without .devcontainer/ the check passes.
+  rm -r "$d/.devcontainer"
   edit "$d" .vscode/settings.json '/^  \/\/ Manage the \*host/,/^  }$/d'
-  edit "$d" .gitignore '/^# Dev Container:/,/(ADR-0004)\.$/d'
+  edit "$d" .gitignore '/^# Dev Container:/,/(NUC-container-hides-host-daemon §3)\.$/d'
   edit "$d" CONTRIBUTING.md '/^## Dev Container$/,/^## Coding Agents$/{/^## Coding Agents$/!d;}'
   edit "$d" CONTRIBUTING.md '/^\.devcontainer\/ /d'
   edit "$d" CONTRIBUTING.md '/^This Dev Container preinstalls/,/^$/d'
   edit "$d" SECURITY.md '/^- \*\*The Dev Container has no access/,/^- \*\*Nothing leaves/{/^- \*\*Nothing leaves/!d;}'
   stage "$d"
+  if ! grep -q '^# Dev Container:' "$d/.gitignore"; then pass
+  else fail "the small-project path leaves the lock comment of .gitignore"; fi
   expect_pass "the small-project path passes the documentation checks" "$d" check-docs.sh
   expect_pass "the small-project path passes the traceability check" "$d" check-traceability.sh
+  expect_pass "the small-project path passes the Dev Container check" "$d" check-devcontainer.sh
 fi
 
 # --- case 4: --close, run by the copy's own script ---------------------------------------------

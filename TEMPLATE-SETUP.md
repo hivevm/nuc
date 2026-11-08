@@ -24,8 +24,10 @@ section by section.
 An **existing project** takes up the template by an adoption, with the
 [`normalize`](.agents/skills/normalize/SKILL.md) skill. Its files are copied into the tree, and
 step 1 gives the project its identity. Then the specification and the record are restated in
-place of steps 2 and 3: the project's own decisions and the inherited ADRs become one series
-([`AGENTS.md` §3](AGENTS.md#3-adr-rules), rule 5). The steps still open follow.
+place of steps 2 and 3: the project's own decisions become its record, and the `NUC-` base stays
+as the release brings it
+([NUC-decisions-are-proposed-then-accepted §8](docs/adr/NUC-decisions-are-proposed-then-accepted.md)).
+The steps still open follow.
 
 ## What only you can do
 
@@ -33,9 +35,9 @@ place of steps 2 and 3: the project's own decisions and the inherited ADRs becom
    - **Project name.** Replace **NUC** in the title of [`README.md`](README.md) and in `"name"`
      of `.devcontainer/devcontainer.json`, rewrite the README's intro sentence, which explains
      the template's name, and delete its **Why NUC** section, which presents the template. Keep
-     `NUC maintainer` in the `Deciders` lines of the ADRs: it names who decided, and it is how
-     check 12 of [`scripts/check-docs.sh`](scripts/check-docs.sh) tells an inherited ADR from
-     your own.
+     `NUC maintainer` in the `Deciders` lines of the ADRs: it names who decided. Leave the `NUC-`
+     files of [`docs/adr/`](docs/adr/) and [`AGENTS.md`](AGENTS.md) as they are: check 12 of
+     [`scripts/check-docs.sh`](scripts/check-docs.sh) holds them against their blob list.
    - **Repository.** The badges of checks, release, and license in [`README.md`](README.md)
      point at the template's repository, `hivevm/nuc`. Repoint them to this project's
      `owner/name` (`git remote get-url origin` says it where a remote exists), or delete a badge
@@ -58,17 +60,14 @@ place of steps 2 and 3: the project's own decisions and the inherited ADRs becom
    [A small project](#a-small-project) says. Then run
    [`scripts/sensor-repo-settings.sh`](scripts/sensor-repo-settings.sh): it reports what still
    differs from the list.
-2. Review the ADRs you inherit in [`docs/adr/`](docs/adr/), in the order of their numbers:
-   the document set, how decisions are verified, and the skills come first, because every later
-   one rests on them; the releases and the feature layer follow. Each was decided by the NUC
-   maintainer, not by you, and binds this project only once you accept it as
-   your own decision: add yourself to its `Deciders`, with its `Status` at `🟢 accepted` in the
-   index and the file, or supersede it with an ADR of your own
-   ([`AGENTS.md` §3](AGENTS.md#3-adr-rules)). Nothing in between: an inherited ADR nobody here
-   has accepted is a rule nobody decided, and check 12 of
-   [`scripts/check-docs.sh`](scripts/check-docs.sh) fails on one in force without a decider of
-   this project once this file is gone. The template ships each with its test or its exemption,
-   so the checks stay green. The Dev Container waits for step 4, where it is decided beside the
+2. Read the `NUC-` ADRs in [`docs/adr/`](docs/adr/), the base this project inherits: the
+   document set, the record, how decisions are verified, the checks, and the skills first,
+   because every later one rests on them; the container, integration, planning, the design
+   revision, and the releases follow. The project accepts the base by the release its README
+   names, never edits a `NUC-` file, and extends or narrows a clause in an ADR of its own
+   ([NUC-base-is-fixed §1](docs/adr/NUC-base-is-fixed.md)). The template ships
+   each with its test or its exemption, so the checks stay green. The Dev Container waits for
+   step 4, where it is decided beside the
    environment: whether the project needs one rests on where its work runs, which the
    specification of step 3 says. The shape of the code is not an inherited ADR: it is a
    founding decision of step 4.
@@ -90,37 +89,42 @@ place of steps 2 and 3: the project's own decisions and the inherited ADRs becom
    **Deciding.** For each, the agent proposes the fitting concepts of the catalogue in
    [`.agents/skills/propose-adr/concepts/`](.agents/skills/propose-adr/concepts/README.md), the
    simplest among them, with what each one's *Does not fit* says about this project; you choose,
-   and the choice becomes an ADR of your own ([`AGENTS.md` §3](AGENTS.md#3-adr-rules), rule 1).
+   and the choice becomes an ADR of your own
+   ([NUC-decisions-are-proposed-then-accepted §1](docs/adr/NUC-decisions-are-proposed-then-accepted.md)).
    One decision per ADR, all of them in commits of ADRs only, status `proposed`
-   ([`AGENTS.md` §3](AGENTS.md#3-adr-rules), rule 3). Keeping what the template ships is a
-   choice too, and gets the mini-ADR of [`docs/adr/template.md`](docs/adr/template.md): this
-   file goes once the setup is done, and without the record the next session proposes the
-   question again. Decide these and no more; everything else is decided when the work first
-   needs it.
+   ([NUC-decisions-are-proposed-then-accepted §3](docs/adr/NUC-decisions-are-proposed-then-accepted.md)).
+   Keeping what the template ships is a choice too, and gets the mini-ADR of
+   [`docs/adr/template.md`](docs/adr/template.md): this file goes once the setup is done, and
+   without the record the next session proposes the question again. Decide these and no more;
+   everything else is decided when the work first needs it.
    - **The harness** ([catalogue](.agents/skills/propose-adr/concepts/harness.md)): which agents
      and models work here, who reviews what, and what may run unattended.
    - **The toolchain** ([catalogue](.agents/skills/propose-adr/concepts/toolchain.md)): the
      language, its build, test, and lint commands, and its sensors in three kinds.
+
+     These two carry the header field `Role:`, `harness` or `toolchain`. Once this file is gone,
+     check 13 fails unless each role has exactly one accepted ADR.
    - **The shape of the code,** from the catalogue's group of that name, with the rule a
      structural test decides, or no prescribed shape, as the template ships. A decision about
      the shape is the one entropy erodes first.
    - **The environment:** the base of the Dev Container (an image, a `Dockerfile`, or Compose)
      and how the work reaches the containers it needs, or none, as `.devcontainer/` ships it;
-     with it, whether the inherited [ADR-0004](docs/adr/0004-dev-container-runtime.md) is kept
-     or superseded.
+     or no Dev Container at all, where
+     [NUC-container-hides-host-daemon §1](docs/adr/NUC-container-hides-host-daemon.md) binds
+     nothing.
    - **The supply chain:** how the workflows reference actions, by major version tag as the
      template ships them, and, where the specification names credentials as an asset, where
      secrets live and how a leak is caught.
 
    **When they bind.** These ADRs are a start, not a cage. While they are `proposed`, a finding
-   revises one in a commit of ADRs only ([`AGENTS.md` §3](AGENTS.md#3-adr-rules), rule 4). The
-   ones the golden path of step 7 proves wrong are rewritten before they bind. Each flips to
+   revises one in a commit of ADRs only
+   ([NUC-decisions-are-proposed-then-accepted §4](docs/adr/NUC-decisions-are-proposed-then-accepted.md)).
+   The ones the golden path of step 7 proves wrong are rewritten before they bind. Each flips to
    accepted with what decides it:
    - **The shape and the toolchain** flip with the golden path of step 7 and its tests.
-   - **The environment** flips with `scripts/check-devcontainer.sh` and what its ADR adds. If
-     ADR-0004 is kept, its decider is added as step 2 describes. An ADR superseding it is
-     proposed here, and what it removes follows in a commit after the reviewed ADRs, where it
-     flips to accepted ([`AGENTS.md` §3](AGENTS.md#3-adr-rules), rule 4).
+   - **The environment** flips with `scripts/check-devcontainer.sh` and what its ADR adds. A
+     project without a Dev Container removes it in a commit after the reviewed ADRs, as
+     [A small project](#a-small-project) says, and supersedes nothing.
    - **The supply chain** flips with
      [`scripts/sensor-action-refs.sh`](scripts/sensor-action-refs.sh) run as its check, wired as
      its [catalogue entry](.agents/skills/propose-adr/concepts/action-references.md) says.
@@ -152,43 +156,40 @@ place of steps 2 and 3: the project's own decisions and the inherited ADRs becom
    "golden path", which `--open` looks for. The specification says *what*; this is where
    an agent learns *how* this project does it, and what it copies from is what you get more of.
    Where the project chose a shape, its rule lands here as a **structural test**, cited with a
-   `Verifies:` marker ([ADR-0002](docs/adr/0002-decisions-verified-by-tests.md)), and the shape
-   ADR flips to accepted with it; the toolchain ADR flips with the golden path's tests. What the
-   golden path shows that no check decides and a reader could not guess, the why behind a shape,
-   is the first entry in [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md).
+   `Verifies:` marker ([NUC-decisions-cite-tests §2](docs/adr/NUC-decisions-cite-tests.md)), and
+   the shape ADR flips to accepted with it; the toolchain ADR flips with the golden path's tests.
+   What the golden path shows that no check decides and a reader could not guess, the why behind
+   a shape, is the first entry in [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md).
 
 Project-specific conventions belong in [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md), in checks, and
-in ADRs; on what may and may not be edited, see [`AGENTS.md` §3](AGENTS.md#3-adr-rules). Leave the
-**Dev Container**, **Coding Agents**, and **Repository settings** sections of `CONTRIBUTING.md` and
-the **Template** section of the README as-is; they describe the scaffold. A project without a Dev
-Container changes the first two as [A small project](#a-small-project) says. The Template section
-names the release this project was created from and is the one link to the template that stays. The
-**Project Layout** block of `CONTRIBUTING.md` inventories the top level, so a part you remove goes
-out of it, this file included, and a part you add goes in, such as the source tree and the
-toolchain's files of step 6; check 10 of [`scripts/check-docs.sh`](scripts/check-docs.sh) fails on
-one it does not name.
+in ADRs; on what may and may not be edited, see
+[NUC-decisions-are-proposed-then-accepted §6](docs/adr/NUC-decisions-are-proposed-then-accepted.md)
+and [NUC-base-is-fixed §1](docs/adr/NUC-base-is-fixed.md). Leave the **Dev Container**, **Coding
+Agents**, and **Repository settings** sections of `CONTRIBUTING.md` and the **Template** section of
+the README as-is; they describe the scaffold. A project without a Dev Container changes the first
+two as [A small project](#a-small-project) says. The Template section names the release this project
+carries and is the one link to the template that stays. The **Project Layout** block of
+`CONTRIBUTING.md` inventories the top level, so a part you remove goes out of it, this file
+included, and a part you add goes in, such as the source tree and the toolchain's files of step 6;
+check 10 of [`scripts/check-docs.sh`](scripts/check-docs.sh) fails on one it does not name.
 
 ## A small project
 
 A tool, a library, or a one-person project pays for the steps above only where they buy
-something. The chain stays intact as long as three inherited ADRs stand: ADR-0001 (the
-documents the checks read), ADR-0002 (a `Verifies:` marker per accepted decision, one line of
-cost), and ADR-0003 (the skills and their pointers, which cost nothing until invoked).
-[ADR-0005](docs/adr/0005-template-releases.md) costs nothing to accept: it is one line of the
+something. The base stands whole, and costs little:
+[NUC-documents-are-fixed](docs/adr/NUC-documents-are-fixed.md) holds the documents the checks
+read, [NUC-decisions-cite-tests](docs/adr/NUC-decisions-cite-tests.md) asks one `Verifies:`
+marker per accepted decision, [NUC-procedures-are-skills](docs/adr/NUC-procedures-are-skills.md)
+ships skills that cost nothing until invoked, and
+[NUC-releases-are-semver-tags](docs/adr/NUC-releases-are-semver-tags.md) is one line of the
 README. What can go, and how:
 
-- **No Dev Container?** Supersede [ADR-0004](docs/adr/0004-dev-container-runtime.md) with an ADR
-  that says where the work runs instead, proposed with the founding decisions of step 4, and
-  remove what the container brings in the change that implements it:
-  - `.devcontainer/`, and the check that holds ADR-0004: `scripts/check-devcontainer.sh` and its
-    self-test, which cites the superseded ADR;
-  - the `devcontainer` job and its bullet in the header of
-    [`checks.yml`](.github/workflows/checks.yml), its `run` lines in
-    [`scripts/check-all.sh`](scripts/check-all.sh), its name in the required checks of
-    `CONTRIBUTING.md`, and any script of the project's own that only the job ran; check 9 holds the
-    three lists, the header, and the scripts under `scripts/` together. Take it out of the required
-    checks of the ruleset on `main` as well, since the pull request that removes the job can merge
-    only then;
+- **No Dev Container?** Record where the work runs in the environment ADR of step 4, delete
+  `.devcontainer/`, and supersede nothing: without it no clause of the Dev Container ADR binds
+  ([NUC-container-hides-host-daemon §1](docs/adr/NUC-container-hides-host-daemon.md)).
+  `scripts/check-devcontainer.sh`, its self-test, and the `devcontainer` job stay: the check
+  passes and says that nothing binds, and its self-test is the test that cites the ADR. Remove
+  the rest of what the container brings in the change that implements the decision:
   - the `remote.extensionKind` entry of [`.vscode/settings.json`](.vscode/settings.json) and the
     lock comment of [`.gitignore`](.gitignore);
   - in `CONTRIBUTING.md`, the Dev Container section and the `.devcontainer/` row of the Project
@@ -196,14 +197,14 @@ README. What can go, and how:
     Dev Container in the workflow rewritten for the host; in the README, Prerequisites and
     Getting Started; and the first bullet of Agent execution in [`SECURITY.md`](SECURITY.md).
 
-  The link, layout, list, and traceability checks fail on a file, a job, or a link left behind;
+  The link and layout checks fail on a file or a link left behind;
   the prose is the reviewer's to read. This file names what the path removes without linking it,
   so its own links hold while the path is walked.
 - **No shape worth a decision?** A script or a thin CLI keeps what the template ships, no
   prescribed shape, in a mini-ADR that says so.
-- **Work never exceeds a session?** [ADR-0006](docs/adr/0006-feature-layer.md) stays accepted and
-  costs nothing: it applies only above that threshold, and the threshold is a judgement under
-  proportionality ([`AGENTS.md` §1](AGENTS.md#1-principles)).
+- **Work never exceeds a session?** Planning costs nothing: it binds only above that threshold
+  ([NUC-large-work-is-planned §1](docs/adr/NUC-large-work-is-planned.md)), and the threshold is a
+  judgement under proportionality ([`AGENTS.md` §1](AGENTS.md#1-principles)).
 - **The harness and the toolchain** take the smallest form of their catalogue entries: one agent
   and the human reviewing every change, the linter's own rules as the first sensors. Each grows
   when the work does.
@@ -238,8 +239,9 @@ entries.
 - **The work** is planned under `docs/plan/` from the start, through the
   [`plan-feature`](.agents/skills/plan-feature/SKILL.md) skill; the golden path of step 7 is the
   tracer bullet of the first spec. A ticket is claimed on `main`
-  ([ADR-0006](docs/adr/0006-feature-layer.md)), so the setup's pull request lands steps 1 to 6
-  first, and the founding ADRs reach `main` as `proposed`; step 7 follows as that spec.
+  ([NUC-large-work-is-planned §4](docs/adr/NUC-large-work-is-planned.md)), so the setup's pull
+  request lands steps 1 to 6 first, and the founding ADRs reach `main` as `proposed`; step 7 follows
+  as that spec.
 - **A second maintainer** makes the Code Owners review of the repository settings possible; keep
   it required. With several, a team is the code owner in
   [`.github/CODEOWNERS`](.github/CODEOWNERS), and the harness ADR says which of them decides the

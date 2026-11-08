@@ -6,9 +6,12 @@ description: Set a project up from this template interactively, one question at 
 # Set the project up
 
 The steps and what each one decides are [`TEMPLATE-SETUP.md`](../../../TEMPLATE-SETUP.md); the
-rules on ADRs are [`AGENTS.md` §3](../../../AGENTS.md#3-adr-rules). This skill is the order of
-the conversation and states no rule of its own
-([ADR-0003](../../../docs/adr/0003-procedures-as-skills.md)).
+rules on ADRs are
+[NUC-decisions-are-proposed-then-accepted](../../../docs/adr/NUC-decisions-are-proposed-then-accepted.md),
+[NUC-adrs-are-named-by-category](../../../docs/adr/NUC-adrs-are-named-by-category.md), and
+[NUC-base-is-fixed](../../../docs/adr/NUC-base-is-fixed.md). This skill is the order of the
+conversation and states no rule of its own
+([NUC-procedures-are-skills §3](../../../docs/adr/NUC-procedures-are-skills.md)).
 
 ## How the conversation runs
 
@@ -22,12 +25,14 @@ the conversation and states no rule of its own
   `main` by one pull request; a complex project lands it before step 7, as
   [A complex project](../../../TEMPLATE-SETUP.md#a-complex-project) says. Steps 5 to 7 follow
   once the human has reviewed the ADRs of step 4
-  ([`AGENTS.md` §3](../../../AGENTS.md#3-adr-rules), rules 3 and 4).
+  ([NUC-decisions-are-proposed-then-accepted §3](../../../docs/adr/NUC-decisions-are-proposed-then-accepted.md)
+  and
+  [NUC-decisions-are-proposed-then-accepted §4](../../../docs/adr/NUC-decisions-are-proposed-then-accepted.md)).
 - A later session resumes from the tree. The profile is read from the team and the work in the
   specification's *Constraints* and the assets in its *Threats*, or asked again while those are
   unwritten. [`scripts/test-template-setup.sh`](../../../scripts/test-template-setup.sh)
-  `--open` lists what is still open of steps 1, 3, 5, 6, and 7, and each inherited ADR without a
-  decider of this project. Read from the tree are the
+  `--open` lists what is still open of steps 1, 3, 5, 6, and 7, and each required role without
+  its accepted ADR. Read from the tree are the
   *Problem*, *Mission*, *Vision*, and *Strategy* of the specification, whose scaffold carries no
   `…` to find. The founding decisions already taken are the ADRs of step 4 in `docs/adr/`.
   Whether the repository settings are set, ask the human.
@@ -46,12 +51,13 @@ that section says.
 The profile is a starting point, not a record: the harness and the toolchain grow when the work
 does.
 
-## 2. Identity and inherited ADRs
+## 2. Identity and the base
 
-Step 1: ask for the four values of the identity and apply them. Step 2: for each inherited ADR,
-in the order of its number, say in two sentences what it decides and what it costs this
-project, recommend accepting or superseding it in the light of the profile, and apply the
-human's answer, leaving out the ones step 2 of the setup file holds back.
+Step 1: ask for the four values of the identity and apply them. Step 2: for each `NUC-` ADR,
+in the order step 2 of the setup file gives, say in two sentences what it decides and what it
+costs this project in the light of the profile. The base is accepted as a whole by the release
+the README names, so nothing is applied, and a wish to change a clause becomes an ADR of the
+project that narrows it.
 
 Between the two, walk the human through the repository settings as step 1 of the setup file
 says: the profile and the number of maintainers decide whether the Code Owners review is on.
@@ -84,10 +90,13 @@ documents of `docs/` get the project's name in their title.
 
 Step 4, one decision at a time through [`propose-adr`](../propose-adr/SKILL.md), weighed against
 the specification just written: the simplest fitting concepts proposed, the human chooses, each
-choice an ADR ([`AGENTS.md` §3](../../../AGENTS.md#3-adr-rules), rule 3). ADR-0004 is taken up
-beside the environment, as the setup file says. For the harness, ask whether
-agents are to work tickets in parallel; if so, the ADR takes the catalogue's form *Parallel
-tickets under a cap* and names the command that starts each agent without a human.
+choice an ADR
+([NUC-decisions-are-proposed-then-accepted §3](../../../docs/adr/NUC-decisions-are-proposed-then-accepted.md)).
+Beside the environment, ask whether the project keeps a Dev Container at all; without one,
+[NUC-container-hides-host-daemon §1](../../../docs/adr/NUC-container-hides-host-daemon.md) binds
+nothing, as the setup file says. For the harness, ask whether agents are to work tickets in
+parallel; if so, the ADR takes the catalogue's form *Parallel tickets under a cap* and names the
+command that starts each agent without a human.
 
 ## 5. The remaining steps
 

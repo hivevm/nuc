@@ -4,12 +4,12 @@
 > how they fit together. It holds no rule and no decision. It names the ADR behind each structural
 > choice; where it disagrees with an accepted ADR, the ADR is right and this document is stale. It
 > is updated in the same change as the structure it describes
-> ([ADR-0001](adr/0001-agent-governance-model.md)).
+> ([NUC-documents-are-fixed](adr/NUC-documents-are-fixed.md)).
 >
-> **Last design revision:** 2026-11-07, due after 20 changes. The revision that took the count
+> **Last design revision:** 2026-11-07 (2), due after 20 changes. The revision that took the count
 > moves the date; the number is this project's to set; a sensor counts the changes outside
 > `docs/` since the commit that set the date and says when the next is due
-> ([ADR-0006](adr/0006-feature-layer.md)).
+> ([NUC-design-is-revised §4](adr/NUC-design-is-revised.md)).
 
 ## Context
 
