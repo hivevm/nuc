@@ -57,8 +57,8 @@ insert_before() {
 # sect <n> — the section sign followed by n, assembled so that this file carries no literal one.
 sect() { printf '\302\247%s' "$1"; }
 
-# adr_id <n> — the identifier ADR-000n, assembled for the same reason.
-adr_id() { printf 'ADR-%04d' "$1"; }
+# adr_id <n> — the identifier SEC-decision-<n>, assembled for the same reason.
+adr_id() { printf '%s-decision-%s' SEC "$1"; }
 
 # adr <dir> <number> <status emoji + word> — write one ADR with the header the index mirrors.
 adr() {
@@ -72,15 +72,11 @@ adr() {
     echo "## Decision"
     echo
     echo "We will."
-  } > "$dir/docs/adr/$(printf '%04d' "$n")-decision.md"
+  } > "$dir/docs/adr/$(adr_id "$n").md"
 }
 
 # index_row <number> <status emoji + word> — one row of the ADR index for the given ADR.
-index_row() {
-  local n
-  n="$(printf '%04d' "$1")"
-  echo "| [$n]($n-decision.md) | Decision $n | everything | $2 |"
-}
+index_row() { echo "| [$(adr_id "$1")]($(adr_id "$1").md) | Decision $1 | everything | $2 |"; }
 
 # role_adr <dir> <role> — the accepted ADR that fills the role, and role_row <role> its index row.
 role_adr() {
@@ -153,7 +149,7 @@ repo() {
   echo 'run "Documentation consistency" scripts/check-docs.sh' > "$dir/scripts/check-all.sh"
 
   {
-    echo "# $(printf 'ADR-%s' NNNN): title"
+    echo "# <CAT>-<slug>: title"
     echo
     echo "- **Status:** 🟡 proposed"
     echo
@@ -479,13 +475,13 @@ expect pass "a heading on a last line without a newline anchors" "$d"
 
 # Verifies: NUC-adrs-are-named-by-category
 d="$(repo header-not-a-list-item)"
-sed 's/^- \*\*Status:\*\*/**Status:**/' "$d/docs/adr/0001-decision.md" > "$d/adr.tmp" \
-  && mv "$d/adr.tmp" "$d/docs/adr/0001-decision.md"
+sed 's/^- \*\*Status:\*\*/**Status:**/' "$d/docs/adr/$(adr_id 1).md" > "$d/adr.tmp" \
+  && mv "$d/adr.tmp" "$d/docs/adr/$(adr_id 1).md"
 expect fail "a header field that is no list item" "$d" \
-  "0001-decision.md:3: a header field not written as the list item"
+  "$(adr_id 1).md:3: a header field not written as the list item"
 d="$(repo header-field-quoted-in-body)"
 # shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
-echo 'A later ADR names this one in its `**Supersedes:**` field.' >> "$d/docs/adr/0001-decision.md"
+echo 'A later ADR names this one in its `**Supersedes:**` field.' >> "$d/docs/adr/$(adr_id 1).md"
 expect pass "a header field quoted in the body of an ADR" "$d"
 
 d="$(repo section-ref)"
@@ -680,7 +676,7 @@ TABLE="$ROOT/scripts/fixtures/check-docs-record.txt"
 
 # Verifies: NUC-adrs-are-named-by-category NUC-base-is-fixed
 # adr_file <id> — the file of an identifier; status_of <status> — the status line it reads.
-adr_file() { if [[ "$1" == ADR-* ]]; then echo "${1#ADR-}-decision.md"; else echo "$1.md"; fi; }
+adr_file() { echo "$1.md"; }
 status_of() {
   case "$1" in
     accepted) echo "🟢 accepted" ;; proposed) echo "🟡 proposed" ;; rejected) echo "🔴 rejected" ;;
@@ -694,7 +690,7 @@ step() {
   local index="$1/docs/adr/README.md"
   read -r op id arg <<< "$2"
   rest="${2#"$op" }" rest="${rest#"$id" }"
-  file="$(adr_file "$id")" key="${id#ADR-}"
+  file="$(adr_file "$id")" key="$id"
   case "$op" in
     adr)
       step "$dir" "file $id $arg"
@@ -703,7 +699,7 @@ step() {
             "$id" "$(status_of "$arg")" > "$dir/docs/adr/$file" ;;
     row)
       read -r _ _ id arg <<< "$2"
-      file="$(adr_file "$id")" key="${id#ADR-}"
+      file="$(adr_file "$id")" key="$id"
       rest="| [$key]($file) | Decision | everything | $(status_of "$arg") |"
       if [[ "$2" == "row binding "* ]]; then insert_before "$index" "### Superseded" "$rest"; else echo "$rest" >> "$index"; fi ;;
     field) insert_before "$dir/docs/adr/$file" "- **Applies to:**" "- **${arg%% *}:** ${rest#"${arg%% *}" }" ;;
@@ -743,7 +739,7 @@ while IFS= read -r line; do
   [[ "$needle" == - ]] && needle=""
   DELETED=""
   d="$(repo "record-$n")"
-  rm "$d/docs/adr/0001-decision.md"
+  rm "$d/docs/adr/$(adr_id 1).md"
   printf '# ADRs\n\n### Categories\n\n- **NUC** — the template.\n\n### Binding\n\n%s\n%s\n%s\n### Superseded and rejected\n\n%s\n%s\n' \
     "| ADR | Title | Applies to | Status |" "|-----|-------|------------|--------|" "$(for r in "${ROLES[@]}"; do role_row "$r"; done)" \
     "| ADR | Title | Applies to | Status |" "|-----|-------|------------|--------|" > "$d/docs/adr/README.md"
@@ -772,9 +768,9 @@ d="$(repo warn-git)"
 g "$d" add -A && g "$d" commit -q -m base
 mkdir -p "$work/warn-git-bin"
 printf '#!/usr/bin/env bash
-[[ " $* " == *" --diff-filter=D "* ]] && echo "docs/adr/0001-decision.md" >&2
+[[ " $* " == *" --diff-filter=D "* ]] && echo "docs/adr/%s.md" >&2
 exec %q "$@"
-' "$(command -v git)" > "$work/warn-git-bin/git"
+' "$(adr_id 1)" "$(command -v git)" > "$work/warn-git-bin/git"
 chmod +x "$work/warn-git-bin/git"
 PATH="$work/warn-git-bin:$PATH" expect pass "check 2: a warning of git on stderr is no deleted ADR" "$d"
 

@@ -26,9 +26,9 @@ CHECK="$ROOT/scripts/check-traceability.sh"
 # mark <ids...> — the marker line for the given identifiers.
 mark() { printf 'Verifies: %s\n' "$*"; }
 
-# adr_id <n> — the identifier ADR-000n, assembled so that this file carries no literal one: a
-# normalization rewrites every literal one in the tree.
-adr_id() { printf "ADR-%04d" "$1"; }
+# adr_id <n> — the identifier SEC-decision-<n>, assembled so that this file carries no literal
+# one: a map rewrites every literal one in the tree.
+adr_id() { printf '%s-decision-%s' SEC "$((10#$1))"; }
 
 # repo <name> — create an empty fixture repository and print its path.
 repo() {
@@ -63,7 +63,7 @@ spec() {
 adr() {
   local dir="$1" n="$2" status="$3" enforcement="${4:-Review only.}"
   {
-    echo "# ADR-$n: decision $n"
+    echo "# $(adr_id "$n"): decision $n"
     echo
     echo "- **Status:** $status"
     echo
@@ -74,7 +74,7 @@ adr() {
     echo "## Enforcement"
     echo
     echo "$enforcement"
-  } > "$dir/docs/adr/$n-decision.md"
+  } > "$dir/docs/adr/$(adr_id "$n").md"
 }
 
 # expect <pass|fail> <name> <dir> [needle] — run the check; when a needle is given, its output must contain it.
@@ -168,13 +168,20 @@ adr "$d" 0001 "🟡 proposed"
 mark "G-1 G-9" > "$d/tests/t.txt"
 expect fail "marker citing a criterion that does not exist" "$d" "'G-9', which is not a criterion"
 
-# The number is assembled so that check-docs.sh does not read this fixture as a stale reference.
-unknown="ADR-$(printf '%04d' 42)"
+# Assembled so that check-docs.sh does not read this fixture as a stale reference.
+unknown="$(adr_id 42)"
 d="$(repo unknown-adr)"
 spec "$d" "**G-1** — it works."
 adr "$d" 0001 "🟡 proposed"
 mark "G-1 $unknown" > "$d/tests/t.txt"
 expect fail "marker citing an ADR that does not exist" "$d" "'$unknown', which does not exist"
+
+# The numbered form of the retired ADRs is no identifier any more.
+numbered="$(printf '%s-%04d' ADR 1)"
+d="$(repo numbered-form)"
+spec "$d" "**G-1** — it works."
+mark "G-1 $numbered" > "$d/tests/t.txt"
+expect fail "marker citing the numbered form" "$d" "'$numbered', which is no identifier"
 
 d="$(repo superseded-adr)"
 spec "$d" "**G-1** — it works."
@@ -206,8 +213,7 @@ while IFS= read -r line; do
     case "$op" in
       spec) spec "$d" "${s#spec }" ;;
       adr)
-        file="${id#ADR-}-decision" status="🟢 accepted"
-        [[ "$id" == ADR-* ]] || file="$id"
+        file="$id" status="🟢 accepted"
         [[ "$arg" == superseded:* ]] && status="⚪ superseded by ${arg#superseded:}"
         [[ "$arg" == proposed ]] && status="🟡 proposed"
         printf '# %s: decision\n\n- **Status:** %s\n\n## Enforcement\n\nReview only.\n' "$id" "$status" \
@@ -252,7 +258,8 @@ if [[ -f "$ROOT/TEMPLATE-SETUP.md" ]]; then
   done < <(git -C "$ROOT" ls-files --cached --others --exclude-standard -z)
   git -C "${d:?}" init -q
   # Assembled, so this file cites no ADR that does not exist here.
-  cat=OPS founding="$cat-a-founding-decision"
+  category=OPS
+  founding="$category-a-founding-decision"
   cat > "$d/docs/adr/$founding.md" <<ADR
 # $founding: A founding decision of the project, proposed in setup step 4
 

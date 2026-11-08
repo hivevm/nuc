@@ -4,14 +4,13 @@
 # check-docs.sh fails on a field written in any other form, so every other reader may take the
 # list item for granted.
 # The identifier of an ADR is read one way too: '<CAT>-<slug>' in the file '<CAT>-<slug>.md'
-# (NUC-adrs-are-named-by-category), or the old form, its number, until the old ADRs retire.
+# (NUC-adrs-are-named-by-category §1).
 # Sourced by the checks and sensors that read an ADR's file name, identifier, or header.
 
-# An identifier of the new form: a category key of two to five capital letters, a hyphen, and a
+# An identifier: a category key of two to five capital letters, a hyphen, and a
 # slug of two to five lower case words or numbers joined by hyphens.
 ADR_SLUG_RE='[a-z0-9]+(-[a-z0-9]+){1,4}'
 ADR_NEW_RE="[A-Z]{2,5}-$ADR_SLUG_RE"
-ADR_NUMBER_RE='[0-9]{4}'
 # The fixed categories; a project defines its others in the category list of the ADR index.
 ADR_FIXED_CATEGORIES=(NUC SEC OPS API)
 # What a 'Verifies:' marker cites, read whole: capital letters, a hyphen, and the rest of the word.
@@ -22,7 +21,7 @@ ADR_WORD_CHARS='A-Za-z0-9_-'
 
 # adr_categories <index> — sets ADR_CATEGORIES to the fixed categories and those the category list
 # of the index defines, each a list item '- **<KEY>** …' below a heading '... Categories';
-# ADR_REF_RE to an ADR as prose cites it, 'ADR-NNNN' or an identifier of a known category; and
+# ADR_REF_RE to an ADR as prose cites it, an identifier of a known category; and
 # ADR_REF_WORD_RE to such a reference standing as a word of its own, the reference its group 2.
 adr_categories() {
   local key
@@ -33,7 +32,7 @@ adr_categories() {
       p && match($0, /^- [*][*][A-Z]+[*][*]/) { print substr($0, 5, RLENGTH - 6) }' "$1")
   fi
   local IFS='|'
-  ADR_REF_RE="ADR-$ADR_NUMBER_RE|(${ADR_CATEGORIES[*]})-$ADR_SLUG_RE"
+  ADR_REF_RE="(${ADR_CATEGORIES[*]})-$ADR_SLUG_RE"
   ADR_REF_WORD_RE="(^|[^$ADR_WORD_CHARS])($ADR_REF_RE)([^$ADR_WORD_CHARS]|\$)"
 }
 adr_categories ""
@@ -53,17 +52,13 @@ adr_field_line() { grep -m1 -E "$ADR_ITEM_RE$2:[*][*]" "$1"; }
 # adr_field_value <line> <name> — sets ADR_VALUE to what follows the field's name on the line.
 adr_field_value() { ADR_VALUE="${1##*\*\*"$2":\*\*}"; }
 
-# The names of ADR files: a numbered one, then any name of letters before its first hyphen, so
-# that check 2 of check-docs.sh sees a misnamed ADR, such as 'Sec-x.md'. ADR_FILE_RE matches the
-# same names.
-ADR_GLOBS=('[0-9][0-9][0-9][0-9]-*.md' '[A-Za-z]*-*.md')
-ADR_FILE_RE="($ADR_NUMBER_RE-[^/]*|[A-Za-z]+-[^/]*)\\.md"
+# The names of ADR files: any name of letters before its first hyphen, so that check 2 of
+# check-docs.sh sees a misnamed ADR, such as 'Sec-x.md'. ADR_FILE_RE matches the same names.
+ADR_GLOB='[A-Za-z]*-*.md'
+ADR_FILE_RE="[A-Za-z]+-[^/]*\\.md"
 
-# adr_files <dir> — every ADR file in the directory, the numbered ones in order, then the others.
-adr_files() {
-  LC_ALL=C find "$1" -maxdepth 1 -type f \( -name "${ADR_GLOBS[0]}" -o -name "${ADR_GLOBS[1]}" \) \
-    | LC_ALL=C sort
-}
+# adr_files <dir> — every ADR file in the directory, in order.
+adr_files() { LC_ALL=C find "$1" -maxdepth 1 -type f -name "$ADR_GLOB" | LC_ALL=C sort; }
 
 # adr_blobs <dir> — the blob list of the 'NUC-' files in the directory, '<blob> <file name>' a
 # line, in the order adr_files gives (NUC-base-is-fixed §2). git reads each file as it
@@ -80,14 +75,9 @@ adr_blobs() {
 # adr_is_file <name> — true when it names an ADR file.
 adr_is_file() { [[ "${1##*/}" =~ ^$ADR_FILE_RE$ ]]; }
 
-# adr_key_of <file> — sets ADR_KEY to the key of the ADR file, as its index row names it: its
-# number, or its identifier; and ADR_ID to its identifier, 'ADR-NNNN' or '<CAT>-<slug>'. adr_id
-# prints the identifier.
-adr_key_of() {
-  ADR_KEY="${1##*/}" ADR_KEY="${ADR_KEY%.md}" ADR_ID="$ADR_KEY"
-  [[ "$ADR_KEY" == [0-9]* ]] && ADR_KEY="${ADR_KEY%%-*}" ADR_ID="ADR-${ADR_KEY%%-*}"
-  return 0
-}
+# adr_key_of <file> — sets ADR_ID to the identifier of the ADR file, its name without '.md'.
+# adr_id prints it.
+adr_key_of() { ADR_ID="${1##*/}" ADR_ID="${ADR_ID%.md}"; }
 adr_id() { adr_key_of "$1"; printf '%s\n' "$ADR_ID"; }
 
 # The sections of an ADR a session reads, in order, and the writing rule of AGENTS.md section 4 covers.
