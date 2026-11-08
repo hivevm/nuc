@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
-# Applies the map of a normalization to every reference in the tree (ADR-0001).
+# Applies the map of a normalization to every reference in the tree
+# (NUC-decisions-are-proposed-then-accepted §8).
 #
 # The map is a file of lines 'OLD NEW'. Blank lines and lines starting with '#' are ignored.
 #

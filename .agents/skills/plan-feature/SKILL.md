@@ -12,7 +12,7 @@ templates [`spec.md`](spec.md) and [`ticket.md`](ticket.md) next to this file; t
 the parts a spec and a ticket carry
 ([NUC-large-work-is-planned §3](../../../docs/adr/NUC-large-work-is-planned.md)). This skill is
 the order of work and states no rule of its own
-([ADR-0003](../../../docs/adr/0003-procedures-as-skills.md)).
+([NUC-procedures-are-skills §3](../../../docs/adr/NUC-procedures-are-skills.md)).
 
 A project that plans in its host's issues, as its harness ADR records
 ([NUC-large-work-is-planned §9](../../../docs/adr/NUC-large-work-is-planned.md)), files the spec

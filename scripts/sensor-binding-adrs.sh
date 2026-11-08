@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
-# Sensor: the ADRs that bind a change (ADR-0001, AGENTS.md section 2).
+# Sensor: the ADRs that bind a change (NUC-decisions-are-proposed-then-accepted §5, AGENTS.md
+# section 2).
 #
 # Lists the ADRs in force — accepted or proposed — whose '**Applies to:**' line names a path a
 # change touches. A path is what that line writes in backticks with no space in it, such as

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Self-test of scripts/check-docs.sh. Verifies: ADR-0001 ADR-0003
+# Self-test of scripts/check-docs.sh. Verifies: ADR-0001 NUC-documents-are-fixed ADR-0003
 #
 # Each case builds a throwaway git repository under a temporary directory — a rule file with
 # numbered sections, a README with the Template release line, a CONTRIBUTING.md with a Project
@@ -201,6 +201,8 @@ d="$(repo baseline)"
 expect pass "a consistent repository passes" "$d"
 
 # --- cases: skill pointers (check 11) ----------------------------------------------------
+
+# Verifies: NUC-procedures-are-skills ADR-0003
 
 d="$(repo pointer-missing)"
 rm "$d/.claude/skills/review"
@@ -475,7 +477,7 @@ printf '\n## Last' >> "$d/AGENTS.md"
 echo "See [the last section](AGENTS.md#last)." >> "$d/README.md"
 expect pass "a heading on a last line without a newline anchors" "$d"
 
-# Verifies: ADR-0001
+# Verifies: ADR-0001 NUC-adrs-are-named-by-category
 d="$(repo header-not-a-list-item)"
 sed 's/^- \*\*Status:\*\*/**Status:**/' "$d/docs/adr/0001-decision.md" > "$d/adr.tmp" \
   && mv "$d/adr.tmp" "$d/docs/adr/0001-decision.md"
@@ -657,7 +659,7 @@ d="$(repo layout-stale)"
 sed_in "$d/CONTRIBUTING.md" 's|^docs/adr/ |docs/gone/ |'
 expect fail "a Project Layout entry that no longer exists" "$d" "is not a directory of this repository"
 
-# Verifies: ADR-0001
+# Verifies: ADR-0001 NUC-documents-are-fixed
 d="$(repo layout-unnamed-top)"
 echo "notes" > "$d/NOTES.md"
 expect fail "a top-level file the Project Layout does not name" "$d" \
