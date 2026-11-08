@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Self-test of scripts/check-traceability.sh.
-# Verifies: NUC-decisions-cite-tests NUC-checks-are-bash ADR-0002
+# Verifies: NUC-decisions-cite-tests NUC-checks-are-bash
 #
 # Each case builds a throwaway git repository under a temporary directory — a specification with
 # the two criteria sections, a few ADRs, and a file carrying markers — runs the check against it,
@@ -237,12 +237,10 @@ expect fail "markers in gitignored files do not count" "$d" "$(adr_id 1) is acce
 
 # --- the template's own promise ------------------------------------------------------------
 #
-# TEMPLATE-SETUP.md tells the maintainer of a derived project to accept the inherited ADRs. That
-# must not turn CI red, so while the setup file exists the tree with every inherited ADR accepted,
-# one the template still proposes included, has to pass: each ships with a citing test or an
-# exemption. Inherited means its Deciders name the NUC maintainer. The project's own ADRs, which
-# setup step 4 proposes while the file still exists, are left as they are; they await the tests
-# of the golden path, and a proposed one in the copy shows that they stay proposed.
+# The base ships each NUC- ADR with a citing test or an exemption, so a project whose base is
+# accepted, as the human accepts it in the template, stays green while the setup proposes the
+# project's own ADRs: those await the tests of the golden path, and a proposed one in the copy shows
+# that they stay proposed.
 
 if [[ -f "$ROOT/TEMPLATE-SETUP.md" ]]; then
   d="$work/template-accepted"
@@ -253,12 +251,10 @@ if [[ -f "$ROOT/TEMPLATE-SETUP.md" ]]; then
     cp "$ROOT/$rel" "$d/$rel"
   done < <(git -C "$ROOT" ls-files --cached --others --exclude-standard -z)
   git -C "${d:?}" init -q
-  # The number after the highest, assembled, so this file cites no ADR that does not exist here.
-  n="$(find "$d/docs/adr" -maxdepth 1 -name '[0-9][0-9][0-9][0-9]-*.md' -exec basename {} \; \
-    | cut -c1-4 | sort -n | tail -n 1)"
-  n=$((10#$n))
-  cat > "$d/docs/adr/$(printf '%04d' "$((n + 1))")-a-founding-decision.md" <<ADR
-# $(printf 'ADR-%04d' "$((n + 1))"): A founding decision of the project, proposed in setup step 4
+  # Assembled, so this file cites no ADR that does not exist here.
+  cat=OPS founding="$cat-a-founding-decision"
+  cat > "$d/docs/adr/$founding.md" <<ADR
+# $founding: A founding decision of the project, proposed in setup step 4
 
 - **Status:** 🟡 proposed
 - **Date:** 2026-01-01
@@ -269,11 +265,10 @@ if [[ -f "$ROOT/TEMPLATE-SETUP.md" ]]; then
 
 The golden path's test will cite this ADR.
 ADR
-  for f in "$d"/docs/adr/[0-9]*.md; do
-    grep -q '^- \*\*Deciders:\*\*.*NUC maintainer' "$f" || continue
+  for f in "$d"/docs/adr/NUC-*.md; do
     sed 's/🟡 proposed/🟢 accepted/' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
   done
-  expect pass "the inherited ADRs, once accepted, pass — TEMPLATE-SETUP step 2 keeps CI green" "$d"
+  expect pass "the base, once accepted, passes while the setup proposes the project's ADRs" "$d"
 fi
 
 # --- summary -------------------------------------------------------------------------------

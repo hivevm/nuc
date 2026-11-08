@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
-# Self-test of scripts/sensor-plain-rules.sh. Verifies: NUC-checks-are-bash ADR-0002
+# Self-test of scripts/sensor-plain-rules.sh. Verifies: NUC-checks-are-bash
 #
-# Verifies: ADR-0001 NUC-documents-are-fixed
+# Verifies: NUC-documents-are-fixed
 #
 # Each case builds a throwaway git repository under a temporary directory: main holds an
 # AGENTS.md and one ADR, a branch changes them, and the sensor runs against main. The cases are a
@@ -38,14 +38,14 @@ git_in() {
   git -C "${dir:?}" -c user.name=fixture -c user.email=fixture@example.invalid "$@"
 }
 
-# repo <name> — main with AGENTS.md and docs/adr/0001-x.md, then the branch 'work' checked out.
+# repo <name> — main with AGENTS.md and docs/adr/FIX-rule-x.md, then the branch 'work' checked out.
 repo() {
   local dir="$work/$1"
   mkdir -p "$dir/docs/adr"
   git -C "${dir:?}" init -q -b main
   printf '# Agent Guide\n\n## 1. Rules\n\n- %s\n- Old line that says should.\n' "$SHORT" > "$dir/AGENTS.md"
-  printf '# ADR-0001: X\n\n- **Status:** 🟢 accepted\n\n## Context\n\n%s\n\n## Decision\n\n%s\n\n## Enforcement\n\n%s\n' \
-    "$SHORT" "$SHORT" "$SHORT" > "$dir/docs/adr/0001-x.md"
+  printf '# FIX-rule-x: X\n\n- **Status:** 🟢 accepted\n\n## Context\n\n%s\n\n## Decision\n\n%s\n\n## Enforcement\n\n%s\n' \
+    "$SHORT" "$SHORT" "$SHORT" > "$dir/docs/adr/FIX-rule-x.md"
   git_in "$dir" add -A
   git_in "$dir" commit -q -m start
   git_in "$dir" switch -q -c work
@@ -78,28 +78,28 @@ expect() {
 # --- cases -----------------------------------------------------------------------------------
 
 r="$(repo decision)"
-after "$r" docs/adr/0001-x.md "## Decision" "$LONG"
+after "$r" docs/adr/FIX-rule-x.md "## Decision" "$LONG"
 expect "a long sentence in the Decision: listed with file, line, and count" "$r" \
-  "docs/adr/0001-x.md:11: a sentence of 28 words" "" main
+  "docs/adr/FIX-rule-x.md:11: a sentence of 28 words" "" main
 
 r="$(repo enforcement)"
-after "$r" docs/adr/0001-x.md "## Enforcement" "$LONG"
+after "$r" docs/adr/FIX-rule-x.md "## Enforcement" "$LONG"
 expect "a long sentence in the Enforcement: listed" "$r" "a sentence of 28 words" "" main
 
 r="$(repo context)"
-after "$r" docs/adr/0001-x.md "## Context" "$LONG"
+after "$r" docs/adr/FIX-rule-x.md "## Context" "$LONG"
 expect "a long sentence in the Context: not listed" "$r" "no long sentence" "" main
 
 r="$(repo code-span)"
-after "$r" docs/adr/0001-x.md "## Decision" "Run \`$LONG\` first."
+after "$r" docs/adr/FIX-rule-x.md "## Decision" "Run \`$LONG\` first."
 expect "a long sentence in a code span: not listed" "$r" "no long sentence" "" main
 
 r="$(repo two-lines)"
-after "$r" docs/adr/0001-x.md "## Decision" "$(printf '%s\n%s' "${LONG%% before it*}" "before it${LONG#* before it}")"
+after "$r" docs/adr/FIX-rule-x.md "## Decision" "$(printf '%s\n%s' "${LONG%% before it*}" "before it${LONG#* before it}")"
 expect "a long sentence wrapped over two lines: counted as one" "$r" "a sentence of 28 words" "" main
 
 r="$(repo early-end)"
-after "$r" docs/adr/0001-x.md "## Decision" "${LONG/ any work / any work. Then it }"
+after "$r" docs/adr/FIX-rule-x.md "## Decision" "${LONG/ any work / any work. Then it }"
 expect "a sentence that ends early: two short ones" "$r" "no long sentence" "" main
 
 r="$(repo modal)"
@@ -137,16 +137,16 @@ expect "a soft modal verb inside an identifier: not listed" "$r" "no long senten
 
 r="$(repo fence-info)"
 # shellcheck disable=SC2016 # the backticks are a Markdown fence
-after "$r" docs/adr/0001-x.md "## Decision" "$(printf '````md\n```sh\nit should run\n````\n\nIt might run.')"
+after "$r" docs/adr/FIX-rule-x.md "## Decision" "$(printf '````md\n```sh\nit should run\n````\n\nIt might run.')"
 expect "a fence holds a line of its marker with an info string: the fence ends at its closing line only" \
-  "$r" 'docs/adr/0001-x.md:16: the soft modal verb "might"' '"should"' main
+  "$r" 'docs/adr/FIX-rule-x.md:16: the soft modal verb "might"' '"should"' main
 
 r="$(repo fence-heading)"
 # shellcheck disable=SC2016 # the backticks are a Markdown fence
-after "$r" docs/adr/0001-x.md "## Decision" "$(printf '```md\n## Notes\n```\n\nIt might run.')"
+after "$r" docs/adr/FIX-rule-x.md "## Decision" "$(printf '```md\n## Notes\n```\n\nIt might run.')"
 expect "a '## ' line inside a fence: the section continues" "$r" \
-  'docs/adr/0001-x.md:15: the soft modal verb "might"' "" main
-section="$(source "$ROOT/scripts/lib/adr.sh"; adr_section Decision < "$r/docs/adr/0001-x.md")"
+  'docs/adr/FIX-rule-x.md:15: the soft modal verb "might"' "" main
+section="$(source "$ROOT/scripts/lib/adr.sh"; adr_section Decision < "$r/docs/adr/FIX-rule-x.md")"
 check "a '## ' line inside a fence: adr_section continues the section as the reader does" \
   test "${section/It might run./}" != "$section"
 
@@ -156,7 +156,7 @@ expect "a soft modal verb in a block quote: not listed" "$r" "no long sentence" 
 
 r="$(repo fence)"
 # shellcheck disable=SC2016 # the backticks are a Markdown fence
-after "$r" docs/adr/0001-x.md "## Decision" "$(printf '```sh\n# this could run\n```')"
+after "$r" docs/adr/FIX-rule-x.md "## Decision" "$(printf '```sh\n# this could run\n```')"
 expect "a soft modal verb in fenced code: not listed" "$r" "no long sentence" "" main
 
 r="$(repo outside)"
@@ -166,9 +166,9 @@ git_in "$r" commit -q -m readme
 expect "a change outside the rules: nothing to report" "$r" "no long sentence" "" main
 
 r="$(repo untracked)"
-printf '# ADR-0002: Y\n\n## Decision\n\nWe might do it.\n' > "$r/docs/adr/0002-y.md"
+printf '# FIX-rule-y: Y\n\n## Decision\n\nWe might do it.\n' > "$r/docs/adr/FIX-rule-y.md"
 expect "the working tree: an untracked ADR is read" "$r" \
-  'docs/adr/0002-y.md:5: the soft modal verb "might"' ""
+  'docs/adr/FIX-rule-y.md:5: the soft modal verb "might"' ""
 
 # glossary <dir> [entries] — a glossary whose entry "Git hook" lists "hook script" and "trigger"
 # under _Avoid:_, or the entries given, committed on the branch.
@@ -183,9 +183,9 @@ AVOID_MSG='is listed under _Avoid:_ in docs/GLOSSARY.md — write "Git hook"'
 
 r="$(repo avoid-decision)"
 glossary "$r"
-after "$r" docs/adr/0001-x.md "## Decision" "It runs a hook script."
+after "$r" docs/adr/FIX-rule-x.md "## Decision" "It runs a hook script."
 expect "an avoided term added to a Decision: listed with the term" "$r" \
-  "docs/adr/0001-x.md:11: \"hook script\" $AVOID_MSG" "" main
+  "docs/adr/FIX-rule-x.md:11: \"hook script\" $AVOID_MSG" "" main
 
 r="$(repo avoid-agents)"
 glossary "$r"
@@ -194,27 +194,27 @@ expect "an avoided term added to AGENTS.md, in another case: listed" "$r" "AGENT
 
 r="$(repo avoid-context)"
 glossary "$r"
-after "$r" docs/adr/0001-x.md "## Context" "It runs a hook script."
+after "$r" docs/adr/FIX-rule-x.md "## Context" "It runs a hook script."
 expect "an avoided term in the Context: not listed" "$r" "" "$AVOID_MSG" main
 
 r="$(repo avoid-old)"
 glossary "$r"
-after "$r" docs/adr/0001-x.md "## Decision" "It runs a hook script."
+after "$r" docs/adr/FIX-rule-x.md "## Decision" "It runs a hook script."
 git_in "$r" branch -f main HEAD
-after "$r" docs/adr/0001-x.md "## Enforcement" "Run it."
+after "$r" docs/adr/FIX-rule-x.md "## Enforcement" "Run it."
 expect "an avoided term on a line not added, in a file the change touches: not listed" "$r" "" "$AVOID_MSG" main
 
 r="$(repo avoid-head)"
 glossary "$r"
-after "$r" docs/adr/0001-x.md "## Decision" "It runs a hook script."
+after "$r" docs/adr/FIX-rule-x.md "## Decision" "It runs a hook script."
 rm "$r/docs/GLOSSARY.md"
 expect "with a head, the glossary is the head's, not the working tree's" "$r" \
-  "docs/adr/0001-x.md:11: \"hook script\" $AVOID_MSG" "" main work
+  "docs/adr/FIX-rule-x.md:11: \"hook script\" $AVOID_MSG" "" main work
 
 r="$(repo avoid-mentions)"
 glossary "$r"
 # shellcheck disable=SC2016 # the backticks are a Markdown code span
-after "$r" docs/adr/0001-x.md "## Decision" 'Each `trigger`, *trigger*, and _trigger_ is named; snake_case_trigger and triggers run.'
+after "$r" docs/adr/FIX-rule-x.md "## Decision" 'Each `trigger`, *trigger*, and _trigger_ is named; snake_case_trigger and triggers run.'
 expect "an avoided term in a code span, in italics, in an identifier, or in a longer word: not listed" \
   "$r" "" "$AVOID_MSG" main
 
@@ -227,7 +227,7 @@ expect "a bare star and an unclosed underscore open no italic: an avoided word a
 
 r="$(repo avoid-none)"
 glossary "$r" "- **Git hook** — a script git runs."
-after "$r" docs/adr/0001-x.md "## Decision" "It runs a hook script."
+after "$r" docs/adr/FIX-rule-x.md "## Decision" "It runs a hook script."
 expect "a glossary without _Avoid:_ entries: nothing listed" "$r" "no long sentence" "" main
 
 r="$(repo avoid-prose)"
@@ -238,7 +238,7 @@ expect "the glossary's intro prose lists nothing" "$r" "no long sentence" "" mai
 r="$(repo avoid-parser)"
 glossary "$r" "$(printf '%s\n' '- **Ticket** — one slice of work.' '  _Avoid:_ story; task,' '  and card.' '' \
   '- **Spec** — the destination of a feature.' '  It is disposable.' '  _Avoid:_ epic.')"
-after "$r" docs/adr/0001-x.md "## Decision" "$(printf '%s\n' 'A card is cut.' 'Then an epic closes.' 'It is disposable.')"
+after "$r" docs/adr/FIX-rule-x.md "## Decision" "$(printf '%s\n' 'A card is cut.' 'Then an epic closes.' 'It is disposable.')"
 expect "the parser: a continuation line and a leading 'and' list a word" "$r" \
   '"card" is listed under _Avoid:_ in docs/GLOSSARY.md — write "Ticket"' "" main
 expect "the parser: each entry names its own term, and a description lists nothing" "$r" \
@@ -246,33 +246,33 @@ expect "the parser: each entry names its own term, and a description lists nothi
 
 r="$(repo avoid-wrapped)"
 glossary "$r"
-after "$r" docs/adr/0001-x.md "## Decision" "$(printf '%s\n' 'It runs a hook' '  script before each commit.')"
+after "$r" docs/adr/FIX-rule-x.md "## Decision" "$(printf '%s\n' 'It runs a hook' '  script before each commit.')"
 expect "an avoided term of two words wrapped over two added lines: listed by the line it starts on" "$r" \
-  "docs/adr/0001-x.md:11: \"hook script\" $AVOID_MSG" "" main
+  "docs/adr/FIX-rule-x.md:11: \"hook script\" $AVOID_MSG" "" main
 
 r="$(repo avoid-wrapped-span)"
 glossary "$r"
 # shellcheck disable=SC2016 # the backticks are a Markdown code span
-after "$r" docs/adr/0001-x.md "## Decision" "$(printf '%s\n' 'It runs a hook `x`' '  script daily.')"
+after "$r" docs/adr/FIX-rule-x.md "## Decision" "$(printf '%s\n' 'It runs a hook `x`' '  script daily.')"
 expect "a code span between the words of an avoided term across a line break: not listed" "$r" "" "$AVOID_MSG" main
 
 r="$(repo avoid-wrapped-second)"
 glossary "$r"
-after "$r" docs/adr/0001-x.md "## Decision" "It runs a hook"
+after "$r" docs/adr/FIX-rule-x.md "## Decision" "It runs a hook"
 git_in "$r" branch -f main HEAD
-awk '{ print } $0 == "It runs a hook" { print "  script daily." }' "$r/docs/adr/0001-x.md" > "$r/new" && mv "$r/new" "$r/docs/adr/0001-x.md"
+awk '{ print } $0 == "It runs a hook" { print "  script daily." }' "$r/docs/adr/FIX-rule-x.md" > "$r/new" && mv "$r/new" "$r/docs/adr/FIX-rule-x.md"
 git_in "$r" commit -q -am "wrap"
 expect "an avoided term whose second line alone is added: listed by that line" "$r" \
-  "docs/adr/0001-x.md:12: \"hook script\" $AVOID_MSG" "docs/adr/0001-x.md:11:" main
+  "docs/adr/FIX-rule-x.md:12: \"hook script\" $AVOID_MSG" "docs/adr/FIX-rule-x.md:11:" main
 
 r="$(repo avoid-paragraph)"
 glossary "$r"
-after "$r" docs/adr/0001-x.md "## Decision" "$(printf '%s\n' 'It runs on each hook' '' 'Script authors read it.')"
+after "$r" docs/adr/FIX-rule-x.md "## Decision" "$(printf '%s\n' 'It runs on each hook' '' 'Script authors read it.')"
 expect "the words of an avoided term across a paragraph break: not listed" "$r" "" "$AVOID_MSG" main
 
 r="$(repo avoid-sublist)"
 glossary "$r" "$(printf '%s\n' '- **Ticket** — one slice of work.' '  _Avoid:_ story,' '  - kept apart from boards,' '    lanes.')"
-after "$r" docs/adr/0001-x.md "## Decision" "$(printf '%s\n' 'A story is cut.' 'Lanes are cut.')"
+after "$r" docs/adr/FIX-rule-x.md "## Decision" "$(printf '%s\n' 'A story is cut.' 'Lanes are cut.')"
 expect "the parser: an indented sub-list line ends the _Avoid:_ list" "$r" \
   '"story" is listed under _Avoid:_ in docs/GLOSSARY.md — write "Ticket"' '"lanes" is listed' main
 
