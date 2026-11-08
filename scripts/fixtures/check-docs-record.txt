@@ -77,10 +77,13 @@
 8 | pass | - | an ADR superseding an old one, accepted and flipped | adr SEC:decision-1 superseded:SEC:new-rule; adr SEC:new-rule accepted; supersedes SEC:new-rule SEC:decision-1
 8 | fail | SEC:decision-1.md: SEC:new-rule.md supersedes it, but its status line does not say 'superseded by SEC:new-rule' | an ADR accepted, the old one not flipped | adr SEC:decision-1 accepted; adr SEC:new-rule accepted; supersedes SEC:new-rule SEC:decision-1
 8 | fail | SEC:new-rule.md: SEC:decision-1.md says it supersedes, but it carries no '**Supersedes:**' field naming SEC:decision-1 | an old ADR naming a successor that does not claim it | adr SEC:decision-1 superseded:SEC:new-rule; adr SEC:new-rule accepted
-12 | pass | - | a base that matches its blob list | file NUC:base-rule accepted; blobs
-12 | pass | - | a list written out with the git blob identifier of the file's content | file NUC:base-rule accepted; text docs/adr/NUC.blobs 2bb3f08bb1f9ab0e5ef83df15d5ec1f6ede8c83b NUC:base-rule.md
+12 | pass | - | a base and AGENTS.md unchanged since their blob list | file NUC:base-rule accepted; blobs
+12 | pass | - | a list written out with the git blob identifier of each file's content | file NUC:base-rule accepted; text docs/adr/NUC.blobs 2bb3f08bb1f9ab0e5ef83df15d5ec1f6ede8c83b NUC:base-rule.md; text docs/adr/NUC.blobs 0d50ef0267858460aa089fffce7f6923f2f62b0a AGENTS.md
+12 | fail | AGENTS.md: has no line in docs/adr/NUC.blobs | a list that names the NUC- files only | file NUC:base-rule accepted; text docs/adr/NUC.blobs 2bb3f08bb1f9ab0e5ef83df15d5ec1f6ede8c83b NUC:base-rule.md
 12 | fail | NUC:base-rule.md: differs from its line | a list written out with another identifier | file NUC:base-rule accepted; text docs/adr/NUC.blobs 2bb3f08bb1f9ab0e5ef83df15d5ec1f6ede8c83c NUC:base-rule.md
 12 | fail | NUC:base-rule.md: differs from its line in docs/adr/NUC.blobs | a base file changed after its list was written | file NUC:base-rule accepted; blobs; text docs/adr/NUC:base-rule.md A clause of the project.
+12 | fail | AGENTS.md: differs from its line in docs/adr/NUC.blobs | a derived project that edits AGENTS.md | file NUC:base-rule accepted; blobs; text AGENTS.md A rule of the project.
+12 | pass | - | the template rewrites the list in the change to AGENTS.md | file NUC:base-rule accepted; blobs; text AGENTS.md A rule of the template.; blobs
 12 | fail | NUC:more-rules.md: has no line in docs/adr/NUC.blobs | a base file the list does not name | file NUC:base-rule accepted; blobs; file NUC:more-rules accepted
 12 | fail | docs/adr/NUC.blobs: names NUC:gone-rule.md, which does not exist | a line whose file is gone | file NUC:base-rule accepted; file NUC:gone-rule accepted; blobs; commit; delete NUC:gone-rule
 12 | fail | docs/adr/NUC.blobs: not found | a base without a list and no fork named | file NUC:base-rule accepted
