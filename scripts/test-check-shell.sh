@@ -117,7 +117,13 @@ expect 1 "a script that pipes into grep -q fails, its finding names the line and
 
 d="$(repo grep-quiet-posix-sh)"
 printf '#!/bin/sh\nprintf "%%s\\n" a b %s a && echo found\n' "$PIPE_Q" > "$d/find.sh"
+git -C "${d:?}" add find.sh
 expect 0 "a POSIX sh script without pipefail pipes into grep -q: grep's status is the pipe's" "$d"
+for head in '#!/bin/sh\nset -o pipefail' '#!/usr/bin/env bash'; do  # either condition alone fails
+  d="$(repo "grep-quiet-${head//[^a-z]/}")"
+  printf '%b\nprintf "%%s\\n" a b %s a\n' "$head" "$PIPE_Q" > "$d/find.sh"
+  expect 1 "a pipe into grep -q fails under '$head'" "$d" "*read the input whole"
+done
 
 d="$(repo grep-quiet-whole)"
 # shellcheck disable=SC2016  # the fixture's "$(...)" is its own

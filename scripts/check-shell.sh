@@ -11,7 +11,7 @@
 # ShellCheck is the one check dependency beyond bash + coreutils/git. CI does not install it — the
 # GitHub-hosted runner image ships it preinstalled, and the Dev Container installs it on creation
 # (.devcontainer/devcontainer.json). Elsewhere, when shellcheck is not on PATH, the check skips
-# it with a notice (CI remains the enforcing gate); in a CI run (CI=true) a missing one is an error.
+# it with a notice (CI remains the gate); in a CI run (CI=true) it is an error, never a silent skip.
 #
 # Beyond ShellCheck it refuses GNU sed's in-place flag, `sed -i`, which BSD sed on macOS reads as
 # taking a suffix: check-all.sh, and with it the pre-push hook, runs on any host. Comment lines are
@@ -25,7 +25,7 @@
 # A here-string, a variable, or grep -c reads the input whole. A script whose shebang names sh and
 # that sets no pipefail is spared: its pipe has grep's status, and sh has no here-string. The same
 # limits as for sed apply: comment lines are not read, the rule reads text, and a pipe on the line
-# before is not seen.
+# before is not seen, nor is pipefail set in a file the script sources.
 #
 # Usage:
 #     scripts/check-shell.sh [repository root]        (or: bash scripts/check-shell.sh)
