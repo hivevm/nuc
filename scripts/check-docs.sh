@@ -92,13 +92,12 @@
 #      and a skill that lives only in the pointer directory is one no other agent finds. Each
 #      message says the command that fixes it. A repository with neither directory has nothing to
 #      check.
-#  12. Base held by its blob list: every 'NUC-' file in docs/adr/ has the git blob identifier its
-#      line in docs/adr/NUC.blobs names, and every line names a file that exists
-#      (NUC-base-is-fixed §2). The template rewrites the list in the commit that changes a
-#      'NUC-' file, and a derived project never changes one, so in both the list and the files
-#      agree. Without a list the check passes when no 'NUC-' file exists, or when the Template
-#      release line of README.md names the release a fork forked, 'vX.Y.Z, forked'
-#      (NUC-base-is-fixed §1).
+#  12. Base held by its blob list (NUC-base-is-fixed §2): every 'NUC-' file in
+#      docs/adr/ and the rule file AGENTS.md has the git blob identifier its line in
+#      docs/adr/NUC.blobs names, and every line names a file that exists. The template rewrites
+#      the list in the commit that changes one, and a derived project never changes one. Without
+#      a list the check passes when no 'NUC-' file exists, or when the Template release line of
+#      README.md names the release a fork forked, 'vX.Y.Z, forked'.
 #  13. Setup done: once TEMPLATE-SETUP.md is gone, each required role of ADR_ROLES in
 #      scripts/lib/adr.sh has exactly one 🟢 accepted ADR whose 'Role:' field names it
 #      (NUC-base-is-fixed §3), and none of the template's placeholders is left.
@@ -1191,11 +1190,10 @@ check_skill_pointers() {
   done
 }
 
-# Check 12 (see the header). The list is compared both ways, with the same message for the
-# template, which rewrites the list, and for a derived project, which restores the file.
+# Check 12 (see the header), both ways, one message for the template and a derived project.
 check_base_blobs() {
   local list="$ADR_DIR/NUC.blobs" f name blob fix out
-  fix="a derived project restores the NUC- file of its release; the template rewrites the list: bash -c 'source scripts/lib/adr.sh && adr_blobs docs/adr' > docs/adr/NUC.blobs (NUC-base-is-fixed §2)"
+  fix="a derived project restores the file of its release and narrows a rule by an ADR of its own; the template rewrites the list: bash -c 'source scripts/lib/adr.sh && adr_blobs docs/adr' > docs/adr/NUC.blobs (NUC-base-is-fixed §2)"
   local -A want=() have=()
   out="$(adr_blobs "$ADR_DIR" 2>&1)" || { add_error "docs/adr/NUC.blobs: no blob identifiers computed: ${out##*$'\n'}"; return; }
   while read -r blob name; do [[ -n "$name" ]] && have["$name"]="$blob"; done <<< "$out"
@@ -1204,7 +1202,7 @@ check_base_blobs() {
     # shellcheck disable=SC2016  # the backticks are Markdown to match, not a command substitution
     grep -qE '^[[:space:]]*([-*] )?\*\*Template release:\*\*[[:space:]]*[[`]?v[0-9]+\.[0-9]+\.[0-9]+[]`]?(\([^)]*\))?, forked([^[:alnum:]]|$)' \
       "$ROOT/README.md" 2>/dev/null \
-      || add_error "docs/adr/NUC.blobs: not found — it names each NUC- file with its blob; a fork names the release it forked on the Template release line of README.md, 'vX.Y.Z, forked' (NUC-base-is-fixed §1)"
+      || add_error "docs/adr/NUC.blobs: not found — it names each NUC- file and AGENTS.md with its blob; a fork names the release it forked on the Template release line of README.md, 'vX.Y.Z, forked' (NUC-base-is-fixed §1)"
     return
   fi
   while read -r blob name; do [[ -n "$name" ]] && want["$name"]="$blob"; done < "$list"

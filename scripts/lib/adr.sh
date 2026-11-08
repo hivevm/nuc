@@ -60,16 +60,17 @@ ADR_FILE_RE="[A-Za-z]+-[^/]*\\.md"
 # adr_files <dir> — every ADR file in the directory, in order.
 adr_files() { LC_ALL=C find "$1" -maxdepth 1 -type f -name "$ADR_GLOB" | LC_ALL=C sort; }
 
-# adr_blobs <dir> — the blob list of the 'NUC-' files in the directory, '<blob> <file name>' a
-# line, in the order adr_files gives (NUC-base-is-fixed §2). git reads each file as it
-# would store it, its line endings converted, so the list holds on every platform. Fails, saying
-# so, when git cannot hash a file.
+# adr_blobs <dir> — the blob list (NUC-base-is-fixed §2), '<blob> <file name>' a line:
+# the 'NUC-' files in the directory, in the order adr_files gives, then the rule file
+# AGENTS.md two levels up; nothing without a 'NUC-' file. git reads each file as it would store it, its line endings
+# converted, so the list holds on every platform. Fails, saying so, when git cannot hash a file.
 adr_blobs() {
   local names=() f blobs
   while IFS= read -r f; do [[ "${f##*/}" == NUC-* ]] && names+=("${f##*/}"); done < <(adr_files "$1")
   ((${#names[@]})) || return 0
+  [[ -f "$1/../../AGENTS.md" ]] && names+=(../../AGENTS.md)
   blobs="$(cd "$1" && git hash-object -- "${names[@]}")" || { echo "adr_blobs: git hash-object failed in $1" >&2; return 1; }
-  paste -d' ' <(printf '%s\n' "$blobs") <(printf '%s\n' "${names[@]}")
+  paste -d' ' <(printf '%s\n' "$blobs") <(printf '%s\n' "${names[@]##*/}")
 }
 
 # adr_is_file <name> — true when it names an ADR file.
