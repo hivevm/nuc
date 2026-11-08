@@ -14,7 +14,7 @@
 # prose, read from the ADR files and never from the index, also where the prose comes before a
 # list longer than a pipe holds. A 'NUC-' ADR of the base binds like any other, read from its file.
 # A change inside one numbered check binds the ADRs that name that check, any other line every ADR
-# that names the file; each check of scripts/check-docs.sh carries the number of its header item.
+# that names the file; the numbers the checks of scripts/check-docs.sh carry are its header items.
 #
 # Verifies: NUC-checks-are-bash
 # Inputs: scripts/sensor-binding-adrs.sh scripts/lib/ scripts/check-docs.sh
@@ -308,7 +308,7 @@ expect_with 0 "--sections names the two sections of the template" "$d" \
 
 d="$(repo checks)"
 checks() {
-  printf 'h() {\n  %s\n}\ncheck_a() {  # check 1\n  :\n}\ncheck_b() {  # check 2\n  %s\n}\n' \
+  printf 'check_a() {  # check 1\n  :\n}\nh() {\n  %s\n}\ncheck_b() {  # check 2\n  %s\n}\n' \
     "$2" "$3" > "$1/scripts/c.sh"
 }
 mkdir -p "$d/scripts" && checks "$d" : :
@@ -321,11 +321,15 @@ checks "$d" : true
 expect 0 "a change inside one check binds the ADR that names it" "$d" "- $(adr_id 5) (docs"
 reject "a change inside one check binds no ADR that names only another" "$d" "- $(adr_id 4) ("
 checks "$d" true :
-expect 0 "a change outside the checks binds every ADR that names the file" "$d" "2 ADR(s) in force"
+expect 0 "a change between two checks binds every ADR that names the file" "$d" "- $(adr_id 4) ("
+expect 0 "a change between two checks binds the other ADR too" "$d" "- $(adr_id 5) ("
+checks "$d" : : && printf '%s\n' "$(sed '$d' "$d/scripts/c.sh")" > "$d/scripts/c.sh.new"
+mv "$d/scripts/c.sh.new" "$d/scripts/c.sh"
+expect 0 "a change at the edge of a check binds the ADRs of the next line" "$d" "- $(adr_id 4) ("
 
 docs="$ROOT/scripts/check-docs.sh"
 tags="$(grep -oE '^check_[a-z_]+\(\) \{  # check [0-9]+$' "$docs" | grep -oE '[0-9]+$' | sort -n)"
-check "each check of check-docs.sh carries the number of its header item" \
+check "the check numbers of check-docs.sh are its header items, one each" \
   test "$tags" = "$(sed -nE '/^set /q; s/^# +([0-9]+)\. .*/\1/p' "$docs")"
 check "no check of check-docs.sh lacks its number" test "$(grep -cE '^check_.*\{$' "$docs")" = 0
 
