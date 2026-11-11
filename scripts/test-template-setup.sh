@@ -388,7 +388,7 @@ setup_steps() {
   # Step 1: the project's identity.
   edit "$d" README.md 's/^# NUC — .*/# Fixture/'
   edit "$d" README.md 's/^\*\*NUC\*\* is named after.*/**Fixture** answers questions./'
-  edit "$d" README.md '/^## Why NUC$/,/^## Overview$/{/^## Overview$/!d}'
+  edit "$d" README.md '/^## Why NUC$/,/^## Overview$/{/^## Overview$/!d;}'
   edit "$d" .devcontainer/devcontainer.json 's/"name": "NUC DevContainer"/"name": "Fixture"/'
   edit "$d" README.md '/^\[!\[.*hivevm\/nuc/d'
   edit "$d" LICENSE 's/^\(Copyright .*\) Maintainer$/\1 Fixture Owner/'

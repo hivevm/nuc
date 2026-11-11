@@ -2,28 +2,67 @@
 #
 # One case per line, four fields separated by ' | ':
 #
-#   <pass or fail> | <text the output contains, or -> | <name> | <tree>
+#   <pass or fail> | <what the output holds, or -> | <name> | <tree>
+#
+# A run exits 0 for pass and 1 for fail. The second field is '<key>', then ' @ <subject>' for each
+# datum the line names, such as the clause. A line of the output ends in '[<key>]', the rule and a
+# reason word, and holds each subject; the rest of its wording is free.
 #
 # The tree is a list of steps separated by '; ', applied in order to a repository that passes the
-# check: a devcontainer.json with one pinned Feature and the postStartCommand that enables the git
-# hooks, the lock that resolves it, and a .vscode/settings.json that pins the container-management
-# extension to the host side.
+# check, not under git, of three files. .devcontainer/devcontainer.json:
+#
+#   {
+#     "name": "fixture",
+#     // A comment: the container has no socket mount.
+#     "image": "mcr.microsoft.com/devcontainers/base:debian",
+#     "postStartCommand": <post>,
+#     "features": {
+#       // The one Feature.
+#       "ghcr.io/devcontainers/features/github-cli:1": {}
+#     },
+#     "customizations": { "vscode": { "extensions": [] } }
+#   }
+#
+# where <post> is the one line
+#
+#   { "hooks": "git config core.hooksPath .githooks", "merge": "git config merge.ff false && git config pull.ff only", "index": "git config merge.adr-index.driver '.githooks/merge-adr-index %O %A %B %S %X %Y'" }
+#
+# .devcontainer/devcontainer-lock.json:
+#
+#   {
+#     "features": {
+#       "ghcr.io/devcontainers/features/github-cli:1": {
+#         "version": "1.0.0",
+#         "resolved": "example@sha256:0000",
+#         "integrity": "sha256:0000"
+#       },
+#     }
+#   }
+#
+# .vscode/settings.json:
+#
+#   {
+#     // Keep the container-management extension on the host side.
+#     "remote.extensionKind": { "ms-azuretools.vscode-containers": ["ui"] }
+#   }
+#
+# The steps:
 #
 #   rm <path>                   the file or directory removed
 #   extra <json>                devcontainer.json written again, the json as one more top-level
 #                               line before the features block
 #   post [json]                 devcontainer.json written again, the json as the value of
-#                               postStartCommand, or without it when no json is given
+#                               postStartCommand, or without that line when no json is given
 #   settings <json>             .vscode/settings.json written again, the json as the value of
 #                               remote.extensionKind
 
-pass | nothing binds | a project without a Dev Container | rm .devcontainer
-pass | nothing binds | a project without a Dev Container or VS Code settings | rm .devcontainer; rm .vscode
-pass | a path of its own | a Dev Container without VS Code, where the host-side clause binds nothing | rm .vscode
-fail | settings.json: not found | VS Code without its settings file | rm .vscode/settings.json
-fail | without its definition (NUC-container-hides-host-daemon §1) | a .devcontainer/ without devcontainer.json | rm .devcontainer/devcontainer.json
-fail | never reaches the host engine (NUC-container-hides-host-daemon §2) | a host socket mount | extra "mounts": ["source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"],
-fail | devcontainer-lock.json: not found — the lock is committed so that the same commit yields the same Features (NUC-container-hides-host-daemon §3) | no lock committed | rm .devcontainer/devcontainer-lock.json
-fail | does not pin 'ms-azuretools.vscode-containers' to ["ui"] under 'remote.extensionKind' — without it the extension runs in the container and asks for the socket (NUC-container-hides-host-daemon §4) | the container-management extension not pinned to the host | settings { "ms-azuretools.vscode-containers": ["workspace"] }
-fail | workspaceFolder is not '/workspaces/${localWorkspaceFolderBasename}' — a path every project shares gives every project one agent memory (NUC-container-hides-host-daemon §5) | a workspaceFolder every project shares | extra "workspaceFolder": "/workspace",
-fail | postStartCommand does not run 'git config core.hooksPath .githooks' — the git hooks and the merge settings they rely on are enabled on every start (NUC-container-hides-host-daemon §6) | no postStartCommand at all | post
+pass | devcontainer/check:unbound | a project without a Dev Container | rm .devcontainer
+pass | devcontainer/check:unbound | a project without a Dev Container or VS Code settings | rm .devcontainer; rm .vscode
+pass | devcontainer/check:passed | a Dev Container without VS Code, where the host-side clause binds nothing | rm .vscode
+fail | devcontainer/settings:absent | VS Code without its settings file | rm .vscode/settings.json
+fail | devcontainer/definition:absent @ §1 | a .devcontainer/ without devcontainer.json | rm .devcontainer/devcontainer.json
+fail | devcontainer/socket:mount @ §2 | a host socket mount | extra "mounts": ["source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"],
+fail | devcontainer/lock:absent @ §3 | no lock committed | rm .devcontainer/devcontainer-lock.json
+fail | devcontainer/settings:unpinned @ §4 | the container-management extension not pinned to the host | settings { "ms-azuretools.vscode-containers": ["workspace"] }
+fail | devcontainer/mount-path:folder @ §5 | a workspaceFolder every project shares | extra "workspaceFolder": "/workspace",
+fail | devcontainer/git-settings:absent @ core.hooksPath @ §6 | no postStartCommand at all | post

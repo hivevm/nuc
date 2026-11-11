@@ -20,5 +20,7 @@ skimmed. The design revision drops what prevented nothing
   project and after a normalization.
 - **A check's cases are a table** — a new or changed check writes its cases into a table under
   `scripts/fixtures/` before its code, and its self-test reads the table, so a port of the
-  checks is held to the same cases.
+  checks is held to the same cases. A case expects a key, a rule identifier and a reason word that
+  the message ends in, such as `[docs/adr-index:twice]`, and the data of the finding, never its
+  wording, so that rewording a message breaks no port.
 - **<Convention>** — what is done, and why.
