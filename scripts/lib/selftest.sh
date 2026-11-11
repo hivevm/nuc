@@ -23,6 +23,14 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 # shellcheck disable=SC2046 # one variable name per word
 unset $(git rev-parse --local-env-vars)
 
+# A fixture repository has no .gitattributes of its own. Git for Windows sets core.autocrlf=true,
+# which checks a fixture's files out with CRLF and prints a warning naming each file; a check
+# then reads a status word with a carriage return, and a needle meets a file name in a warning.
+# The fixtures are written with LF and read as they are written. MSYS copies on 'ln -s' unless
+# told to make a native link, and a fixture's pointer under .claude/skills/ must be a symlink.
+export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.autocrlf GIT_CONFIG_VALUE_0=false
+[[ " ${MSYS-} " == *" winsymlinks:nativestrict "* ]] || export MSYS="${MSYS:+$MSYS }winsymlinks:nativestrict"
+
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 
