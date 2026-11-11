@@ -46,6 +46,9 @@
 # 'OLD -> NEW', lists the references it would leave, and exits 1 when one would move.
 set -uo pipefail
 
+# shellcheck source-path=SCRIPTDIR source=../../../scripts/lib/bash.sh
+source "$(dirname "${BASH_SOURCE[0]}")/../../../scripts/lib/bash.sh"
+
 # The script may rewrite its own text, so bash reads all of it before running any: one block.
 {
 check=0 record=0

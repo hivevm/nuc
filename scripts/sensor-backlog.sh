@@ -19,6 +19,9 @@
 
 set -uo pipefail
 
+# shellcheck source-path=SCRIPTDIR source=lib/bash.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/bash.sh"
+
 ROOT="$(cd "${1:-$(dirname "${BASH_SOURCE[0]}")/..}" 2>/dev/null && pwd)"
 DIR="docs/backlog"
 if [[ -z "$ROOT" ]] || ! git -C "$ROOT" rev-parse --git-dir >/dev/null 2>&1; then

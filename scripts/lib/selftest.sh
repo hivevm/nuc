@@ -14,6 +14,9 @@
 #     ...
 #     summary "<Name> self-test"
 
+# shellcheck source=scripts/lib/bash.sh
+source "$(dirname "${BASH_SOURCE[0]}")/bash.sh"
+
 # shellcheck disable=SC2034 # ROOT is the sourcing self-test's
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 

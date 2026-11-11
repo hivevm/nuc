@@ -20,6 +20,9 @@
 
 set -uo pipefail
 
+# shellcheck source-path=SCRIPTDIR source=lib/bash.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/bash.sh"
+
 # shellcheck source-path=SCRIPTDIR source=lib/ticket.sh
 source "$(dirname "${BASH_SOURCE[0]}")/lib/ticket.sh"
 
