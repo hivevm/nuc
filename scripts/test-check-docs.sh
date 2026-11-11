@@ -179,8 +179,7 @@ expect() {
   local out rc
   git -C "${dir:?}" add -A
   out="$(bash "$CHECK" "$dir" 2>&1)"; rc=$?
-  if [[ "$want" == "pass" && $rc -eq 0 && ( -z "$needle" || "$out" == *"$needle"* ) ]] \
-     || [[ "$want" == "fail" && $rc -ne 0 && ( -z "$needle" || "$out" == *"$needle"* ) ]]; then
+  if output_holds "$out" "$needle" && [[ ( "$want" == "pass" && $rc -eq 0 ) || ( "$want" == "fail" && $rc -ne 0 ) ]]; then
     passed=$((passed + 1))
     return
   fi
@@ -482,7 +481,7 @@ expect pass "a header field quoted in the body of an ADR" "$d"
 
 d="$(repo section-ref)"
 echo "Cited in [\`AGENTS.md\` $(sect 9)](AGENTS.md#9-nowhere)." >> "$d/README.md"
-expect fail "a section reference that names no section" "$d" "matches no numbered section"
+expect fail "a section reference that names no section" "$d" "[docs/section-refs:unmatched]"
 
 # words <n> — the word form of a section reference, assembled for the same reason as sect.
 words() { printf 'AGENTS.md, section %s' "$1"; }
@@ -498,7 +497,7 @@ expect pass "a reference in words to a section that exists" "$d"
 d="$(repo section-hook)"
 mkdir -p "$d/.githooks"
 echo "# See AGENTS.md $(sect 9)." > "$d/.githooks/pre-commit"
-expect fail "a section reference in a git hook" "$d" ".githooks/pre-commit:1: reference"
+expect fail "a section reference in a git hook" "$d" "[docs/section-refs:unmatched] @ .githooks/pre-commit:1"
 
 d="$(repo section-json)"
 echo "{ \"de\": \"Siehe $(sect 9) BGB\" }" > "$d/messages.json"
@@ -733,7 +732,6 @@ while IFS= read -r line; do
   n=$((n + 1))
   line="$(table_hyphens "$line")"
   IFS=$'\x1f' read -r check want needle name tree <<< "${line// | /$'\x1f'}"
-  [[ "$needle" == - ]] && needle=""
   DELETED=""
   d="$(repo "record-$n")"
   rm "$d/docs/adr/$(adr_id 1).md"
@@ -742,7 +740,9 @@ while IFS= read -r line; do
     "| ADR | Title | Applies to | Status |" "|-----|-------|------------|--------|" > "$d/docs/adr/README.md"
   while IFS= read -r s; do step "$d" "$s"; done <<< "${tree//; /$'\n'}"
   needle="${needle//<deleted>/$DELETED}"
-  expect "$want" "check $check: $name" "$d" "$needle"
+  git -C "${d:?}" add -A
+  out="$(bash "$CHECK" "$d" 2>&1)"
+  table_case "check $check: $name" "$want" "$needle" "$?" "$out"
 done < "$TABLE"
 ((n > 0)) || { echo "FAIL: no case read from $TABLE" >&2; failed=$((failed + 1)); }
 

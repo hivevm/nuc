@@ -1,7 +1,7 @@
 # shellcheck shell=bash
 # Shared by the self-tests under scripts/ (scripts/test-*.sh), sourced as their first act: the
 # repository root, a temporary directory for the fixtures, the counters, the guard on a fixture's
-# path, one counted assertion, and the summary.
+# path, the reader of the fixture tables, one counted assertion, and the summary.
 #
 # The checks a self-test exercises build fixture repositories under $work. Git hands a hook, a
 # linked worktree, and 'git -c' variables that bind every git command to one repository;
@@ -48,6 +48,50 @@ fixture() {
 # after two to five capital letters, not preceded by a letter, a digit, or '_', and before a letter
 # or a digit is a hyphen.
 table_hyphens() { sed -E 's/(^|[^A-Za-z0-9_])([A-Z]{2,5}):([A-Za-z0-9])/\1\2-\3/g' <<< "$1"; }
+
+# table_holds <output> <field> — whether the output meets the expected field of a case of a table:
+#
+#   -                         anything
+#   <key>[ @ <subject>]...    a line that ends in '[<key>]' and holds each subject
+#   !<key>[ @ <subject>]...   no such line
+#
+# A key is a rule identifier '<area>/<name>', a colon, and a reason word. A subject is a datum of
+# the case's tree: a file, a file and line, an identifier, or a term in double quotes. The wording
+# around them is free. Anything else in a field exits 2, which stops a wording outside quotes.
+table_holds() {
+  local field="${2#!}" line subject found=1 re='^[a-z]+/[a-z-]+:[a-z]+( @ ([^ "]+|"[^"]+"))*$'
+  local -a parts
+  [[ "$2" != - ]] || return 0
+  [[ "$field" =~ $re ]] || { echo "fixture table: '$2' is no key and subjects" >&2; exit 2; }
+  mapfile -t parts <<< "${field// @ /$'\n'}"
+  while IFS= read -r line; do
+    [[ "$line" == *"[${parts[0]}]" ]] || continue
+    for subject in "${parts[@]:1}"; do [[ "$line" == *"$subject"* ]] || continue 2; done
+    found=0
+  done <<< "$1"
+  [[ "$2" == '!'* ]] && return $((1 - found))
+  return "$found"
+}
+
+# output_holds <output> <needle> — a needle of a self-test's own case: a text the output contains,
+# which may be a '[<key>]', or '[<key>] @ <subject>...', read as a field of a table.
+output_holds() {
+  local field="${2#[}"
+  [[ "$2" == '['*'] @ '* ]] || { [[ "$1" == *"$2"* ]]; return; }
+  table_holds "$1" "${field/] @ / @ }"
+}
+
+# table_case <name> <pass or fail> <field> <exit code> <output> — count one case of a table: exit
+# code 0 for pass and 1 for fail, and the field holds. A failing case has to name a key.
+table_case() {
+  local want=0
+  [[ "$2" == pass ]] || want=1
+  [[ "$2" == pass || "$3" != - ]] || { echo "fixture table: the failing case '$1' names no key" >&2; exit 2; }
+  if [[ "$4" == "$want" ]] && table_holds "$5" "$3"; then passed=$((passed + 1)); return; fi
+  failed=$((failed + 1))
+  echo "FAIL: $1 (expected $2 with '$3', exit $4)" >&2
+  while IFS= read -r line; do printf '    %s\n' "$line"; done <<< "$5" >&2
+}
 
 # check <name> <condition...> — count one assertion.
 check() {

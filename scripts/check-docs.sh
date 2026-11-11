@@ -341,17 +341,17 @@ check_adr_index() {  # check 1
     indexed_applies+=("$applies")
     indexed_status+=("$status")
     [[ "$number" == NUC-* ]] && add_error \
-      "ADR index: lists $number, an ADR of the base — the index links the base in one line and lists no NUC- ADR (NUC-adrs-are-named-by-category §5)"
+      "ADR index: lists $number, an ADR of the base — the index links the base in one line and lists no NUC- ADR (NUC-adrs-are-named-by-category §5) [docs/adr-index:base]"
     [[ "$filename" == "$number.md" ]] \
       || add_error "ADR index: row for $number links to '$filename', not to '$number.md'"
     case "$status" in
       ⚪|🔴)
         ((archive)) \
-          || add_error "ADR index: row for $number is $status but sits above the 'Superseded and rejected' heading — move it there, a session reads the first table as binding"
+          || add_error "ADR index: row for $number is $status but sits above the 'Superseded and rejected' heading — move it there, a session reads the first table as binding [docs/adr-index:above]"
         ;;
       🟢|🟡)
         ((archive)) \
-          && add_error "ADR index: row for $number is $status but sits below the 'Superseded and rejected' heading — move it up, a binding decision there is never read"
+          && add_error "ADR index: row for $number is $status but sits below the 'Superseded and rejected' heading — move it up, a binding decision there is never read [docs/adr-index:below]"
         ;;
     esac
   done < "$ADR_INDEX"
@@ -360,7 +360,7 @@ check_adr_index() {  # check 1
   local -A seen_rows=()
   for f in "${indexed_files[@]}"; do
     [[ -v seen_rows["$f"] ]] \
-      && add_error "ADR index: lists '$f' twice — keep the row that matches the file, delete the other"
+      && add_error "ADR index: lists '$f' twice — keep the row that matches the file, delete the other [docs/adr-index:twice]"
     seen_rows["$f"]=1
   done
 
@@ -368,7 +368,7 @@ check_adr_index() {  # check 1
   local d
   for d in "${disk_files[@]}"; do
     if [[ ! -v seen_rows["$d"] ]]; then
-      add_error "ADR index: file '$d' exists but is not listed in the index"
+      add_error "ADR index: file '$d' exists but is not listed in the index [docs/adr-index:unlisted]"
     fi
   done
 
@@ -379,7 +379,7 @@ check_adr_index() {  # check 1
     status="${indexed_status[$i]}"
     applies="${indexed_applies[$i]}"
     if [[ ! -f "$ADR_DIR/$f" ]]; then
-      add_error "ADR index: lists '$f', but no such ADR file exists"
+      add_error "ADR index: lists '$f', but no such ADR file exists [docs/adr-index:missing]"
       continue
     fi
     adr_header "$ADR_DIR/$f"
@@ -388,7 +388,7 @@ check_adr_index() {  # check 1
     if [[ -z "$file_status" ]]; then
       add_error "$f: no '**Status:**' line with a status emoji found"
     elif [[ "$file_status" != "$status" ]]; then
-      add_error "ADR index: status for '$f' is ${status:-<none>} in the index but $file_status in the file"
+      add_error "ADR index: status for '$f' is ${status:-<none>} in the index but $file_status in the file [docs/adr-index:status]"
     fi
     applies_to_of
     file_applies="$TRIMMED"
@@ -407,20 +407,20 @@ check_adr_identifiers() {  # check 2
   local f base heading id commit
   local -A deleted=()
   [[ -d "$ADR_DIR" ]] && while IFS= read -r f; do
-    add_error "${f##*/}: a numbered ADR, a form no check reads — map it to '<CAT>-<slug>' with .agents/skills/normalize/remap.sh, as the normalize skill's migration says"
+    add_error "${f##*/}: a numbered ADR, a form no check reads — map it to '<CAT>-<slug>' with .agents/skills/normalize/remap.sh, as the normalize skill's migration says [docs/adr-numbering:numbered]"
   done < <(LC_ALL=C find "$ADR_DIR" -maxdepth 1 -type f -name '[0-9]*-*.md' | LC_ALL=C sort)
   for f in "${ADR_LIST[@]}"; do
     base="${f##*/}"
     adr_key_of "$base"
     if [[ ! "$ADR_ID" =~ ^$ADR_NEW_RE$ ]]; then
-      add_error "$base: the identifier is not '<CAT>-<slug>': two to five capital letters, a hyphen, and two to five lower case words or numbers joined by hyphens"
+      add_error "$base: the identifier is not '<CAT>-<slug>': two to five capital letters, a hyphen, and two to five lower case words or numbers joined by hyphens [docs/adr-numbering:form]"
       continue
     elif ! _contains "${ADR_ID%%-*}" "${ADR_CATEGORIES[@]}"; then
-      add_error "$base: the category ${ADR_ID%%-*} is neither fixed nor in the category list of docs/adr/README.md"
+      add_error "$base: the category ${ADR_ID%%-*} is neither fixed nor in the category list of docs/adr/README.md [docs/adr-numbering:category]"
     fi
     heading="${ADR_HEADING["$f"]-}"
     [[ "$heading" == "# $ADR_ID:"* ]] \
-      || add_error "$base: heading says '${heading:-<none>}', but the filename says $ADR_ID"
+      || add_error "$base: heading says '${heading:-<none>}', but the filename says $ADR_ID [docs/adr-numbering:heading]"
   done
   # Without a commit there is no history; a git that cannot read it, such as one before 2.31
   # without --diff-merges, is an error, not a pass.
@@ -439,7 +439,7 @@ check_adr_identifiers() {  # check 2
     base="${f##*/}"
     [[ -v deleted["$base"] ]] || continue
     id="${base%.md}"
-    add_error "$base: the identifier $id was taken by a deleted ADR, deleted in ${deleted["$base"]} — a successor takes a new slug"
+    add_error "$base: the identifier $id was taken by a deleted ADR, deleted in ${deleted["$base"]} — a successor takes a new slug [docs/adr-numbering:taken]"
   done
 }
 
@@ -536,12 +536,12 @@ check_adr_supersessions() {  # check 8
     adr_refs "${ADR_SUPERSEDES["$f"]-}"
     for target in "${REFS[@]}"; do
       [[ "$target" == NUC-* && "$base" != NUC-* ]] && add_error \
-        "$base: supersedes $target — no project ADR supersedes the base; extend or narrow its clause, or fork the template (NUC-base-is-fixed §1)"
+        "$base: supersedes $target — no project ADR supersedes the base; extend or narrow its clause, or fork the template (NUC-base-is-fixed §1) [docs/adr-supersessions:base]"
       target_file="${ADR_BY_ID["$target"]-}"
       if [[ -n "$target_file" ]] && ((accepted)); then
         superseding_id "${ADR_STATUS["$target_file"]-}"
         [[ "$SUCCESSOR" == "$nr" ]] || add_error \
-          "${target_file##*/}: $base supersedes it, but its status line does not say 'superseded by $nr'"
+          "${target_file##*/}: $base supersedes it, but its status line does not say 'superseded by $nr' [docs/adr-supersessions:unflipped]"
       fi
     done
 
@@ -556,11 +556,11 @@ check_adr_supersessions() {  # check 8
         adr_refs "${ADR_SUPERSEDES["$succ_file"]-}"
         named=0
         for target in "${REFS[@]}"; do [[ "$target" == "$nr" ]] && named=1; done
-        ((named)) || add_error "${succ_file##*/}: $base says it supersedes, but it carries no '**Supersedes:**' field naming $nr"
+        ((named)) || add_error "${succ_file##*/}: $base says it supersedes, but it carries no '**Supersedes:**' field naming $nr [docs/adr-supersessions:unclaimed]"
         # A successor superseded in its turn was accepted before: a chain of supersessions.
         status_emoji "${ADR_STATUS["$succ_file"]-}"
         [[ "$EMOJI" == "🟢" || "$EMOJI" == "⚪" ]] || add_error \
-          "$base: superseded by $SUCCESSOR, which is not accepted — the status line flips when the human accepts $SUCCESSOR"
+          "$base: superseded by $SUCCESSOR, which is not accepted — the status line flips when the human accepts $SUCCESSOR [docs/adr-supersessions:unaccepted]"
       fi
     fi
 
@@ -568,12 +568,12 @@ check_adr_supersessions() {  # check 8
     for field in Extends Narrows; do
       rest="${ADR_REL["$field $f"]-}"
       [[ -n "$rest" ]] || continue
-      [[ "$rest" =~ $re ]] || add_error "$base: the $field field names no clause of a NUC- ADR, 'NUC-<slug> §n' (NUC-base-is-fixed §1)"
+      [[ "$rest" =~ $re ]] || add_error "$base: the $field field names no clause of a NUC- ADR, 'NUC-<slug> §n' (NUC-base-is-fixed §1) [docs/adr-supersessions:field]"
       while [[ "$rest" =~ $re ]]; do
         rest="${rest#*"${BASH_REMATCH[0]}"}" target="${BASH_REMATCH[1]} §${BASH_REMATCH[-1]}"
         target_file="${ADR_BY_ID["${BASH_REMATCH[1]}"]-}"
         [[ -z "$target_file" ]] || grep -qE "^${BASH_REMATCH[-1]}\. " <<< "$(adr_section Decision < "$target_file")" \
-          || add_error "$base: $field $target, a clause its Decision does not have"
+          || add_error "$base: $field $target, a clause its Decision does not have [docs/adr-supersessions:clause]"
       done
     done
   done
@@ -849,7 +849,7 @@ check_section_refs() {  # check 4
             [[ "$linkexpr" =~ §([0-9]+) ]] || continue
             n="${BASH_REMATCH[1]}"
             if ! _contains "$n" "${valid_sections[@]}"; then
-              add_error "$rel:$lineno: reference '§$n' matches no numbered section in AGENTS.md"
+              add_error "$rel:$lineno: reference '§$n' matches no numbered section in AGENTS.md [docs/section-refs:unmatched]"
               continue
             fi
             link_target "$linkexpr"
@@ -869,7 +869,7 @@ check_section_refs() {  # check 4
             if _contains "$n" "${valid_sections[@]}"; then
               add_error "$rel:$lineno: '§$n' stands outside a link — cite a section as a link to its anchor, e.g. [\`AGENTS.md\` §$n](AGENTS.md#${section_slug[$n]})"
             else
-              add_error "$rel:$lineno: reference '§$n' matches no numbered section in AGENTS.md"
+              add_error "$rel:$lineno: reference '§$n' matches no numbered section in AGENTS.md [docs/section-refs:unmatched]"
             fi
           done
         done <<< "${MD_SECT["$f"]-}"
@@ -880,7 +880,7 @@ check_section_refs() {  # check 4
           while [[ "$LINE" =~ §([0-9]+) ]]; do
             n="${BASH_REMATCH[1]}" LINE="${LINE#*"${BASH_REMATCH[0]}"}"
             _contains "$n" "${valid_sections[@]}" \
-              || add_error "$rel:$lineno: reference '§$n' matches no numbered section in AGENTS.md"
+              || add_error "$rel:$lineno: reference '§$n' matches no numbered section in AGENTS.md [docs/section-refs:unmatched]"
           done
         done < <(grep -nE '§[0-9]+' "$f")
         ;;
@@ -902,7 +902,7 @@ check_adr_refs() {  # check 5
     while [[ "$line" =~ $ADR_REF_WORD_RE ]]; do
       match="${BASH_REMATCH[2]}" line="${line#*"${BASH_REMATCH[0]}"}"
       [[ -v ADR_BY_ID["$match"] ]] \
-        || add_error "${f#"$ROOT"/}:$lineno: reference '$match' matches no ADR file in docs/adr/"
+        || add_error "${f#"$ROOT"/}:$lineno: reference '$match' matches no ADR file in docs/adr/ [docs/adr-refs:unmatched]"
     done
   done < <(grep -Hn --null -E "$ADR_REF_RE" "${files[@]}")
 }
@@ -931,7 +931,7 @@ check_adr_link_targets() {  # check 6
       adr_is_file "$base" || continue
       [[ "$(cd "$dir" 2>/dev/null && pwd)" == "$ADR_DIR" ]] || continue
       adr_key_of "$base"
-      [[ "$ADR_ID" == "$id" ]] || add_error "$rel: link '$linkexpr' cites $id but points at '$base'"
+      [[ "$ADR_ID" == "$id" ]] || add_error "$rel: link '$linkexpr' cites $id but points at '$base' [docs/adr-link-targets:other]"
     done <<< "${MD_LINKS["$f"]-}"
   done
 }
@@ -1148,7 +1148,7 @@ check_skill_pointers() {  # check 11
       /^name:/ { v = $0; sub(/^name:[ \t]*/, "", v); gsub(/^["\047]|["\047]?[ \t]*$/, "", v); n = v == name }
       /^description:/ { desc = 1 }
       END { exit !(closed && n && desc) }' "$d/SKILL.md" \
-      || add_error ".agents/skills/$name/SKILL.md: no front matter an agent reads — '---' first, a 'name: $name' and a 'description:' line, unindented lines only keys, then '---' (NUC-procedures-are-skills §7)"
+      || add_error ".agents/skills/$name/SKILL.md: no front matter an agent reads — '---' first, a 'name: $name' and a 'description:' line, unindented lines only keys, then '---' (NUC-procedures-are-skills §7) [docs/skill-pointers:frontmatter]"
     p="$pointers/$name"
     if [[ -L "$p" ]]; then
       continue
@@ -1189,16 +1189,16 @@ check_base_blobs() {  # check 12
     # shellcheck disable=SC2016  # the backticks are Markdown to match, not a command substitution
     grep -qE '^[[:space:]]*([-*] )?\*\*Template release:\*\*[[:space:]]*[[`]?v[0-9]+\.[0-9]+\.[0-9]+[]`]?(\([^)]*\))?, forked([^[:alnum:]]|$)' \
       "$ROOT/README.md" 2>/dev/null \
-      || add_error "docs/adr/NUC.blobs: not found — it names each NUC- file and AGENTS.md with its blob; a fork names the release it forked on the Template release line of README.md, 'vX.Y.Z, forked' (NUC-base-is-fixed §1)"
+      || add_error "docs/adr/NUC.blobs: not found — it names each NUC- file and AGENTS.md with its blob; a fork names the release it forked on the Template release line of README.md, 'vX.Y.Z, forked' (NUC-base-is-fixed §1) [docs/base-blobs:absent]"
     return
   fi
   while read -r blob name; do [[ -n "$name" ]] && want["$name"]="$blob"; done < "$list"
   for name in "${!want[@]}"; do
-    [[ -v have["$name"] ]] || add_error "docs/adr/NUC.blobs: names $name, which does not exist — $fix"
+    [[ -v have["$name"] ]] || add_error "docs/adr/NUC.blobs: names $name, which does not exist — $fix [docs/base-blobs:gone]"
   done
   for name in "${!have[@]}"; do
-    if [[ ! -v want["$name"] ]]; then add_error "$name: has no line in docs/adr/NUC.blobs — $fix"
-    elif [[ "${want["$name"]}" != "${have["$name"]}" ]]; then add_error "$name: differs from its line in docs/adr/NUC.blobs — $fix"; fi
+    if [[ ! -v want["$name"] ]]; then add_error "$name: has no line in docs/adr/NUC.blobs — $fix [docs/base-blobs:unlisted]"
+    elif [[ "${want["$name"]}" != "${have["$name"]}" ]]; then add_error "$name: differs from its line in docs/adr/NUC.blobs — $fix [docs/base-blobs:differs]"; fi
   done
 }
 
@@ -1244,8 +1244,8 @@ check_template_identity() {  # check 13
       adr_field_value "${ADR_REL["Role $f"]-}" Role && trim "$ADR_VALUE"
       [[ "$TRIMMED" == "$role" && "${ADR_STATUS["$f"]-}" == *🟢* ]] && n=$((n + 1))
     done
-    ((n == 0)) && add_error "docs/adr/: no accepted ADR fills the role $role — one carries '- **Role:** $role' (NUC-base-is-fixed §3)"
-    ((n > 1)) && add_error "docs/adr/: $n accepted ADRs fill the role $role — exactly one does (NUC-base-is-fixed §3)"
+    ((n == 0)) && add_error "docs/adr/: no accepted ADR fills the role $role — one carries '- **Role:** $role' (NUC-base-is-fixed §3) [docs/template-identity:unfilled]"
+    ((n > 1)) && add_error "docs/adr/: $n accepted ADRs fill the role $role — exactly one does (NUC-base-is-fixed §3) [docs/template-identity:several]"
   done
 }
 
