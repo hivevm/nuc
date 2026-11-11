@@ -361,6 +361,10 @@ d="$(repo width-dashes)"
 printf '%s — %s\n' "$(words_of 48)" "$(words_of 49)" >> "$d/README.md"
 expect pass "an em dash counts as one column" "$d"
 
+d="$(repo width-emoji)"
+printf '%s 🟢 %s\n' "$(words_of 48)" "$(words_of 49)" >> "$d/README.md"
+expect pass "a character outside the BMP, such as an emoji, counts as one column" "$d"
+
 d="$(repo width-link)"
 printf '  [a long link text](https://example.invalid/%s)\n' "$(words_of 100 | tr ' ' x)" >> "$d/README.md"
 expect pass "a link that cannot break stands on a line of its own" "$d"

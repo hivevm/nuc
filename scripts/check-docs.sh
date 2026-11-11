@@ -1252,10 +1252,18 @@ check_template_identity() {  # check 13
 # LINK_SPACE_RE — a space inside the text of a link; check 15 reads a link as one word.
 LINK_SPACE_RE='(\[[^] ]*) ([^]]*\]\()'
 
+# columns <text> — sets COLUMNS_OF to the characters of the text: its bytes less the UTF-8
+# continuation bytes, so a bash that counts UTF-16 units, as Git Bash does, counts an emoji once.
+columns() {
+  local LC_ALL=C cont
+  cont="${1//[!$'\x80'-$'\xbf']/}"
+  COLUMNS_OF=$((${#1} - ${#cont}))
+}
+
 # Check 15 (see the header). Characters are counted, not bytes, so an em dash is one column;
 # scan_markdown hands over only the lines longer than 100 bytes outside front matter and fences.
 check_prose_width() {  # check 15
-  local f rel n line indent body in_adr attr
+  local f rel n line indent body in_adr attr COLUMNS_OF
   local LC_ALL=C.UTF-8
   # A file git marks as generated is written by a tool, not wrapped by hand; asked once for all.
   local -A generated=()
@@ -1277,7 +1285,8 @@ check_prose_width() {  # check 15
       [[ -n "$line" ]] || continue
       n="${line%%:*}"
       line="${line#*:}"
-      ((${#line} > 100)) || continue
+      columns "$line"
+      ((COLUMNS_OF > 100)) || continue
       # A table row, a heading, and an ADR header field are one line by their syntax.
       [[ "$line" =~ ^[[:space:]]*\| || "$line" =~ ^# ]] && continue
       [[ in_adr -eq 1 && "$line" =~ $ADR_FIELD_ITEM_RE ]] && continue
@@ -1289,7 +1298,7 @@ check_prose_width() {  # check 15
         body="${body/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}_${BASH_REMATCH[2]}"}"
       done
       [[ "$body" == *" "* ]] \
-        && add_error "$rel:$n: ${#line} columns — wrap the prose at 100 (a link that does not fit stands on a line of its own)"
+        && add_error "$rel:$n: $COLUMNS_OF columns — wrap the prose at 100 (a link that does not fit stands on a line of its own)"
     done <<< "${MD_WIDE["$f"]}"
   done
 }
