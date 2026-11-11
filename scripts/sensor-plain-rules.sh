@@ -16,7 +16,7 @@
 # that the line break of a paragraph splits counts when either line is added, on the line it
 # starts on if that line is added, else on the next; the gap a code span or an italic leaves at
 # the end of a line stays. A paragraph or a list item ends a sentence; so do '.', '!', and '?'
-# before a space or the end.
+# before a space or the end, also after what a link whose text is a code span leaves.
 #
 # Without '--require' it reports for the reviewer and never fails on what it counts. With
 # '--require' it fails on a soft modal verb or an avoided word in a project ADR; in a 'NUC-' ADR
@@ -132,7 +132,8 @@ out="$(AVOID="$avoid" awk -F '\t' -v max="$MAX_WORDS" '
       }
       w = split(text, words, /[[:space:]]+/)
       for (i = 1; i <= w; i++) {
-        if (words[i] !~ /[A-Za-z0-9]/) { if (count && words[i] ~ /^[.!?]/) flush(); continue }
+        # A token without a letter or a digit, such as what a link leaves, ends a sentence by a stop.
+        if (words[i] !~ /[A-Za-z0-9]/) { if (count && words[i] ~ /[.!?]/) flush(); continue }
         if (!count) start = nr
         count++; if (!(nr in seen) || $3 == 1) seen[nr] = $3
         if (words[i] ~ /[.!?][)*_"]*$/) flush()

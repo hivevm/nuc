@@ -4,20 +4,21 @@
 #
 # Verifies: NUC-documents-are-fixed
 #
-# Each case builds a throwaway git repository under a temporary directory: main holds an
-# AGENTS.md and one ADR, a branch changes them, and the sensor runs against main. The cases are a
-# table of what the change adds and what the sensor must and must not print: a long sentence in
-# the Decision and in the Enforcement, one in the Context, one held in a code span, a soft modal
-# verb in AGENTS.md, named in italics, after an italic that wraps, in a code span that wraps, in
-# an identifier, in a block quote, in fenced code, after a fence's marker line with an info string
-# or a '## ' line inside it, and on a line the change did not add, a sentence that ends early, an
-# avoided word after a bare star or an unclosed underscore, an avoided term of two words wrapped
-# over two lines, around a code span, with only its second line added, and split by a paragraph
-# break, a sub-list that ends an _Avoid:_ list, a change outside the rules, the working tree with
-# an untracked ADR, and a base that does not resolve. The cases of '--require' stand in the fixture
-# table scripts/fixtures/plain-rules.txt: what fails in a project ADR and is reported in a NUC- ADR
-# and in AGENTS.md, the qualifiers of an _Avoid:_ item, an item a line break splits, a renamed ADR,
-# and a take-up on comb's glossary. Two cases read the glossary reader's rows directly.
+# Each case builds a throwaway git repository under a temporary directory: main holds an AGENTS.md
+# and one ADR, a branch changes them, and the sensor runs against main. The cases are a table of
+# what the change adds and what the sensor must and must not print: a long sentence in the Decision
+# and in the Enforcement, one in the Context, one held in a code span, a soft modal verb in
+# AGENTS.md, named in italics, after an italic that wraps, in a code span that wraps, in an
+# identifier, in a block quote, in fenced code, after a fence's marker line with an info string or a
+# '## ' line inside it, and on a line the change did not add, a sentence that ends early, one that
+# ends after a link whose text is a code span, an avoided word after a bare star or an unclosed
+# underscore, an avoided term of two words wrapped over two lines, around a code span, with only its
+# second line added, and split by a paragraph break, a sub-list that ends an _Avoid:_ list, a change
+# outside the rules, the working tree with an untracked ADR, and a base that does not resolve. The
+# cases of '--require' stand in the fixture table scripts/fixtures/plain-rules.txt: what fails in a
+# project ADR and is reported in a NUC- ADR and in AGENTS.md, the qualifiers of an _Avoid:_ item, an
+# item a line break splits, a renamed ADR, and a take-up on comb's glossary. Two cases read the
+# glossary reader's rows directly.
 #
 # Inputs: scripts/sensor-plain-rules.sh scripts/lib/ scripts/fixtures/plain-rules.txt
 #
@@ -107,6 +108,11 @@ expect "a long sentence wrapped over two lines: counted as one" "$r" "a sentence
 r="$(repo early-end)"
 after "$r" docs/adr/FIX-rule-x.md "## Decision" "${LONG/ any work / any work. Then it }"
 expect "a sentence that ends early: two short ones" "$r" "no long sentence" "" main
+
+r="$(repo end-after-link)"
+after "$r" docs/adr/FIX-rule-x.md "## Decision" "${LONG/ any work / any [\`docs/GLOSSARY.md\`](docs/GLOSSARY.md). Then it }"
+expect "a sentence that ends after a link whose text is a code span: two short ones" "$r" \
+  "no long sentence" "" main
 
 r="$(repo modal)"
 after "$r" AGENTS.md "## 1. Rules" "- The session should read the glossary."
