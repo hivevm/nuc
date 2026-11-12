@@ -6,8 +6,8 @@
 #
 # A run exits 0 for pass and 1 for fail. The second field is '<key>', then ' @ <subject>' for each
 # datum the line names, such as the clause. A line of the output ends in '[<key>]', the rule and a
-# reason word, and holds each subject, in that order and with no letter, digit, hyphen, or
-# underscore beside it; the rest of its wording is free.
+# reason word, and holds each subject, in that order and with no ASCII letter, digit, hyphen,
+# or underscore beside it; the rest of its wording is free.
 #
 # The tree is a list of steps separated by '; ', applied in order to a repository that passes the
 # check, not under git, of three files. .devcontainer/devcontainer.json:

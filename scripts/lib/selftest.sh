@@ -53,7 +53,8 @@ table_hyphens() { sed -E 's/(^|[^A-Za-z0-9_])([A-Z]{2,5}):([A-Za-z0-9])/\1\2-\3/
 #
 #   -                         anything
 #   <key>[ @ <subject>]...    a line that ends in '[<key>]' and holds each subject,
-#                             in that order, with no letter, digit, hyphen, or underscore beside it
+#                             in that order, with no ASCII letter, digit, hyphen, or
+#                             underscore beside it
 #   !<key>[ @ <subject>]...   no such line
 #
 # A key is a rule identifier '<area>/<name>', a colon, and a reason word. A subject is a datum of
@@ -76,8 +77,9 @@ table_holds() {
 }
 
 # table_datum <text> <subject> — whether the text holds the subject as a datum of its own, neither
-# letter, digit, hyphen, nor underscore on either side, so that '2' is not found in '12', nor
-# 'a-rule' in 'a-rule-two'. TABLE_REST is the text after the first such place, where the next
+# ASCII letter, digit, hyphen, nor underscore on either side, so that '2' is not found in '12',
+# nor 'a-rule' in 'a-rule-two'. A dot or a slash is no such character: 'x.md' is found in
+# 'docs/x.md'. TABLE_REST is the text after the first such place, where the next
 # subject of a field is looked for: the subjects stand in the order the field names them.
 table_datum() {
   local seen="" text="$1" before

@@ -7,9 +7,9 @@
 #
 # A run exits 0 for pass and 1 for fail. The third field is '<key>', then ' @ <subject>' for each
 # datum the line names, such as a file or an identifier. A line of the output ends in '[<key>]', the
-# rule and a reason word, and holds each subject, in that order and with no letter, digit, hyphen,
-# or underscore beside it; the rest of its wording is free. '<deleted>' stands for the short hash
-# of the commit of the last delete.
+# rule and a reason word, and holds each subject, in that order and with no ASCII letter, digit,
+# hyphen, or underscore beside it; the rest of its wording is free. '<deleted>' stands for the
+# short hash of the commit of the last delete.
 #
 # The tree is a list of steps separated by '; ', applied in order to a git repository, with no
 # commit and without TEMPLATE-SETUP.md, that passes every check, its setup done. Every file is
