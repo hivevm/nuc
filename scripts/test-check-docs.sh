@@ -198,28 +198,28 @@ expect pass "a consistent repository passes" "$d"
 # Verifies: NUC-procedures-are-skills
 d="$(repo pointer-missing)"
 rm "$d/.claude/skills/review"
-expect fail "a skill without its pointer" "$d" ".claude/skills/review: no pointer"
+expect fail "a skill without its pointer" "$d" "[docs/skill-pointers:missing] @ .claude/skills/review"
 d="$(repo pointer-dangling)"
 rm -r "$d/.agents/skills/review"
-expect fail "a pointer whose skill is gone" "$d" ".claude/skills/review: dangles"
+expect fail "a pointer whose skill is gone" "$d" "[docs/skill-pointers:dangles] @ .claude/skills/review"
 d="$(repo pointer-copy)"
 rm "$d/.claude/skills/review"
 cp -r "$d/.agents/skills/review" "$d/.claude/skills/review"
-expect fail "a copy where a symlink belongs" "$d" ".claude/skills/review: is a copy"
+expect fail "a copy where a symlink belongs" "$d" "[docs/skill-pointers:copy] @ .claude/skills/review"
 d="$(repo pointer-wrong-target)"
 mkdir -p "$d/.agents/skills/other"
 printf -- '---\nname: other\ndescription: Other.\n---\n' > "$d/.agents/skills/other/SKILL.md"
 ln -s ../../.agents/skills/review "$d/.claude/skills/other"
-expect fail "a pointer at a different skill" "$d" ".claude/skills/other: points at"
+expect fail "a pointer at a different skill" "$d" "[docs/skill-pointers:target] @ .claude/skills/other @ .agents/skills/other"
 d="$(repo pointer-only-skill)"
 mkdir -p "$d/.claude/skills/local"
 printf -- '---\nname: local\ndescription: Local.\n---\n' > "$d/.claude/skills/local/SKILL.md"
-expect fail "a skill that lives only in the pointer directory" "$d" ".claude/skills/local: is not a symlink"
+expect fail "a skill that lives only in the pointer directory" "$d" "[docs/skill-pointers:stray] @ .claude/skills/local"
 d="$(repo pointer-directory-only)"
 rm -r "$d/.agents" "$d/.claude/skills/review"
 mkdir -p "$d/.claude/skills/review"
 printf -- '---\nname: review\ndescription: Review.\n---\n' > "$d/.claude/skills/review/SKILL.md"
-expect fail "skills only in the pointer directory, none for the other agents" "$d" ".claude/skills/review: is not a symlink"
+expect fail "skills only in the pointer directory, none for the other agents" "$d" "[docs/skill-pointers:stray] @ .claude/skills/review"
 
 d="$(repo no-skills)"
 rm -r "$d/.agents" "$d/.claude"
@@ -236,36 +236,36 @@ expect pass "the template's title in the README while the setup file exists" "$d
 
 d="$(repo identity-title)"
 sed_in "$d/README.md" 's/^# Fixture$/# NUC — an Agentic Fixture/'
-expect fail "the template's title in the README after setup" "$d" "README.md: the title is still the template's"
+expect fail "the template's title in the README after setup" "$d" "[docs/template-identity:title] @ README.md"
 
 d="$(repo identity-intro)"
 echo "**NUC** is named after the small *nucleus colony*." >> "$d/README.md"
-expect fail "the template's intro in the README after setup" "$d" "README.md: the intro still explains the template's name"
+expect fail "the template's intro in the README after setup" "$d" "[docs/template-identity:intro] @ README.md"
 
 d="$(repo identity-overview)"
 echo "Describe what this project does, who it is for, and its main goals." >> "$d/README.md"
-expect fail "the scaffold's Overview sentence after setup" "$d" "README.md: the Overview is still the scaffold's sentence"
+expect fail "the scaffold's Overview sentence after setup" "$d" "[docs/template-identity:overview] @ README.md"
 
 d="$(repo identity-usage)"
 echo "TODO — show a minimal example of using the project." >> "$d/README.md"
-expect fail "the Usage TODO after setup" "$d" "README.md: the Usage section is still TODO"
+expect fail "the Usage TODO after setup" "$d" "[docs/template-identity:usage] @ README.md"
 
 d="$(repo identity-devcontainer)"
 mkdir -p "$d/.devcontainer"
 echo '{ "name": "NUC DevContainer" }' > "$d/.devcontainer/devcontainer.json"
-expect fail "the template's Dev Container name after setup" "$d" "devcontainer.json: the Dev Container still carries the template's name"
+expect fail "the template's Dev Container name after setup" "$d" "[docs/template-identity:container] @ .devcontainer/devcontainer.json"
 
 d="$(repo identity-badge)"
 echo "[![Checks](https://github.com/hivevm/nuc/actions/workflows/checks.yml/badge.svg)](https://github.com/hivevm/nuc/actions/workflows/checks.yml)" >> "$d/README.md"
-expect fail "the template's repository in the README badge after setup" "$d" "README.md: a badge still points at the template"
+expect fail "the template's repository in the README badge after setup" "$d" "[docs/template-identity:badge] @ README.md"
 
 d="$(repo identity-license-badge)"
 echo "[![License](https://img.shields.io/github/license/hivevm/nuc)](LICENSE)" >> "$d/README.md"
-expect fail "the template's repository in a shields.io badge after setup" "$d" "README.md: a badge still points at the template"
+expect fail "the template's repository in a shields.io badge after setup" "$d" "[docs/template-identity:badge] @ README.md"
 
 d="$(repo identity-svg-badge)"
 echo "[![Stars](https://img.shields.io/github/stars/hivevm/nuc.svg)](https://github.com/hivevm/nuc-tools)" >> "$d/README.md"
-expect fail "the template's repository in a legacy .svg badge after setup" "$d" "README.md: a badge still points at the template"
+expect fail "the template's repository in a legacy .svg badge after setup" "$d" "[docs/template-identity:badge] @ README.md"
 
 d="$(repo identity-derived-badge)"
 echo "[![Checks](https://github.com/hivevm/nuc-tools/actions/workflows/checks.yml/badge.svg)](https://github.com/hivevm/nuc-tools/actions/workflows/checks.yml)" >> "$d/README.md"
@@ -277,57 +277,58 @@ expect pass "a link to the template's repository outside the badge after setup" 
 
 d="$(repo identity-license)"
 printf 'MIT License\n\nCopyright (c) 2026 Maintainer\n' > "$d/LICENSE"
-expect fail "the placeholder copyright holder after setup" "$d" "LICENSE: the copyright holder is still the placeholder"
+expect fail "the placeholder copyright holder after setup" "$d" "[docs/template-identity:copyright] @ LICENSE"
 
 d="$(repo identity-license-apache)"
 printf 'Apache License\nVersion 2.0, January 2004\n\nCopyright 2026 Maintainer\n' > "$d/LICENSE"
-expect fail "the placeholder copyright holder under another license after setup" "$d" "LICENSE: the copyright holder is still the placeholder"
+expect fail "the placeholder copyright holder under another license after setup" "$d" "[docs/template-identity:copyright] @ LICENSE"
 
 d="$(repo identity-contact)"
 echo "- email the maintainer: <!-- TODO: add a security contact address -->." > "$d/SECURITY.md"
-expect fail "the placeholder security contact after setup" "$d" "SECURITY.md: the security contact is still the placeholder"
+expect fail "the placeholder security contact after setup" "$d" "[docs/template-identity:security] @ SECURITY.md"
 
 d="$(repo identity-conduct)"
 echo "- Reporting contact: <!-- TODO: add a contact address (email or private channel) -->" > "$d/CODE_OF_CONDUCT.md"
-expect fail "the placeholder reporting contact after setup" "$d" "CODE_OF_CONDUCT.md: the reporting contact is still the placeholder"
+expect fail "the placeholder reporting contact after setup" "$d" "[docs/template-identity:conduct] @ CODE_OF_CONDUCT.md"
 
 d="$(repo identity-codeowners)"
 printf '# /docs/SPECIFICATION.md @owner\n# /docs/adr/ @owner\n' > "$d/.github/CODEOWNERS"
-expect fail "a CODEOWNERS with its rules still commented out after setup" "$d" ".github/CODEOWNERS: no active rule"
+expect fail "a CODEOWNERS with its rules still commented out after setup" "$d" "[docs/template-identity:codeowners] @ .github/CODEOWNERS"
 
 d="$(repo identity-codeowners-todo)"
 printf '# TODO: add a code owner and uncomment the rules.\n/docs/adr/ @someone\n' > "$d/.github/CODEOWNERS"
-expect fail "the code owner TODO still there after setup" "$d" ".github/CODEOWNERS: the instruction to add a code owner is still there"
+expect fail "the code owner TODO still there after setup" "$d" "[docs/template-identity:instruction] @ .github/CODEOWNERS"
 
 d="$(repo identity-spec-title)"
 printf '# Specification — <Project Name>\n' > "$d/docs/SPECIFICATION.md"
-expect fail "the scaffold's title in the specification after setup" "$d" "docs/SPECIFICATION.md: the title still carries '<Project Name>'"
+expect fail "the scaffold's title in the specification after setup" "$d" "[docs/template-identity:projectname] @ docs/SPECIFICATION.md"
 
 d="$(repo identity-glossary-title)"
 printf '# Glossary — <Project Name>\n' > "$d/docs/GLOSSARY.md"
-expect fail "the scaffold's title in the glossary after setup" "$d" "docs/GLOSSARY.md: the title still carries '<Project Name>'"
+expect fail "the scaffold's title in the glossary after setup" "$d" "[docs/template-identity:projectname] @ docs/GLOSSARY.md"
 
 d="$(repo identity-goal)"
 printf '# Specification — Fixture\n\n## Goals / Success Criteria\n\n1. **G-1** — …\n' > "$d/docs/SPECIFICATION.md"
-expect fail "a goal still the scaffold's ellipsis after setup" "$d" "docs/SPECIFICATION.md: a criterion is still the scaffold's placeholder"
+expect fail "a goal still the scaffold's ellipsis after setup" "$d" "[docs/template-identity:criterion] @ docs/SPECIFICATION.md"
 
 d="$(repo identity-quality)"
 printf '# Specification — Fixture\n\n## Quality Goals\n\n- **Q-1** — <Quality, e.g. Performance>: why.\n' > "$d/docs/SPECIFICATION.md"
-expect fail "a quality goal still the scaffold's placeholder after setup" "$d" "docs/SPECIFICATION.md: a criterion is still the scaffold's placeholder"
+expect fail "a quality goal still the scaffold's placeholder after setup" "$d" "[docs/template-identity:criterion] @ docs/SPECIFICATION.md"
 
-for entry in ARCHITECTURE:Part GLOSSARY:Term CONVENTIONS:Convention; do
-  d="$(repo "identity-entry-${entry#*:}")"
-  printf '# Fixture\n\n- **<%s>** — what it is.\n' "${entry#*:}" > "$d/docs/${entry%%:*}.md"
-  expect fail "the scaffold's <${entry#*:}> entry after setup" "$d" "docs/${entry%%:*}.md: the scaffold's"
+for entry in ARCHITECTURE:Part:part GLOSSARY:Term:term CONVENTIONS:Convention:convention; do
+  IFS=: read -r doc term reason <<< "$entry"
+  d="$(repo "identity-entry-$term")"
+  printf '# Fixture\n\n- **<%s>** — what it is.\n' "$term" > "$d/docs/$doc.md"
+  expect fail "the scaffold's <$term> entry after setup" "$d" "[docs/template-identity:$reason] @ docs/$doc.md"
 done
 
 d="$(repo identity-build)"
 echo "- **Build:** TODO <!-- e.g. \`make build\` -->" >> "$d/README.md"
-expect fail "a Build command still TODO after setup" "$d" "README.md: a Build, Test, Lint, or Run command is still TODO"
+expect fail "a Build command still TODO after setup" "$d" "[docs/template-identity:command] @ README.md"
 
 d="$(repo identity-lint)"
 echo "- **Lint:** TODO" >> "$d/README.md"
-expect fail "a Lint command still TODO after setup" "$d" "README.md: a Build, Test, Lint, or Run command is still TODO"
+expect fail "a Lint command still TODO after setup" "$d" "[docs/template-identity:command] @ README.md"
 
 d="$(repo identity-build-pending)"
 echo "- **Build:** TODO" >> "$d/README.md"
@@ -350,7 +351,7 @@ words_of() { local s=""; while ((${#s} < $1)); do s+="word "; done; printf '%s' 
 
 d="$(repo width-long)"
 words_of 101 >> "$d/README.md"; echo >> "$d/README.md"
-expect fail "a prose line over 100 columns" "$d" "101 columns — wrap the prose at 100"
+expect fail "a prose line over 100 columns" "$d" "[docs/prose-width:wide] @ README.md:6 @ 101"
 
 d="$(repo width-limit)"
 words_of 100 >> "$d/README.md"; echo >> "$d/README.md"
@@ -387,15 +388,15 @@ expect pass "a file git marks as generated is not read" "$d"
 d="$(repo width-generated-unset)"
 words_of 120 > "$d/CHANGELOG.md"; echo >> "$d/CHANGELOG.md"
 echo "CHANGELOG.md -linguist-generated" > "$d/.gitattributes"
-expect fail "a file marked not generated is read" "$d" "CHANGELOG.md:1: 120 columns"
+expect fail "a file marked not generated is read" "$d" "[docs/prose-width:wide] @ CHANGELOG.md:1 @ 120"
 
 d="$(repo width-link-then-prose)"
 printf '[a link](https://example.invalid/%s) and prose that could wrap\n' "$(words_of 100 | tr ' ' x)" >> "$d/README.md"
-expect fail "prose after a long link can wrap" "$d" "columns — wrap the prose at 100"
+expect fail "prose after a long link can wrap" "$d" "[docs/prose-width:wide] @ README.md:6"
 
 d="$(repo width-label)"
 printf -- '- **Label:** %s\n' "$(words_of 110)" >> "$d/README.md"
-expect fail "a bold label outside an ADR header is prose" "$d" "columns — wrap the prose at 100"
+expect fail "a bold label outside an ADR header is prose" "$d" "[docs/prose-width:wide] @ README.md:6"
 
 # --- cases: the template release named (check 14) ---------------------------------------
 
@@ -407,7 +408,7 @@ release_line() { sed_in "$1/README.md" "s/^- \*\*Template release:\*\* unrelease
 d="$(repo release-no-readme)"
 rm "$d/README.md"
 sed_in "$d/CONTRIBUTING.md" '/^README\.md /d'
-expect fail "no README to carry the Template release line" "$d" "README.md: not found — the Template section names the release this repository carries (NUC-releases-are-semver-tags §4)"
+expect fail "no README to carry the Template release line" "$d" "[docs/template-release:absent] @ README.md @ NUC-releases-are-semver-tags @ $(sect 4)"
 
 d="$(repo release-tag)"
 release_line "$d" '- **Template release:** v1.4.0 of the template ([tags](https:\/\/example.invalid\/tags)).'
@@ -429,34 +430,34 @@ expect pass "the tag in backticks" "$d"
 d="$(repo release-leading-zero)"
 release_line "$d" '- **Template release:** v01.4.0'
 expect fail "a leading zero, which SemVer forbids" "$d" \
-  "names neither a 'vX.Y.Z' tag nor 'unreleased' — a release moves it to the tag it cuts (NUC-releases-are-semver-tags §1, §4)"
+  "[docs/template-release:version] @ README.md @ NUC-releases-are-semver-tags @ $(sect 1) @ $(sect 4)"
 
 d="$(repo release-missing)"
 release_line "$d" 'Created from the template.'
 expect fail "no Template release line" "$d" \
-  "no '**Template release:**' line — the Template section names the release of the template this repository carries, or 'unreleased' (NUC-releases-are-semver-tags §4)"
+  "[docs/template-release:line] @ README.md @ NUC-releases-are-semver-tags @ $(sect 4)"
 
 d="$(repo release-malformed)"
 release_line "$d" '- **Template release:** 1.4'
-expect fail "a version that is not a vX.Y.Z tag" "$d" "names neither a 'vX.Y.Z' tag nor 'unreleased'"
+expect fail "a version that is not a vX.Y.Z tag" "$d" "[docs/template-release:version] @ README.md"
 
 d="$(repo release-prerelease)"
 release_line "$d" '- **Template release:** v1.4.0-rc1'
-expect fail "a pre-release suffix on the tag" "$d" "names neither a 'vX.Y.Z' tag nor 'unreleased'"
+expect fail "a pre-release suffix on the tag" "$d" "[docs/template-release:version] @ README.md"
 
 d="$(repo release-word)"
 release_line "$d" '- **Template release:** latest'
-expect fail "a word that is not 'unreleased'" "$d" "names neither a 'vX.Y.Z' tag nor 'unreleased'"
+expect fail "a word that is not 'unreleased'" "$d" "[docs/template-release:version] @ README.md"
 
 # --- cases: one each for the older checks ------------------------------------------------
 
 d="$(repo broken-link)"
 echo "See [the missing file](missing.md)." >> "$d/README.md"
-expect fail "a relative link to a file that does not exist" "$d" "broken relative link"
+expect fail "a relative link to a file that does not exist" "$d" "[docs/links:broken] @ README.md @ missing.md"
 
 d="$(repo anchor-missing)"
 echo "See [the rules](AGENTS.md#3-rules)." >> "$d/README.md"
-expect fail "a link to an anchor no heading carries" "$d" "has no matching anchor '#3-rules'"
+expect fail "a link to an anchor no heading carries" "$d" "[docs/links:anchor] @ README.md @ AGENTS.md#3-rules @ 3-rules @ AGENTS.md"
 
 d="$(repo anchor-slug)"
 printf '\n## Bar & Done ##\n' >> "$d/AGENTS.md"
@@ -473,7 +474,7 @@ d="$(repo header-not-a-list-item)"
 sed 's/^- \*\*Status:\*\*/**Status:**/' "$d/docs/adr/$(adr_id 1).md" > "$d/adr.tmp" \
   && mv "$d/adr.tmp" "$d/docs/adr/$(adr_id 1).md"
 expect fail "a header field that is no list item" "$d" \
-  "$(adr_id 1).md:3: a header field not written as the list item"
+  "[docs/adr-header:field] @ $(adr_id 1).md:3"
 d="$(repo header-field-quoted-in-body)"
 # shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
 echo 'A later ADR names this one in its `**Supersedes:**` field.' >> "$d/docs/adr/$(adr_id 1).md"
@@ -488,7 +489,7 @@ words() { printf 'AGENTS.md, section %s' "$1"; }
 
 d="$(repo section-words)"
 mkdir -p "$d/scripts/lib" && echo "# Required by $(words 9)." > "$d/scripts/lib/run.sh"
-expect fail "a reference in words that names no section" "$d" "reference '$(words 9)' matches no numbered section"
+expect fail "a reference in words that names no section" "$d" "[docs/section-refs:unmatched] @ scripts/lib/run.sh:1 @ 9"
 
 d="$(repo section-words-valid)"
 mkdir -p "$d/scripts/lib" && echo "# Required by $(words 2)." > "$d/scripts/lib/run.sh"
@@ -506,16 +507,16 @@ expect pass "the section sign in JSON is an ordinary character" "$d"
 
 d="$(repo section-json-words)"
 echo "{ \"note\": \"$(words 9)\" }" > "$d/settings.json"
-expect fail "a reference in words in a JSON file" "$d" "settings.json:1: reference"
+expect fail "a reference in words in a JSON file" "$d" "[docs/section-refs:unmatched] @ settings.json:1 @ 9"
 
 d="$(repo check-lists)"
 echo 'run "Extra" scripts/check-extra.sh' >> "$d/scripts/check-all.sh"
-expect fail "a check the local runner has and CI does not" "$d" "CI and the local gate disagree"
+expect fail "a check the local runner has and CI does not" "$d" "[docs/check-lists:extra] @ scripts/check-all.sh @ scripts/check-extra.sh"
 
 # Verifies: NUC-checks-are-bash
 d="$(repo script-in-no-list)"
 echo 'echo new' > "$d/scripts/check-new.sh"
-expect fail "a script that neither list runs" "$d" "scripts/check-new.sh: no workflow and not scripts/check-all.sh runs it"
+expect fail "a script that neither list runs" "$d" "[docs/check-lists:orphan] @ scripts/check-new.sh @ scripts/check-all.sh"
 d="$(repo script-on-instruction)"
 echo 'echo by hand' > "$d/scripts/sensor-by-hand.sh"
 echo '# On instruction: scripts/sensor-by-hand.sh' >> "$d/scripts/check-all.sh"
@@ -531,12 +532,12 @@ printf 'on: [pull_request]\njobs:\n  again:\n    steps:\n      - run: bash scrip
 # shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
 sed_in "$d/CONTRIBUTING.md" 's|^`docs`$|`docs`, `again`|'
 expect fail "a required check that is a job of another workflow than checks.yml" "$d" \
-  "required check 'again' is not a job of .github/workflows/checks.yml"
+  "[docs/check-lists:unreported] @ CONTRIBUTING.md @ again @ .github/workflows/checks.yml"
 d="$(repo other-workflow-inline)"
 printf 'on: [pull_request]\njobs:\n  again:\n    steps:\n      - run: echo inline\n' \
   > "$d/.github/workflows/again.yml"
 expect fail "a job of another workflow that runs no script" "$d" \
-  "again.yml: job 'again' runs no script under scripts/"
+  "[docs/check-lists:inline] @ .github/workflows/again.yml @ again"
 
 # build_job <dir> <run line> [local] — a toolchain job in the workflow, with a setup step before
 # its run line, listed among the required checks; with 'local', the local runner invokes the
@@ -563,7 +564,7 @@ expect pass "a toolchain job that runs the build script after a setup step" "$d"
 # hook runs neither the build nor the tests.
 d="$(repo build-job-inline)"
 build_job "$d" "make test"
-expect fail "a toolchain job with its commands inline and nothing in the local runner" "$d" "job 'build' runs no script under scripts/"
+expect fail "a toolchain job with its commands inline and nothing in the local runner" "$d" "[docs/check-lists:inline] @ .github/workflows/checks.yml @ build"
 
 # release <dir> [script] — a workflow that publishes, its steps inline, and with a script, a
 # step that runs it.
@@ -580,25 +581,25 @@ expect pass "a publishing workflow the local runner names as no gate, its steps 
 d="$(repo not-a-gate-unnamed)"
 release "$d"
 expect fail "a publishing workflow not named as no gate" "$d" \
-  "release.yml: job 'publish' runs no script under scripts/"
+  "[docs/check-lists:inline] @ .github/workflows/release.yml @ publish"
 d="$(repo not-a-gate-missing)"
 echo '# Not a gate: .github/workflows/gone.yml' >> "$d/scripts/check-all.sh"
 expect fail "a '# Not a gate:' line that names no workflow" "$d" \
-  "'# Not a gate: .github/workflows/gone.yml' names no workflow"
+  "[docs/check-lists:nonworkflow] @ scripts/check-all.sh @ .github/workflows/gone.yml"
 d="$(repo not-a-gate-other-file)"
 echo '# Not a gate: README.md' >> "$d/scripts/check-all.sh"
 expect fail "a '# Not a gate:' line that names a file outside .github/workflows/" "$d" \
-  "'# Not a gate: README.md' names no workflow"
+  "[docs/check-lists:nonworkflow] @ scripts/check-all.sh @ README.md"
 d="$(repo not-a-gate-checks)"
 echo '# Not a gate: .github/workflows/checks.yml' >> "$d/scripts/check-all.sh"
 expect fail "a '# Not a gate:' line that names the required checks' workflow" "$d" \
-  "names the workflow of the required checks"
+  "[docs/check-lists:gate] @ scripts/check-all.sh @ .github/workflows/checks.yml"
 d="$(repo not-a-gate-script)"
 echo 'echo sign' > "$d/scripts/sign.sh"
 release "$d" scripts/sign.sh
 echo '# Not a gate: .github/workflows/release.yml' >> "$d/scripts/check-all.sh"
 expect fail "a script a workflow that is no gate runs, and the local runner does not" "$d" \
-  "does not run 'scripts/sign.sh', which a workflow runs"
+  "[docs/check-lists:unrun] @ scripts/check-all.sh @ scripts/sign.sh"
 
 # matrix_job <dir> <required names> — a toolchain job with a matrix in the workflow and the
 # local runner, and the required checks of CONTRIBUTING.md extended by the names given.
@@ -630,7 +631,7 @@ d="$(repo matrix-bare)"
 # shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
 matrix_job "$d" '`build`'
 expect fail "a job with a matrix named by its bare name" "$d" \
-  "required check 'build' is a job with a matrix"
+  "[docs/check-lists:matrix] @ CONTRIBUTING.md @ build"
 d="$(repo matrix-flow)"
 # shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
 matrix_job "$d" '`build (ubuntu-latest)`, `build (macos-latest)`' flow
@@ -644,23 +645,23 @@ build_job "$d" "bash scripts/check-build.sh" local
 # shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
 sed_in "$d/CONTRIBUTING.md" 's|`build`|`build (ubuntu-latest)`|'
 expect fail "a check run named for a job without a matrix" "$d" \
-  "names a check run of 'build', which has no matrix"
+  "[docs/check-lists:nomatrix] @ CONTRIBUTING.md @ build @ ubuntu-latest @ build"
 
 d="$(repo layout-stale)"
 sed_in "$d/CONTRIBUTING.md" 's|^docs/adr/ |docs/gone/ |'
-expect fail "a Project Layout entry that no longer exists" "$d" "is not a directory of this repository"
+expect fail "a Project Layout entry that no longer exists" "$d" "[docs/project-layout:notdir] @ CONTRIBUTING.md @ docs/gone/"
 
 # Verifies: NUC-documents-are-fixed
 d="$(repo layout-unnamed-top)"
 echo "notes" > "$d/NOTES.md"
 expect fail "a top-level file the Project Layout does not name" "$d" \
-  "Project Layout does not name 'NOTES.md', a top-level part"
+  "[docs/project-layout:unnamed] @ CONTRIBUTING.md @ NOTES.md"
 d="$(repo layout-glob)"
 echo "echo" > "$d/scripts/check-one.sh"
 echo 'run "One" scripts/check-one.sh' >> "$d/scripts/check-all.sh"
 echo "      - run: bash scripts/check-one.sh" >> "$d/.github/workflows/checks.yml"
 layout "$d" "scripts/check-*.sh" "scripts/sensor-*.sh"
-expect fail "a Project Layout pattern that matches nothing" "$d" "lists 'scripts/sensor-*.sh', which matches nothing"
+expect fail "a Project Layout pattern that matches nothing" "$d" "[docs/project-layout:unmatched] @ CONTRIBUTING.md @ scripts/sensor-*.sh"
 d="$(repo layout-plan-absent)"
 layout "$d" "docs/plan/"
 expect pass "docs/plan/ named while there is no open work" "$d"
@@ -757,7 +758,7 @@ exec %q "$@"
   "$(command -v git)" > "$work/old-git-bin/git"
 chmod +x "$work/old-git-bin/git"
 PATH="$work/old-git-bin:$PATH" expect fail "check 2: a git too old to read the history" "$d" \
-  "git log cannot read the deleted ADRs (git 2.31 or later is needed): fatal: unrecognized argument"
+  "[docs/adr-numbering:history] @ --diff-merges=first-parent"
 
 # A git that warns on stderr and succeeds: the warning, here the name of an ADR in the tree, is no
 # deleted ADR of check 2.
