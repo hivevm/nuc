@@ -155,6 +155,9 @@ jobs:
       # (NUC-checks-are-bash §7).
       - name: Self-test the repository settings sensor
         run: bash scripts/test-sensor-repo-settings.sh
+      # The work measures sensor itself runs on a human's instruction (NUC-checks-are-bash §7).
+      - name: Self-test the work measures sensor
+        run: bash scripts/test-sensor-work-measures.sh
 
   shell:
     runs-on: ubuntu-latest
