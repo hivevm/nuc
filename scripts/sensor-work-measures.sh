@@ -2,12 +2,13 @@
 #
 # Sensor: what the merged work cost in time and in rounds of review.
 #
-# For each merge of a pull request on main, the newest first, it reports the branch, the whole
+# For each of the ten newest merges of a pull request on main, it reports the branch, the whole
 # hours from the branch's first commit to its merge, and the rounds of review. A claim made by a
-# local branch has no commit, so the first commit of the branch stands for the claim. The rounds
-# come from the description of the pull request, which the merge commit does not carry: the
-# 'review rounds <n>' of its Measures line (.github/PULL_REQUEST_TEMPLATE.md), else the number of
-# its 'Reviewed at:' lines. More than one round means a review ran again after its findings.
+# local branch has no commit, so the first commit of the branch, by its author date, stands for
+# the claim. The rounds come from the description of the pull request, which the merge commit
+# does not carry: the 'review rounds <n>' of its Measures line (.github/PULL_REQUEST_TEMPLATE.md).
+# Its 'Reviewed at:' line counts none, since the review moves that one line after each round.
+# More than one round means a review ran again after the fixes of its findings.
 #
 # It runs on a human's instruction, not in scripts/check-all.sh or checks.yml, since it reads
 # GitHub (NUC-checks-are-bash §7). It reports and never fails. scripts/test-sensor-work-measures.sh
@@ -15,10 +16,10 @@
 #
 # Bash + coreutils + git + grep + sed, plus the GitHub CLI, authenticated through its web flow
 # (NUC-main-only-via-pr §3). Usage:
-#     scripts/sensor-work-measures.sh [--root <dir>] [--last <n>]
-# The root defaults to this repository, and --last to 10 merges. main is origin/main where it
-# exists, else main. Exit code 0 always, except 2 on an unknown argument, a root that is no git
-# repository, or a missing gh.
+#     scripts/sensor-work-measures.sh [--root <dir>]
+# The root defaults to this repository. main is origin/main where it exists, else main. Exit
+# code 0 always, except 2 on an unknown argument, a root that is no git repository, or a
+# missing gh.
 
 set -uo pipefail
 
@@ -26,14 +27,12 @@ set -uo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/bash.sh"
 
 NAME="Work measures sensor"
-usage="scripts/sensor-work-measures.sh [--root <dir>] [--last <n>]"
+usage="scripts/sensor-work-measures.sh [--root <dir>]"
 root="$(dirname "${BASH_SOURCE[0]}")/.."
-last=10
+last=10  # the merges read, the newest first
 while (($#)); do
   case "$1" in
     --root) root="${2:-}"; shift 2 || shift ;;
-    --last) last="${2:-}"; shift 2 || shift
-      [[ "$last" =~ ^[1-9][0-9]*$ ]] || { echo "work measures sensor: --last takes a number from 1 up, not '$last'" >&2; exit 2; } ;;
     *) echo "work measures sensor: unknown argument '$1' — usage: $usage" >&2; exit 2 ;;
   esac
 done
@@ -54,7 +53,7 @@ if ((${#merges[@]} == 0)); then
   exit 0
 fi
 read_n=$((last < ${#merges[@]} ? last : ${#merges[@]}))
-echo "$NAME: ${#merges[@]} merge$( ((${#merges[@]} == 1)) || echo s) of a pull request on main, the last $read_n read."
+echo "$NAME: ${#merges[@]} merge$( ((${#merges[@]} == 1)) || echo s) of a pull request on main, the newest $read_n read."
 
 for entry in "${merges[@]:0:read_n}"; do
   read -r merge pr branch <<< "$entry"
@@ -63,8 +62,7 @@ for entry in "${merges[@]:0:read_n}"; do
   hours=$(( (merged_at - ${first_at:-$merged_at}) / 3600 ))
   if body="$(cd "$root" && "$GH" pr view "$pr" --json body --jq .body 2>/dev/null)"; then
     rounds="$(grep -oE 'review rounds [0-9]+' <<< "$body" | head -n 1 | grep -oE '[0-9]+$')"
-    [[ -n "$rounds" ]] || rounds="$(grep -cE '^[[:space:]]*([-*][[:space:]]+)?Reviewed at:' <<< "$body")"
-    if ((rounds > 0)); then reviews="$rounds round$( ((rounds == 1)) || echo s) of review"
+    if [[ -n "$rounds" ]] && ((rounds > 0)); then reviews="$rounds round$( ((rounds == 1)) || echo s) of review"
     else reviews="rounds of review unknown"; fi
   else
     reviews="rounds of review not read"

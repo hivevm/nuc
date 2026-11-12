@@ -18,8 +18,9 @@ the harness knows the tokens, so their reader lives outside it.
 template carries `Measures: tokens <n> | checks <n> s | review rounds <n>`; and
 `scripts/sensor-work-measures.sh`, run on a human's instruction, reports per merged pull request
 the hours from the branch's first commit to its merge and the rounds of review, read through gh
-from the Measures line or the `Reviewed at:` lines. A GitHub merge commit carries no description,
-so git alone holds no round.
+from the Measures line; more than one round is a review again after the fixes of its findings.
+The `Reviewed at:` line counts none, since the review moves that one line after each round. A
+GitHub merge commit carries no description, so git alone holds no round.
 
 **Still open in the template:**
 

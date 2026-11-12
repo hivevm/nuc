@@ -19,7 +19,8 @@
 # green run costs a line a check. With --verbose every check and sensor shows all it printed; the
 # reviewer is handed that output. Each label is followed by the whole seconds the check ran, and
 # the run names the slowest and its own time before its result, so a slow check or a slow
-# platform shows in every log, CI's included; a check skipped in changed mode shows no time.
+# platform shows in every local run; CI runs each script as a step of its own and shows the
+# step's time. A check skipped in changed mode shows no time.
 #
 # With --changed, a self-test (scripts/test-*.sh) runs only where the branch changed what it
 # tests: the self-test itself or a path its '# Inputs:' header line names, changed in the working

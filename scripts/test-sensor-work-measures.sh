@@ -6,7 +6,7 @@
 # dates, and runs the sensor on it. The sensor reads the descriptions of the pull requests through
 # gh; here a stand-in named by GH answers instead, with the description kept in a fixture file per
 # pull request. The cases assert the time from a branch's first commit to its merge, the rounds of
-# review from the Measures line or the Reviewed at: lines, and the exit codes.
+# review from the Measures line, and the exit codes.
 #
 # Verifies: NUC-checks-are-bash
 # Inputs: scripts/sensor-work-measures.sh scripts/lib/
@@ -87,26 +87,23 @@ printf '## Proof\n\n- Measures: tokens 1200 | checks 24 s | review rounds 2\n\n#
 expect "a ticket reviewed twice: its time and its rounds" "$d" 0 \
   "  - #5 ticket/spec/01-one: 26 h from its first commit to its merge, 2 rounds of review"
 expect "the headline counts the merges read" "$d" 0 \
-  "Work measures sensor: 1 merge of a pull request on main, the last 1 read."
+  "Work measures sensor: 1 merge of a pull request on main, the newest 1 read."
 
-# Without a Measures line, the rounds are the Reviewed at: lines; without either, unknown.
+# The rounds come from the Measures line alone: Reviewed at: lines, one that moved after a second
+# round or one left empty, count none, and a '-' in the line is unknown too.
 merged "$d" 6 fix/two "2026-11-04T08:00:00Z" "2026-11-04T08:30:00Z"
-printf '## Review\n\n- Reviewed at: aaa\n- Reviewed at: bbb\n' > "$d/fix/pr-6"
+printf '## Review\n\n- Reviewed at: aaa\n- Reviewed at:\n' > "$d/fix/pr-6"
 merged "$d" 7 docs/three "2026-11-05T08:00:00Z" "2026-11-07T09:00:00Z"
-printf '## Review\n\nnone\n' > "$d/fix/pr-7"
-expect "the rounds are the Reviewed at: lines where no Measures line names them" "$d" 0 \
-  "  - #6 fix/two: 0 h from its first commit to its merge, 2 rounds of review"
-expect "a pull request that names no review has rounds unknown" "$d" 0 \
+printf -- '- Measures: tokens - | checks - | review rounds -\n' > "$d/fix/pr-7"
+expect "Reviewed at: lines without a Measures line leave the rounds unknown" "$d" 0 \
+  "  - #6 fix/two: 0 h from its first commit to its merge, rounds of review unknown"
+expect "a Measures line whose rounds are - leaves them unknown" "$d" 0 \
   "  - #7 docs/three: 49 h from its first commit to its merge, rounds of review unknown"
 
 # A pull request gh cannot read keeps its time, and its rounds are unread.
 merged "$d" 8 fix/four "2026-11-08T08:00:00Z" "2026-11-08T12:00:00Z"
 expect "a pull request gh cannot read keeps its time" "$d" 0 \
   "  - #8 fix/four: 4 h from its first commit to its merge, rounds of review not read"
-
-# --last bounds the merges read, the newest first.
-expect "--last 1 reads the newest merge" "$d" 0 \
-  "Work measures sensor: 4 merges of a pull request on main, the last 1 read." --last 1
 
 # Nothing merged, no repository, no gh, and an unknown argument.
 d2="$(repo empty)"
@@ -117,7 +114,7 @@ expect "a root that is no git repository exits 2" "$work/none" 2 \
 GH_CMD="$work/no-such-gh" expect "no gh exits 2" "$d" 2 \
   "work measures sensor: the GitHub CLI ($work/no-such-gh) is not installed."
 expect "an unknown argument exits 2" "$d" 2 \
-  "work measures sensor: unknown argument '--verbose' — usage: scripts/sensor-work-measures.sh [--root <dir>] [--last <n>]" \
+  "work measures sensor: unknown argument '--verbose' — usage: scripts/sensor-work-measures.sh [--root <dir>]" \
   --verbose
 
 summary "Work measures sensor self-test"
