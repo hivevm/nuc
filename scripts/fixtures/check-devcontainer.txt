@@ -60,10 +60,12 @@
 #                               space-separated list in order, each as the base resolves its one
 #   settings <json>             .vscode/settings.json written again, the json as the value of
 #                               remote.extensionKind
-#   write <path> <text>         the file written with exactly the text, each '\n' in it a line break
+#   write <path> <text>         the file written with exactly the text, each '\n' in it a line break;
+#                               the text is all of the step after the path and the one space that
+#                               follows it, leading spaces kept
 #
 # Each extra, post, and feature step writes devcontainer.json again: the base with the change of
-# every such step of the case so far.
+# every such step of the case so far. In a step, '<pad N>' stands for N times the letter z.
 
 pass | devcontainer/check:unbound | a project without a Dev Container | rm .devcontainer
 pass | devcontainer/check:unbound | a project without a Dev Container or VS Code settings | rm .devcontainer; rm .vscode
@@ -97,3 +99,6 @@ pass | devcontainer/check:passed | a project mounted under a path of its own | e
 pass | devcontainer/check:passed | a mount whose target comes last, under another of its names | extra "workspaceMount": "source=${localWorkspaceFolder},type=bind,dst=/workspaces/${localWorkspaceFolderBasename}",
 fail | devcontainer/mount-path:mount @ /workspaces/${localWorkspaceFolderBasename} | a workspaceMount that targets a path every project shares | extra "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",; extra "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
 fail | devcontainer/git-settings:absent @ core.hooksPath | the git settings in another command than postStartCommand | post "echo started"; extra "postCreateCommand": "git config core.hooksPath .githooks && git config merge.ff false && git config pull.ff only",
+# A config longer than a pipe holds, the socket before the rest: a grep that exits at the socket
+# before the config is written cuts the writer off, and the mount goes unreported.
+fail | devcontainer/socket:mount | a host socket mount in a config longer than a pipe holds | extra "mounts": ["source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"],; extra "remoteEnv": { "PAD": "<pad 200000>" },

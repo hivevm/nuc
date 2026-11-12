@@ -11,10 +11,9 @@
 # scripts/fixtures/check-docs-record.txt, which says its format, so that a port of the check is
 # held to them. Every fixture has its setup done.
 #
-# Seven cases stay here, since no row of the table can hold them: a reference in words to a
-# section AGENTS.md lacks, twice, which check 4 would read in the table itself; a message of check
-# 14 that cites an ADR of this repository by an identifier a normalization moves, three times; and
-# a git on PATH that cannot read the history or warns on stderr, twice. Section references and ADR
+# Four cases stay here, since no row of the table can hold them: a reference in words to a section
+# AGENTS.md lacks, twice, which check 4 would read in the table itself, and a git on PATH that
+# cannot read the history or warns on stderr, twice. Section references and ADR
 # identifiers inside these fixtures are assembled, never written literally, so that check-docs.sh
 # does not read this script's own fixtures as references into this repository.
 #
@@ -202,38 +201,12 @@ d="$(repo section-json-words)"
 echo "{ \"note\": \"$(words 9)\" }" > "$d/settings.json"
 expect fail "a reference in words in a JSON file" "$d" "[docs/section-refs:unmatched] @ settings.json:1 @ 9"
 
-# --- cases: the clauses the release line cites (check 14) ---------------------------------------
-
-# Verifies: NUC-releases-are-semver-tags
-# Each message cites an ADR of this repository by its identifier, which a normalization moves; the
-# map script rewrites it here and leaves the notation of the fixture table as it is.
-
-# sect <n> — the section sign followed by n, assembled so that this file carries no literal one.
-sect() { printf '\302\247%s' "$1"; }
-
-# release_line <dir> <text> — replace the baseline's Template release line with the given text.
-release_line() { sed_in "$1/README.md" "s/^- \*\*Template release:\*\* unreleased$/$2/"; }
-
-d="$(repo release-no-readme)"
-rm "$d/README.md"
-sed_in "$d/CONTRIBUTING.md" '/^README\.md /d'
-expect fail "no README to carry the Template release line" "$d" "[docs/template-release:absent] @ README.md @ NUC-releases-are-semver-tags @ $(sect 4)"
-
-d="$(repo release-leading-zero)"
-release_line "$d" '- **Template release:** v01.4.0'
-expect fail "a leading zero, which SemVer forbids" "$d" \
-  "[docs/template-release:version] @ README.md @ NUC-releases-are-semver-tags @ $(sect 1) @ $(sect 4)"
-
-d="$(repo release-missing)"
-release_line "$d" 'Created from the template.'
-expect fail "no Template release line" "$d" \
-  "[docs/template-release:line] @ README.md @ NUC-releases-are-semver-tags @ $(sect 4)"
-
 # --- cases read from the fixture table ----------------------------------------------------------
 
 TABLE="$ROOT/scripts/fixtures/check-docs-record.txt"
 
 # Verifies: NUC-adrs-are-named-by-category NUC-base-is-fixed NUC-checks-are-bash
+# Verifies: NUC-releases-are-semver-tags
 # adr_file <id> — the file of an identifier; status_of <status> — the status line it reads.
 adr_file() { echo "$1.md"; }
 status_of() {
@@ -290,7 +263,10 @@ step() {
       if [[ "$rest" == *" =>" ]]; then old="${rest% =>}" new="" how=del; else old="${rest%% => *}" new="${rest#* => }" how=put; fi
       OLD="$old" NEW="$new" awk -v how="$how" '
         index($0, ENVIRON["OLD"]) == 1 && !done { done = 1; if (how == "put") print ENVIRON["NEW"]; next }
-        { print }' "$dir/$id" > "$dir/$id.tmp" && mv "$dir/$id.tmp" "$dir/$id" ;;
+        { print }
+        END { exit !done }' "$dir/$id" > "$dir/$id.tmp" \
+        || { echo "fixture table: no line of $id starts with '$old'" >&2; exit 2; }
+      mv "$dir/$id.tmp" "$dir/$id" ;;
     rm) rm -r "${dir:?}/$id" ;;
     link) mkdir -p "$(dirname "$dir/$id")" && ln -s "$arg" "$dir/$id" ;;
     layout) layout "$dir" "$id" ;;

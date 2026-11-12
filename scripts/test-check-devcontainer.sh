@@ -9,10 +9,9 @@
 # violation. The cases stand in scripts/fixtures/check-devcontainer.txt, which says its format, so
 # that a port of the check is held to them: the baseline passes, what binds when the project has
 # no Dev Container or no VS Code settings, and the cases that break one clause of
-# NUC-container-hides-host-daemon each. One case stays here: a socket mount fails also in a config
-# longer than a pipe holds, which no line of the table carries. The table is read twice, the second
-# time against a copy of the check that rewords its messages, and the reader of the table is
-# checked on fields of its own.
+# NUC-container-hides-host-daemon each, a socket mount also in a config longer than a pipe holds.
+# The table is read twice, the second time against a copy of the check that rewords its messages,
+# and the reader of the table is checked on fields of its own.
 #
 # Inputs: scripts/check-devcontainer.sh scripts/lib/ scripts/fixtures/check-devcontainer.txt
 #
@@ -93,31 +92,6 @@ repo() {
   echo "$dir"
 }
 
-# expect <pass|fail> <name> <dir> [needle] — run the check; when a needle is given, its output
-# must contain it.
-expect() {
-  local want="$1" name="$2" dir="$3" needle="${4:-}"
-  local out rc
-  out="$(bash "$CHECK" "$dir" 2>&1)"; rc=$?
-  if output_holds "$out" "$needle" && [[ ( "$want" == "pass" && $rc -eq 0 ) || ( "$want" == "fail" && $rc -ne 0 ) ]]; then
-    passed=$((passed + 1))
-    return
-  fi
-  failed=$((failed + 1))
-  echo "FAIL: $name (expected $want${needle:+ with needle \"$needle\"}, exit $rc)" >&2
-  while IFS= read -r l; do printf '    %s\n' "$l"; done <<< "$out" >&2
-}
-
-# --- cases ---------------------------------------------------------------------------------
-
-# A config longer than a pipe holds, the socket before the rest: a grep that exits at the socket
-# before the config is written cuts the writer off, and the mount goes unreported.
-d="$(repo socket-mount-long)"
-config "$d" "ghcr.io/devcontainers/features/github-cli:1" \
-  '"mounts": ["source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"],' \
-  "\"remoteEnv\": { \"PAD\": \"$(printf '%*s' 200000 '' | tr ' ' z)\" },"
-expect fail "a host socket mount in a config longer than a pipe holds" "$d" "[devcontainer/socket:mount]"
-
 # --- cases read from the fixture table ----------------------------------------------------
 
 TABLE="$ROOT/scripts/fixtures/check-devcontainer.txt"
@@ -126,7 +100,7 @@ TABLE="$ROOT/scripts/fixtures/check-devcontainer.txt"
 # and the postStartCommand of a case are kept, so that a step that writes devcontainer.json again
 # keeps the changes of the steps before it.
 table_cases() {
-  local n=0 line want needle name tree s op arg d feature path text
+  local n=0 line want needle name tree s op arg d feature path text pad='<pad ([0-9]+)>'
   local -a extras ids
   while IFS= read -r line; do
     [[ "$line" =~ ^(pass|fail) ]] || continue
@@ -137,6 +111,9 @@ table_cases() {
     [[ "$tree" != - ]] || tree=""
     while IFS= read -r s; do
       [[ -n "$s" ]] || continue
+      while [[ "$s" =~ $pad ]]; do
+        s="${s/"${BASH_REMATCH[0]}"/"$(printf '%*s' "${BASH_REMATCH[1]}" '' | tr ' ' z)"}"
+      done
       read -r op arg <<< "$s"
       case "$op" in
         rm) rm -r "${d:?}/$arg" ;;

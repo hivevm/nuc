@@ -63,9 +63,11 @@
 #                               line break; the file and its directories are made when absent
 #   write <file> <text>         the file written with exactly the text, each '\n' in it a line break
 #   edit <file> <old> => <new>  the first line of the file that starts with the old text replaced
-#                               by the new; with nothing after '=>', that line removed
+#                               by the new, the first ' => ' splitting the two; with nothing
+#                               after '=>', that line removed. No line that starts with the old
+#                               text stops the run, an error of the table
 #   rm <path>                   the file, directory, or symlink removed
-#   link <path> <target>        a symlink at the path to the target
+#   link <path> <target>        a symlink at the path to the target, its directories made
 #   layout <path>               the line '<path>  # added' in the Project Layout block, right
 #                               after the line of AGENTS.md
 #   category <key>              '- **<key>** — a category of the project.' in the category list
@@ -90,8 +92,10 @@
 # An id is '<CAT>:<slug>', the file <CAT>-<slug>.md. A status is accepted (🟢 accepted), proposed
 # (🟡 proposed), rejected (🔴 rejected), or superseded:<id> (⚪ superseded by <id>). Everywhere in a
 # line, a colon after two to five capital letters, not preceded by a letter, a digit, or '_', and
-# before a letter or a digit reads as a hyphen: the file then cites no ADR of this repository, and
-# the map script of the normalize skill leaves it as it is.
+# before a letter or a digit reads as a hyphen: written so, an identifier cites no ADR of this
+# repository, and the map script of the normalize skill leaves it as it is. A row may name an ADR
+# of this repository, such as one a message of the check cites, by its identifier with a hyphen;
+# that cites the ADR, and the map script moves it with the rest of the tree.
 
 1 | fail | docs/adr-index:status @ SEC:decision-1.md @ 🟡 @ 🟢 | an index status that disagrees with the ADR | adr SEC:decision-1 proposed; status SEC:decision-1 accepted
 1 | fail | docs/adr-index:above | a rejected row in the binding table | file SEC:decision-1 rejected; row binding SEC:decision-1 rejected
@@ -243,10 +247,13 @@ all | pass | - | a consistent repository passes | -
 13 | fail | docs/template-identity:command @ README.md | a Lint command still TODO after setup | text README.md - **Lint:** TODO
 13 | pass | - | a Build command still TODO while the setup file exists | text README.md - **Build:** TODO; setup
 13 | pass | - | identity replaced after setup | write .github/CODEOWNERS # owners\n\n* @someone\n; write LICENSE MIT License\n\nCopyright (c) 2026 Someone\n; write docs/SPECIFICATION.md # Specification — Fixture\n\n## Goals / Success Criteria\n\n1. **G-1** — When asked, the system shall answer.\n; text README.md - **Build:** `make build`; layout LICENSE
+14 | fail | docs/template-release:absent @ README.md @ NUC-releases-are-semver-tags @ §4 | no README to carry the Template release line | rm README.md; edit CONTRIBUTING.md README.md =>
 14 | pass | - | a release tag followed by a sentence | release v1.4.0 of the template ([tags](https://example.invalid/tags)).
 14 | pass | - | the line without a list marker | edit README.md - **Template release:** => **Template release:** v0.2.0
 14 | pass | - | the tag as link text after a star marker | edit README.md - **Template release:** => * **Template release:** [v1.4.0](https://example.invalid/releases/tag/v1.4.0), taken up in full.
 14 | pass | - | the tag in backticks | release `v1.4.0`
+14 | fail | docs/template-release:version @ README.md @ NUC-releases-are-semver-tags @ §1 @ §4 | a leading zero, which SemVer forbids | release v01.4.0
+14 | fail | docs/template-release:line @ README.md @ NUC-releases-are-semver-tags @ §4 | no Template release line | edit README.md - **Template release:** => Created from the template.
 14 | fail | docs/template-release:version @ README.md | a version that is not a vX.Y.Z tag | release 1.4
 14 | fail | docs/template-release:version @ README.md | a pre-release suffix on the tag | release v1.4.0-rc1
 14 | fail | docs/template-release:version @ README.md | a word that is not 'unreleased' | release latest
