@@ -128,7 +128,7 @@ expect fail "a host socket passed as a run argument" "$d" "[devcontainer/socket:
 d="$(repo docker-feature)"
 config "$d" "ghcr.io/devcontainers/features/docker-outside-of-docker:1"
 lock "$d" "ghcr.io/devcontainers/features/docker-outside-of-docker:1"
-expect fail "a Feature that mounts the socket" "$d" "would mount the host Docker socket"
+expect fail "a Feature that mounts the socket" "$d" "[devcontainer/socket:feature] @ ghcr.io/devcontainers/features/docker-outside-of-docker:1"
 
 d="$(repo engine-inside)"
 config "$d" "ghcr.io/devcontainers/features/docker-in-docker:2"
@@ -138,32 +138,32 @@ expect pass "an engine inside the container talks to no host engine and is the p
 d="$(repo unpinned-feature)"
 config "$d" "ghcr.io/devcontainers/features/github-cli:latest"
 lock "$d" "ghcr.io/devcontainers/features/github-cli:latest"
-expect fail "a Feature on a mutable tag" "$d" "major version tag alone"
+expect fail "a Feature on a mutable tag" "$d" "[devcontainer/lock:tag] @ ghcr.io/devcontainers/features/github-cli:latest"
 
 d="$(repo untagged-feature)"
 config "$d" "ghcr.io/devcontainers/features/github-cli"
 lock "$d" "ghcr.io/devcontainers/features/github-cli"
-expect fail "a Feature without a tag" "$d" "major version tag alone"
+expect fail "a Feature without a tag" "$d" "[devcontainer/lock:tag] @ ghcr.io/devcontainers/features/github-cli"
 
 d="$(repo lock-behind)"
 config "$d" "ghcr.io/devcontainers/features/node:1"
-expect fail "a Feature the lock does not resolve" "$d" "has no entry for Feature 'ghcr.io/devcontainers/features/node:1'"
+expect fail "a Feature the lock does not resolve" "$d" "[devcontainer/lock:missing] @ ghcr.io/devcontainers/features/node:1"
 
 d="$(repo lock-stale)"
 lock "$d" "ghcr.io/devcontainers/features/github-cli:1" "ghcr.io/devcontainers/features/node:1"
-expect fail "a lock entry for a Feature no longer added" "$d" "lists Feature 'ghcr.io/devcontainers/features/node:1'"
+expect fail "a lock entry for a Feature no longer added" "$d" "[devcontainer/lock:stale] @ ghcr.io/devcontainers/features/node:1"
 
 d="$(repo full-version-feature)"
 config "$d" "ghcr.io/devcontainers/features/github-cli:1.2.0"
 lock "$d" "ghcr.io/devcontainers/features/github-cli:1.2.0"
-expect fail "a Feature on a full version instead of the major tag" "$d" "major version tag alone"
+expect fail "a Feature on a full version instead of the major tag" "$d" "[devcontainer/lock:tag] @ ghcr.io/devcontainers/features/github-cli:1.2.0"
 
 d="$(repo one-line-features)"
 printf '{ "image": "x", "features": { "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}, "ghcr.io/devcontainers/features/node:1": "lts" } }\n' \
   > "$d/.devcontainer/devcontainer.json"
 lock "$d" "ghcr.io/devcontainers/features/docker-outside-of-docker:1" "ghcr.io/devcontainers/features/node:1"
 expect fail "a features block on one line, with a string-valued Feature, is read like any other" "$d" \
-  "Feature 'ghcr.io/devcontainers/features/docker-outside-of-docker:1' would mount"
+  "[devcontainer/socket:feature] @ ghcr.io/devcontainers/features/docker-outside-of-docker:1"
 
 d="$(repo extension-under-other-key)"
 {
@@ -220,7 +220,7 @@ d="$(repo mount-shared-target)"
 config "$d" "ghcr.io/devcontainers/features/github-cli:1" "\"workspaceFolder\": \"$own\"," \
   '"workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",'
 expect fail "a workspaceMount that targets a path every project shares" "$d" \
-  "workspaceMount does not target '$own'"
+  "[devcontainer/mount-path:mount] @ $own"
 
 d="$(repo post-start-elsewhere)"
 post_start='"echo started"'
