@@ -3,7 +3,7 @@
 - **Status:** 🟢 accepted
 - **Date:** 2026-11-08
 - **Deciders:** NUC maintainer
-- **Applies to:** the tags of the template repository, the **Template** section of `README.md`, check 14 of `scripts/check-docs.sh`, the pull request that lands a release, and the take-up of a release in a derived project
+- **Applies to:** the tags of the template repository, the **Template** section of `README.md`, the rule `docs/template-release` of `scripts/check-docs.sh`, the pull request that lands a release, and the take-up of a release in a derived project
 
 ## Context
 
@@ -118,7 +118,8 @@ The catalogue has no entry for these choices, and none of them needs an ADR.
 
 ## Enforcement
 
-- Check 14 of `scripts/check-docs.sh` fails on a missing or malformed release line (clause 4).
+- The rule `docs/template-release` of `scripts/check-docs.sh` fails on a missing or malformed
+  release line (clause 4).
   Its self-test cites this ADR.
 
 **Not mechanically decidable:** clauses 2, 3, and 5. The review of the release pull request holds
