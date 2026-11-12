@@ -28,6 +28,8 @@ unset $(git rev-parse --local-env-vars)
 # then reads a status word with a carriage return, and a needle meets a file name in a warning.
 # The fixtures are written with LF and read as they are written. MSYS copies on 'ln -s' unless
 # told to make a native link, and a fixture's pointer under .claude/skills/ must be a symlink.
+# The count starts at 0: the unset above drops a GIT_CONFIG_COUNT the environment set, with the
+# settings it counts, since they would reach every fixture as 'git -c' does.
 export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.autocrlf GIT_CONFIG_VALUE_0=false
 [[ " ${MSYS-} " == *" winsymlinks:nativestrict "* ]] || export MSYS="${MSYS:+$MSYS }winsymlinks:nativestrict"
 
