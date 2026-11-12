@@ -44,6 +44,10 @@
 # check-docs.sh names, to the sections that carry a '…', and to the two steps, which close also
 # where what they read is longer than a pipe holds.
 #
+# Case 1 expects each finding of check-docs.sh by its key and subjects, never by its wording. --open
+# reads more of the output's form: it lists the lines of check-docs.sh that start with '  - ', one
+# finding each. A port of the check must keep that form for --open to list its findings.
+#
 # With --close it tests nothing and closes the setup in this repository: it removes the setup
 # file and what exists only for it, as close_setup lists, this script included. Case 2 makes the
 # same edits on its copy, and case 4 runs --close on a copy. It refuses while the README carries
@@ -248,33 +252,35 @@ scaffold_tokens() {
   done < <(git -C "${1:?}" ls-files --cached --others --exclude-standard | grep -E "$SCAFFOLD")
 }
 
-# Each row: the file, a pattern that finds the placeholder in it, and the message check-docs.sh
-# reports while the placeholder is there. The pattern may hold a '|'; the message holds none.
+# Each row: the file, a pattern that finds the placeholder in it, and the finding check-docs.sh
+# reports while the placeholder is there, as a field of a fixture table: its key and its subjects
+# (table_holds of scripts/lib/selftest.sh), never its wording. The pattern may hold a '|'; the
+# field holds none.
 PLACEHOLDERS=(
-  "README.md|^# NUC — |README.md: the title is still the template's"
-  "README.md|^\*\*NUC\*\* is named after|README.md: the intro still explains the template's name"
-  "README.md|^## Why NUC$|README.md: the Why NUC section still presents the template"
-  "README.md|^Describe what this project does|README.md: the Overview is still the scaffold's sentence"
-  "README.md|^TODO — show a minimal example|README.md: the Usage section is still TODO"
-  "README.md|^\[!\[[^]]*\]\([^)]*hivevm/nuc([/)?#&]|\.svg|$)|README.md: a badge still points at the template's repository"
-  ".devcontainer/devcontainer.json|\"name\": \"NUC DevContainer\"|devcontainer.json: the Dev Container still carries the template's name"
-  "LICENSE|^Copyright .* Maintainer$|LICENSE: the copyright holder is still the placeholder"
-  "SECURITY.md|TODO: add a security contact|SECURITY.md: the security contact is still the placeholder"
-  "CODE_OF_CONDUCT.md|TODO: add a contact address|CODE_OF_CONDUCT.md: the reporting contact is still the placeholder"
-  ".github/CODEOWNERS|^# /docs/|.github/CODEOWNERS: no active rule"
-  ".github/CODEOWNERS|^# TODO: add a code owner|.github/CODEOWNERS: the instruction to add a code owner is still there"
-  "docs/SPECIFICATION.md|^# .*<Project Name>|docs/SPECIFICATION.md: the title still carries '<Project Name>'"
-  "docs/ARCHITECTURE.md|^# .*<Project Name>|docs/ARCHITECTURE.md: the title still carries '<Project Name>'"
-  "docs/GLOSSARY.md|^# .*<Project Name>|docs/GLOSSARY.md: the title still carries '<Project Name>'"
-  "docs/CONVENTIONS.md|^# .*<Project Name>|docs/CONVENTIONS.md: the title still carries '<Project Name>'"
-  "docs/SPECIFICATION.md|\*\*[GQ]-[0-9]+\*\* — (…|<Quality)|docs/SPECIFICATION.md: a criterion is still the scaffold's placeholder"
-  "docs/ARCHITECTURE.md|^- \*\*<Part>\*\*|docs/ARCHITECTURE.md: the scaffold's building block is still listed"
-  "docs/GLOSSARY.md|^- \*\*<Term>\*\*|docs/GLOSSARY.md: the scaffold's entry is still listed"
-  "docs/CONVENTIONS.md|^- \*\*<Convention>\*\*|docs/CONVENTIONS.md: the scaffold's entry is still listed"
-  "README.md|^- \*\*(Build|Test|Lint|Run):\*\* TODO|README.md: a Build, Test, Lint, or Run command is still TODO"
-  "README.md|\(TEMPLATE-SETUP\.md\)|README.md: broken relative link -> 'TEMPLATE-SETUP.md'"
-  "CONTRIBUTING.md|^TEMPLATE-SETUP\.md |CONTRIBUTING.md: Project Layout lists 'TEMPLATE-SETUP.md'"
-  ".agents/skills/setup-project/SKILL.md|\(\.\./\.\./\.\./TEMPLATE-SETUP\.md\)|.agents/skills/setup-project/SKILL.md: broken relative link -> '../../../TEMPLATE-SETUP.md'"
+  "README.md|^# NUC — |docs/template-identity:title @ README.md"
+  "README.md|^\*\*NUC\*\* is named after|docs/template-identity:intro @ README.md"
+  "README.md|^## Why NUC$|docs/template-identity:why @ README.md"
+  "README.md|^Describe what this project does|docs/template-identity:overview @ README.md"
+  "README.md|^TODO — show a minimal example|docs/template-identity:usage @ README.md"
+  "README.md|^\[!\[[^]]*\]\([^)]*hivevm/nuc([/)?#&]|\.svg|$)|docs/template-identity:badge @ README.md"
+  ".devcontainer/devcontainer.json|\"name\": \"NUC DevContainer\"|docs/template-identity:container @ .devcontainer/devcontainer.json"
+  "LICENSE|^Copyright .* Maintainer$|docs/template-identity:copyright @ LICENSE"
+  "SECURITY.md|TODO: add a security contact|docs/template-identity:security @ SECURITY.md"
+  "CODE_OF_CONDUCT.md|TODO: add a contact address|docs/template-identity:conduct @ CODE_OF_CONDUCT.md"
+  ".github/CODEOWNERS|^# /docs/|docs/template-identity:codeowners @ .github/CODEOWNERS"
+  ".github/CODEOWNERS|^# TODO: add a code owner|docs/template-identity:instruction @ .github/CODEOWNERS"
+  "docs/SPECIFICATION.md|^# .*<Project Name>|docs/template-identity:projectname @ docs/SPECIFICATION.md"
+  "docs/ARCHITECTURE.md|^# .*<Project Name>|docs/template-identity:projectname @ docs/ARCHITECTURE.md"
+  "docs/GLOSSARY.md|^# .*<Project Name>|docs/template-identity:projectname @ docs/GLOSSARY.md"
+  "docs/CONVENTIONS.md|^# .*<Project Name>|docs/template-identity:projectname @ docs/CONVENTIONS.md"
+  "docs/SPECIFICATION.md|\*\*[GQ]-[0-9]+\*\* — (…|<Quality)|docs/template-identity:criterion @ docs/SPECIFICATION.md"
+  "docs/ARCHITECTURE.md|^- \*\*<Part>\*\*|docs/template-identity:part @ docs/ARCHITECTURE.md"
+  "docs/GLOSSARY.md|^- \*\*<Term>\*\*|docs/template-identity:term @ docs/GLOSSARY.md"
+  "docs/CONVENTIONS.md|^- \*\*<Convention>\*\*|docs/template-identity:convention @ docs/CONVENTIONS.md"
+  "README.md|^- \*\*(Build|Test|Lint|Run):\*\* TODO|docs/template-identity:command @ README.md"
+  "README.md|\(TEMPLATE-SETUP\.md\)|docs/links:broken @ README.md @ TEMPLATE-SETUP.md"
+  "CONTRIBUTING.md|^TEMPLATE-SETUP\.md |docs/project-layout:missing @ CONTRIBUTING.md @ TEMPLATE-SETUP.md"
+  ".agents/skills/setup-project/SKILL.md|\(\.\./\.\./\.\./TEMPLATE-SETUP\.md\)|docs/links:broken @ .agents/skills/setup-project/SKILL.md @ ../../../TEMPLATE-SETUP.md"
 )
 
 d="$(copy pending)"
@@ -284,20 +290,28 @@ out="$(run_check "$d" check-docs.sh)"
 for row in "${PLACEHOLDERS[@]}"; do
   file="${row%%|*}"
   rest="${row#*|}"
-  message="${rest##*|}"
+  field="${rest##*|}"
   pattern="${rest%|*}"
   if [[ ! -f "$ROOT/$file" ]] || ! grep -qE "$pattern" "$ROOT/$file"; then continue; fi
-  if [[ "$out" == *"$message"* ]]; then
+  if table_holds "$out" "$field"; then
     passed=$((passed + 1))
   else
     failed=$((failed + 1))
-    echo "FAIL: once the setup file is gone, check-docs.sh does not report: $message" >&2
+    echo "FAIL: once the setup file is gone, check-docs.sh does not report: $field" >&2
   fi
 done
-# Every file that carries a token must be named by check-docs.sh: a placeholder in a file no row
-# above knows of is one check 13 does not hold either.
+# Every file that carries a token must be named by check 13: a placeholder in a file no row above
+# knows of is one check 13 does not hold either. A finding of check 13 names it as a datum before
+# its key.
+identity_names() {
+  local l
+  while IFS= read -r l; do
+    [[ "$l" =~ ^(.*)\[docs/template-identity:[a-z]+\]$ ]] && table_datum "${BASH_REMATCH[1]}" "$1" && return 0
+  done <<< "$out"
+  return 1
+}
 while IFS= read -r file; do
-  if [[ "$out" == *"$file: "* ]]; then
+  if identity_names "$file"; then
     passed=$((passed + 1))
   else
     failed=$((failed + 1))
@@ -312,17 +326,17 @@ pass() { passed=$((passed + 1)); }
 fail() { failed=$((failed + 1)); echo "FAIL: $1" >&2; }
 
 open="$(open_steps)"
-# What check-docs.sh names on the copy: each finding about the setup file is a link to it or its
-# row in the Project Layout, left out; every other one is listed.
-link_re="broken relative link -> '([./]*)TEMPLATE-SETUP\.md"
-layout="Project Layout lists 'TEMPLATE-SETUP.md'"
+# What check-docs.sh names on the copy: each finding about the setup file is a link to it
+# (docs/links:broken) or its row in the Project Layout (docs/project-layout:missing), left out;
+# every other one is listed.
 while IFS= read -r l; do
   [[ "$l" == "  - "* ]] || continue
   if [[ "$l" != *"TEMPLATE-SETUP.md"* ]]; then
     if [[ "$open" == *"$l"* ]]; then pass; else fail "--open does not list what check-docs.sh names:$l"; fi
     continue
   fi
-  if [[ "$l" =~ $link_re || "$l" == *"$layout"* ]]; then pass
+  if table_holds "$l" "docs/links:broken @ TEMPLATE-SETUP.md" \
+    || table_holds "$l" "docs/project-layout:missing @ CONTRIBUTING.md @ TEMPLATE-SETUP.md"; then pass
   else fail "a finding about the setup file that is neither a link nor its layout row:$l"; fi
   if [[ "$open" != *"$l"* ]]; then pass; else fail "--open lists a finding about the setup file:$l"; fi
 done <<< "$out"
