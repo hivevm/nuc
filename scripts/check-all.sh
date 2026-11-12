@@ -193,6 +193,10 @@ run "Review binding sensor" scripts/sensor-review-binding.sh
 # (NUC-checks-are-bash §7); its self-test runs here.
 # On instruction: scripts/sensor-repo-settings.sh
 run "Repository settings sensor self-test" scripts/test-sensor-repo-settings.sh
+# The work measures sensor reads the pull requests on GitHub and runs on a human's instruction
+# (NUC-checks-are-bash §7); its self-test runs here.
+# On instruction: scripts/sensor-work-measures.sh
+run "Work measures sensor self-test" scripts/test-sensor-work-measures.sh
 run "Check runner self-test" scripts/test-check-all.sh
 run "Git hooks self-test" scripts/test-git-hooks.sh
 run "Shell lint self-test" scripts/test-check-shell.sh
