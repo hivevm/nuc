@@ -407,7 +407,7 @@ check_adr_identifiers() {  # check 2
   local f base heading id commit
   local -A deleted=()
   [[ -d "$ADR_DIR" ]] && while IFS= read -r f; do
-    add_error "${f##*/}: a numbered ADR, a form no check reads — map it to '<CAT>-<slug>' with .agents/skills/normalize/remap.sh, as the normalize skill's migration says [docs/adr-numbering:numbered]"
+    add_error "${f##*/}: a numbered ADR, a form no check reads — migrate the record with the normalize skill of a v0.9 release, which maps it to '<CAT>-<slug>' [docs/adr-numbering:numbered]"
   done < <(LC_ALL=C find "$ADR_DIR" -maxdepth 1 -type f -name '[0-9]*-*.md' | LC_ALL=C sort)
   for f in "${ADR_LIST[@]}"; do
     base="${f##*/}"
