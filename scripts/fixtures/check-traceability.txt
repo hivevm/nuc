@@ -7,7 +7,8 @@
 #
 # A run exits 0 for pass and 1 for fail. The second field is '<key>', then ' @ <subject>' for each
 # datum the line names, such as an identifier. A line of the output ends in '[<key>]', the rule and
-# a reason word, and holds each subject; the rest of its wording is free.
+# a reason word, and holds each subject, in that order and with no ASCII letter, digit, hyphen,
+# or underscore beside it; the rest of its wording is free.
 #
 # The tree is a list of steps separated by '; ', applied in order to a git repository with no
 # commit, an empty docs/adr/ and an empty tests/, and nothing else. Every file is staged before the

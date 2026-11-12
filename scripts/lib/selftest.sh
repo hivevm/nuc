@@ -52,25 +52,43 @@ table_hyphens() { sed -E 's/(^|[^A-Za-z0-9_])([A-Z]{2,5}):([A-Za-z0-9])/\1\2-\3/
 # table_holds <output> <field> — whether the output meets the expected field of a case of a table:
 #
 #   -                         anything
-#   <key>[ @ <subject>]...    a line that ends in '[<key>]' and holds each subject
+#   <key>[ @ <subject>]...    a line that ends in '[<key>]' and holds each subject,
+#                             in that order, with no ASCII letter, digit, hyphen, or
+#                             underscore beside it
 #   !<key>[ @ <subject>]...   no such line
 #
 # A key is a rule identifier '<area>/<name>', a colon, and a reason word. A subject is a datum of
 # the case's tree: a file, a file and line, an identifier, or a term in double quotes. The wording
 # around them is free. Anything else in a field exits 2, which stops a wording outside quotes.
 table_holds() {
-  local field="${2#!}" line subject found=1 re='^[a-z]+/[a-z-]+:[a-z]+( @ ([^ "]+|"[^"]+"))*$'
+  local field="${2#!}" line rest subject found=1 re='^[a-z]+/[a-z-]+:[a-z]+( @ ([^ "]+|"[^"]+"))*$'
   local -a parts
   [[ "$2" != - ]] || return 0
   [[ "$field" =~ $re ]] || { echo "fixture table: '$2' is no key and subjects" >&2; exit 2; }
   mapfile -t parts <<< "${field// @ /$'\n'}"
   while IFS= read -r line; do
     [[ "$line" == *"[${parts[0]}]" ]] || continue
-    for subject in "${parts[@]:1}"; do [[ "$line" == *"$subject"* ]] || continue 2; done
+    rest="$line"
+    for subject in "${parts[@]:1}"; do table_datum "$rest" "$subject" || continue 2; rest="$TABLE_REST"; done
     found=0
   done <<< "$1"
   [[ "$2" == '!'* ]] && return $((1 - found))
   return "$found"
+}
+
+# table_datum <text> <subject> — whether the text holds the subject as a datum of its own, neither
+# ASCII letter, digit, hyphen, nor underscore on either side, so that '2' is not found in '12',
+# nor 'a-rule' in 'a-rule-two'. A dot or a slash is no such character: 'x.md' is found in
+# 'docs/x.md'. TABLE_REST is the text after the first such place, where the next
+# subject of a field is looked for: the subjects stand in the order the field names them.
+table_datum() {
+  local seen="" text="$1" before
+  while [[ "$text" == *"$2"* ]]; do
+    before="$seen${text%%"$2"*}" TABLE_REST="${text#*"$2"}"
+    [[ "$before" =~ [A-Za-z0-9_-]$ || "$TABLE_REST" =~ ^[A-Za-z0-9_-] ]] || return 0
+    seen="$before${2:0:1}" text="${2:1}$TABLE_REST"
+  done
+  return 1
 }
 
 # output_holds <output> <needle> — a needle of a self-test's own case: a text the output contains,
