@@ -33,6 +33,12 @@
 - Tests changed:
 - Checks:
 - Demo:
+- Measures:  <!-- what the work cost, in this fixed form, so a reader can collect it:
+     'tokens <n> | checks <n> s | review rounds <n>'. Tokens are those the sessions read and
+     wrote, as the harness reports them; checks are the seconds of the last full run of
+     scripts/check-all.sh; review rounds count the Reviewed at: lines the review wrote. A value
+     nothing measured stands as '-'. -->
+
 
 ## Doubts
 
