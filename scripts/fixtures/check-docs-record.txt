@@ -7,8 +7,9 @@
 #
 # A run exits 0 for pass and 1 for fail. The third field is '<key>', then ' @ <subject>' for each
 # datum the line names, such as a file or an identifier. A line of the output ends in '[<key>]', the
-# rule and a reason word, and holds each subject; the rest of its wording is free. '<deleted>'
-# stands for the short hash of the commit of the last delete.
+# rule and a reason word, and holds each subject, in that order and with no letter, digit, hyphen,
+# or underscore beside it; the rest of its wording is free. '<deleted>' stands for the short hash
+# of the commit of the last delete.
 #
 # The tree is a list of steps separated by '; ', applied in order to a git repository, with no
 # commit and without TEMPLATE-SETUP.md, that passes every check, its setup done. Every file is
@@ -74,7 +75,7 @@
 # before a letter or a digit reads as a hyphen: the file then cites no ADR of this repository, and
 # the map script of the normalize skill leaves it as it is.
 
-1 | fail | docs/adr-index:status @ SEC:decision-1.md @ 🟡 | an index status that disagrees with the ADR | adr SEC:decision-1 proposed; status SEC:decision-1 accepted
+1 | fail | docs/adr-index:status @ SEC:decision-1.md @ 🟡 @ 🟢 | an index status that disagrees with the ADR | adr SEC:decision-1 proposed; status SEC:decision-1 accepted
 1 | fail | docs/adr-index:above | a rejected row in the binding table | file SEC:decision-1 rejected; row binding SEC:decision-1 rejected
 1 | fail | docs/adr-index:below | a proposed row in the archive table | file SEC:decision-1 proposed; row archive SEC:decision-1 proposed
 1 | fail | docs/adr-index:twice @ SEC:decision-1.md | a row both sides of a union merge kept | adr SEC:decision-1 proposed; row binding SEC:decision-1 proposed
@@ -87,7 +88,7 @@
 2 | fail | docs/adr-numbering:form @ SEC:once.md | a slug of one word | adr SEC:once proposed
 2 | fail | docs/adr-numbering:form @ Sec-host-socket.md | a category key not in capitals, visible to the check | adr Sec-host-socket proposed
 2 | pass | - | a category of the project's list | category UX; adr UX:dark-mode proposed
-2 | fail | docs/adr-numbering:heading @ SEC:a-rule.md @ SEC:b-rule | a heading that names another identifier | adr SEC:a-rule proposed; heading SEC:a-rule # SEC:b-rule: decision
+2 | fail | docs/adr-numbering:heading @ SEC:a-rule.md @ SEC:b-rule @ SEC:a-rule | a heading that names another identifier | adr SEC:a-rule proposed; heading SEC:a-rule # SEC:b-rule: decision
 2 | fail | docs/adr-numbering:taken @ OPS:old-rule.md @ <deleted> | an identifier a deleted ADR carried, the deleting commit named | adr OPS:old-rule proposed; commit; delete OPS:old-rule; adr OPS:old-rule proposed
 2 | pass | - | an ADR a merged side branch deleted and wrote anew, as a normalization does | adr OPS:kept-rule proposed; commit; branch side; delete OPS:kept-rule; adr OPS:kept-rule accepted; commit; back; merge side
 2 | fail | docs/adr-numbering:taken @ OPS:gone-rule.md | an ADR a merged side branch deleted, taken again | adr OPS:gone-rule proposed; commit; branch side; delete OPS:gone-rule; back; merge side; adr OPS:gone-rule proposed
@@ -104,7 +105,7 @@
 5 | pass | - | a slug of one word in a shell script is no citation | text scripts/lib/note.sh # An API:first design.
 5 | pass | - | a chain longer than an identifier is no citation, not one cut short | text README.md NUC:adrs-record-decisions-and-a-b.
 5 | pass | - | a hyphenated word of no category is no citation | text README.md UTF:8 and SHA:256 and CVE:2025-30066.
-6 | fail | docs/adr-link-targets:other @ SEC:x-rule @ SEC:decision-1.md | a link that cites one ADR and points at another | adr SEC:decision-1 accepted; adr SEC:x-rule proposed; text README.md See [SEC:x-rule](docs/adr/SEC:decision-1.md).
+6 | fail | docs/adr-link-targets:other @ README.md @ [SEC:x-rule](docs/adr/SEC:decision-1.md) @ SEC:x-rule @ SEC:decision-1.md | a link that cites one ADR and points at another | adr SEC:decision-1 accepted; adr SEC:x-rule proposed; text README.md See [SEC:x-rule](docs/adr/SEC:decision-1.md).
 6 | pass | - | a link that cites an ADR and points at its file | adr SEC:x-rule proposed; text README.md See [SEC:x-rule §2](docs/adr/SEC:x-rule.md#decision).
 6 | pass | - | a link that cites an ADR and points outside docs/adr/ is no claim | adr SEC:x-rule proposed; text docs/notes/threat-model.md # Threat model; text README.md See [SEC:x-rule](docs/notes/threat-model.md).
 8 | pass | - | one ADR superseding two, both flipped | adr SEC:decision-1 superseded:SEC:decision-3; adr SEC:decision-2 superseded:SEC:decision-3; adr SEC:decision-3 accepted; supersedes SEC:decision-3 SEC:decision-1,SEC:decision-2
