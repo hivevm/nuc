@@ -110,7 +110,7 @@ expect() {
 # --- cases ---------------------------------------------------------------------------------
 
 d="$(repo baseline)"
-expect pass "a container without a socket, pinned and locked, passes" "$d" "[devcontainer/check:passed]"
+expect pass "a container without a socket, pinned and locked, passes" "$d" "[devcontainer/check:passed] @ 1"
 
 # A config longer than a pipe holds, the socket before the rest: a grep that exits at the socket
 # before the config is written cuts the writer off, and the mount goes unreported.
@@ -133,7 +133,7 @@ expect fail "a Feature that mounts the socket" "$d" "would mount the host Docker
 d="$(repo engine-inside)"
 config "$d" "ghcr.io/devcontainers/features/docker-in-docker:2"
 lock "$d" "ghcr.io/devcontainers/features/docker-in-docker:2"
-expect pass "an engine inside the container talks to no host engine and is the project's choice" "$d" "[devcontainer/check:passed]"
+expect pass "an engine inside the container talks to no host engine and is the project's choice" "$d" "[devcontainer/check:passed] @ 1"
 
 d="$(repo unpinned-feature)"
 config "$d" "ghcr.io/devcontainers/features/github-cli:latest"
