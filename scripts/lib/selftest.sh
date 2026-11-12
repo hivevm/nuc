@@ -60,6 +60,10 @@ table_hyphens() { sed -E 's/(^|[^A-Za-z0-9_])([A-Z]{2,5}):([A-Za-z0-9])/\1\2-\3/
 # A key is a rule identifier '<area>/<name>', a colon, and a reason word. A subject is a datum of
 # the case's tree: a file, a file and line, an identifier, or a term in double quotes. The wording
 # around them is free. Anything else in a field exits 2, which stops a wording outside quotes.
+# The subjects are looked for in the part of the line before its key, so that no subject holds by
+# the key alone, as 'docs' would in '[docs/links:broken]'. A field '!<key> @ <a> @ <b>' holds where
+# no line that ends in the key holds <a> and then <b>: a line with the subjects in the other order
+# does not break it.
 table_holds() {
   local field="${2#!}" line rest subject found=1 re='^[a-z]+/[a-z-]+:[a-z]+( @ ([^ "]+|"[^"]+"))*$'
   local -a parts
@@ -68,7 +72,7 @@ table_holds() {
   mapfile -t parts <<< "${field// @ /$'\n'}"
   while IFS= read -r line; do
     [[ "$line" == *"[${parts[0]}]" ]] || continue
-    rest="$line"
+    rest="${line%"[${parts[0]}]"}"
     for subject in "${parts[@]:1}"; do table_datum "$rest" "$subject" || continue 2; rest="$TABLE_REST"; done
     found=0
   done <<< "$1"
