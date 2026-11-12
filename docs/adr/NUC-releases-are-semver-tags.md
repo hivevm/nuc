@@ -50,9 +50,7 @@ release it carries in its README.
      allows.
    - It moves the release line and runs the checks.
 
-   The project's ADRs keep their identifiers. A take-up needs no normalization, except the one
-   migration of
-   [NUC-decisions-are-proposed-then-accepted §8](NUC-decisions-are-proposed-then-accepted.md).
+   The project's ADRs keep their identifiers. A take-up needs no normalization.
 7. **Re-cut.** A release that merges, splits, or removes a `NUC-` ADR is a major. Before `v1.0.0`
    it may be a minor, per clause 3. Its notes must carry the map from each old identifier and
    clause to its new home.
