@@ -59,11 +59,14 @@ scripts/check-*.sh    # checks: each fails on what breaks a rule
 scripts/sensor-*.sh   # sensors: report for the reviewer; sensor-repo-settings.sh runs by hand
 scripts/test-*.sh     # self-tests of the checks, the sensors, the hooks, the setup, and the scripts
                       # run by hand
-scripts/lib/          # what the scripts share: the ADR header, git, the ticket path, the self-tests
+scripts/lib/          # what the scripts share: the bash floor (bash.sh), the ADR header (adr.sh),
+                      # the findings of a check (check.sh), git (git.sh), the plain rules
+                      # (rules.sh), the self-tests (selftest.sh), the ticket path (ticket.sh)
 scripts/fixtures/     # the cases of a check as a table, which its self-test reads
 scripts/*.sh          # run by hand, steps 7 and 8 of the integration branches: ready-for-main.sh,
                       # drop-merged-branch.sh
-.githooks/            # git hooks: nothing lands on main locally; checks before a merge and a push
+.githooks/            # git hooks: nothing lands on main locally; checks before a commit, a merge,
+                      # and a push
 .github/workflows/    # checks.yml runs the checks; review-binding.yml reads each pull request's hand-off
 .github/              # Dependabot, issue & pull request templates, code owners
 .devcontainer/        # Dev Container definition (base image + Features)
