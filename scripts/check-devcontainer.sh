@@ -124,11 +124,11 @@ else
   mapfile -t features < <(feature_ids "$ROOT/$CONFIG")
   for id in "${features[@]}"; do
     if [[ "$id" == *docker-outside-of-docker* ]]; then
-      add_error "$CONFIG: Feature '$id' would mount the host Docker socket — it is not added (NUC-container-hides-host-daemon §2)"
+      add_error "$CONFIG: Feature '$id' would mount the host Docker socket — it is not added (NUC-container-hides-host-daemon §2) [devcontainer/socket:feature]"
     fi
     # §3 Pinning.
     [[ "$id" =~ :[0-9]+$ ]] \
-      || add_error "$CONFIG: Feature '$id' is not pinned by its major version tag alone ('<ref>:N') — an untagged, mutable, or fully versioned reference is not what the lock resolves (NUC-container-hides-host-daemon §3)"
+      || add_error "$CONFIG: Feature '$id' is not pinned by its major version tag alone ('<ref>:N') — an untagged, mutable, or fully versioned reference is not what the lock resolves (NUC-container-hides-host-daemon §3) [devcontainer/lock:tag]"
   done
 
   # §3 Lock.
@@ -138,11 +138,11 @@ else
     mapfile -t locked < <(feature_ids "$ROOT/$LOCK")
     for id in "${features[@]}"; do
       _contains "$id" "${locked[@]}" \
-        || add_error "$LOCK: has no entry for Feature '$id' — regenerate the lock (rebuild the container) so the Feature builds from a resolved digest (NUC-container-hides-host-daemon §3)"
+        || add_error "$LOCK: has no entry for Feature '$id' — regenerate the lock (rebuild the container) so the Feature builds from a resolved digest (NUC-container-hides-host-daemon §3) [devcontainer/lock:missing]"
     done
     for id in "${locked[@]}"; do
       _contains "$id" "${features[@]}" \
-        || add_error "$LOCK: lists Feature '$id', which $CONFIG no longer adds — the lock was not regenerated (NUC-container-hides-host-daemon §3)"
+        || add_error "$LOCK: lists Feature '$id', which $CONFIG no longer adds — the lock was not regenerated (NUC-container-hides-host-daemon §3) [devcontainer/lock:stale]"
     done
   fi
 
@@ -170,7 +170,7 @@ else
     case "${option#:}" in target="$own" | dst="$own" | destination="$own") mount_own=1 ;; esac
   done
   ((mount_own)) \
-    || add_error "$CONFIG: workspaceMount does not target '$own' — a path every project shares gives every project one agent memory (NUC-container-hides-host-daemon §5)"
+    || add_error "$CONFIG: workspaceMount does not target '$own' — a path every project shares gives every project one agent memory (NUC-container-hides-host-daemon §5) [devcontainer/mount-path:mount]"
 fi
 
 # §4 Host side, only in a tree that uses VS Code: the pair has to sit inside the

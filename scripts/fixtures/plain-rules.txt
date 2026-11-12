@@ -6,8 +6,9 @@
 #
 # The second field is '<key>', then ' @ <subject>' for each datum the line names: a file and line,
 # or a term in double quotes. A line of the output ends in '[<key>]', the rule and a reason word,
-# and holds each subject; the rest of its wording is free. With '!', no such line stands. Where a
-# case is about the place of a finding, its subject '<file>:<line>' decides that place.
+# and holds each subject, in that order and with no ASCII letter, digit, hyphen, or underscore
+# beside it; the rest of its wording is free. With '!', no such line stands. Where a case is about
+# the place of a finding, its subject '<file>:<line>' decides that place.
 #
 # The tree is a list of steps separated by '; ', applied in order to a git repository with the
 # branch main of one commit and the branch 'work' off it, checked out. The commit holds:
