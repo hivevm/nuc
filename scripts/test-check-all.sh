@@ -199,6 +199,22 @@ if ((rc == 2)) && [[ "$out" == "check-devcontainer.sh: '--root' is given twice"*
 else
   failed=$((failed + 1)); echo "FAIL: --root given twice is refused (exit $rc): $out" >&2
 fi
+# A '--root' that stands where an option of the script takes its value is refused with exit 2
+# and the option's name, not read as the root: the option would be left without its value and
+# the directory as an argument the script may ignore, so that it read its own tree and passed.
+for pair in sensor-binding-adrs.sh:--path sensor-review-binding.sh:--hand-off \
+  sensor-action-refs.sh:--require; do
+  s="${pair%%:*}" opt="${pair#*:}"
+  out="$(cd "$work" && bash "$ROOT/scripts/$s" "$opt" --root "$work" 2>&1)"; rc=$?
+  if ((rc == 2)) && [[ "$out" == "$s: '$opt' needs a value, not '--root'"* ]]; then
+    passed=$((passed + 1))
+  else
+    failed=$((failed + 1)); echo "FAIL: $s refuses '$opt --root <dir>' (exit $rc): $out" >&2
+  fi
+done
+out="$(cd "$work" && bash "$ROOT/scripts/check-docs.sh" "" --root "$work" 2>&1)"; rc=$?
+check "an empty argument before --root is no option that takes a value" \
+  test "$rc" = 2 -a "${out%% — *}" = "check-docs.sh: unknown argument ''"
 mkdir -p "$work/dash/-root" && git -C "$work/dash/-root" init -q
 out="$(cd "$work/dash" && bash "$ROOT/scripts/check-shell.sh" --root -root 2>&1)"; rc=$?
 if ((rc == 0)); then

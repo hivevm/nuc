@@ -71,6 +71,8 @@ caller="$PWD"
 # shellcheck source-path=SCRIPTDIR source=lib/root.sh
 source "$(dirname "${BASH_SOURCE[0]}")/lib/root.sh"
 usage="scripts/sensor-review-binding.sh [--root <dir>] [--hand-off <file>] [base [head]]"
+# shellcheck disable=SC2034 # read by enter_root
+VALUE_OPTIONS="--hand-off"
 enter_root "${BASH_SOURCE[0]}" "$usage" "$@"
 set -- "${ARGS[@]}"
 
