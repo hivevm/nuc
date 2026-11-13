@@ -53,7 +53,7 @@ adr_field_line() { grep -m1 -E "$ADR_ITEM_RE$2:[*][*]" "$1"; }
 adr_field_value() { ADR_VALUE="${1##*\*\*"$2":\*\*}"; }
 
 # The names of ADR files: any name of letters before its first hyphen, so that the rule
-# docs/adr-numbering of check-docs.sh sees a misnamed ADR, such as 'Sec-x.md'. ADR_FILE_RE
+# docs/adr-identifiers of check-docs.sh sees a misnamed ADR, such as 'Sec-x.md'. ADR_FILE_RE
 # matches the same names.
 ADR_GLOB='[A-Za-z]*-*.md'
 ADR_FILE_RE="[A-Za-z]+-[^/]*\\.md"
