@@ -311,18 +311,21 @@ expect_with 0 "--sections names the two sections of the template" "$d" \
 
 d="$(repo checks)"
 checks() {
-  printf 'check_a() {  # check 1\n  :\n}\nh() {\n  %s\n}\ncheck_b() {  # check 2\n  %s\n}\n' \
+  printf 'check_a() {  # t/a\n  :\n}\nh() {\n  %s\n}\ncheck_b() {  # t/b\n  %s\n}\n' \
     "$2" "$3" > "$1/scripts/c.sh"
 }
 mkdir -p "$d/scripts" && checks "$d" : :
 # shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
-adr "$d" 0004 "🟢 accepted" 'check 1 of `scripts/c.sh`'
+adr "$d" 0004 "🟢 accepted" 'the rule `t/a` of `scripts/c.sh`'
 # shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
-adr "$d" 0005 "🟢 accepted" 'checks 2 and 3 of `scripts/c.sh`'
+adr "$d" 0005 "🟢 accepted" 'the rules `t/b` and `t/c` of `scripts/c.sh`'
+# shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
+adr "$d" 0006 "🟢 accepted" 'the rules `t/c`, `t/d`, and `t/b` of `scripts/c.sh`'
 base "$d"
 checks "$d" : true
-expect 0 "a change inside one check binds the ADR that names it" "$d" "- $(adr_id 5) (docs"
-reject "a change inside one check binds no ADR that names only another" "$d" "- $(adr_id 4) ("
+expect 0 "a change inside one check binds the ADR that names its rule" "$d" "- $(adr_id 5) (docs"
+expect 0 "a rule named last of three binds as one named first" "$d" "- $(adr_id 6) (docs"
+reject "a change inside one check binds no ADR that names only another rule" "$d" "- $(adr_id 4) ("
 checks "$d" true :
 expect 0 "a change between two checks binds every ADR that names the file" "$d" "- $(adr_id 4) ("
 expect 0 "a change between two checks binds the other ADR too" "$d" "- $(adr_id 5) ("
@@ -331,12 +334,10 @@ mv "$d/scripts/c.sh.new" "$d/scripts/c.sh"
 expect 0 "a deleted last line, its next line past the end, binds every ADR" "$d" "- $(adr_id 4) ("
 checks "$d" : true && sed '2d' "$d/scripts/c.sh" > "$d/c.new" && mv "$d/c.new" "$d/scripts/c.sh"
 expect 0 "a deletion inside a check binds its ADR beside an edit in another" "$d" "- $(adr_id 4) ("
-
-docs="$ROOT/scripts/check-docs.sh"
-tags="$(grep -oE '^check_[a-z_]+\(\) \{  # check [0-9]+$' "$docs" | grep -oE '[0-9]+$' | sort -n)"
-check "the check numbers of check-docs.sh are its header items, one each" \
-  test "$tags" = "$(sed -nE '/^set /q; s/^# +([0-9]+)\. .*/\1/p' "$docs")"
-check "no check of check-docs.sh lacks its number" test "$(grep -cE '^check_.*\{$' "$docs")" = 0
+# A rule key in backticks is no path: a change at a path of its name binds no ADR by it.
+checks "$d" : : && mkdir -p "$d/t" && echo x > "$d/t/b"
+reject "a rule key is no path of its own" "$d" "- $(adr_id 5) ("
+rm -r "$d/t"
 
 # --- summary ---------------------------------------------------------------------------------
 

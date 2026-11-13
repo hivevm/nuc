@@ -26,7 +26,8 @@ g() {
   git -C "${dir:?}" -c user.name=t -c user.email=t@example.invalid "$@"
 }
 
-# The scripts the runner runs, in its order, read with the pattern check 9 of check-docs.sh uses.
+# The scripts the runner runs, in its order, read with the pattern the rule docs/check-lists
+# of check-docs.sh uses.
 scripts=()
 while IFS= read -r line; do
   [[ "$line" =~ ^[[:space:]]*run[[:space:]]+\"[^\"]*\"[[:space:]]+(scripts/[A-Za-z0-9._-]+\.sh) ]] \
@@ -155,6 +156,60 @@ for s in "$ROOT"/scripts/*.sh "$ROOT"/.agents/skills/*/*.sh; do
     failed=$((failed + 1)); echo "FAIL: ${s#"$ROOT"/} $problem" >&2
   fi
 done
+
+# Each script under scripts/ but the self-tests and this runner can run on another repository: it
+# takes the root as '--root <dir>' through enter_root of scripts/lib/root.sh, and refuses an
+# argument it does not read. --verbose, an option none of them reads, stops it with exit 2, its
+# name, and the argument; a --root on a missing directory stops it with exit 2 before it reads
+# anything, so that no check passes on a tree it never read.
+# root_problem <script> — prints what is wrong with the script's root, nothing if all is.
+root_problem() {
+  local out rc name="${1##*/}"
+  grep -qE '^enter_root "\$\{BASH_SOURCE\[0\]\}" ' "$1" || { echo "calls no enter_root"; return; }
+  ! grep -qE 'cd "\$\{1' "$1" || { echo "passes its first argument to cd"; return; }
+  out="$(cd "$work" && bash "$1" --verbose 2>&1)"; rc=$?
+  if ((rc != 2)) || [[ "$out" != "$name: unknown argument '--verbose'"* ]]; then
+    echo "takes --verbose (exit $rc): $out"
+    return
+  fi
+  out="$(cd "$work" && bash "$1" --root "$work/no-such-root" 2>&1)"; rc=$?
+  ((rc == 2)) && [[ "$out" == "$name: '$work/no-such-root' is not a directory"* ]] \
+    || echo "reads a missing root (exit $rc): $out"
+}
+for s in "$ROOT"/scripts/*.sh; do
+  [[ "${s##*/}" == test-*.sh || "${s##*/}" == check-all.sh ]] && continue
+  problem="$(root_problem "$s")"
+  if [[ -z "$problem" ]]; then
+    passed=$((passed + 1))
+  else
+    failed=$((failed + 1)); echo "FAIL: ${s#"$ROOT"/} $problem" >&2
+  fi
+done
+# --root given twice is refused, not read as the last one, and a directory whose name starts with
+# '-' is a root, not an option of cd.
+out="$(bash "$ROOT/scripts/check-devcontainer.sh" --root "$work/no-such-root" --root "$ROOT" 2>&1)"; rc=$?
+if ((rc == 2)) && [[ "$out" == "check-devcontainer.sh: '--root' is given twice"* ]]; then
+  passed=$((passed + 1))
+else
+  failed=$((failed + 1)); echo "FAIL: --root given twice is refused (exit $rc): $out" >&2
+fi
+mkdir -p "$work/dash/-root" && git -C "$work/dash/-root" init -q
+out="$(cd "$work/dash" && bash "$ROOT/scripts/check-shell.sh" --root -root 2>&1)"; rc=$?
+if ((rc == 0)); then
+  passed=$((passed + 1))
+else
+  failed=$((failed + 1)); echo "FAIL: a root whose name starts with '-' is read (exit $rc): $out" >&2
+fi
+# A script whose call of enter_root is removed is caught, though the rest of it still parses.
+mkdir -p "$work/root-copy/scripts"
+cp -R "$ROOT/scripts/lib" "$work/root-copy/scripts/"
+grep -v '^enter_root ' "$ROOT/scripts/check-devcontainer.sh" > "$work/root-copy/scripts/check-devcontainer.sh"
+if [[ -n "$(root_problem "$work/root-copy/scripts/check-devcontainer.sh")" ]]; then
+  passed=$((passed + 1))
+else
+  failed=$((failed + 1)); echo "FAIL: a script without its call of enter_root is caught" >&2
+fi
+
 own="$work/own-project"
 mkdir -p "$own/scripts"
 printf 'touch "%s/ran"\n' "$own" > "$own/scripts/own.sh"
@@ -249,7 +304,7 @@ printf 'echo "DETAIL %s"\n' "${tests[0]}" > "$work/detail"
 cat "$work/detail" "$d/${tests[0]}" > "$work/stub" && cp "$work/stub" "$d/${tests[0]}"
 out="$(bash "$d/scripts/check-all.sh" 2>&1)"
 check "a passing check shows its label and its last line" \
-  grep -qxF "ok: $(grep -m1 -F "${tests[0]}" "$RUNNER" | cut -d'"' -f2) — RAN ${tests[0]}" <<< "$out"
+  grep -qx "ok: $(grep -m1 -F "${tests[0]}" "$RUNNER" | cut -d'"' -f2) ([0-9][0-9]* s) — RAN ${tests[0]}" <<< "$out"
 check "a passing check hides the rest" test "${out/DETAIL/}" = "$out"
 out="$(bash "$d/scripts/check-all.sh" --verbose 2>&1)"
 check "--verbose shows all a passing check prints" grep -qF "DETAIL ${tests[0]}" <<< "$out"
@@ -263,15 +318,31 @@ printf 'echo "ShellCheck skipped"\n' > "$work/detail"
 cat "$work/detail" "$d/${tests[2]}" > "$work/stub" && cp "$work/stub" "$d/${tests[2]}"
 out="$(bash "$d/scripts/check-all.sh" 2>&1)"
 check "a sensor shows its headline and counts the rest" \
-  grep -qF "sensor: $(grep -m1 -F "$sensor" "$RUNNER" | cut -d'"' -f2) — DETAIL $sensor (+1 line; --verbose shows them)" <<< "$out"
+  grep -q "sensor: $(grep -m1 -F "$sensor" "$RUNNER" | cut -d'"' -f2) ([0-9][0-9]* s) — DETAIL $sensor (+1 line; --verbose shows them)" <<< "$out"
 check "a sensor hides the rest of its report" test "${out/RAN $sensor/}" = "$out"
 check "a passing check keeps a line that says it skipped something" \
   grep -qxF "    ShellCheck skipped" <<< "$out"
 required="$(grep -m1 -E '^run "[^"]*" scripts/sensor-[^ ]+ --require' "$RUNNER")"
 check "a sensor run with --require shows its line as a check does" \
-  grep -qxF "ok: $(cut -d'"' -f2 <<< "$required") — RAN $(grep -oE 'scripts/sensor-[^ ]+' <<< "$required")" <<< "$out"
+  grep -qx "ok: $(cut -d'"' -f2 <<< "$required") ([0-9][0-9]* s) — RAN $(grep -oE 'scripts/sensor-[^ ]+' <<< "$required")" <<< "$out"
 out="$(bash "$d/scripts/check-all.sh" --verbose 2>&1)"
 check "--verbose shows a sensor's report in full" grep -qF "RAN $sensor" <<< "$out"
+
+# Each check shows the whole seconds it ran after its label, and the run names the slowest: a
+# check that sleeps two seconds shows at least two, and no other is named. A check skipped in
+# changed mode shows no time.
+d="$(repo times)"
+echo "sleep 2" >> "$d/${tests[3]}"
+label="$(grep -m1 -F "${tests[3]}" "$RUNNER" | cut -d'"' -f2)"
+out="$(bash "$d/scripts/check-all.sh" 2>&1)"
+secs="$(sed -n "s/^ok: $label (\([0-9]*\) s) — .*/\1/p" <<< "$out")"
+check "a check shows the seconds it ran" test "${secs:-0}" -ge 2
+check "every check that ran shows its time" \
+  test "$(grep -cE '^(ok|sensor): .* \([0-9]+ s\)' <<< "$out")" -eq "${#scripts[@]}"
+check "the run names the slowest check" grep -qx "Slowest: $label, [0-9][0-9]* s; the run took [0-9][0-9]* s." <<< "$out"
+out="$(bash "$d/scripts/check-all.sh" --changed 2>&1)"
+check "a check skipped in changed mode shows no time" \
+  grep -qE "^ok: [^(]* — skipped — neither it nor its inputs changed" <<< "$out"
 
 # at_once <dir> <jobs> — the most checks the runner had running at once with CHECK_ALL_JOBS at
 # jobs: each stub notes a directory of its own while it runs, and how many there are.

@@ -8,9 +8,10 @@
 # of a language that lays out a module's children in the directory of the file's name names that
 # directory too (MODULE_DIRS below): a Rust file `x.rs` names `x/`, so that a module split off
 # a file stays bound. A word in backticks that is no path, such as a skill's name, matches no
-# changed path. A file named 'check N of `<file>`' or 'checks N, M, and K of `<file>`' binds only
-# where a line of a hunk, or the line on either side, lies in such a check's function, from
-# 'check_<name>() {  # check N' to its closing brace; a line outside the checks, such as the header
+# changed path. A file named with rules of its checks, 'the rule `<key>` of `<file>`' or 'the rules
+# `<a>`, `<b>`, and `<c>` of `<file>`', binds only where a line of a hunk, or the line on either
+# side, lies in the function of such a rule's check, from 'check_<name>() {  # <key>' to its
+# closing brace; a rule key is no path. A line outside the checks, such as the header
 # or a shared helper, binds every ADR that names the file, as a named path does. The rest is prose
 # no script reads, so the list is the ADRs a session reads at the least: the index is still read
 # by its prose. Otherwise a path stands for the whole file, also where the ADR governs a part of
@@ -34,7 +35,8 @@
 # tree, uncommitted and untracked files included, and the ADRs are read as the working tree has
 # them, so a session gets its list before its first commit; with a head, the change ends at that
 # commit and the ADRs are read as it has them. With nothing to compare — no base and no main, or
-# no change — it says so. Exit code 0 always, except 2 on a base or head that does not resolve.
+# no change — it says so. Exit code 0 always, except 2 on a base or head that does not resolve,
+# an argument it does not read, or a root that is no directory.
 
 set -uo pipefail
 
@@ -46,8 +48,11 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/adr.sh"
 # shellcheck source-path=SCRIPTDIR source=lib/git.sh
 source "$(dirname "${BASH_SOURCE[0]}")/lib/git.sh"
 
-enter_root "Binding ADRs sensor" "${BASH_SOURCE[0]}" "$@"
-shift "$ROOT_TAKEN"
+# shellcheck source-path=SCRIPTDIR source=lib/root.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/root.sh"
+usage="scripts/sensor-binding-adrs.sh [--root <dir>] [--sections] [--path <path>]... [base [head]]"
+enter_root "${BASH_SOURCE[0]}" "$usage" "$@"
+set -- "${ARGS[@]}"
 
 sections=0
 named=()
@@ -62,6 +67,7 @@ while (($#)); do
     *) break ;;
   esac
 done
+rest_args "${BASH_SOURCE[0]}" "$usage" 2 "$@"
 
 # MODULE_DIRS — per language that lays out a module's children in the directory of its file's
 # name, the extension and the file names that do not, '<extension> <name>...' a line. Rust's
@@ -185,18 +191,23 @@ else
   fi
 fi
 
-# held — of each line of a file, the number of the check whose function holds it (see the header).
-held() { awk '/^check_.*# check [0-9]+$/ { n = $NF } { print n } /^}/ { n = 0 } END { print 0 }'; }
+# held — of each line of a file, the rule key of the check whose function holds it, or an empty
+# line outside the checks (see the header).
+held() {
+  awk '/^check_[a-z_]+\(\) \{  # [a-z]+\/[a-z0-9-]+$/ { n = $NF } { print n } /^}/ { n = "" }
+    END { print "" }'
+}
 
-# checked <text> <path> — whether the change touches a check of the file the text numbers.
+# checked <keys> <path> — whether the change touches a check of the file whose rule is among the
+# keys, separated by spaces; with none, any change to the file does.
 checked() {
-  { [[ "$1" != *[0-9]* ]] || ((${#named[@]})); } && return 0
+  { [[ -z "$1" ]] || ((${#named[@]})); } && return 0
   local at=("$base") n t; ((worktree)) || at+=("$head")
   t="$(awk 'NR == FNR { m[FNR] = $0; next } { split($1, r, ","); d = r[2] == "" ? 1 : r[2]
       for (i = r[1] - (d > 0); i <= r[1] - (d > 0) + d + 1; i++) t[m[i] ? m[i] : "all"] = 1 }
     END { for (k in t) o = o " " k; print o " " }' <(show "$2" 2>/dev/null | held) \
     <(git diff -U0 --no-renames "${at[@]}" -- "$2" | sed -nE 's/^@@ [^+]*\+([0-9,]+) .*/\1/p'))"
-  for n in ${1//[!0-9]/ } all; do [[ "$t" == *" $n "* || "$t" == " " ]] && return 0; done
+  for n in $1 all; do [[ "$t" == *" $n "* || "$t" == " " ]] && return 0; done
   return 1
 }
 
@@ -209,12 +220,17 @@ while IFS= read -r file; do
   status="$(adr_field_line - Status <<< "$text")"
   [[ "$status" == *"🟢"* || "$status" == *"🟡"* ]] || continue
   applies="$(adr_field_line - 'Applies to' <<< "$text")"
-  paths=() nums=()
+  paths=() keys=()
+  # A token is one path in backticks, with the rules of its checks before it where they are named.
   # shellcheck disable=SC2016  # the backticks are Markdown to match, not a command substitution
   while IFS= read -r token; do
-    p="${token#*\`}" && p="${p%\`}"
-    [[ "$p" =~ ^[^[:space:]]+$ ]] && paths+=("${p%/}") && nums+=("${token%%\`*}")
-  done < <(grep -oE '(checks? [0-9][0-9, and]* of )?`[^`]+`' <<< "$applies")
+    p="${token%\`}" && p="${p##*\`}" && rules="" pre=""
+    [[ "$token" == "the rule"* ]] && pre="${token% of \`*}"
+    while [[ "$pre" =~ \`([^\`]+)\`(.*) ]]; do
+      rules+="${rules:+ }${BASH_REMATCH[1]}" && pre="${BASH_REMATCH[2]}"
+    done
+    [[ "$p" =~ ^[^[:space:]]+$ ]] && paths+=("${p%/}") && keys+=("$rules")
+  done < <(grep -oE '(the rules? `[^`]+`((,|, and| and) `[^`]+`)* of )?`[^`]+`' <<< "$applies")
   ((${#paths[@]})) || continue
   dirs=()
   for p in "${paths[@]}"; do dirs+=("$(module_dir "$p")"); done
@@ -223,7 +239,7 @@ while IFS= read -r file; do
     for i in "${!paths[@]}"; do
       p="${paths[$i]}" dir="${dirs[$i]}"
       if [[ "$c" == "$p" || "$c" == "$p/"* || ( -n "$dir" && "$c" == "$dir"* ) \
-        || ( ${#named[@]} -gt 0 && "$p" == "${c%/}/"* ) ]] && checked "${nums[$i]}" "$c"; then
+        || ( ${#named[@]} -gt 0 && "$p" == "${c%/}/"* ) ]] && checked "${keys[$i]}" "$c"; then
         hits+=("$c")
         break
       fi
