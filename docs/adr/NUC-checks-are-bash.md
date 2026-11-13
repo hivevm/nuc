@@ -95,8 +95,8 @@ The catalogue has no entry for the binary, and choosing it needs an ADR that nar
 
 ## Enforcement
 
-- Check 9 of `scripts/check-docs.sh` holds the three lists and the scripts run on instruction
-  (clauses 5 and 7).
+- The rule `docs/check-lists` of `scripts/check-docs.sh` holds the three lists and the scripts run
+  on instruction (clauses 5 and 7).
 - `scripts/check-shell.sh` lints every script, and `scripts/check-all.sh` refuses a bash below 4.4
   by name (clause 1).
 - `scripts/test-check-all.sh` holds `--changed`, and `scripts/test-git-hooks.sh` every refusal of

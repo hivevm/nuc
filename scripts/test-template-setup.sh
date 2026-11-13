@@ -3,10 +3,10 @@
 # Self-test of the template setup (TEMPLATE-SETUP.md) against this repository's own files.
 #
 # The setup promises two things the fixture tests of the single checks cannot see, because they
-# hold only on the real scaffold: that check 13 of scripts/check-docs.sh names every
-# placeholder the setup leaves behind once its file is gone, and that a project which has done
-# every step is green. Each case copies the repository's files into a throwaway git repository
-# and runs the checks against the copy:
+# hold only on the real scaffold: that the rule docs/template-identity of scripts/check-docs.sh
+# names every placeholder the setup leaves behind once its file is gone, and that a project
+# which has done every step is green. Each case copies the repository's files into a throwaway
+# git repository and runs the checks against the copy:
 #
 #   1. Setup file deleted, nothing else done: check-docs.sh names each placeholder of steps 1,
 #      2, 3, and 5 that is still in the tree, and the README's notes that point at the setup
@@ -300,9 +300,9 @@ for row in "${PLACEHOLDERS[@]}"; do
     echo "FAIL: once the setup file is gone, check-docs.sh does not report: $field" >&2
   fi
 done
-# Every file that carries a token must be named by check 13: a placeholder in a file no row above
-# knows of is one check 13 does not hold either. A finding of check 13 names it as a datum before
-# its key.
+# Every file that carries a token must be named by the rule docs/template-identity: a placeholder
+# in a file no row above knows of is one the rule docs/template-identity does not hold either. A
+# finding of the rule docs/template-identity names it as a datum before its key.
 identity_names() {
   local l
   while IFS= read -r l; do

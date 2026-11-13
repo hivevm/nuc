@@ -26,7 +26,8 @@ g() {
   git -C "${dir:?}" -c user.name=t -c user.email=t@example.invalid "$@"
 }
 
-# The scripts the runner runs, in its order, read with the pattern check 9 of check-docs.sh uses.
+# The scripts the runner runs, in its order, read with the pattern the rule docs/check-lists
+# of check-docs.sh uses.
 scripts=()
 while IFS= read -r line; do
   [[ "$line" =~ ^[[:space:]]*run[[:space:]]+\"[^\"]*\"[[:space:]]+(scripts/[A-Za-z0-9._-]+\.sh) ]] \

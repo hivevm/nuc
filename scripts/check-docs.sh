@@ -3,9 +3,15 @@
 # Documentation consistency checks for this repository.
 #
 # Enforces — as CI, not just convention — the documentation rules from AGENTS.md and
-# docs/adr/README.md:
+# docs/adr/README.md. Each check is named by its rule key, which every finding it reports ends
+# in, '[<key>:<reason>]', and which its function carries, 'check_<name>() {  # <key>'. This list
+# is the one place that maps a key to its check; ADRs name the checks by it, and the binding ADRs
+# sensor routes a change by it. scripts/test-check-docs.sh fails on a key the script prints that
+# the list lacks, and on a check that prints a key not its own. One key is no check's: docs/files,
+# when the repository lists no text file and nothing else is checked.
 #
-#   1. ADR index integrity: every ADR file, docs/adr/<CAT>-<slug>.md, but the 'NUC-' base,
+#   docs/adr-index
+#      ADR index integrity: every ADR file, docs/adr/<CAT>-<slug>.md, but the 'NUC-' base,
 #      which it lists in no row, is listed in the index
 #      table in docs/adr/README.md once, every index row points to an existing file, and the
 #      status and the 'Applies to' cell shown in the index match the **Status:** and **Applies
@@ -15,7 +21,8 @@
 #      accepted or proposed one above it: the first table is what a session reads, and a
 #      row in the wrong one is either a dead decision read as binding or a binding one
 #      never read (docs/adr/README.md).
-#   2. ADR identifier integrity: every identifier has the form of NUC-adrs-are-named-by-category
+#   docs/adr-numbering
+#      ADR identifier integrity: every identifier has the form of NUC-adrs-are-named-by-category
 #      clause 1, its category is fixed or in the category list of the index (clause 2), and the
 #      file's heading starts with '# <identifier>:'. No ADR deleted on the first-parent line of
 #      HEAD carried the identifier; the message names the commit that deleted it, and a git that
@@ -23,17 +30,20 @@
 #      a hyphen counts, so a misnamed ADR fails here, and so does a numbered ADR file, 'NNNN-*.md',
 #      which no reader takes any more: a derived project maps it once, with the normalize skill of a
 #      v0.9 release.
-#   3. Relative-link integrity: every relative Markdown link in every tracked .md file resolves
+#   docs/links
+#      Relative-link integrity: every relative Markdown link in every tracked .md file resolves
 #      to a file or directory that exists. Links inside fenced code blocks are illustrations,
-#      not claims about files on disk, and are skipped (here and in check 6); so is a target that
-#      still carries the placeholder '<CAT>' of docs/adr/template.md; an optional link
-#      title ('[text](file "title")') is not part of the path. Reference-style links
-#      ('[text][label]') are not resolved — this repository uses inline links only.
+#      not claims about files on disk, and are skipped (here and in docs/adr-link-targets);
+#      so is a target that still carries the placeholder '<CAT>' of docs/adr/template.md; an
+#      optional link title ('[text](file "title")') is not part of the path. Reference-style
+#      links ('[text][label]') are not resolved — this repository uses inline links only.
 #
-#      Checks 3 to 6 skip ⚪ superseded and 🔴 rejected ADRs (see is_inactive_adr): both
-#      describe a repository state that does not exist, so holding their references against the
-#      current tree would demand that it still contain what the project decided against.
-#   4. Section-reference integrity: every section reference matches a numbered '## N.' heading
+#      The rules docs/links, docs/section-refs, docs/adr-refs, and docs/adr-link-targets skip ⚪
+#      superseded and 🔴 rejected ADRs (see is_inactive_adr): both describe a repository state
+#      that does not exist, so holding their references against the current tree would demand
+#      that it still contain what the project decided against.
+#   docs/section-refs
+#      Section-reference integrity: every section reference matches a numbered '## N.' heading
 #      in AGENTS.md: the section sign followed by a number in Markdown, YAML, and shell files
 #      and in the git hooks, and the words 'AGENTS.md, section N' in every text file but
 #      Markdown. AGENTS.md is the only numbered document in this repository; extend the check if
@@ -41,33 +51,38 @@
 #      repeat is a botched renumbering, and it is the only half of the renumbering hazard a check
 #      can see (NUC-documents-are-fixed §3). A clause citation, an ADR's identifier, a space, and
 #      the section sign with a number or a list of them, cites that ADR and no section.
-#   5. ADR-reference integrity: every identifier of a known category, a clause citation's among
+#   docs/adr-refs
+#      ADR-reference integrity: every identifier of a known category, a clause citation's among
 #      them, names an ADR file that exists in docs/adr/ — anticipated follow-ups are described by
 #      topic, never by an identifier that does not exist yet (NUC-adrs-are-named-by-category §6).
 #      A reference is a word of its own: a one-word slug, such as API-first, or a longer chain is
 #      none. An identifier in a Markdown code span is no citation (clause 6) and is not read.
-#   6. ADR link agreement: a Markdown link whose text cites an ADR points at that ADR's own
+#   docs/adr-link-targets
+#      ADR link agreement: a Markdown link whose text cites an ADR points at that ADR's own
 #      file — the identifier and the file it links to must name the same decision
 #      (docs/adr/README.md).
-#   7. ADR header hygiene: every ADR's '**Status:**' line carries exactly one legend emoji and the
-#      word that belongs to it, and no ADR still contains the instruction paragraph from
+#   docs/adr-header
+#      ADR header hygiene: every ADR's '**Status:**' line carries exactly one legend emoji and
+#      the word that belongs to it, and no ADR still contains the instruction paragraph from
 #      docs/adr/template.md — recognized by a needle read off that template, so rewording it
-#      cannot silently disable the check. Check 1 compares index and file emoji-to-emoji, so a
-#      leftover list of alternatives and a word contradicting its emoji both survive it — and the
-#      word is what a reader believes (docs/adr/README.md). Every header field is the list item
-#      '- **<Name>:** …' of template.md, since scripts/lib/adr.sh reads only that form: a field
-#      in another form would pass here and be skipped by the binding ADRs sensor.
-#   8. Supersession agreement: once the new ADR is accepted, its '**Supersedes:**' field and the
+#      cannot silently disable the check. docs/adr-index compares index and file emoji-to-emoji,
+#      so a leftover list of alternatives and a word contradicting its emoji both survive it —
+#      and the word is what a reader believes (docs/adr/README.md). Every header field is the
+#      list item '- **<Name>:** …' of template.md, since scripts/lib/adr.sh reads only that
+#      form: a field in another form would pass here and be skipped by the binding ADRs sensor.
+#   docs/adr-supersessions
+#      Supersession agreement: once the new ADR is accepted, its '**Supersedes:**' field and the
 #      '⚪ superseded by <identifier>' status line of every old one it names — one, or several it
 #      consolidates — name each other, in either form of identifier. While it is
 #      proposed or rejected, no old one names it as its successor: only a human changes a status,
 #      and the human flips the old lines when accepting the new one (docs/adr/README.md). A new
-#      ADR superseded in its turn counts as accepted, so a chain stays whole. Check 1 cannot
+#      ADR superseded in its turn counts as accepted, so a chain stays whole. docs/adr-index cannot
 #      see a missing half: it only mirrors the index against whatever status the file carries.
 #      Every name of a Supersedes field counts, on whichever line it sits. No project ADR
 #      supersedes a 'NUC-' ADR, and each clause an 'Extends:' or 'Narrows:' field names, as
 #      'NUC-<slug> §n', is a numbered clause of that ADR's Decision (NUC-base-is-fixed §1).
-#   9. Check-list agreement: the jobs of .github/workflows/checks.yml and the required status
+#   docs/check-lists
+#      Check-list agreement: the jobs of .github/workflows/checks.yml and the required status
 #      checks named between the 'required-checks' markers in CONTRIBUTING.md list the same jobs, and
 #      the workflows under .github/workflows/ and scripts/check-all.sh run the same scripts. A
 #      check that runs in only one of them is a gate somebody believes in and does not have
@@ -77,27 +92,31 @@
 #      count. So does a script under scripts/ that neither list runs, unless check-all.sh names
 #      it on an '# On instruction:' line. A job with a matrix reports one check run per entry, so
 #      CONTRIBUTING.md names it by those, '<job> (<values>)', and never by its bare name.
-#  10. Project Layout integrity: every path listed in the 'Project Layout' block of CONTRIBUTING.md
+#   docs/project-layout
+#      Project Layout integrity: every path listed in the 'Project Layout' block of CONTRIBUTING.md
 #      exists, a trailing '/' meaning a directory. The block is written by hand and nothing else
 #      tells a reader that one of its lines has gone stale. A path with a '*' matches at least one
 #      file, and docs/plan/ may be absent, since open work lives there only while there is some
 #      (NUC-large-work-is-planned §2). The reverse holds for the top level only: every tracked
 #      top-level file and directory is named, by itself or by a path under it. Below it the block
 #      is a tour of the parts a newcomer needs, not a file listing.
-#  11. Skills an agent reads: every skill under .agents/skills/ (a directory with a SKILL.md) has
+#   docs/skill-pointers
+#      Skills an agent reads: every skill under .agents/skills/ (a directory with a SKILL.md) has
 #      a symlink of its name under .claude/skills/ that resolves to it, and every entry there is
 #      such a symlink (NUC-procedures-are-skills §6); Claude Code reads only that directory, and a
 #      copy drifts. Each SKILL.md opens with '---', closes with '---', and between them has a
 #      'name' equal to its directory and a 'description' (§7); an unindented line there starts a
 #      key or a '- ' item, as a wrap that hides the skill does not, and indented lines pass
 #      unread. Each message says the fix. A repository with neither directory has nothing to check.
-#  12. Base held by its blob list (NUC-base-is-fixed §2): every 'NUC-' file in
+#   docs/base-blobs
+#      Base held by its blob list (NUC-base-is-fixed §2): every 'NUC-' file in
 #      docs/adr/ and the rule file AGENTS.md has the git blob identifier its line in
 #      docs/adr/NUC.blobs names, and every line names a file that exists. The template rewrites
 #      the list in the commit that changes one, and a derived project never changes one. Without
 #      a list the check passes when no 'NUC-' file exists, or when the Template release line of
 #      README.md names the release a fork forked, 'vX.Y.Z, forked'.
-#  13. Setup done: once TEMPLATE-SETUP.md is gone, each required role of ADR_ROLES in
+#   docs/template-identity
+#      Setup done: once TEMPLATE-SETUP.md is gone, each required role of ADR_ROLES in
 #      scripts/lib/adr.sh has exactly one 🟢 accepted ADR whose 'Role:' field names it
 #      (NUC-base-is-fixed §3), and none of the template's placeholders is left.
 #      Step 1 of the setup: the project name NUC in the README title, its
@@ -110,26 +129,28 @@
 #      Test, Lint, or Run command of the README, its Overview sentence, and its Usage TODO. A
 #      placeholder that survives the setup describes the template, not the project. A file that
 #      does not exist has nothing to check.
-#  14. Template release named: README.md carries a '**Template release:**' line naming a
+#   docs/template-release
+#      Template release named: README.md carries a '**Template release:**' line naming a
 #      'vX.Y.Z' tag or 'unreleased' (NUC-releases-are-semver-tags §4). Tags do not travel with
 #      GitHub's template mechanism, so the line is the one thing that tells a derived project
 #      which release of the template it carries; a release moves it, and a project that takes a
 #      release up moves it (§5).
-#  15. Prose width: a line of Markdown prose is at most 100 columns, so a diff shows the sentence
+#   docs/prose-width
+#      Prose width: a line of Markdown prose is at most 100 columns, so a diff shows the sentence
 #      that changed. Fenced code, front matter, table rows, headings, and ADR header fields are
 #      exempt, and so is a line that cannot break, such as a link standing on a line of its own.
 #      Superseded and rejected ADRs are not read, nor is a file .gitattributes marks
 #      'linguist-generated', such as a changelog a tool writes. Indented code blocks are read as
 #      prose.
 #
-# Checks 5 and 6 read every text file of the repository, not a list of documentation extensions:
-# docs/adr/README.md states that code may reference an ADR, so a verifier restricted to
-# documentation file types would leave the references most likely to go stale — those in source
-# comments, which no reviewer reads alongside the ADR index — unchecked. Check 4 reads the
-# section sign only in documentation file types on purpose: an ADR's identifier and the words
-# 'AGENTS.md, section N' mean one thing wherever they appear, but '§' in source code is an
-# ordinary character (see is_doc_file), and flagging it there would make a project's own string
-# literals fail this repository's CI.
+# The rules docs/adr-refs and docs/adr-link-targets read every text file of the repository,
+# not a list of documentation extensions: docs/adr/README.md states that code may reference an
+# ADR, so a verifier restricted to documentation file types would leave the references most
+# likely to go stale — those in source comments, which no reviewer reads alongside the ADR
+# index — unchecked. docs/section-refs reads the section sign only in documentation file
+# types on purpose: an ADR's identifier and the words 'AGENTS.md, section N' mean one thing
+# wherever they appear, but '§' in source code is an ordinary character (see is_doc_file),
+# and flagging it there would make a project's own string literals fail this repository's CI.
 #
 # Pure bash + coreutils/grep/sed/awk/find, plus git to enumerate the repository's files — all present
 # in the Dev Container base image, so running it adds no toolchain and no dependency that would
@@ -308,7 +329,7 @@ is_inactive_adr() {
   [[ "$status" == *⚪* || "$status" == *🔴* ]]
 }
 
-check_adr_index() {  # check 1
+check_adr_index() {  # docs/adr-index
   if [[ ! -f "$ADR_INDEX" ]]; then
     add_error "ADR index not found: docs/adr/README.md [docs/adr-index:absent]"
     return
@@ -400,10 +421,11 @@ check_adr_index() {  # check 1
   done
 }
 
-# Check 2 (see the header). An identifier is never reused, so a deleted one, read off the
-# history, stays taken. The history is the first-parent line of HEAD, each merge read against the
-# branch it landed on: a side branch that deleted an ADR and wrote it anew deleted nothing there.
-check_adr_identifiers() {  # check 2
+# The rule docs/adr-numbering (see the header). An identifier is never reused, so a deleted one,
+# read off the history, stays taken. The history is the first-parent line of HEAD, each merge
+# read against the branch it landed on: a side branch that deleted an ADR and wrote it anew
+# deleted nothing there.
+check_adr_identifiers() {  # docs/adr-numbering
   local f base heading id commit
   local -A deleted=()
   [[ -d "$ADR_DIR" ]] && while IFS= read -r f; do
@@ -460,7 +482,7 @@ instruction_needle() {
 # list of alternatives ('🟡 proposed | 🟢 accepted | …') as whatever stands first, and a line whose word
 # and emoji disagree passes there on the strength of the emoji — while the word is what a reader
 # believes. A missing or emoji-less status line is left to check_adr_index, which reports it.
-check_adr_headers() {  # check 7
+check_adr_headers() {  # docs/adr-header
   local f base line expected word stray
   for f in "${ADR_LIST[@]}"; do
     base="${f##*/}"
@@ -519,7 +541,7 @@ adr_refs() {
 # are verified here; a cited identifier that names no file is left to check_adr_refs, which reports
 # it repository-wide. A Supersedes field wraps at the line width like any other header field,
 # and a name on its second line counts.
-check_adr_supersessions() {  # check 8
+check_adr_supersessions() {  # docs/adr-supersessions
   local f base nr line target target_file succ_file named accepted field rest re="(NUC-$ADR_SLUG_RE) ?§ ?([0-9]+)"
   for f in "${ADR_LIST[@]}"; do
     base="${f##*/}"
@@ -633,10 +655,10 @@ anchor_resolves() {
 #             (``` or ~~~, also inside a blockquote) opens and closes on any line that starts with
 #             one: links in fences are illustrations, not claims about files on disk.
 #   MD_SECT   every line outside such a fence that carries the section sign, as '<line>:<text>'.
-#   MD_WIDE   every line longer than 100 bytes outside the front matter and a fence as check 15
-#             reads one, as '<line>:<text>': a fence there closes only on a line of the same
-#             character, at least as long, and nothing else. Bytes are at least the characters,
-#             so check 15 counts the characters of these lines alone.
+#   MD_WIDE   every line longer than 100 bytes outside the front matter and a fence as the rule
+#             docs/prose-width reads one, as '<line>:<text>': a fence there closes only on
+#             a line of the same character, at least as long, and nothing else. Bytes are at
+#             least the characters, so docs/prose-width counts the characters of these lines alone.
 declare -A MD_LINKS=() MD_SECT=() MD_WIDE=()
 scan_markdown() {
   local files=() f kind file line value
@@ -699,7 +721,7 @@ link_target() {
   LINK_TARGET="$target"
 }
 
-check_relative_links() {  # check 3
+check_relative_links() {  # docs/links
   local md rel linkexpr target path_part frag dir target_file
   for md in "${TEXT_FILES[@]}"; do
     case "$md" in *.md) ;; *) continue ;; esac
@@ -760,16 +782,16 @@ clauses_out() {
 
 # Section references point into AGENTS.md, whose sections are numbered '## N.' headings. Inserting
 # or removing a section renumbers the ones after it, and a bare '§N' would keep pointing at
-# whatever now carries that number — valid-looking and wrong. In Markdown a reference is therefore
-# written as a link to the section's own anchor, which carries the number *and* the title
-# ('AGENTS.md#3-adr-rules'): renumbering or retitling a section makes that anchor stop resolving,
-# and check 3 fails on every reference to it. This check verifies the other half — that the number
-# in the text and the anchor the link points at name the same section.
+# whatever now carries that number — valid-looking and wrong. In Markdown a reference is
+# therefore written as a link to the section's own anchor, which carries the number *and* the
+# title ('AGENTS.md#3-adr-rules'): renumbering or retitling a section makes that anchor stop
+# resolving, and docs/links fails on every reference to it. This check verifies the other half
+# — that the number in the text and the anchor the link points at name the same section.
 #
 # Named gap (AGENTS.md, section 5): outside Markdown there are no links, so a '§N' in a workflow or
 # a script comment is still only checked for the number existing. Those references live in files a
 # maintainer edits next to AGENTS.md; the weaker guarantee is recorded here rather than hidden.
-check_section_refs() {  # check 4
+check_section_refs() {  # docs/section-refs
   local agents="$ROOT/AGENTS.md"
   if [[ ! -f "$agents" ]]; then
     add_error "AGENTS.md not found in the repository root [docs/section-refs:absent]"
@@ -888,7 +910,7 @@ check_section_refs() {  # check 4
   done
 }
 
-check_adr_refs() {  # check 5
+check_adr_refs() {  # docs/adr-refs
   local f files=() lineno line match
   for f in "${TEXT_FILES[@]}"; do
     [[ "$f" == "$ADR_DIR/template.md" ]] && continue
@@ -907,7 +929,7 @@ check_adr_refs() {  # check 5
   done < <(grep -Hn --null -E "$ADR_REF_RE" "${files[@]}")
 }
 
-check_adr_link_targets() {  # check 6
+check_adr_link_targets() {  # docs/adr-link-targets
   local f rel linkexpr text target base id dir
   for f in "${TEXT_FILES[@]}"; do
     case "$f" in *.md) ;; *) continue ;; esac
@@ -936,7 +958,7 @@ check_adr_link_targets() {  # check 6
   done
 }
 
-check_check_lists() {  # check 9
+check_check_lists() {  # docs/check-lists
   local rel_wf=".github/workflows/checks.yml" rel_all="scripts/check-all.sh"
   local wf="$ROOT/$rel_wf" all="$ROOT/$rel_all" readme="$ROOT/CONTRIBUTING.md"
   local f
@@ -1079,7 +1101,7 @@ check_check_lists() {  # check 9
   done
 }
 
-check_project_layout() {  # check 10
+check_project_layout() {  # docs/project-layout
   local readme="$ROOT/CONTRIBUTING.md"
   if [[ ! -f "$readme" ]]; then
     add_error "CONTRIBUTING.md: not found — the Project Layout block cannot be checked [docs/project-layout:absent]"
@@ -1133,9 +1155,9 @@ check_project_layout() {  # check 10
   done < <(git -C "$ROOT" ls-files --cached 2>/dev/null | cut -d/ -f1 | LC_ALL=C sort -u)
 }
 
-# Check 11 (see the header). A pointer is resolved with 'cd -P', which every shell has, rather
-# than realpath, whose flags differ between GNU and BSD.
-check_skill_pointers() {  # check 11
+# The rule docs/skill-pointers (see the header). A pointer is resolved with 'cd -P', which
+# every shell has, rather than realpath, whose flags differ between GNU and BSD.
+check_skill_pointers() {  # docs/skill-pointers
   local skills="$ROOT/.agents/skills" pointers="$ROOT/.claude/skills"
   local d name p target want
   for d in "$skills"/*/; do
@@ -1177,8 +1199,9 @@ check_skill_pointers() {  # check 11
   done
 }
 
-# Check 12 (see the header), both ways, one message for the template and a derived project.
-check_base_blobs() {  # check 12
+# The rule docs/base-blobs (see the header), both ways, one message for the template and a
+# derived project.
+check_base_blobs() {  # docs/base-blobs
   local list="$ADR_DIR/NUC.blobs" f name blob fix out
   fix="a derived project restores the file of its release and narrows a rule by an ADR of its own; the template rewrites the list: bash -c 'source scripts/lib/adr.sh && adr_blobs docs/adr' > docs/adr/NUC.blobs (NUC-base-is-fixed §2)"
   local -A want=() have=()
@@ -1202,9 +1225,10 @@ check_base_blobs() {  # check 12
   done
 }
 
-# Check 13 (see the header). Each placeholder is a pattern in one file; the file is skipped when
-# it does not exist, so a project that dropped one of them is not asked to edit it.
-check_template_identity() {  # check 13
+# The rule docs/template-identity (see the header). Each placeholder is a pattern in one file;
+# the file is skipped when it does not exist, so a project that dropped one of them is not
+# asked to edit it.
+check_template_identity() {  # docs/template-identity
   [[ -f "$ROOT/TEMPLATE-SETUP.md" ]] && return
   # placeholder <file> <grep -E pattern> <message> <reason>
   placeholder() {
@@ -1249,7 +1273,7 @@ check_template_identity() {  # check 13
   done
 }
 
-# LINK_SPACE_RE — a space inside the text of a link; check 15 reads a link as one word.
+# LINK_SPACE_RE — a space inside the text of a link; docs/prose-width reads a link as one word.
 LINK_SPACE_RE='(\[[^] ]*) ([^]]*\]\()'
 
 # columns <text> — sets COLUMNS_OF to the characters of the text: its bytes less the UTF-8
@@ -1260,9 +1284,10 @@ columns() {
   COLUMNS_OF=$((${#1} - ${#cont}))
 }
 
-# Check 15 (see the header). Characters are counted, not bytes, so an em dash is one column;
-# scan_markdown hands over only the lines longer than 100 bytes outside front matter and fences.
-check_prose_width() {  # check 15
+# The rule docs/prose-width (see the header). Characters are counted, not bytes, so an em dash
+# is one column; scan_markdown hands over only the lines longer than 100 bytes outside front
+# matter and fences.
+check_prose_width() {  # docs/prose-width
   local f rel n line indent body in_adr attr COLUMNS_OF
   local LC_ALL=C.UTF-8
   # A file git marks as generated is written by a tool, not wrapped by hand; asked once for all.
@@ -1303,12 +1328,13 @@ check_prose_width() {  # check 15
   done
 }
 
-# Check 14 (see the header). The first matching line is read; a Markdown list marker before the
-# bold label is allowed, the version may be written as a link or in backticks, and what follows
-# it — a sentence, a link target — is not read. After the version only a space, a punctuation
-# mark, or the end of the line may follow: a pre-release suffix, build metadata, and a fourth
-# number are not a tag NUC-releases-are-semver-tags §1 cuts, and SemVer allows no leading zero.
-check_template_release() {  # check 14
+# The rule docs/template-release (see the header). The first matching line is read; a Markdown
+# list marker before the bold label is allowed, the version may be written as a link or in
+# backticks, and what follows it — a sentence, a link target — is not read. After the version
+# only a space, a punctuation mark, or the end of the line may follow: a pre-release suffix,
+# build metadata, and a fourth number are not a tag NUC-releases-are-semver-tags §1 cuts,
+# and SemVer allows no leading zero.
+check_template_release() {  # docs/template-release
   local readme="$ROOT/README.md"
   if [[ ! -f "$readme" ]]; then
     add_error "README.md: not found — the Template section names the release this repository carries (NUC-releases-are-semver-tags §4) [docs/template-release:absent]"
