@@ -10,8 +10,8 @@
 # of two criteria, the record left untouched, a criterion outside Markdown and outside a marker
 # line, a reference to an ADR with no successor, an ignored file, files without a final newline and
 # a binary one, a release's map applied from the tree, each invalid map, which changes nothing, a
-# numbered ADR file among them, and every ADR of a copy of this repository moved to a new
-# identifier, after which the other self-tests still pass.
+# numbered ADR file among them, an option the script does not read, and every ADR of a copy of
+# this repository moved to a new identifier, after which the other self-tests still pass.
 #
 # The identifiers in the fixtures are assembled at run time: a literal one would be a reference
 # that check-docs.sh and check-traceability.sh hold against this repository.
@@ -156,6 +156,12 @@ check "a successor whose clause is mapped exits 1" "[[ $rc -eq 1 ]] && grep -qF 
 run "$d" "$(id one)${S}3 $(id two)${S}1" "$(id two) $(id three)"; rc=$?
 check "a clause whose successor's identifier is mapped exits 1" "[[ $rc -eq 1 ]] && grep -qF 'never used twice' '$work/out'"
 check "a refused map changes nothing" "grep -qxF '$(id one)' '$d/README.md'"
+# An option the script does not read, such as the --record it once had, is no map file: it is
+# refused with exit 1 and its name, and the valid map after it is not applied.
+printf '%s %s\n' "$(id one)" "$(id four)" > "$work/map-record"
+(cd "$d" && bash "$REMAP" --record "$work/map-record") > "$work/out" 2>&1; rc=$?
+check "an option it does not read exits 1 and changes nothing" \
+  "[[ $rc -eq 1 ]] && grep -qF \"remap: '--record' is no map file\" '$work/out' && grep -qxF '$(id one)' '$d/README.md'"
 
 # A swap of two criteria: in Markdown, on a marker line, and in an ADR; never in the specification
 # and never on another line of a file that is not Markdown. A criteria swap is one pass.
