@@ -19,7 +19,7 @@
 # section 5 start from the same list.
 #
 # Pure bash + git. Usage:
-#     scripts/sensor-binding-adrs.sh [--root <dir>] [--sections] [--path <path>]... [base [head]]
+#     scripts/sensor-binding-adrs.sh [--root <dir>] [--sections] {[--path <path>]... | [base [head]]}
 # It reads the repository it lives in, as the checks do; --root names another, as its self-test
 # does with each fixture. With --sections it prints after the list what a session reads of the
 # record (AGENTS.md section 2): of each ADR listed its header and the sections ADR_RULE_SECTIONS of
@@ -29,7 +29,7 @@
 # 'and', that is not one path in backticks. Each --path names a path the work is about to touch,
 # for a session that has changed nothing yet; the paths stand in for the change, and the ADRs are
 # read as the working tree has them. A named directory also binds an ADR that names a path under
-# it. With --path, a base or head given as well is ignored. Without a base, the merge base of head
+# it. With --path, a base or head given as well exits 2. Without a base, the merge base of head
 # with origin/main (else main) is used; CI passes the pull request's base. A base of zeros, which
 # a push event reports for a new branch, counts as none. Without a head, the change is the working
 # tree, uncommitted and untracked files included, and the ADRs are read as the working tree has
@@ -50,7 +50,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/git.sh"
 
 # shellcheck source-path=SCRIPTDIR source=lib/root.sh
 source "$(dirname "${BASH_SOURCE[0]}")/lib/root.sh"
-usage="scripts/sensor-binding-adrs.sh [--root <dir>] [--sections] [--path <path>]... [base [head]]"
+usage="scripts/sensor-binding-adrs.sh [--root <dir>] [--sections] {[--path <path>]... | [base [head]]}"
 # shellcheck disable=SC2034 # read by enter_root
 VALUE_OPTIONS="--path"
 enter_root "${BASH_SOURCE[0]}" "$usage" "$@"
@@ -69,7 +69,8 @@ while (($#)); do
     *) break ;;
   esac
 done
-rest_args "${BASH_SOURCE[0]}" "$usage" 2 "$@"
+# With --path the paths stand in for a range, so a base or head given as well is refused.
+rest_args "${BASH_SOURCE[0]}" "$usage" "$( ((${#named[@]})) && echo 0 || echo 2)" "$@"
 
 # MODULE_DIRS — per language that lays out a module's children in the directory of its file's
 # name, the extension and the file names that do not, '<extension> <name>...' a line. Rust's
