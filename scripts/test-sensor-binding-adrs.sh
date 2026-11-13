@@ -341,6 +341,24 @@ checks "$d" : : && mkdir -p "$d/t" && echo x > "$d/t/b"
 reject "a rule key is no path of its own" "$d" "- $(adr_id 5) ("
 rm -r "$d/t"
 
+# An old key the item of a rule carries in the header names that rule's check.
+d="$(repo old-keys)"
+olds() {
+  printf '#   t/a\n#   t/b (was: t/old, t/older)\nset -u\n' > "$1/scripts/c.sh"
+  printf 'check_a() {  # t/a\n  %s\n}\ncheck_b() {  # t/b\n  %s\n}\n' "$2" "$3" >> "$1/scripts/c.sh"
+}
+mkdir -p "$d/scripts" && olds "$d" : :
+# shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
+adr "$d" 0004 "🟢 accepted" 'the rule `t/older` of `scripts/c.sh`'
+# shellcheck disable=SC2016  # the backticks are literal Markdown, not a command substitution
+adr "$d" 0005 "🟢 accepted" 'the rule `t/a` of `scripts/c.sh`'
+base "$d"
+olds "$d" : true
+expect 0 "an old key binds the check of the item that carries it" "$d" "- $(adr_id 4) (docs"
+reject "a change in that check binds no ADR that names another rule" "$d" "- $(adr_id 5) ("
+olds "$d" true :
+reject "an old key binds no other check" "$d" "- $(adr_id 4) ("
+
 # --- summary ---------------------------------------------------------------------------------
 
 summary "Binding ADRs sensor self-test"

@@ -59,6 +59,8 @@
 #                               <status>\n- **Applies to:** everything\n\n## Decision\n\nWe will.\n'
 #   row <table> <id> <status>   an index row alone, in 'binding' or 'archive'
 #   status <id> <status>        the status line of the file alone
+#   applies <id> <text>         the Applies to field of the file and the cell of its row, both
+#                               reading the text
 #   field <id> <name> <text>    a header field '- **<name>:** <text>' before Applies to, such as Role
 #   supersedes <id> <ids>       a Supersedes field before Applies to, linking each id of the
 #                               comma-separated list as [<id>](<id>.md); an id after '+' stands on
@@ -132,6 +134,13 @@ docs/adr-refs | pass | - | a slug of one word is no citation | text README.md AP
 docs/adr-refs | pass | - | a slug of one word in a shell script is no citation | text scripts/lib/note.sh # An API:first design.
 docs/adr-refs | pass | - | a chain longer than an identifier is no citation, not one cut short | text README.md NUC:adrs-record-decisions-and-a-b.
 docs/adr-refs | pass | - | a hyphenated word of no category is no citation | text README.md UTF:8 and SHA:256 and CVE:2025-30066.
+docs/adr-refs | fail | docs/adr-refs:unlisted @ SEC:x-rule.md @ docs/no-such-key | an accepted ADR that names a rule key the header of check-docs.sh lacks | adr SEC:x-rule accepted; applies SEC:x-rule the rule `docs/no-such-key` of `scripts/check-docs.sh`
+docs/adr-refs | fail | docs/adr-refs:unlisted @ SEC:x-rule.md @ docs/no-such-key | a proposed ADR that names a missing key among keys that exist | adr SEC:x-rule proposed; applies SEC:x-rule the rules `docs/links`, `docs/no-such-key`, and `docs/adr-refs` of `scripts/check-docs.sh`
+docs/adr-refs | pass | - | an ADR that names rule keys of the header | adr SEC:x-rule accepted; applies SEC:x-rule the rules `docs/links` and `docs/adr-refs` of `scripts/check-docs.sh`
+docs/adr-refs | pass | - | an ADR that names the old key an item of the header carries | adr SEC:x-rule accepted; applies SEC:x-rule the rule `docs/adr-numbering` of `scripts/check-docs.sh`
+docs/adr-refs | pass | - | a rule key of another file is not held against the header | adr SEC:x-rule accepted; applies SEC:x-rule the rule `build/no-such-key` of `scripts/check-build.sh`
+docs/adr-refs | pass | - | a rejected ADR that names a missing rule key | adr SEC:x-rule rejected; applies SEC:x-rule the rule `docs/no-such-key` of `scripts/check-docs.sh`
+docs/adr-refs | pass | - | a superseded ADR that names a missing rule key | adr SEC:decision-1 superseded:SEC:decision-2; adr SEC:decision-2 accepted; supersedes SEC:decision-2 SEC:decision-1; applies SEC:decision-1 the rule `docs/no-such-key` of `scripts/check-docs.sh`
 docs/adr-link-targets | fail | docs/adr-link-targets:other @ README.md @ [SEC:x-rule](docs/adr/SEC:decision-1.md) @ SEC:x-rule @ SEC:decision-1.md | a link that cites one ADR and points at another | adr SEC:decision-1 accepted; adr SEC:x-rule proposed; text README.md See [SEC:x-rule](docs/adr/SEC:decision-1.md).
 docs/adr-link-targets | pass | - | a link that cites an ADR and points at its file | adr SEC:x-rule proposed; text README.md See [SEC:x-rule §2](docs/adr/SEC:x-rule.md#decision).
 docs/adr-link-targets | pass | - | a link that cites an ADR and points outside docs/adr/ is no claim | adr SEC:x-rule proposed; text docs/notes/threat-model.md # Threat model; text README.md See [SEC:x-rule](docs/notes/threat-model.md).
