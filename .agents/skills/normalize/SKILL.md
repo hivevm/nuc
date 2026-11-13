@@ -99,6 +99,9 @@ has agreed the cut.
    successor, or to `-` where it has none, and a split names each successor. A successor that is
    itself mapped is refused, so a map has no chain. Check it with `remap.sh --check`, apply it
    with `remap.sh`, and rewrite by hand what it lists as left; `--check` then reports nothing.
+   Under `--check`, exit 1 means a move or a refusal: a move prints its line on stdout, a refusal
+   nothing on stdout and its reason on stderr, and a reference left follows `remap: references
+   left to rewrite by hand:` on stderr even when exit 1 reports a move.
 5. Make the tests cite the new identifiers where `remap.sh` did not reach, and update
    [`docs/ARCHITECTURE.md`](../../../docs/ARCHITECTURE.md) where the cut changed what it cites.
 6. Run `scripts/check-all.sh`.
