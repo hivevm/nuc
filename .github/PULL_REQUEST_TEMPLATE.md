@@ -42,13 +42,20 @@
 
 ## Doubts
 
-<!-- What in the task, its framing, or the existing code the implementer disagreed with, each
-     with its evidence, and what could not be confirmed against the specification, the ADRs, the
-     code, or a source (AGENTS.md [§1](../AGENTS.md#1-principles)). "None" is a claim the reviewer
-     checks. -->
+<!-- Disagreed: what in the task, its framing, or the existing code the implementer disagreed
+     with, each with its evidence. Unsure: what the implementer chose or read without certainty,
+     for the human or the reviewer to settle. Could not confirm: what could not be confirmed
+     against the specification, the ADRs, the code, or a source
+     (AGENTS.md [§1](../AGENTS.md#1-principles)). A derived project acts on: what a project
+     must do when it takes the change up with a release, such as a changed interface of a
+     script, a check that newly reaches a project's own files, a moved key, or a removed file,
+     so that the notes of a release can name it; in a project that ships no releases it is
+     always "none". "None" is a claim the reviewer checks, in every field. -->
 
 - Disagreed:
+- Unsure:
 - Could not confirm:
+- A derived project acts on:
 
 ## Documents and decisions
 
