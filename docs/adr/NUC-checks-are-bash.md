@@ -106,14 +106,15 @@ The catalogue has no entry for the binary, and choosing it needs an ADR that nar
 - The rule `docs/check-lists` of `scripts/check-docs.sh` holds the three lists and the scripts run
   on instruction (clauses 5 and 7).
 - `scripts/check-shell.sh` lints every script, and `scripts/check-all.sh` refuses a bash below 4.4
-  by name (clause 1).
+  by name (clause 1). The rule `shell/bash-floor` of `scripts/check-shell.sh` holds each script
+  that sources the floor to stop below it with its name.
 - `scripts/test-check-all.sh` holds `--changed`, and `scripts/test-git-hooks.sh` every refusal of
   the hooks (clause 6).
 - `scripts/check-traceability.sh` fails on a sensor without its self-test, or a self-test that does
   not cite this ADR (clause 4). It names this ADR's identifier, which no normalization moves.
-- `scripts/test-check-all.sh` holds every script `scripts/*.sh` but the self-tests and
-  `scripts/check-all.sh` to clause 9: each calls `enter_root`, and exits 2 on `--verbose` and
-  on a root that is no directory.
+- The rule `shell/root` of `scripts/check-shell.sh` holds every script `scripts/*.sh` to clause 9,
+  but the self-tests and `scripts/check-all.sh`. Each must call `enter_root`, and exit 2 on
+  `--verbose` and on a root that is no directory.
 
 The self-tests of these checks cite this ADR.
 
