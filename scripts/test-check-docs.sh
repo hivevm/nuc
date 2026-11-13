@@ -176,7 +176,7 @@ expect() {
   local want="$1" name="$2" dir="$3" needle="${4:-}"
   local out rc
   git -C "${dir:?}" add -A
-  out="$(bash "$CHECK" "$dir" 2>&1)"; rc=$?
+  out="$(bash "$CHECK" --root "$dir" 2>&1)"; rc=$?
   if output_holds "$out" "$needle" && [[ ( "$want" == "pass" && $rc -eq 0 ) || ( "$want" == "fail" && $rc -ne 0 ) ]]; then
     passed=$((passed + 1))
     return
@@ -306,7 +306,7 @@ while IFS= read -r line; do
   while IFS= read -r s; do [[ -z "$s" ]] || step "$d" "$s"; done <<< "${tree//; /$'\n'}"
   needle="${needle//<deleted>/$DELETED}"
   git -C "${d:?}" add -A
-  out="$(bash "$CHECK" "$d" 2>&1)"
+  out="$(bash "$CHECK" --root "$d" 2>&1)"
   table_case "$rule: $name" "$want" "$needle" "$?" "$out"
 done < "$TABLE"
 ((n > 0)) || { echo "FAIL: no case read from $TABLE" >&2; failed=$((failed + 1)); }

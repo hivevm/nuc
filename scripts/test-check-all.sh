@@ -156,6 +156,60 @@ for s in "$ROOT"/scripts/*.sh "$ROOT"/.agents/skills/*/*.sh; do
     failed=$((failed + 1)); echo "FAIL: ${s#"$ROOT"/} $problem" >&2
   fi
 done
+
+# Each script under scripts/ but the self-tests and this runner can run on another repository: it
+# takes the root as '--root <dir>' through enter_root of scripts/lib/root.sh, and refuses an
+# argument it does not read. --verbose, an option none of them reads, stops it with exit 2, its
+# name, and the argument; a --root on a missing directory stops it with exit 2 before it reads
+# anything, so that no check passes on a tree it never read.
+# root_problem <script> — prints what is wrong with the script's root, nothing if all is.
+root_problem() {
+  local out rc name="${1##*/}"
+  grep -qE '^enter_root "\$\{BASH_SOURCE\[0\]\}" ' "$1" || { echo "calls no enter_root"; return; }
+  ! grep -qE 'cd "\$\{1' "$1" || { echo "passes its first argument to cd"; return; }
+  out="$(cd "$work" && bash "$1" --verbose 2>&1)"; rc=$?
+  if ((rc != 2)) || [[ "$out" != "$name: unknown argument '--verbose'"* ]]; then
+    echo "takes --verbose (exit $rc): $out"
+    return
+  fi
+  out="$(cd "$work" && bash "$1" --root "$work/no-such-root" 2>&1)"; rc=$?
+  ((rc == 2)) && [[ "$out" == "$name: '$work/no-such-root' is not a directory"* ]] \
+    || echo "reads a missing root (exit $rc): $out"
+}
+for s in "$ROOT"/scripts/*.sh; do
+  [[ "${s##*/}" == test-*.sh || "${s##*/}" == check-all.sh ]] && continue
+  problem="$(root_problem "$s")"
+  if [[ -z "$problem" ]]; then
+    passed=$((passed + 1))
+  else
+    failed=$((failed + 1)); echo "FAIL: ${s#"$ROOT"/} $problem" >&2
+  fi
+done
+# --root given twice is refused, not read as the last one, and a directory whose name starts with
+# '-' is a root, not an option of cd.
+out="$(bash "$ROOT/scripts/check-devcontainer.sh" --root "$work/no-such-root" --root "$ROOT" 2>&1)"; rc=$?
+if ((rc == 2)) && [[ "$out" == "check-devcontainer.sh: '--root' is given twice"* ]]; then
+  passed=$((passed + 1))
+else
+  failed=$((failed + 1)); echo "FAIL: --root given twice is refused (exit $rc): $out" >&2
+fi
+mkdir -p "$work/dash/-root" && git -C "$work/dash/-root" init -q
+out="$(cd "$work/dash" && bash "$ROOT/scripts/check-shell.sh" --root -root 2>&1)"; rc=$?
+if ((rc == 0)); then
+  passed=$((passed + 1))
+else
+  failed=$((failed + 1)); echo "FAIL: a root whose name starts with '-' is read (exit $rc): $out" >&2
+fi
+# A script whose call of enter_root is removed is caught, though the rest of it still parses.
+mkdir -p "$work/root-copy/scripts"
+cp -R "$ROOT/scripts/lib" "$work/root-copy/scripts/"
+grep -v '^enter_root ' "$ROOT/scripts/check-devcontainer.sh" > "$work/root-copy/scripts/check-devcontainer.sh"
+if [[ -n "$(root_problem "$work/root-copy/scripts/check-devcontainer.sh")" ]]; then
+  passed=$((passed + 1))
+else
+  failed=$((failed + 1)); echo "FAIL: a script without its call of enter_root is caught" >&2
+fi
+
 own="$work/own-project"
 mkdir -p "$own/scripts"
 printf 'touch "%s/ran"\n' "$own" > "$own/scripts/own.sh"

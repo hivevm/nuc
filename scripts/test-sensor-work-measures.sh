@@ -109,12 +109,18 @@ expect "a pull request gh cannot read keeps its time" "$d" 0 \
 d2="$(repo empty)"
 expect "no merge of a pull request says so" "$d2" 0 \
   "Work measures sensor: no merge of a pull request on main — nothing to report."
-expect "a root that is no git repository exits 2" "$work/none" 2 \
-  "work measures sensor: '$work/none' is no git repository."
+expect "a root that does not exist exits 2" "$work/none" 2 \
+  "sensor-work-measures.sh: '$work/none' is not a directory — usage: scripts/sensor-work-measures.sh [--root <dir>]"
+mkdir -p "$work/plain"
+expect "a root that is no git repository exits 2" "$work/plain" 2 \
+  "work measures sensor: '$work/plain' is no git repository."
+out="$(bash "$SENSOR" --root 2>&1)"; rc=$?
+check "--root without a directory exits 2 and reads no repository" \
+  test "$rc" = 2 -a "$out" = "sensor-work-measures.sh: '--root' needs a directory — usage: scripts/sensor-work-measures.sh [--root <dir>]"
 GH_CMD="$work/no-such-gh" expect "no gh exits 2" "$d" 2 \
   "work measures sensor: the GitHub CLI ($work/no-such-gh) is not installed."
 expect "an unknown argument exits 2" "$d" 2 \
-  "work measures sensor: unknown argument '--verbose' — usage: scripts/sensor-work-measures.sh [--root <dir>]" \
+  "sensor-work-measures.sh: unknown argument '--verbose' — usage: scripts/sensor-work-measures.sh [--root <dir>]" \
   --verbose
 
 summary "Work measures sensor self-test"
