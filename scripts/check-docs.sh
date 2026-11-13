@@ -142,6 +142,10 @@
 #      GitHub's template mechanism, so the line is the one thing that tells a derived project
 #      which release of the template it carries; a release moves it, and a project that takes a
 #      release up moves it (§5).
+#      A change that moves the version on the line against its merge base with origin/main, else
+#      main, cuts a release or takes one up, and then each 🟡 proposed 'NUC-' ADR fails (clause 8): a
+#      derived project can neither accept nor reject one. A base without the line counts as none.
+#      Without a merge base the line is read alone.
 #   docs/prose-width
 #      Prose width: a line of Markdown prose is at most 100 columns, so a diff shows the sentence
 #      that changed. Fenced code, front matter, table rows, headings, and ADR header fields are
@@ -178,6 +182,8 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/bash.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/lib/adr.sh"
 # shellcheck source-path=SCRIPTDIR source=lib/check.sh
 source "$(dirname "${BASH_SOURCE[0]}")/lib/check.sh"
+# shellcheck source-path=SCRIPTDIR source=lib/git.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/git.sh"
 
 # shellcheck source-path=SCRIPTDIR source=lib/root.sh
 source "$(dirname "${BASH_SOURCE[0]}")/lib/root.sh"
@@ -1363,25 +1369,49 @@ check_prose_width() {  # docs/prose-width
 # only a space, a punctuation mark, or the end of the line may follow: a pre-release suffix,
 # build metadata, and a fourth number are not a tag NUC-releases-are-semver-tags §1 cuts,
 # and SemVer allows no leading zero.
+# release_of <text> — sets RELEASE to what the first Template release line of the text names,
+# 'vX.Y.Z' or 'unreleased'; to nothing when the text has no such line, and to '-' when its line
+# names neither.
+RELEASE=""
+release_of() {
+  local line num='(0|[1-9][0-9]*)' re
+  # shellcheck disable=SC2016  # the backticks are Markdown to match, not a command substitution
+  re='^[[`]?(v'"$num"'\.'"$num"'\.'"$num"'|unreleased)($|[][:space:],;:)`]|\.([[:space:]]|$))'
+  RELEASE=""
+  line="$(grep -m1 -E '^[[:space:]]*([-*] )?\*\*Template release:\*\*' <<< "$1")" || return 0
+  line="${line#*\*\*Template release:\*\*}" line="${line#"${line%%[![:space:]]*}"}"
+  if [[ "$line" =~ $re ]]; then RELEASE="${BASH_REMATCH[1]}"; else RELEASE=-; fi
+}
+
 check_template_release() {  # docs/template-release
   local readme="$ROOT/README.md"
   if [[ ! -f "$readme" ]]; then
     add_error "README.md: not found — the Template section names the release this repository carries (NUC-releases-are-semver-tags §4) [docs/template-release:absent]"
     return
   fi
-  local line value
-  line="$(grep -m1 -E '^[[:space:]]*([-*] )?\*\*Template release:\*\*' "$readme")"
-  if [[ -z "$line" ]]; then
+  release_of "$(< "$readme")"
+  if [[ -z "$RELEASE" ]]; then
     add_error "README.md: no '**Template release:**' line — the Template section names the release of the template this repository carries, or 'unreleased' (NUC-releases-are-semver-tags §4) [docs/template-release:line]"
     return
   fi
-  value="${line#*\*\*Template release:\*\*}"
-  value="${value#"${value%%[![:space:]]*}"}"
-  local num='(0|[1-9][0-9]*)'
-  # shellcheck disable=SC2016  # the backticks are Markdown to match, not a command substitution
-  local re='^[[`]?(v'"$num"'\.'"$num"'\.'"$num"'|unreleased)($|[][:space:],;:)`]|\.([[:space:]]|$))'
-  [[ "$value" =~ $re ]] \
-    || add_error "README.md: the Template release line names neither a 'vX.Y.Z' tag nor 'unreleased' — a release moves it to the tag it cuts (NUC-releases-are-semver-tags §1, §4) [docs/template-release:version]"
+  if [[ "$RELEASE" == - ]]; then
+    add_error "README.md: the Template release line names neither a 'vX.Y.Z' tag nor 'unreleased' — a release moves it to the tag it cuts (NUC-releases-are-semver-tags §1, §4) [docs/template-release:version]"
+    return
+  fi
+  # A change that moves the version against the merge base with main cuts a release, or takes
+  # one up: it carries no proposed NUC- ADR (NUC-releases-are-semver-tags §8). A base without
+  # the line, or with one that names no version, counts as none. Without a merge base the line
+  # is read alone.
+  local now="$RELEASE" base was f
+  base="$(main_merge_base HEAD 2>/dev/null)" || return 0
+  release_of "$(git show "$base:README.md" 2>/dev/null)"
+  [[ "$RELEASE" == "$now" ]] && return 0
+  was="$RELEASE"
+  [[ -n "$was" && "$was" != - ]] || was=none
+  for f in "${ADR_LIST[@]}"; do
+    [[ "${f##*/}" == NUC-* && "${ADR_STATUS["$f"]-}" == *🟡* ]] || continue
+    add_error "${f#"$ROOT"/}: proposed, and the change moves the Template release line from $was to $now — a release carries only accepted NUC- ADRs (NUC-releases-are-semver-tags §8) [docs/template-release:proposed]"
+  done
 }
 
 collect_text_files

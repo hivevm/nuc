@@ -89,7 +89,7 @@ repo() {
   local dir="$work/$1"
   mkdir -p "$dir/docs/adr" "$dir/scripts" "$dir/.github/workflows" \
            "$dir/.agents/skills/review" "$dir/.claude/skills"
-  git -C "${dir:?}" init -q
+  git -C "${dir:?}" init -q -b main
 
   {
     echo "# Agent Guide"
@@ -289,6 +289,7 @@ step() {
               && DELETED="$(g "$dir" rev-parse --short HEAD)" ;;
     branch) g "$dir" switch -q -c "$id" ;;
     back) g "$dir" switch -q - ;;
+    rename) g "$dir" branch -q -m "$id" ;;
     merge) g "$dir" merge -q --no-ff -m "$op" "$id" ;;
     skill) printf '%b' "${2#skill }" > "$dir/.agents/skills/review/SKILL.md" ;;
     *) echo "fixture table: unknown step '$op'" >&2; exit 1 ;;

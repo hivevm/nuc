@@ -54,6 +54,10 @@ release it carries in its README.
 7. **Re-cut.** A release that merges, splits, or removes a `NUC-` ADR is a major. Before `v1.0.0`
    it may be a minor, per clause 3. Its notes must carry the map from each old identifier and
    clause to its new home.
+8. **Accepted only.** A release carries no `proposed` `NUC-` ADR. A derived project can neither
+   accept nor reject one, since it never edits a `NUC-` file
+   ([NUC-base-is-fixed §1](NUC-base-is-fixed.md)). A proposed `NUC-` ADR waits on a branch of
+   its own until the human accepts it.
 
 **Out of scope:**
 
@@ -114,6 +118,8 @@ The catalogue has no entry for these choices, and none of them needs an ADR.
 - Positive: a take-up replaces files and runs the checks; it needs no normalization.
 - Negative: the line moves by hand. A release nobody cuts leaves `main` ahead of the last tag.
 - Negative: a project that never moves the line carries a state that grows old.
+- Negative: a `NUC-` ADR that reaches `main` while proposed holds the next release until the
+  human accepts it or moves it to a branch of its own.
 - Follow-ups: the order of work of a take-up is a procedure of the `normalize` skill.
 
 ## Enforcement
@@ -121,6 +127,10 @@ The catalogue has no entry for these choices, and none of them needs an ADR.
 - The rule `docs/template-release` of `scripts/check-docs.sh` fails on a missing or malformed
   release line (clause 4).
   Its self-test cites this ADR.
+- The same rule fails on each 🟡 proposed `NUC-` ADR when the change moves the version on the
+  release line (clause 8). It compares the line with the one at the merge base with
+  `origin/main`, else `main`. Such a change cuts a release, or a derived project takes one up.
+  Without a merge base the rule reads the line alone.
 
 **Not mechanically decidable:** clauses 2, 3, and 5. The review of the release pull request holds
 whether the version fits the change, and whether the tag exists and the line moved.
