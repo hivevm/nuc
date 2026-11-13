@@ -26,27 +26,25 @@ set -uo pipefail
 # shellcheck source-path=SCRIPTDIR source=lib/bash.sh
 source "$(dirname "${BASH_SOURCE[0]}")/lib/bash.sh"
 
+# shellcheck source-path=SCRIPTDIR source=lib/root.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/root.sh"
+
 NAME="Work measures sensor"
 usage="scripts/sensor-work-measures.sh [--root <dir>]"
-root="$(dirname "${BASH_SOURCE[0]}")/.."
+enter_root "${BASH_SOURCE[0]}" "$usage" "$@"
+rest_args "${BASH_SOURCE[0]}" "$usage" 0 "${ARGS[@]}"
 last=10  # the merges read, the newest first
-while (($#)); do
-  case "$1" in
-    --root) root="${2:-}"; shift 2 || shift ;;
-    *) echo "work measures sensor: unknown argument '$1' — usage: $usage" >&2; exit 2 ;;
-  esac
-done
-git -C "$root" rev-parse --git-dir > /dev/null 2>&1 \
-  || { echo "work measures sensor: '$root' is no git repository." >&2; exit 2; }
+git -C "$ROOT" rev-parse --git-dir > /dev/null 2>&1 \
+  || { echo "work measures sensor: '$ROOT' is no git repository." >&2; exit 2; }
 GH="${GH:-gh}"
 command -v "$GH" > /dev/null 2>&1 \
   || { echo "work measures sensor: the GitHub CLI ($GH) is not installed." >&2; exit 2; }
 
 main=origin/main
-git -C "$root" rev-parse -q --verify "$main^{commit}" > /dev/null || main=main
+git -C "$ROOT" rev-parse -q --verify "$main^{commit}" > /dev/null || main=main
 
 # Every merge of a pull request on main, the newest first: '<merge> <pull request> <branch>'.
-mapfile -t merges < <(git -C "$root" log --first-parent --merges --format='%H %s' "$main" -- 2>/dev/null \
+mapfile -t merges < <(git -C "$ROOT" log --first-parent --merges --format='%H %s' "$main" -- 2>/dev/null \
   | sed -nE 's/^([0-9a-f]+) Merge pull request #([0-9]+) from [^/]+\/(.+)$/\1 \2 \3/p')
 if ((${#merges[@]} == 0)); then
   echo "$NAME: no merge of a pull request on main — nothing to report."
@@ -57,10 +55,10 @@ echo "$NAME: ${#merges[@]} merge$( ((${#merges[@]} == 1)) || echo s) of a pull r
 
 for entry in "${merges[@]:0:read_n}"; do
   read -r merge pr branch <<< "$entry"
-  merged_at="$(git -C "$root" log -1 --format=%ct "$merge")"
-  first_at="$(git -C "$root" log --reverse --format=%at "$merge^1..$merge^2" | head -n 1)"
+  merged_at="$(git -C "$ROOT" log -1 --format=%ct "$merge")"
+  first_at="$(git -C "$ROOT" log --reverse --format=%at "$merge^1..$merge^2" | head -n 1)"
   hours=$(( (merged_at - ${first_at:-$merged_at}) / 3600 ))
-  if body="$(cd "$root" && "$GH" pr view "$pr" --json body --jq .body 2>/dev/null)"; then
+  if body="$(cd "$ROOT" && "$GH" pr view "$pr" --json body --jq .body 2>/dev/null)"; then
     rounds="$(grep -oE 'review rounds [0-9]+' <<< "$body" | head -n 1 | grep -oE '[0-9]+$')"
     if [[ -n "$rounds" ]] && ((rounds > 0)); then reviews="$rounds round$( ((rounds == 1)) || echo s) of review"
     else reviews="rounds of review unknown"; fi

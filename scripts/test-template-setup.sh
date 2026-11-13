@@ -101,7 +101,7 @@ edit() {
 }
 
 # run_check <dir> <script> — run one check against the copy; prints its output and exit code.
-run_check() { fixture "$1"; bash "$ROOT/scripts/$2" "$1" 2>&1; }
+run_check() { fixture "$1"; bash "$ROOT/scripts/$2" --root "$1" 2>&1; }
 
 # expect_pass <name> <dir> <script> — the check must pass on the copy.
 expect_pass() {

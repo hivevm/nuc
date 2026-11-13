@@ -28,7 +28,7 @@
 # before is not seen, nor is pipefail set in a file the script sources.
 #
 # Usage:
-#     scripts/check-shell.sh [repository root]        (or: bash scripts/check-shell.sh)
+#     scripts/check-shell.sh [--root <dir>]        (or: bash scripts/check-shell.sh)
 # The root defaults to this repository; scripts/test-check-shell.sh passes fixtures.
 # Exit code 0 when all scripts pass (ShellCheck skipped when unavailable outside CI), 1 otherwise,
 # 2 on a root that is no directory.
@@ -38,8 +38,11 @@ set -uo pipefail
 # shellcheck source-path=SCRIPTDIR source=lib/bash.sh
 source "$(dirname "${BASH_SOURCE[0]}")/lib/bash.sh"
 
-ROOT="$(cd "${1:-$(dirname "${BASH_SOURCE[0]}")/..}" 2>/dev/null && pwd)" \
-  || { echo "Shell lint: '${1:-}' is not a directory." >&2; exit 2; }
+# shellcheck source-path=SCRIPTDIR source=lib/root.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/root.sh"
+usage="scripts/check-shell.sh [--root <dir>]"
+enter_root "${BASH_SOURCE[0]}" "$usage" "$@"
+rest_args "${BASH_SOURCE[0]}" "$usage" 0 "${ARGS[@]}"
 
 have_shellcheck=1
 if ! command -v shellcheck >/dev/null 2>&1; then

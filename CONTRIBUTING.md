@@ -61,8 +61,9 @@ scripts/sensor-*.sh   # sensors: report for the reviewer; sensor-repo-settings.s
 scripts/test-*.sh     # self-tests of the checks, the sensors, the hooks, the setup, and the scripts
                       # run by hand
 scripts/lib/          # what the scripts share: the bash floor (bash.sh), the ADR header (adr.sh),
-                      # the findings of a check (check.sh), git (git.sh), the plain rules
-                      # (rules.sh), the self-tests (selftest.sh), the ticket path (ticket.sh)
+                      # the findings of a check (check.sh), git (git.sh), the root a script
+                      # reads (root.sh), the plain rules (rules.sh), the self-tests
+                      # (selftest.sh), the ticket path (ticket.sh)
 scripts/fixtures/     # the cases of a check as a table, which its self-test reads
 scripts/*.sh          # run by hand, steps 7 and 8 of the integration branches: ready-for-main.sh,
                       # drop-merged-branch.sh

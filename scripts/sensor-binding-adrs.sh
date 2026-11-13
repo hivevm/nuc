@@ -35,7 +35,8 @@
 # tree, uncommitted and untracked files included, and the ADRs are read as the working tree has
 # them, so a session gets its list before its first commit; with a head, the change ends at that
 # commit and the ADRs are read as it has them. With nothing to compare — no base and no main, or
-# no change — it says so. Exit code 0 always, except 2 on a base or head that does not resolve.
+# no change — it says so. Exit code 0 always, except 2 on a base or head that does not resolve,
+# an argument it does not read, or a root that is no directory.
 
 set -uo pipefail
 
@@ -47,8 +48,11 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/adr.sh"
 # shellcheck source-path=SCRIPTDIR source=lib/git.sh
 source "$(dirname "${BASH_SOURCE[0]}")/lib/git.sh"
 
-enter_root "Binding ADRs sensor" "${BASH_SOURCE[0]}" "$@"
-shift "$ROOT_TAKEN"
+# shellcheck source-path=SCRIPTDIR source=lib/root.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/root.sh"
+usage="scripts/sensor-binding-adrs.sh [--root <dir>] [--sections] [--path <path>]... [base [head]]"
+enter_root "${BASH_SOURCE[0]}" "$usage" "$@"
+set -- "${ARGS[@]}"
 
 sections=0
 named=()
@@ -63,6 +67,7 @@ while (($#)); do
     *) break ;;
   esac
 done
+rest_args "${BASH_SOURCE[0]}" "$usage" 2 "$@"
 
 # MODULE_DIRS — per language that lays out a module's children in the directory of its file's
 # name, the extension and the file names that do not, '<extension> <name>...' a line. Rust's

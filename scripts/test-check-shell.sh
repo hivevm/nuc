@@ -49,7 +49,7 @@ repo() {
 # the glob pattern, when one is given.
 expect() {
   local want="$1" name="$2" dir="$3" out rc
-  out="$(bash "$CHECK" "${dir:?}" 2>&1)"; rc=$?
+  out="$(bash "$CHECK" --root "${dir:?}" 2>&1)"; rc=$?
   if ((rc == want)) && [[ "$out" == *${4:-}* ]]; then
     passed=$((passed + 1))
     return
