@@ -63,7 +63,7 @@ scripts/test-*.sh     # self-tests of the checks, the sensors, the hooks, the se
 scripts/lib/          # what the scripts share: the bash floor (bash.sh), the ADR header (adr.sh),
                       # the findings of a check (check.sh), git (git.sh), the root a script
                       # reads (root.sh): every scripts/*.sh but the self-tests and
-                      # check-all.sh takes it, as test-check-all.sh checks; the plain
+                      # check-all.sh takes it, as check-shell.sh checks; the plain
                       # rules (rules.sh), the self-tests
                       # (selftest.sh), the ticket path (ticket.sh)
 scripts/fixtures/     # the cases of a check as a table, which its self-test reads
@@ -88,8 +88,8 @@ scripts/*.sh          # run by hand, steps 7 and 8 of the integration branches: 
 A script `scripts/*.sh` of the project, other than its self-tests, takes its root as the
 template's do ([NUC-checks-are-bash §9](docs/adr/NUC-checks-are-bash.md)): it reads its own
 repository, or another one only as `--root <dir>`, through `enter_root` of `scripts/lib/root.sh`,
-and `rest_args` refuses an argument it does not read. `scripts/test-check-all.sh` fails on one
-that does not.
+and `rest_args` refuses an argument it does not read. The rule `shell/root` of
+`scripts/check-shell.sh` fails on one that does not.
 
 ## Dev Container
 
