@@ -139,7 +139,13 @@ The steps still open follow.
    file is gone; write "none" where there is nothing to run.
 6. Add the toolchain of step 4 to the environment (the base image ships none). The build, test,
    and lint commands of the README run through **one script under [`scripts/`](scripts/)**, say
-   `check-build.sh`. [`scripts/check-all.sh`](scripts/check-all.sh) invokes it with a `run` line,
+   `check-build.sh`. Like every `scripts/*.sh` but the self-tests and `check-all.sh`, it takes
+   its root only as `--root <dir>`: a line of its own at the start of the script calls
+   `enter_root "${BASH_SOURCE[0]}" "$usage" "$@"` of [`scripts/lib/root.sh`](scripts/lib/root.sh),
+   and `rest_args` refuses an argument it does not read, `--verbose` included, before anything
+   that needs the toolchain runs. [`scripts/test-check-all.sh`](scripts/test-check-all.sh)
+   fails on a script that does not. [`scripts/check-all.sh`](scripts/check-all.sh) invokes it
+   with a `run` line,
    beside the other checks at once, so it must write nowhere they read, and a job of
    [`checks.yml`](.github/workflows/checks.yml) runs it after setting up the toolchain, the job
    named among the required checks of `CONTRIBUTING.md` and added to those of the ruleset on `main`.
