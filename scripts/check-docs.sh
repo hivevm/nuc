@@ -21,7 +21,7 @@
 #      accepted or proposed one above it: the first table is what a session reads, and a
 #      row in the wrong one is either a dead decision read as binding or a binding one
 #      never read (docs/adr/README.md).
-#   docs/adr-numbering
+#   docs/adr-identifiers
 #      ADR identifier integrity: every identifier has the form of NUC-adrs-are-named-by-category
 #      clause 1, its category is fixed or in the category list of the index (clause 2), and the
 #      file's heading starts with '# <identifier>:'. No ADR deleted on the first-parent line of
@@ -426,28 +426,28 @@ check_adr_index() {  # docs/adr-index
   done
 }
 
-# The rule docs/adr-numbering (see the header). An identifier is never reused, so a deleted one,
+# The rule docs/adr-identifiers (see the header). An identifier is never reused, so a deleted one,
 # read off the history, stays taken. The history is the first-parent line of HEAD, each merge
 # read against the branch it landed on: a side branch that deleted an ADR and wrote it anew
 # deleted nothing there.
-check_adr_identifiers() {  # docs/adr-numbering
+check_adr_identifiers() {  # docs/adr-identifiers
   local f base heading id commit
   local -A deleted=()
   [[ -d "$ADR_DIR" ]] && while IFS= read -r f; do
-    add_error "${f##*/}: a numbered ADR, a form no check reads — migrate the record with the normalize skill of a v0.9 release, which maps it to '<CAT>-<slug>' [docs/adr-numbering:numbered]"
+    add_error "${f##*/}: a numbered ADR, a form no check reads — migrate the record with the normalize skill of a v0.9 release, which maps it to '<CAT>-<slug>' [docs/adr-identifiers:numbered]"
   done < <(LC_ALL=C find "$ADR_DIR" -maxdepth 1 -type f -name '[0-9]*-*.md' | LC_ALL=C sort)
   for f in "${ADR_LIST[@]}"; do
     base="${f##*/}"
     adr_key_of "$base"
     if [[ ! "$ADR_ID" =~ ^$ADR_NEW_RE$ ]]; then
-      add_error "$base: the identifier is not '<CAT>-<slug>': two to five capital letters, a hyphen, and two to five lower case words or numbers joined by hyphens [docs/adr-numbering:form]"
+      add_error "$base: the identifier is not '<CAT>-<slug>': two to five capital letters, a hyphen, and two to five lower case words or numbers joined by hyphens [docs/adr-identifiers:form]"
       continue
     elif ! _contains "${ADR_ID%%-*}" "${ADR_CATEGORIES[@]}"; then
-      add_error "$base: the category ${ADR_ID%%-*} is neither fixed nor in the category list of docs/adr/README.md [docs/adr-numbering:category]"
+      add_error "$base: the category ${ADR_ID%%-*} is neither fixed nor in the category list of docs/adr/README.md [docs/adr-identifiers:category]"
     fi
     heading="${ADR_HEADING["$f"]-}"
     [[ "$heading" == "# $ADR_ID:"* ]] \
-      || add_error "$base: heading says '${heading:-<none>}', but the filename says $ADR_ID [docs/adr-numbering:heading]"
+      || add_error "$base: heading says '${heading:-<none>}', but the filename says $ADR_ID [docs/adr-identifiers:heading]"
   done
   # Without a commit there is no history; a git that cannot read it, such as one before 2.31
   # without --diff-merges, is an error, not a pass.
@@ -457,7 +457,7 @@ check_adr_identifiers() {  # docs/adr-numbering
                 --format='commit %h' HEAD -- ":(glob)docs/adr/$ADR_GLOB")
     # stderr stays out of the list: a warning on a success would be read as a file name.
     log="$(git -C "$ROOT" "${args[@]}" 2>/dev/null)" || { log="$(git -C "$ROOT" "${args[@]}" 2>&1 >/dev/null)"
-      add_error "ADR identifiers: git log cannot read the deleted ADRs (git 2.31 or later is needed): ${log%%$'\n'*} [docs/adr-numbering:history]"; log=""; }
+      add_error "ADR identifiers: git log cannot read the deleted ADRs (git 2.31 or later is needed): ${log%%$'\n'*} [docs/adr-identifiers:history]"; log=""; }
   fi
   while IFS= read -r f; do
     if [[ "$f" == commit\ * ]]; then commit="${f#commit }"; elif [[ -n "$f" && ! -v deleted["${f##*/}"] ]]; then deleted["${f##*/}"]="$commit"; fi
@@ -466,7 +466,7 @@ check_adr_identifiers() {  # docs/adr-numbering
     base="${f##*/}"
     [[ -v deleted["$base"] ]] || continue
     id="${base%.md}"
-    add_error "$base: the identifier $id was taken by a deleted ADR, deleted in ${deleted["$base"]} — a successor takes a new slug [docs/adr-numbering:taken]"
+    add_error "$base: the identifier $id was taken by a deleted ADR, deleted in ${deleted["$base"]} — a successor takes a new slug [docs/adr-identifiers:taken]"
   done
 }
 

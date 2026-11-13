@@ -6,26 +6,35 @@
 # Usage, from scripts/<name>.sh:
 #     # shellcheck source-path=SCRIPTDIR source=lib/root.sh
 #     source "$(dirname "${BASH_SOURCE[0]}")/lib/root.sh"
-#     usage="scripts/<name>.sh [--root <dir>] [--own-option]"
+#     usage="scripts/<name>.sh [--root <dir>] [--own-option] [--own-valued <value>]"
+#     VALUE_OPTIONS="--own-valued"
 #     enter_root "${BASH_SOURCE[0]}" "$usage" "$@"
 #     set -- "${ARGS[@]}"
 #     ... the script's own options, each shifted off ...
 #     rest_args "${BASH_SOURCE[0]}" "$usage" <positional arguments it reads> "$@"
 
 # enter_root <script> <usage> [args...] — change to the repository the script reads: the one
-# it lives in, as the checks find theirs, or the one '--root <dir>' names, wherever it stands,
+# it lives in, as the checks find theirs, or the one '--root <dir>' names, wherever it stands but
+# as the value of the script's own option,
 # as a self-test does with its fixtures. Sets ROOT to that directory, absolute, and ARGS to
 # the arguments other than '--root' and its value. Exits 2 with the script's file name when
 # '--root' has no value, is given twice, or names no directory: a script that read another
 # tree than the one asked for would pass on a tree it never read. A script that needs a git
 # repository tests that itself.
+# Before the call, a script whose own options take a value names them in VALUE_OPTIONS,
+# separated by spaces, such as VALUE_OPTIONS="--path". enter_root exits 2 on a '--root' that
+# stands where such an option takes its value: read as the root, it would leave the option
+# without its value and the directory after it as an argument the script might ignore.
 # shellcheck disable=SC2034 # ROOT and ARGS are the caller's
 enter_root() {
-  local script="$1" usage="$2" name="${1##*/}" root="" given=0
+  local script="$1" usage="$2" name="${1##*/}" root="" given=0 valued=" ${VALUE_OPTIONS:-} "
   shift 2
   ARGS=()
   while (($#)); do
-    if [[ "$1" == --root ]]; then
+    if [[ -n "$1" && "$1" != --root && "$valued" == *" $1 "* && "${2:-}" == --root ]]; then
+      echo "$name: '$1' needs a value, not '--root' — usage: $usage" >&2
+      exit 2
+    elif [[ "$1" == --root ]]; then
       (($# >= 2)) || { echo "$name: '--root' needs a directory — usage: $usage" >&2; exit 2; }
       ((given == 0)) || { echo "$name: '--root' is given twice — usage: $usage" >&2; exit 2; }
       root="$2" given=1
@@ -58,3 +67,7 @@ rest_args() {
     fi
   done
 }
+
+# A script names its own options that take a value after it sources this file; one set in the
+# environment is not read, so that it adds no refusal the script did not ask for.
+VALUE_OPTIONS=""
