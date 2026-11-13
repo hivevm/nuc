@@ -114,7 +114,8 @@ The catalogue has no entry for the binary, and choosing it needs an ADR that nar
   not cite this ADR (clause 4). It names this ADR's identifier, which no normalization moves.
 - The rule `shell/root` of `scripts/check-shell.sh` holds every script `scripts/*.sh` to clause 9,
   but the self-tests and `scripts/check-all.sh`. Each must call `enter_root`, and exit 2 on
-  `--verbose` and on a root that is no directory.
+  `--verbose` and on a root that is no directory. An option whose code reads a value after it
+  must stand in its usage string as `--<name> <value>`, since `enter_root` reads that string.
 
 The self-tests of these checks cite this ADR.
 
