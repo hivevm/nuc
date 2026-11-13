@@ -20,9 +20,9 @@
 # '!<key> @ <a> @ <b>' is not broken by a line that names <b> before <a>.
 #
 # The tree is a list of steps separated by '; ', or '-' for none, applied in order to a git
-# repository, with no commit and without TEMPLATE-SETUP.md, that passes every check, its setup
-# done. Every file is staged before the check runs. Its files, where 'exactly' gives the whole
-# content, each '\n' a line break:
+# repository on the branch main, with no commit and without TEMPLATE-SETUP.md, that passes every
+# check, its setup done. Every file is staged before the check runs. Its files, where 'exactly'
+# gives the whole content, each '\n' a line break:
 #
 #   AGENTS.md                     exactly '# Agent Guide\n\n## 1. Principles\n\nBe simple.\n\n
 #                                 ## 2. Rules\n\nFollow them.\n'
@@ -88,6 +88,7 @@
 #   delete <id>                 the file and its row deleted and committed
 #   branch <name>               a new branch, checked out
 #   back                        the branch checked out before
+#   rename <name>               the branch checked out renamed
 #   merge <name>                the branch merged by a merge commit
 #   skill <text>                the SKILL.md of the fixture's skill 'review' replaced by the text,
 #                               each '\n' in it a line break
@@ -271,6 +272,14 @@ docs/template-release | fail | docs/template-release:line @ README.md @ NUC-rele
 docs/template-release | fail | docs/template-release:version @ README.md | a version that is not a vX.Y.Z tag | release 1.4
 docs/template-release | fail | docs/template-release:version @ README.md | a pre-release suffix on the tag | release v1.4.0-rc1
 docs/template-release | fail | docs/template-release:version @ README.md | a word that is not 'unreleased' | release latest
+docs/template-release | fail | docs/template-release:proposed @ NUC:x-rule.md @ v0.1.0 @ v0.2.0 @ NUC-releases-are-semver-tags @ §8 | a change that moves the release line while a NUC- ADR is proposed | release v0.1.0; file NUC:x-rule proposed; blobs; commit; branch work; release v0.2.0
+docs/template-release | fail | docs/template-release:proposed @ NUC:x-rule.md @ unreleased @ v0.1.0 | the first release cut while a NUC- ADR is proposed | file NUC:x-rule proposed; blobs; commit; branch work; release v0.1.0
+docs/template-release | pass | - | a proposed NUC- ADR in a change that leaves the release line as it was | release v0.1.0; file NUC:x-rule proposed; blobs; commit; branch work; text docs/notes.md A note.
+docs/template-release | pass | - | a change that moves the release line while every NUC- ADR is accepted | release v0.1.0; file NUC:x-rule accepted; blobs; commit; branch work; release v0.2.0
+docs/template-release | pass | - | a change that moves the release line while a project ADR is proposed | release v0.1.0; adr SEC:x-rule proposed; commit; branch work; release v0.2.0
+docs/template-release | pass | - | no commit and so no merge base: the line is read alone | release v0.2.0; file NUC:x-rule proposed; blobs
+docs/template-release | pass | - | commits on a branch other than main and so no merge base: the line is read alone | release v0.1.0; file NUC:x-rule proposed; blobs; commit; rename other; release v0.2.0
+docs/template-release | fail | docs/template-release:proposed @ NUC:x-rule.md @ none @ v0.1.0 | a base without the release line counts as none | edit README.md - **Template release:** =>; file NUC:x-rule proposed; blobs; commit; branch work; text README.md - **Template release:** v0.1.0
 docs/prose-width | fail | docs/prose-width:wide @ README.md:6 @ 101 | a prose line over 100 columns | text README.md <prose 101>
 docs/prose-width | pass | - | a prose line of exactly 100 columns | text README.md <prose 100>
 docs/prose-width | pass | - | an em dash counts as one column | text README.md <prose 48> — <prose 49>
