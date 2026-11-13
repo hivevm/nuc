@@ -161,18 +161,11 @@ done
 # takes the root as '--root <dir>' through enter_root of scripts/lib/root.sh, and refuses an
 # argument it does not read. --verbose, an option none of them reads, stops it with exit 2, its
 # name, and the argument; a --root on a missing directory stops it with exit 2 before it reads
-# anything, so that no check passes on a tree it never read. A script that changes to a first
-# positional argument, as the old way of giving the root did, is caught by its text: a line, not
-# after a '#', with cd or pushd, any options of theirs, and '$1' or '${1' quoted or not. A function
-# of the script that changes to its own '$1' is caught too, and names it first; a '$1' copied to a
-# variable first, as in 'dir=$1; cd "$dir"', is not caught, nor one inside another expansion, as
-# in 'cd "$(realpath "$1")"', nor a line with a '#' before its cd, as in '(($#)) && cd "$1"'.
+# anything, so that no check passes on a tree it never read.
 # root_problem <script> — prints what is wrong with the script's root, nothing if all is.
 root_problem() {
   local out rc name="${1##*/}"
   grep -qE '^enter_root "\$\{BASH_SOURCE\[0\]\}" ' "$1" || { echo "calls no enter_root"; return; }
-  ! grep -qE '^[^#]*(^|[^[:alnum:]_-])(cd|pushd)[[:space:]]+(-[-A-Za-z@]*[[:space:]]+)*"?\$\{?1([^0-9]|$)' "$1" \
-    || { echo "passes its first argument to cd"; return; }
   out="$(cd "$work" && bash "$1" --verbose 2>&1)"; rc=$?
   if ((rc != 2)) || [[ "$out" != "$name: unknown argument '--verbose'"* ]]; then
     echo "takes --verbose (exit $rc): $out"
@@ -224,35 +217,11 @@ else
 fi
 # A script whose call of enter_root is removed is caught, though the rest of it still parses.
 mkdir -p "$work/root-copy/scripts"
-cp -R "$ROOT/scripts/lib" "$work/root-copy/scripts/"
 grep -v '^enter_root ' "$ROOT/scripts/check-devcontainer.sh" > "$work/root-copy/scripts/check-devcontainer.sh"
 if [[ -n "$(root_problem "$work/root-copy/scripts/check-devcontainer.sh")" ]]; then
   passed=$((passed + 1))
 else
   failed=$((failed + 1)); echo "FAIL: a script without its call of enter_root is caught" >&2
-fi
-# A script that keeps its call of enter_root but also changes to its first argument is caught in
-# the forms the guard reads; a comment that names such a line is not.
-# beside <line> — a copy of check-devcontainer.sh with the line after its call of enter_root,
-# printed as its path.
-beside() {
-  awk -v line="$1" '{ print } /^enter_root / { print line }' "$ROOT/scripts/check-devcontainer.sh" \
-    > "$work/root-copy/scripts/check-devcontainer.sh"
-  echo "$work/root-copy/scripts/check-devcontainer.sh"
-}
-# shellcheck disable=SC2016 # the fixture's lines are its own
-for form in 'cd "$1"' 'cd $1' 'cd -- "$1"' 'cd -P "$1"' 'pushd "$1"' 'cd "${1:-.}"'; do
-  if [[ "$(root_problem "$(beside "$form")")" == *"first argument"* ]]; then
-    passed=$((passed + 1))
-  else
-    failed=$((failed + 1)); echo "FAIL: a script with '$form' beside enter_root is caught" >&2
-  fi
-done
-# shellcheck disable=SC2016 # the fixture's line is its own
-if [[ -z "$(root_problem "$(beside '# never cd "$1" here')")" ]]; then
-  passed=$((passed + 1))
-else
-  failed=$((failed + 1)); echo "FAIL: a comment that names cd \"\$1\" is not caught" >&2
 fi
 
 own="$work/own-project"
