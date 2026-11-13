@@ -3,7 +3,7 @@
 - **Status:** 🟢 accepted
 - **Date:** 2026-11-08
 - **Deciders:** NUC maintainer
-- **Applies to:** the checks and sensors and their self-tests under `scripts/`, the git hooks under `.githooks/`, the workflows under `.github/workflows/`, and the required checks of `CONTRIBUTING.md`
+- **Applies to:** the checks and sensors and their self-tests under `scripts/`, the root and the arguments of every script `scripts/*.sh` through `scripts/lib/root.sh`, the git hooks under `.githooks/`, the workflows under `.github/workflows/`, and the required checks of `CONTRIBUTING.md`
 
 ## Context
 
@@ -44,6 +44,12 @@ git hooks and CI run alike.
 8. **Binary.** A project may run a binary in place of the scripts only through an ADR that narrows
    clause 1 ([NUC-base-is-fixed §1](NUC-base-is-fixed.md)). The binary must pass
    the fixture tables under `scripts/fixtures/`.
+9. **The root of a script.** Every script `scripts/*.sh` of a repository, the template's and
+   a project's own, reads the repository it lives in, or another one only as `--root <dir>`.
+   It must take the root through `enter_root` of `scripts/lib/root.sh`. It must refuse with
+   exit 2 an argument it does not read, through `rest_args` of the same file. The self-tests
+   `scripts/test-*.sh` and `scripts/check-all.sh` are exempt: they run on the repository they
+   live in.
 
 **Out of scope:**
 
@@ -91,6 +97,8 @@ The catalogue has no entry for the binary, and choosing it needs an ADR that nar
 - Positive: each script carries a self-test, so a change to a check shows what it changes.
 - Negative: a contributor on macOS installs a current bash, or works in the Dev Container.
 - Negative: the sensor of the repository settings runs only when a human remembers it.
+- Negative: a project's own script under `scripts/` takes its root as the template's do, a
+  binding a take-up carries to it.
 - Follow-ups: whether the template's own checks move to a binary.
 
 ## Enforcement
@@ -103,6 +111,9 @@ The catalogue has no entry for the binary, and choosing it needs an ADR that nar
   the hooks (clause 6).
 - `scripts/check-traceability.sh` fails on a sensor without its self-test, or a self-test that does
   not cite this ADR (clause 4). It names this ADR's identifier, which no normalization moves.
+- `scripts/test-check-all.sh` holds every script `scripts/*.sh` but the self-tests and
+  `scripts/check-all.sh` to clause 9: each calls `enter_root`, and exits 2 on `--verbose` and
+  on a root that is no directory.
 
 The self-tests of these checks cite this ADR.
 
@@ -113,4 +124,6 @@ The self-tests of these checks cite this ADR.
 - whether a hook stays within bash 3.2 (clause 3);
 - whether a sensor's header says what it counts, and whether it never fails on that (clause 4);
 - whether a sensor of the GitHub repository runs on instruction only (clause 7);
-- whether a binary passes the fixture tables, which the narrowing ADR holds (clause 8).
+- whether a binary passes the fixture tables, which the narrowing ADR holds (clause 8);
+- whether a script refuses every argument it does not read, beyond the `--verbose` the check
+  passes (clause 9).
