@@ -21,8 +21,8 @@
 #      HEAD carried the identifier; the message names the commit that deleted it, and a git that
 #      cannot read the history fails the check. Every file in docs/adr/ named with letters before
 #      a hyphen counts, so a misnamed ADR fails here, and so does a numbered ADR file, 'NNNN-*.md',
-#      which no reader takes any more: a derived project maps it once, with the map script of the
-#      normalize skill.
+#      which no reader takes any more: a derived project maps it once, with the normalize skill of a
+#      v0.9 release.
 #   3. Relative-link integrity: every relative Markdown link in every tracked .md file resolves
 #      to a file or directory that exists. Links inside fenced code blocks are illustrations,
 #      not claims about files on disk, and are skipped (here and in check 6); so is a target that
@@ -407,7 +407,7 @@ check_adr_identifiers() {  # check 2
   local f base heading id commit
   local -A deleted=()
   [[ -d "$ADR_DIR" ]] && while IFS= read -r f; do
-    add_error "${f##*/}: a numbered ADR, a form no check reads — map it to '<CAT>-<slug>' with .agents/skills/normalize/remap.sh, as the normalize skill's migration says [docs/adr-numbering:numbered]"
+    add_error "${f##*/}: a numbered ADR, a form no check reads — migrate the record with the normalize skill of a v0.9 release, which maps it to '<CAT>-<slug>' [docs/adr-numbering:numbered]"
   done < <(LC_ALL=C find "$ADR_DIR" -maxdepth 1 -type f -name '[0-9]*-*.md' | LC_ALL=C sort)
   for f in "${ADR_LIST[@]}"; do
     base="${f##*/}"
@@ -516,7 +516,7 @@ adr_refs() {
 # proposal on, and the old ADR's status line, which the human flips when accepting the new one
 # (docs/adr/README.md). Nothing else compares them — check_adr_index only mirrors the index
 # against whatever status a file carries, so a half performed flip passes it. Both directions
-# are verified here; a cited number that names no file is left to check_adr_refs, which reports
+# are verified here; a cited identifier that names no file is left to check_adr_refs, which reports
 # it repository-wide. A Supersedes field wraps at the line width like any other header field,
 # and a name on its second line counts.
 check_adr_supersessions() {  # check 8
