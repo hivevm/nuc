@@ -261,6 +261,43 @@ kind() {
     ownroot) printf '%b' "$head$src/bash.sh\"\n$src/root.sh\"\n"'enter_root() { ARGS=("${@:3}"); }\n'"$enter$rest" ;;
     floor) printf '%b' "$head$src/bash.sh\"\necho ok\n" ;;
     floorless) printf '%b' "$head"'source "$(dirname "${BASH_SOURCE[0]}")/lib/bash.sh"\necho ok\n' ;;
+    cased | caseless)
+      local opts='[--path <path>] [--flag]'
+      [[ "$2" == cased ]] || opts='[--path] [--flag]'
+      printf '%b' "$head$src/bash.sh\"\n$src/root.sh\"\n"'usage="'"$1"' [--root <dir>] '"$opts"'"\n'
+      printf '%b' 'enter_root "${BASH_SOURCE[0]}" "$usage" "$@"\nset -- "${ARGS[@]}"\nwhile (($#)); do\n'
+      printf '%b' '  case "$1" in\n    --flag) shift ;;\n    --path)\n      echo "${2:-}"\n      shift 2\n      ;;\n'
+      printf '%b' '    *) break ;;\n  esac\ndone\n'"$rest" ;;
+    tested | flagged)
+      printf '%b' "$head$src/bash.sh\"\n$src/root.sh\"\n"'usage="'"$1"' [--root <dir>] [--require] [base]"\n'
+      printf '%b' 'enter_root "${BASH_SOURCE[0]}" "$usage" "$@"\nset -- "${ARGS[@]}"\n'
+      if [[ "$2" == tested ]]; then
+        printf '%b' 'if [[ "${1:-}" == "--require" ]]; then\n  echo "${2:-}"\n  shift 2\nfi\n'
+      else
+        printf '%b' '[[ "${1:-}" == "--require" ]] && { echo required; shift; }\n'
+      fi
+      printf '%b' 'rest_args "${BASH_SOURCE[0]}" "$usage" 1 "$@"\necho "${2:-}"\n' ;;
+    flaggedif)
+      printf '%b' "$head$src/bash.sh\"\n$src/root.sh\"\n"'usage="'"$1"' [--root <dir>] [--sections] [base [head]]"\n'
+      printf '%b' 'enter_root "${BASH_SOURCE[0]}" "$usage" "$@"\nset -- "${ARGS[@]}"\nsections=0\n'
+      printf '%b' 'if [[ "${1:-}" == "--sections" ]]; then\n  sections=1\n  shift\nfi\n'
+      printf '%b' 'base="${1:-HEAD~1}" head="${2:-HEAD}"\nrest_args "${BASH_SOURCE[0]}" "$usage" 2 "$@"\necho "$sections $base $head"\n' ;;
+    setflag | fiflag)
+      printf '%b' "$head$src/bash.sh\"\n$src/root.sh\"\n"'usage="'"$1"' [--root <dir>] [--check] [base [head]]"\n'
+      printf '%b' 'enter_root "${BASH_SOURCE[0]}" "$usage" "$@"\nset -- "${ARGS[@]}"\ncheck=0\n'
+      if [[ "$2" == setflag ]]; then
+        printf '%b' 'if [[ "${1:-}" == "--check" ]]; then check=1; set -- "${@:2}"; fi\n'
+        printf '%b' 'base="${1:-HEAD~1}" head="${2:-HEAD}"\nrest_args "${BASH_SOURCE[0]}" "$usage" 2 "$@"\necho "$check $base $head"\n'
+      else
+        printf '%b' 'if [[ "${1:-}" == "--check" ]]; then\n  check=1\nfi\n'
+        printf '%b' 'base="${1:-HEAD~1}"; ((check == 0)) || base="${2:-HEAD~1}"\nshift "$check"\n'
+        printf '%b' 'rest_args "${BASH_SOURCE[0]}" "$usage" 1 "$@"\necho "$check $base"\n'
+      fi ;;
+    quoted)
+      printf '%b' "$head$src/bash.sh\"\n$src/root.sh\"\n"'usage="'"$1"' [--root <dir>] [--path|-p]"\n'
+      printf '%b' 'enter_root "${BASH_SOURCE[0]}" "$usage" "$@"\nset -- "${ARGS[@]}"\nwhile (($#)); do\n'
+      printf '%b' '  case "$1" in\n    "--path" | -p)\n      echo "${2:-}"\n      shift 2\n      ;;\n'
+      printf '%b' '    *) break ;;\n  esac\ndone\n'"$rest" ;;
     *) echo "fixture table: unknown kind '$2'" >&2; exit 2 ;;
   esac
 }
