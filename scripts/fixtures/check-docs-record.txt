@@ -109,18 +109,18 @@ docs/adr-index | fail | docs/adr-index:twice @ SEC:decision-1.md | a row both si
 docs/adr-index | pass | - | an ADR and its row | adr SEC:host-socket-closed proposed
 docs/adr-index | fail | docs/adr-index:unlisted @ SEC:host-socket-closed.md | an ADR without its row | file SEC:host-socket-closed proposed
 docs/adr-index | fail | docs/adr-index:missing @ OPS:gone-rule.md | a row without its file | row binding OPS:gone-rule proposed
-docs/adr-numbering | fail | docs/adr-numbering:form @ SEC:Host_socket.md | a slug with capitals and an underscore | adr SEC:Host_socket proposed
-docs/adr-numbering | fail | docs/adr-numbering:form @ API:one-two-three-four-five-six.md | a slug of six words | adr API:one-two-three-four-five-six proposed
-docs/adr-numbering | fail | docs/adr-numbering:category @ XYZ:some-thing.md | a category nobody defined | adr XYZ:some-thing proposed
-docs/adr-numbering | fail | docs/adr-numbering:form @ SEC:once.md | a slug of one word | adr SEC:once proposed
-docs/adr-numbering | fail | docs/adr-numbering:form @ Sec-host-socket.md | a category key not in capitals, visible to the check | adr Sec-host-socket proposed
-docs/adr-numbering | pass | - | a category of the project's list | category UX; adr UX:dark-mode proposed
-docs/adr-numbering | fail | docs/adr-numbering:heading @ SEC:a-rule.md @ SEC:b-rule @ SEC:a-rule | a heading that names another identifier | adr SEC:a-rule proposed; heading SEC:a-rule # SEC:b-rule: decision
-docs/adr-numbering | fail | docs/adr-numbering:taken @ OPS:old-rule.md @ <deleted> | an identifier a deleted ADR carried, the deleting commit named | adr OPS:old-rule proposed; commit; delete OPS:old-rule; adr OPS:old-rule proposed
-docs/adr-numbering | pass | - | an ADR a merged side branch deleted and wrote anew, as a normalization does | adr OPS:kept-rule proposed; commit; branch side; delete OPS:kept-rule; adr OPS:kept-rule accepted; commit; back; merge side
-docs/adr-numbering | fail | docs/adr-numbering:taken @ OPS:gone-rule.md | an ADR a merged side branch deleted, taken again | adr OPS:gone-rule proposed; commit; branch side; delete OPS:gone-rule; back; merge side; adr OPS:gone-rule proposed
-docs/adr-numbering | pass | - | a deleted ADR whose identifier nobody takes again | adr OPS:old-rule proposed; commit; delete OPS:old-rule; adr OPS:new-rule proposed
-docs/adr-numbering | fail | docs/adr-numbering:numbered @ 0001-old.md | a numbered ADR file left from before the migration | text docs/adr/0001-old.md # old decision
+docs/adr-identifiers | fail | docs/adr-identifiers:form @ SEC:Host_socket.md | a slug with capitals and an underscore | adr SEC:Host_socket proposed
+docs/adr-identifiers | fail | docs/adr-identifiers:form @ API:one-two-three-four-five-six.md | a slug of six words | adr API:one-two-three-four-five-six proposed
+docs/adr-identifiers | fail | docs/adr-identifiers:category @ XYZ:some-thing.md | a category nobody defined | adr XYZ:some-thing proposed
+docs/adr-identifiers | fail | docs/adr-identifiers:form @ SEC:once.md | a slug of one word | adr SEC:once proposed
+docs/adr-identifiers | fail | docs/adr-identifiers:form @ Sec-host-socket.md | a category key not in capitals, visible to the check | adr Sec-host-socket proposed
+docs/adr-identifiers | pass | - | a category of the project's list | category UX; adr UX:dark-mode proposed
+docs/adr-identifiers | fail | docs/adr-identifiers:heading @ SEC:a-rule.md @ SEC:b-rule @ SEC:a-rule | a heading that names another identifier | adr SEC:a-rule proposed; heading SEC:a-rule # SEC:b-rule: decision
+docs/adr-identifiers | fail | docs/adr-identifiers:taken @ OPS:old-rule.md @ <deleted> | an identifier a deleted ADR carried, the deleting commit named | adr OPS:old-rule proposed; commit; delete OPS:old-rule; adr OPS:old-rule proposed
+docs/adr-identifiers | pass | - | an ADR a merged side branch deleted and wrote anew, as a normalization does | adr OPS:kept-rule proposed; commit; branch side; delete OPS:kept-rule; adr OPS:kept-rule accepted; commit; back; merge side
+docs/adr-identifiers | fail | docs/adr-identifiers:taken @ OPS:gone-rule.md | an ADR a merged side branch deleted, taken again | adr OPS:gone-rule proposed; commit; branch side; delete OPS:gone-rule; back; merge side; adr OPS:gone-rule proposed
+docs/adr-identifiers | pass | - | a deleted ADR whose identifier nobody takes again | adr OPS:old-rule proposed; commit; delete OPS:old-rule; adr OPS:new-rule proposed
+docs/adr-identifiers | fail | docs/adr-identifiers:numbered @ 0001-old.md | a numbered ADR file left from before the migration | text docs/adr/0001-old.md # old decision
 docs/section-refs | pass | - | a list of clauses after one identifier, in Markdown | adr SEC:x-rule proposed; text README.md See SEC:x-rule §4, §5, SEC:x-rule §4 and §5, SEC:x-rule §4, §5, and §6, and SEC:x-rule §2–§5.
 docs/section-refs | pass | - | a list of clauses after one identifier, in a script | adr SEC:x-rule proposed; text scripts/lib/run.sh # SEC:x-rule §1, §9.
 docs/section-refs | fail | docs/section-refs:unmatched @ §9 | a section after a list of clauses | adr SEC:x-rule proposed; text scripts/lib/run.sh # SEC:x-rule §1, §2, not AGENTS.md §9.
