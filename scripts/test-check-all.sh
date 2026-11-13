@@ -159,21 +159,21 @@ done
 
 # Each script under scripts/ but the self-tests and this runner can run on another repository: it
 # takes the root as '--root <dir>' through enter_root of scripts/lib/root.sh, and refuses an
-# argument it does not read. --verbose, an option none of them reads, stops it with exit 2, its
-# name, and the argument; a --root on a missing directory stops it with exit 2 before it reads
-# anything, so that no check passes on a tree it never read.
+# argument it does not read (NUC-checks-are-bash §9). --verbose, an option none of them reads,
+# stops it with exit 2, its name, and the argument; a --root on a missing directory stops it with
+# exit 2 before it reads anything, so that no check passes on a tree it never read.
 # root_problem <script> — prints what is wrong with the script's root, nothing if all is.
 root_problem() {
   local out rc name="${1##*/}"
-  grep -qE '^enter_root "\$\{BASH_SOURCE\[0\]\}" ' "$1" || { echo "calls no enter_root"; return; }
+  grep -qE '^enter_root "\$\{BASH_SOURCE\[0\]\}" ' "$1" || { echo "calls no enter_root (NUC-checks-are-bash §9)"; return; }
   out="$(cd "$work" && bash "$1" --verbose 2>&1)"; rc=$?
   if ((rc != 2)) || [[ "$out" != "$name: unknown argument '--verbose'"* ]]; then
-    echo "takes --verbose (exit $rc): $out"
+    echo "takes --verbose (exit $rc, NUC-checks-are-bash §9): $out"
     return
   fi
   out="$(cd "$work" && bash "$1" --root "$work/no-such-root" 2>&1)"; rc=$?
   ((rc == 2)) && [[ "$out" == "$name: '$work/no-such-root' is not a directory"* ]] \
-    || echo "reads a missing root (exit $rc): $out"
+    || echo "reads a missing root (exit $rc, NUC-checks-are-bash §9): $out"
 }
 for s in "$ROOT"/scripts/*.sh; do
   [[ "${s##*/}" == test-*.sh || "${s##*/}" == check-all.sh ]] && continue
@@ -223,6 +223,11 @@ if [[ -n "$(root_problem "$work/root-copy/scripts/check-devcontainer.sh")" ]]; t
 else
   failed=$((failed + 1)); echo "FAIL: a script without its call of enter_root is caught" >&2
 fi
+# A project's own script is bound alike (NUC-checks-are-bash §9): one without enter_root is told
+# the clause.
+printf '#!/usr/bin/env bash\necho build\n' > "$work/root-copy/scripts/check-build.sh"
+check "a project's script without enter_root is told NUC-checks-are-bash §9" \
+  test "$(root_problem "$work/root-copy/scripts/check-build.sh")" = "calls no enter_root (NUC-checks-are-bash §9)"
 
 own="$work/own-project"
 mkdir -p "$own/scripts"

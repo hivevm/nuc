@@ -85,6 +85,12 @@ scripts/*.sh          # run by hand, steps 7 and 8 of the integration branches: 
 .claude/settings.json # Claude Code permissions: deny reading .env files (see SECURITY.md)
 ```
 
+A script `scripts/*.sh` of the project, other than its self-tests, takes its root as the
+template's do ([NUC-checks-are-bash §9](docs/adr/NUC-checks-are-bash.md)): it reads its own
+repository, or another one only as `--root <dir>`, through `enter_root` of `scripts/lib/root.sh`,
+and `rest_args` refuses an argument it does not read. `scripts/test-check-all.sh` fails on one
+that does not.
+
 ## Dev Container
 
 The environment is defined entirely in

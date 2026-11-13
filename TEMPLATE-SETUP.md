@@ -139,8 +139,10 @@ The steps still open follow.
    file is gone; write "none" where there is nothing to run.
 6. Add the toolchain of step 4 to the environment (the base image ships none). The build, test,
    and lint commands of the README run through **one script under [`scripts/`](scripts/)**, say
-   `check-build.sh`. Like every `scripts/*.sh` but the self-tests and `check-all.sh`, it takes
-   its root only as `--root <dir>`: a line of its own at the start of the script calls
+   `check-build.sh`. Like every `scripts/*.sh` but the self-tests and `check-all.sh`, it reads
+   another root only as `--root <dir>`
+   ([NUC-checks-are-bash §9](docs/adr/NUC-checks-are-bash.md)): a line of its own at the start of
+   the script calls
    `enter_root "${BASH_SOURCE[0]}" "$usage" "$@"` of [`scripts/lib/root.sh`](scripts/lib/root.sh),
    and `rest_args` refuses an argument it does not read, `--verbose` included, before anything
    that needs the toolchain runs. [`scripts/test-check-all.sh`](scripts/test-check-all.sh)
