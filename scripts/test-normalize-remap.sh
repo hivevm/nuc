@@ -10,8 +10,9 @@
 # of two criteria, the record left untouched, a criterion outside Markdown and outside a marker
 # line, a reference to an ADR with no successor, an ignored file, files without a final newline and
 # a binary one, a release's map applied from the tree, each invalid map, which changes nothing, a
-# numbered ADR file among them, an option the script does not read, and every ADR of a copy of
-# this repository moved to a new identifier, after which the other self-tests still pass.
+# numbered ADR file among them, an option the script does not read, a refused call told apart
+# from a move by what it prints, a move with a reference left under --check, and every ADR of a
+# copy of this repository moved to a new identifier, after which the other self-tests still pass.
 #
 # The identifiers in the fixtures are assembled at run time: a literal one would be a reference
 # that check-docs.sh and check-traceability.sh hold against this repository.
@@ -169,6 +170,37 @@ printf '%s %s\n' "$(id one)" "$(id four)" > "$work/map-record"
 (cd "$d" && bash "$REMAP" --record "$work/map-record") > "$work/out" 2>&1; rc=$?
 check "an option it does not read exits 1 and changes nothing" \
   "[[ $rc -eq 1 ]] && grep -qF \"remap: unknown argument '--record'\" '$work/out' && grep -qxF '$(id one)' '$d/README.md'"
+
+# Under --check, exit 1 is both a refusal and a move; what the script prints tells them apart. A
+# refusal prints nothing on stdout and only 'remap: ' lines on stderr, and changes nothing. A move
+# prints 'file:line: OLD -> NEW' on stdout, and a reference left follows the line 'remap:
+# references left to rewrite by hand:' on stderr, though the exit says only the move.
+d="$(repo apart)"
+printf 'See %s and %s.\n' "$(id one)" "$(id two)" > "$d/README.md"
+printf '%s %s\n' "$(id one)" "$(id four)" > "$work/map-ok"
+printf '%s\n' "not a map line" > "$work/map-bad"
+mkdir -p "$work/nogit"
+# refused <name> <dir> <args...> — run --check; it must exit 1, print nothing on stdout, only
+# 'remap: ' lines on stderr, and leave the README as it was.
+refused() {
+  local name="$1" dir="$2" before
+  shift 2
+  before="$(cat "$d/README.md")"
+  (cd "$dir" && bash "$REMAP" --check "$@") > "$work/stdout" 2> "$work/stderr"; rc=$?
+  check "$name: exit 1, nothing on stdout, only 'remap: ' on stderr, nothing changed" \
+    "[[ $rc -eq 1 && ! -s '$work/stdout' && -s '$work/stderr' ]] && ! grep -qv '^remap: ' '$work/stderr' && [[ \"\$(cat '$d/README.md')\" == '$before' ]]"
+}
+refused "an unknown option" "$d" --record "$work/map-ok"
+refused "a second map" "$d" "$work/map-ok" "$work/map-ok"
+refused "no map file" "$d" "$work/no-such-map"
+refused "an invalid map" "$d" "$work/map-bad"
+refused "no git repository" "$work/nogit" "$work/map-ok"
+printf '%s %s\n%s -\n' "$(id one)" "$(id four)" "$(id two)" > "$work/map-both"
+(cd "$d" && bash "$REMAP" --check "$work/map-both") > "$work/stdout" 2> "$work/stderr"; rc=$?
+check "a move and a reference left under --check exit 1, the move on stdout" \
+  "[[ $rc -eq 1 ]] && grep -qF 'README.md:1: $(id one) -> $(id four)' '$work/stdout'"
+check "a reference left is listed on stderr after its heading, though the exit says the move" \
+  "[[ \"\$(sed -n 1p '$work/stderr')\" == 'remap: references left to rewrite by hand:' ]] && grep -qF '$(id two)' <(sed -n '2,\$p' '$work/stderr')"
 
 # A swap of two criteria: in Markdown, on a marker line, and in an ADR; never in the specification
 # and never on another line of a file that is not Markdown. A criteria swap is one pass.
