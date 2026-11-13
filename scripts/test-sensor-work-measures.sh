@@ -6,8 +6,7 @@
 # dates, and runs the sensor on it. The sensor reads the descriptions of the pull requests through
 # gh; here a stand-in named by GH answers instead, with the description kept in a fixture file per
 # pull request. The cases assert the time from a branch's first commit to its merge, the rounds of
-# review from the Measures line, the cap of ten merges read, the commits --red finds red alone
-# with a stub check-all.sh in the fixture, the cleanup of its worktrees when a run is stopped,
+# review from the Measures line, the cap of ten merges read, the option --red it no longer reads,
 # and the exit codes.
 #
 # Verifies: NUC-checks-are-bash
@@ -119,91 +118,27 @@ out="$(GH="$fake" FIX="$d3/fix" bash "$SENSOR" --root "$d3" 2>&1)"
 check "the oldest of eleven merges is not listed" \
   test "$(grep -c '^  - #' <<< "$out")" = 10 -a -z "$(grep -F '#1 fix/m1:' <<< "$out")"
 
-# With --red, each commit of a merged branch runs its own scripts/check-all.sh: the one on which
-# it failed is named, the later one that made it pass is not, and without --red none is run. The
-# stub counts its runs in the file RUNS names.
-d4="$(repo red)"
-mkdir -p "$d4/scripts"
-# shellcheck disable=SC2016 # the stub's line is its own
-printf '#!/usr/bin/env bash\necho run >> "$RUNS"\n! grep -qs red state.txt\n' > "$d4/scripts/check-all.sh"
-at "2026-11-01T09:00:00Z" "$d4" add -A
-at "2026-11-01T09:00:00Z" "$d4" commit -q -m "the checks"
-git -C "$d4" switch -q -c ticket/red main
-echo red > "$d4/state.txt"
-at "2026-11-02T08:00:00Z" "$d4" add -A
-at "2026-11-02T08:00:00Z" "$d4" commit -q -m "work red alone"
-echo green > "$d4/state.txt"
-at "2026-11-02T10:00:00Z" "$d4" commit -q -am "work made green"
-git -C "$d4" switch -q main
-at "2026-11-02T11:00:00Z" "$d4" merge -q --no-ff \
-  -m "Merge pull request #9 from owner/ticket/red" ticket/red
-export RUNS="$work/runs"
-expect "--red names the commit that was red alone" "$d4" 0 \
-  "    - red alone: $(git -C "$d4" log -1 --format=%h ticket/red~1) work red alone" --red
-check "--red runs the checks of each commit of the branch" test "$(wc -l < "$RUNS")" = 2
-out="$(GH="$fake" FIX="$d4/fix" bash "$SENSOR" --root "$d4" --red 2>/dev/null)"
-check "--red names no commit that passed" test -z "$(grep -F 'work made green' <<< "$out")"
-check "--red leaves no worktree behind" \
-  test "$(git -C "$d4" worktree list | wc -l)" = 1
-rm -f "$RUNS"
-GH="$fake" FIX="$d4/fix" bash "$SENSOR" --root "$d4" > /dev/null 2>&1
-check "without --red no commit is run" test ! -e "$RUNS"
-
-# A commit whose checks exit with neither 0 nor 1 decided nothing; one without check-all.sh is
-# not run.
-git -C "$d4" switch -q -c fix/odd main
-printf '#!/usr/bin/env bash\nexit 2\n' > "$d4/scripts/check-all.sh"
-at "2026-11-03T08:00:00Z" "$d4" commit -q -am "checks that refuse"
-git -C "$d4" switch -q main
-at "2026-11-03T09:00:00Z" "$d4" merge -q --no-ff \
-  -m "Merge pull request #10 from owner/fix/odd" fix/odd
-expect "--red names a commit whose checks exited 2 as not decided" "$d4" 0 \
-  "    - not decided, its checks exited 2: $(git -C "$d4" log -1 --format=%h fix/odd) checks that refuse" \
-  --red
-git -C "$d4" switch -q -c fix/none "$(git -C "$d4" rev-list --max-parents=0 main)"
-echo none > "$d4/none.txt"
-at "2026-11-04T08:00:00Z" "$d4" add -A
-at "2026-11-04T08:00:00Z" "$d4" commit -q -m "no checks"
-git -C "$d4" switch -q main
-at "2026-11-04T09:00:00Z" "$d4" merge -q --no-ff \
-  -m "Merge pull request #11 from owner/fix/none" fix/none
-expect "--red counts a commit without check-all.sh as not run" "$d4" 0 \
-  "    - not run, without scripts/check-all.sh or a worktree: 1 commit" --red
-
-# A run stopped while a commit's checks run stops them and leaves no worktree behind, not even
-# an entry git would call prunable.
-d5="$(repo stopped)"
-mkdir -p "$d5/scripts"
-# shellcheck disable=SC2016 # the stub's line is its own
-printf '#!/usr/bin/env bash\ntouch "$STARTED"\nexec sleep 30\n' > "$d5/scripts/check-all.sh"
-merged "$d5" 12 fix/slow "2026-11-05T08:00:00Z" "2026-11-05T09:00:00Z"
-export STARTED="$work/started"
-GH="$fake" FIX="$d5/fix" bash "$SENSOR" --root "$d5" --red > /dev/null 2>&1 &
-pid=$!
-for _ in $(seq 100); do [[ -e "$STARTED" ]] && break; sleep 0.1; done
-SECONDS=0
-kill -TERM "$pid"
-wait "$pid"; rc=$?
-check "a run stopped by TERM exits 143 at once" test "$rc" = 143 -a "$SECONDS" -lt 10
-check "a stopped run leaves no worktree behind" \
-  test "$(git -C "$d5" worktree list --porcelain | grep -c '^worktree ')" = 1
-
 # Nothing merged, no repository, no gh, and an unknown argument.
 d2="$(repo empty)"
 expect "no merge of a pull request says so" "$d2" 0 \
   "Work measures sensor: no merge of a pull request on main — nothing to report."
 expect "a root that does not exist exits 2" "$work/none" 2 \
-  "sensor-work-measures.sh: '$work/none' is not a directory — usage: scripts/sensor-work-measures.sh [--root <dir>] [--red]"
+  "sensor-work-measures.sh: '$work/none' is not a directory — usage: scripts/sensor-work-measures.sh [--root <dir>]"
 mkdir -p "$work/plain"
 expect "a root that is no git repository exits 2" "$work/plain" 2 \
   "work measures sensor: '$work/plain' is no git repository."
 out="$(bash "$SENSOR" --root 2>&1)"; rc=$?
 check "--root without a directory exits 2 and reads no repository" \
-  test "$rc" = 2 -a "$out" = "sensor-work-measures.sh: '--root' needs a directory — usage: scripts/sensor-work-measures.sh [--root <dir>] [--red]"
+  test "$rc" = 2 -a "$out" = "sensor-work-measures.sh: '--root' needs a directory — usage: scripts/sensor-work-measures.sh [--root <dir>]"
 GH_CMD="$work/no-such-gh" expect "no gh exits 2" "$d" 2 \
   "work measures sensor: the GitHub CLI ($work/no-such-gh) is not installed."
 expect "an unknown argument exits 2" "$d" 2 \
-  "sensor-work-measures.sh: unknown argument '--verbose' — usage: scripts/sensor-work-measures.sh [--root <dir>] [--red]" \
+  "sensor-work-measures.sh: unknown argument '--verbose' — usage: scripts/sensor-work-measures.sh [--root <dir>]" \
   --verbose
+
+# --red left for scripts/sensor-red-commits.sh.
+expect "--red is an unknown argument" "$d" 2 \
+  "sensor-work-measures.sh: unknown argument '--red' — usage: scripts/sensor-work-measures.sh [--root <dir>]" \
+  --red
 
 summary "Work measures sensor self-test"

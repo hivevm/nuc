@@ -160,6 +160,9 @@ jobs:
       # The work measures sensor itself runs on a human's instruction (NUC-checks-are-bash §7).
       - name: Self-test the work measures sensor
         run: bash scripts/test-sensor-work-measures.sh
+      # The red commits sensor itself runs on a human's instruction, for its cost.
+      - name: Self-test the red commits sensor
+        run: bash scripts/test-sensor-red-commits.sh
 
   shell:
     runs-on: ubuntu-latest

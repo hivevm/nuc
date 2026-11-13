@@ -22,14 +22,15 @@ the hours from the branch's first commit to its merge and the rounds of review, 
 from the Measures line; more than one round is a review again after the fixes of its findings.
 The `Reviewed at:` line counts none, since the review moves that one line after each round. A
 GitHub merge commit carries no description, so git alone holds no round.
-With `--red` the sensor also names each commit of the ten newest merges on which that commit's
-own `scripts/check-all.sh` failed, run in a temporary worktree: a full run of the checks per
-commit, so only when asked.
+The commits red alone landed for v0.10.0 as the `--red` of that sensor: each commit of the ten
+newest merges on which that commit's own `scripts/check-all.sh` failed, run in a temporary
+worktree, a full run of the checks per commit, so only when asked. After v0.10.0 the design
+revision of 2026-11-13 split them into `scripts/sensor-red-commits.sh`, which needs no `gh`.
 
 **Still open in the template:**
 
 4. **The design revision reads them.** The `design-revision` skill gains a section on what the
-   work cost and what slowed it, from the measures and the sensor; it yields tickets of the project
+   work cost and what slowed it, from the measures and the sensors; it yields tickets of the project
    and findings about the template, kept apart.
 5. **Findings go back to the template.** A finding about the template is written in the form of
    an issue template of hivevm/nuc. The human decides whether to send it: sending publishes it.

@@ -56,8 +56,8 @@ docs/adr/             # Architecture Decision Records (+ template): the template
 docs/plan/            # open work: feature specs and their tickets, deleted as they land
 scripts/check-all.sh  # runs the checks, sensors, and self-tests, as the hooks and CI do
 scripts/check-*.sh    # checks: each fails on what breaks a rule
-scripts/sensor-*.sh   # sensors: report for the reviewer; sensor-repo-settings.sh and
-                      # sensor-work-measures.sh run by hand
+scripts/sensor-*.sh   # sensors: report for the reviewer; sensor-repo-settings.sh,
+                      # sensor-work-measures.sh, and sensor-red-commits.sh run by hand
 scripts/test-*.sh     # self-tests of the checks, the sensors, the hooks, the setup, and the scripts
                       # run by hand
 scripts/lib/          # what the scripts share: the bash floor (bash.sh), the ADR header (adr.sh),
