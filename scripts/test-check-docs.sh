@@ -249,6 +249,15 @@ step() {
       if [[ "$2" == "row binding "* ]]; then insert_before "$index" "### Superseded" "$rest"; else echo "$rest" >> "$index"; fi ;;
     field) insert_before "$dir/docs/adr/$file" "- **Applies to:**" "- **${arg%% *}:** ${rest#"${arg%% *}" }" ;;
     status) sed_in "$dir/docs/adr/$file" "s/^- \*\*Status:\*\* .*/- **Status:** $(status_of "$arg")/" ;;
+    applies)
+      # The file's field and the cell of its row, which the rule docs/adr-index holds alike.
+      for item in "$dir/docs/adr/$file" "$index"; do
+        ROW="| [$key]($file) |" NEW="$rest" awk '
+          index($0, "- **Applies to:**") == 1 { $0 = "- **Applies to:** " ENVIRON["NEW"] }
+          index($0, ENVIRON["ROW"]) == 1 && (at = index($0, "| everything |")) {
+            $0 = substr($0, 1, at + 1) ENVIRON["NEW"] substr($0, at + 12) }
+          { print }' "$item" > "$item.tmp" && mv "$item.tmp" "$item"
+      done ;;
     supersedes)
       list="- **Supersedes:**"
       for item in ${arg//,/ }; do
@@ -343,7 +352,8 @@ PATH="$work/warn-git-bin:$PATH" expect pass "docs/adr-identifiers: a warning of 
 # and is the one place that maps a key to its check (see that header). The keys the functions
 # carry are the items, one each, and every key the script prints is an item or named in the
 # header's prose, as docs/files is.
-header_items() { sed -nE '/^set /q; s/^#   ([a-z]+\/[a-z0-9-]+)$/\1/p' "$1"; }
+header_items() { sed -nE '/^set /q; s/^#   ([a-z]+\/[a-z0-9-]+)( \(was: [^)]+\))?$/\1/p' "$1"; }
+header_olds() { sed -nE '/^set /q; s/^#   [a-z]+\/[a-z0-9-]+ \(was: ([^)]+)\)$/\1/p' "$1" | tr -s ', ' '\n'; }
 function_keys() { sed -nE 's/^check_[a-z_]+\(\) \{  # ([a-z]+\/[a-z0-9-]+)$/\1/p' "$1" | sort; }
 # shellcheck disable=SC2317,SC2329 # run by check
 fails() { ! "$@" 2> /dev/null; }
@@ -372,6 +382,10 @@ check "the keys of the checks are the items of the header, one each" \
   test "$(function_keys "$CHECK")" = "$(header_items "$CHECK" | sort)"
 check "no key of the header is listed twice" \
   test "$(header_items "$CHECK" | sort | uniq -d)" = ""
+check "no old key of the header is a key or listed twice" \
+  test "$( { header_items "$CHECK"; header_olds "$CHECK"; } | sort | uniq -d)" = ""
+check "the header carries docs/adr-numbering as the old key of docs/adr-identifiers" \
+  grep -qx '#   docs/adr-identifiers (was: docs/adr-numbering)' "$CHECK"
 check "every key check-docs.sh prints stands in its header" keys_listed "$CHECK"
 sed 's/^check_prose_width() {.*/&\n  add_error "x [docs\/unlisted-rule:new]"/' "$CHECK" > "$work/unlisted.sh"
 check "a key the script prints and its header lacks fails" \

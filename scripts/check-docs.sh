@@ -6,7 +6,11 @@
 # docs/adr/README.md. Each check is named by its rule key, which every finding it reports ends
 # in, '[<key>:<reason>]', and which its function carries, 'check_<name>() {  # <key>'. This list
 # is the one place that maps a key to its check; ADRs name the checks by it, and the binding ADRs
-# sensor routes a change by it. scripts/test-check-docs.sh fails on a key the script prints that
+# sensor routes a change by it. An item may carry the keys its check had before,
+# '#   <key> (was: <old>, …)': an ADR that names an old key still names the check, for the rule
+# docs/adr-refs and for the sensor. A key moves so: the script first, its item carrying the old
+# key, then the ADRs that name it, each commit green. The old key stays, since a derived
+# project's ADR may name it. scripts/test-check-docs.sh fails on a key the script prints that
 # the list lacks, and on a check that prints a key not its own. One key is no check's: docs/files,
 # when the repository lists no text file and nothing else is checked.
 #
@@ -21,7 +25,7 @@
 #      accepted or proposed one above it: the first table is what a session reads, and a
 #      row in the wrong one is either a dead decision read as binding or a binding one
 #      never read (docs/adr/README.md).
-#   docs/adr-identifiers
+#   docs/adr-identifiers (was: docs/adr-numbering)
 #      ADR identifier integrity: every identifier has the form of NUC-adrs-are-named-by-category
 #      clause 1, its category is fixed or in the category list of the index (clause 2), and the
 #      file's heading starts with '# <identifier>:'. No ADR deleted on the first-parent line of
@@ -57,6 +61,9 @@
 #      topic, never by an identifier that does not exist yet (NUC-adrs-are-named-by-category §6).
 #      A reference is a word of its own: a one-word slug, such as API-first, or a longer chain is
 #      none. An identifier in a Markdown code span is no citation (clause 6) and is not read.
+#      Every rule key that the Applies to of an ADR in force names of scripts/check-docs.sh,
+#      'the rule `<key>` of `scripts/check-docs.sh`', is an item of this header or an old key
+#      one carries: a key that names no check binds the ADR to no check, and no check fails.
 #   docs/adr-link-targets
 #      ADR link agreement: a Markdown link whose text cites an ADR points at that ADR's own
 #      file — the identifier and the file it links to must name the same decision
@@ -175,6 +182,10 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/check.sh"
 # shellcheck source-path=SCRIPTDIR source=lib/root.sh
 source "$(dirname "${BASH_SOURCE[0]}")/lib/root.sh"
 usage="scripts/check-docs.sh [--root <dir>]"
+# The keys of the items of this header and the old keys they carry, read before enter_root
+# changes the directory a relative path of this script starts from.
+RULE_KEYS=" $(sed -nE '/^set /q; s/^#   ([a-z]+\/[a-z0-9-]+)( \(was: ([^)]+)\))?$/\1 \3/p' \
+  "${BASH_SOURCE[0]}" | tr ',\n' '  ') "
 enter_root "${BASH_SOURCE[0]}" "$usage" "$@"
 rest_args "${BASH_SOURCE[0]}" "$usage" 0 "${ARGS[@]}"
 ADR_DIR="$ROOT/docs/adr"
@@ -932,6 +943,19 @@ check_adr_refs() {  # docs/adr-refs
         || add_error "${f#"$ROOT"/}:$lineno: reference '$match' matches no ADR file in docs/adr/ [docs/adr-refs:unmatched]"
     done
   done < <(grep -Hn --null -E "$ADR_REF_RE" "${files[@]}")
+  # A rule key an ADR in force names of this script is a key of its header (see the header).
+  local path keys key
+  for f in "${ADR_LIST[@]}"; do
+    [[ "${ADR_APPLIES["$f"]-}" == *"the rule"* ]] || continue
+    is_inactive_adr "$f" && continue
+    while IFS=$'\t' read -r path keys; do
+      [[ "$path" == scripts/check-docs.sh ]] || continue
+      for key in $keys; do
+        [[ "$RULE_KEYS" == *" $key "* ]] \
+          || add_error "${f#"$ROOT"/}: Applies to names the rule '$key' of scripts/check-docs.sh, which its header does not list [docs/adr-refs:unlisted]"
+      done
+    done < <(adr_rule_paths "${ADR_APPLIES["$f"]}")
+  done
 }
 
 check_adr_link_targets() {  # docs/adr-link-targets
