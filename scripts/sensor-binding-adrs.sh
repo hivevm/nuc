@@ -52,8 +52,6 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/git.sh"
 # shellcheck source-path=SCRIPTDIR source=lib/root.sh
 source "$(dirname "${BASH_SOURCE[0]}")/lib/root.sh"
 usage="scripts/sensor-binding-adrs.sh [--root <dir>] [--sections] {[--path <path>]... | [base [head]]}"
-# shellcheck disable=SC2034 # read by enter_root
-VALUE_OPTIONS="--path"
 enter_root "${BASH_SOURCE[0]}" "$usage" "$@"
 set -- "${ARGS[@]}"
 

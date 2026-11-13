@@ -29,6 +29,21 @@
 #                          ownroot   as rooted, with an enter_root of its own that reads no root
 #                          floor     sources the bash floor of scripts/lib/ and prints a word
 #                          floorless sources lib/bash.sh beside it and prints a word
+#                          cased     reads its options in a case loop: --flag alone, and --path
+#                                    with its value, which its usage writes '[--path <path>]'
+#                          caseless  as cased, its usage writing '[--path]'
+#                          tested    reads '--require' in a test and a value after it, its usage
+#                                    writing '[--require]'
+#                          flagged   as tested, shifting '--require' alone, and reading the
+#                                    positional '$2' after
+#                          flaggedif reads '--sections' in a test spread over lines, shifting it on a
+#                                    line of its own, and the positional '$2' after
+#                          setflag   reads '--check' in a test on one line, which drops it with
+#                                    'set -- "${@:2}"', and the positional '$2' after
+#                          fiflag    reads '--check' in a test spread over lines that ends in 'fi', and
+#                                    the positional '$2' on the line after
+#                          quoted    reads '"--path" | -p)' with its value, its usage writing
+#                                    '[--path|-p]'
 #   write <path> <text>    the file written with the text and a line break, its directories made
 
 pass | - | a script that takes its root through root.sh | script scripts/build.sh rooted
@@ -44,3 +59,11 @@ pass | - | a skill script that sources the bash floor stops below bash 4.4 | scr
 fail | shell/bash-floor:silent @ .agents/skills/x/run.sh | a skill script whose floor does not stop it | write .agents/skills/x/lib/bash.sh # shellcheck shell=bash; script .agents/skills/x/run.sh floorless
 fail | shell/bash-floor:silent @ scripts/test-build.sh | a self-test whose floor does not stop it | write scripts/lib/bash.sh # shellcheck shell=bash; script scripts/test-build.sh floor
 pass | - | a script below scripts/ is not held to the bash floor | write scripts/tools/lib/bash.sh # shellcheck shell=bash; script scripts/tools/build.sh floorless
+pass | - | an option whose branch reads a value, written with its value in the usage | script scripts/build.sh cased
+fail | shell/root:valued @ scripts/build.sh @ --path | an option whose branch reads a value, written without one in the usage | script scripts/build.sh caseless
+fail | shell/root:valued @ scripts/build.sh @ --require | an option a test reads a value after, written without one in the usage | script scripts/build.sh tested
+pass | - | an option shifted alone is a flag, though a positional '$2' follows | script scripts/build.sh flagged
+pass | - | a flag shifted on a line of its own in a test, a positional '$2' read after | script scripts/build.sh flaggedif
+fail | shell/root:valued @ scripts/build.sh @ --path | a quoted case label with an alternative reads a value | script scripts/build.sh quoted
+pass | - | a flag dropped by 'set -- "${@:2}"', a positional '$2' read after | script scripts/build.sh setflag
+pass | - | a flag test that ends in 'fi', a positional '$2' read on the line after | script scripts/build.sh fiflag

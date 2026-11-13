@@ -30,7 +30,7 @@
 # always, except 2 when the root does not exist or the flag names no form.
 #
 # Pure bash + grep + sed. Usage:
-#     scripts/sensor-action-refs.sh [--root <dir>] [--require major-tag|sha]
+#     scripts/sensor-action-refs.sh [--root <dir>] [--require <major-tag|sha>]
 # The root defaults to this repository; scripts/test-sensor-action-refs.sh passes fixtures.
 
 set -uo pipefail
@@ -40,9 +40,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/bash.sh"
 
 # shellcheck source-path=SCRIPTDIR source=lib/root.sh
 source "$(dirname "${BASH_SOURCE[0]}")/lib/root.sh"
-usage="scripts/sensor-action-refs.sh [--root <dir>] [--require major-tag|sha]"
-# shellcheck disable=SC2034 # read by enter_root
-VALUE_OPTIONS="--require"
+usage="scripts/sensor-action-refs.sh [--root <dir>] [--require <major-tag|sha>]"
 enter_root "${BASH_SOURCE[0]}" "$usage" "$@"
 set -- "${ARGS[@]}"
 

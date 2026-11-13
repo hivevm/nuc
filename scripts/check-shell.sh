@@ -44,6 +44,14 @@
 #      Project Layout of CONTRIBUTING.md, where a project reads the rule. A script that declares
 #      a positional argument and changes into it passes: the rule runs the script, and reads no
 #      cd in its text.
+#      An option whose branch in the script reads a value after it, '$2', stands in the usage
+#      string as '--<name> <value>', the one place enter_root reads which options take a value,
+#      '[shell/root:valued]'. The branch is a case label '--<name>)', quoted or with alternatives
+#      after it, or a test '== "--<name>"', and the value is read on its line or the four after it,
+#      before ';;', a shift alone, 'set -- "${@:2}"', or a 'fi', 'done', or 'esac'; an option
+#      shifted alone is a flag. One read as
+#      'shift; x="$1"' is not seen. The usage is read from the script's first line 'usage="', with
+#      usage_valued of scripts/lib/root.sh, as enter_root reads it.
 #
 # Usage:
 #     scripts/check-shell.sh [--root <dir>]        (or: bash scripts/check-shell.sh)
@@ -130,6 +138,24 @@ ROOT_RULE="a script under scripts/ reads its own repository, or another one only
 ROOT_RULE+=" through its own line 'enter_root \"\${BASH_SOURCE[0]}\" \"\$usage\" \"\$@\"', then"
 ROOT_RULE+=" rest_args, of scripts/lib/root.sh (CONTRIBUTING.md, Project Layout;"
 ROOT_RULE+=" NUC-checks-are-bash §9)"
+# Each option a script's own code reads with a value, as the header says of the rule shell/root.
+# shellcheck disable=SC2016  # the dollar signs are awk's
+VALUE_READS='
+BEGIN {
+  value = "\\$\\{?2([^0-9]|$)"
+  alone = "(^|[;{[:space:]])shift[[:space:]]*(;|}|$)|set -- \"?\\$\\{@:2\\}\"?"
+  ends = ";;|(^|[;{[:space:]])(fi|done|esac)[[:space:]]*(;|}|$)"
+}
+/^[[:space:]]*#/ { next }
+n > 0 { if ($0 ~ value) { print opt; n = 0 } else if ($0 ~ alone || $0 ~ ends) n = 0; else n-- }
+match($0, /--[a-z][a-z0-9-]*"?[[:space:]]*(\|[^)]*)?\)|== "?--[a-z][a-z0-9-]*"?/) {
+  opt = substr($0, RSTART, RLENGTH); sub(/^== "?/, "", opt); sub(/[" ]*(\|[^)]*)?\)?$/, "", opt); sub(/"$/, "", opt)
+  if (opt == "--root") next
+  rest = substr($0, RSTART + RLENGTH)
+  if (rest ~ alone) next
+  if (rest ~ value) print opt
+  else if (rest !~ ends) n = 4
+}'
 for f in "${scripts[@]}"; do
   rel="${f#"$ROOT"/}" name="${f##*/}" own=0
   [[ "$rel" == scripts/* && "${rel#scripts/}" != */* ]] && own=1
@@ -151,6 +177,15 @@ for f in "${scripts[@]}"; do
     failed=1
     continue
   fi
+  # The options its code reads a value after are those its usage writes '--<name> <value>'.
+  usage_valued "$(grep -m1 -E '^usage="' "$f")"; valued="$USAGE_VALUED"
+  while IFS= read -r opt; do
+    [[ "$valued" == *" $opt "* ]] && continue
+    echo "$rel: reads a value after '$opt', which its usage does not write as '$opt <value>' —" \
+      "enter_root reads the options that take a value from the usage (scripts/lib/root.sh)" \
+      "[shell/root:valued]"
+    failed=1
+  done < <(awk "$VALUE_READS" "$f" | sort -u)
   out="$(cd "$away" && bash "$f" --verbose --root "$away" 2>&1)"; rc=$?
   if ((rc != 2)) || [[ "$out" != "$name: unknown argument '--verbose'"* ]]; then
     echo "$rel: does not refuse --verbose with exit 2 and its name (exit $rc) — $ROOT_RULE" \
