@@ -174,6 +174,11 @@ check "a subject named twice needs the line to name it twice" lacks "A [a/b:c]" 
 check "a number inside a longer one does not hold" lacks "x 12 [a/b:c]" "a/b:c @ 2"
 check "a name inside a longer hyphenated one does not hold" lacks "aa-rule a-rule-two [a/b:c]" "a/b:c @ a-rule"
 check "a subject after a place that is no datum of its own holds" holds "xaaa aa [a/b:c]" "a/b:c @ aa"
+check "a subject only in the key does not hold" lacks "  - broken [docs/links:broken]" "docs/links:broken @ docs"
+check "'!' with subjects holds on a line with them in the other order" \
+  holds "  - b.md, then a.md [docs/x:y]" "!docs/x:y @ a.md @ b.md"
+check "'!' with subjects does not hold on a line with them in its order" \
+  lacks "  - a.md, then b.md [docs/x:y]" "!docs/x:y @ a.md @ b.md"
 check "a wording in the field is refused" refused "does not pin the extension"
 check "a wording after a key is refused" refused "area/rule-x:why @ does not pin"
 check "a rule without a reason word is refused" refused "area/rule-x"
