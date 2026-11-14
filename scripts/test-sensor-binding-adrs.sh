@@ -229,6 +229,8 @@ expect_with 0 "a named path lists the ADR that names it" "$d" \
 expect_with 0 "a named directory binds an ADR that names a path under it" "$d" \
   "- $(adr_id 1) (docs/adr/$(adr_id 1).md) — docs/" --path docs/
 expect_with 2 "--path without a path fails" "$d" "--path needs a path" --path
+expect_with 2 "--path with a base as well fails, not ignoring the base" "$d" \
+  "unknown argument 'HEAD'" --path src/app.sh HEAD
 
 # A path only an ADR of the base names lists that ADR, read from its file.
 d="$(repo base-adr)"

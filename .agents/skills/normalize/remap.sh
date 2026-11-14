@@ -37,7 +37,8 @@
 # Prints each file it changed. Exit code 0 when every reference moved, 2 when references are left
 # for the hand, 1 on anything else; an invalid map changes nothing. With --check it changes
 # nothing, prints each reference the map would move as 'file:line: OLD -> NEW', lists the
-# references it would leave, and exits 1 when one would move.
+# references it would leave, and exits 1 when one would move. --check may stand before or after
+# the map; any other option, or a second map, exits 1 before anything runs.
 set -uo pipefail
 
 # shellcheck source-path=SCRIPTDIR source=../../../scripts/lib/bash.sh
@@ -45,9 +46,16 @@ source "$(dirname "${BASH_SOURCE[0]}")/../../../scripts/lib/bash.sh"
 
 # The script may rewrite its own text, so bash reads all of it before running any: one block.
 {
-check=0
-[[ "${1:-}" == --check ]] && { check=1; shift; }
-map="${1:-}"
+check=0 map=""
+# --check counts wherever it stands: one put after the map is a dry run too, not ignored while
+# the map rewrites the tree. Any other option and a second map are refused before anything runs.
+for arg in "$@"; do
+  if [[ "$arg" == --check ]]; then check=1
+  elif [[ "$arg" == -* ]]; then echo "remap: unknown argument '$arg'" >&2; exit 1
+  elif [[ -n "$map" ]]; then echo "remap: one map file only, not also '$arg'" >&2; exit 1
+  else map="$arg"
+  fi
+done
 [[ -n "$map" && -f "$map" ]] || { echo "remap: '$map' is no map file" >&2; exit 1; }
 map="$(cd "$(dirname "$map")" && pwd -P)/$(basename "$map")"
 

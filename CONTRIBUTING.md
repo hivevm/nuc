@@ -62,7 +62,9 @@ scripts/test-*.sh     # self-tests of the checks, the sensors, the hooks, the se
                       # run by hand
 scripts/lib/          # what the scripts share: the bash floor (bash.sh), the ADR header (adr.sh),
                       # the findings of a check (check.sh), git (git.sh), the root a script
-                      # reads (root.sh), the plain rules (rules.sh), the self-tests
+                      # reads (root.sh): every scripts/*.sh but the self-tests and
+                      # check-all.sh takes it, as test-check-all.sh checks; the plain
+                      # rules (rules.sh), the self-tests
                       # (selftest.sh), the ticket path (ticket.sh)
 scripts/fixtures/     # the cases of a check as a table, which its self-test reads
 scripts/*.sh          # run by hand, steps 7 and 8 of the integration branches: ready-for-main.sh,

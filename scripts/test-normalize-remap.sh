@@ -104,6 +104,13 @@ printf '%s %s\n' "$(id one)" "$(id four)" > "$work/map-check"
 check "--check exits 1 when something would move" "[[ $rc -eq 1 ]]"
 check "--check names the reference" "grep -qF 'README.md:1: $(id one) -> $(id four)' '$work/out'"
 check "--check changes nothing" "grep -qxF 'See $(id one).' '$d/README.md'"
+# --check after the map is a dry run too: before, it was ignored and the map rewrote the tree.
+(cd "$d" && bash "$REMAP" "$work/map-check" --check) > "$work/out" 2>&1; rc=$?
+check "--check after the map exits 1 and changes nothing" \
+  "[[ $rc -eq 1 ]] && grep -qxF 'See $(id one).' '$d/README.md'"
+(cd "$d" && bash "$REMAP" "$work/map-check" "$work/map-check") > "$work/out" 2>&1; rc=$?
+check "a second map exits 1 and changes nothing" \
+  "[[ $rc -eq 1 ]] && grep -qF 'one map file only' '$work/out' && grep -qxF 'See $(id one).' '$d/README.md'"
 printf 'See %s and %s.\n' "$(id seven)" "$(id three)" > "$d/README.md"
 printf '%s %s %s\n%s %s\n' "$(id seven)" "$(id one)" "$(id two)" "$(id three)" "$(id four)" > "$work/map-check"
 (cd "$d" && bash "$REMAP" --check "$work/map-check") > "$work/out" 2>&1; rc=$?
@@ -156,12 +163,12 @@ check "a successor whose clause is mapped exits 1" "[[ $rc -eq 1 ]] && grep -qF 
 run "$d" "$(id one)${S}3 $(id two)${S}1" "$(id two) $(id three)"; rc=$?
 check "a clause whose successor's identifier is mapped exits 1" "[[ $rc -eq 1 ]] && grep -qF 'never used twice' '$work/out'"
 check "a refused map changes nothing" "grep -qxF '$(id one)' '$d/README.md'"
-# An option the script does not read, such as the --record it once had, is no map file: it is
-# refused with exit 1 and its name, and the valid map after it is not applied.
+# An option the script does not read, such as the --record it once had, is refused with exit 1
+# and its name, and the valid map after it is not applied.
 printf '%s %s\n' "$(id one)" "$(id four)" > "$work/map-record"
 (cd "$d" && bash "$REMAP" --record "$work/map-record") > "$work/out" 2>&1; rc=$?
 check "an option it does not read exits 1 and changes nothing" \
-  "[[ $rc -eq 1 ]] && grep -qF \"remap: '--record' is no map file\" '$work/out' && grep -qxF '$(id one)' '$d/README.md'"
+  "[[ $rc -eq 1 ]] && grep -qF \"remap: unknown argument '--record'\" '$work/out' && grep -qxF '$(id one)' '$d/README.md'"
 
 # A swap of two criteria: in Markdown, on a marker line, and in an ADR; never in the specification
 # and never on another line of a file that is not Markdown. A criteria swap is one pass.
