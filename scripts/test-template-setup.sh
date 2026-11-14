@@ -26,6 +26,10 @@
 #      the template's and keeps a ticket the project wrote, after a 'Use this template' commit
 #      and in an adoption, and names each file it removed and kept. It refuses a copy no commit
 #      holds and removes nothing. The setup file's opening paragraph names the two directories.
+#   5. The form of a finding about the template: the close deletes the issue template
+#      .github/ISSUE_TEMPLATE/template-finding.md, so the design-revision skill carries its fields
+#      in the code block of its section on what the work cost and what slowed it: each field of
+#      the form, and no field the form lacks.
 #
 # A project partway through the setup has replaced some placeholders already. Case 1 asks only
 # for those still present, and an edit of case 2 that finds nothing to change does nothing, so
@@ -156,12 +160,15 @@ open_golden_path() {
 
 # close_setup <dir> — the close of the setup in the tree: the setup file, the README's notes
 # that point at it and its row in the Project Layout block, the setup skill and its pointer,
-# this script with its 'run' line and its step in the docs job, and the template's own plan and
-# backlog. The same edits make case 2.
+# this script with its 'run' line and its step in the docs job, the issue template for findings
+# about the template, and the template's own plan and backlog. The same edits make case 2.
 close_setup() {
   local d="$1"
   rm -f "$d/TEMPLATE-SETUP.md"
   rm -rf "$d/.agents/skills/setup-project" "$d/.claude/skills/setup-project"
+  # A finding goes to the template's repository, not to the project's
+  # (NUC-template-learns-from-projects §6).
+  rm -f "$d/.github/ISSUE_TEMPLATE/template-finding.md"
   # The setup's note only, not another NOTE block of the project: the note and the blank line
   # after it, when its first line says the project still carries its setup.
   if [[ -f "$d/README.md" ]]; then
@@ -278,6 +285,7 @@ PLACEHOLDERS=(
   "docs/GLOSSARY.md|^- \*\*<Term>\*\*|docs/template-identity:term @ docs/GLOSSARY.md"
   "docs/CONVENTIONS.md|^- \*\*<Convention>\*\*|docs/template-identity:convention @ docs/CONVENTIONS.md"
   "README.md|^- \*\*(Build|Test|Lint|Run):\*\* TODO|docs/template-identity:command @ README.md"
+  ".github/ISSUE_TEMPLATE/template-finding.md|^name: Template finding$|docs/template-identity:finding @ .github/ISSUE_TEMPLATE/template-finding.md"
   "README.md|\(TEMPLATE-SETUP\.md\)|docs/links:broken @ README.md @ TEMPLATE-SETUP.md"
   "CONTRIBUTING.md|^TEMPLATE-SETUP\.md |docs/project-layout:missing @ CONTRIBUTING.md @ TEMPLATE-SETUP.md"
   ".agents/skills/setup-project/SKILL.md|\(\.\./\.\./\.\./TEMPLATE-SETUP\.md\)|docs/links:broken @ .agents/skills/setup-project/SKILL.md @ ../../../TEMPLATE-SETUP.md"
@@ -516,7 +524,8 @@ printf '\n> [!NOTE]\n> **Fixture keeps this note.**\n' >> "$d/README.md"
 commit_copy "$d" template
 if bash "$d/scripts/test-template-setup.sh" --close >/dev/null 2>&1; then pass
 else fail "--close after step 1 does not exit 0"; fi
-for f in TEMPLATE-SETUP.md scripts/test-template-setup.sh .agents/skills/setup-project/SKILL.md; do
+for f in TEMPLATE-SETUP.md scripts/test-template-setup.sh .agents/skills/setup-project/SKILL.md \
+  .github/ISSUE_TEMPLATE/template-finding.md; do
   if [[ ! -e "$d/$f" ]]; then pass; else fail "--close leaves $f"; fi
 done
 if [[ ! -L "$d/.claude/skills/setup-project" ]]; then pass; else fail "--close leaves the skill's pointer"; fi
@@ -586,6 +595,33 @@ else fail "--close on an uncommitted copy does not ask to commit it first: $out"
 opening="$(awk 'NR > 2 && /^$/ { exit } NR > 2' "$ROOT/TEMPLATE-SETUP.md")"
 if [[ "$opening" == *docs/plan/* && "$opening" == *docs/backlog/* ]]; then pass
 else fail "TEMPLATE-SETUP.md's opening paragraph does not name the template's plan and backlog"; fi
+
+# --- case 5: the form of a finding stands in the skill too -------------------------------------
+
+# Verifies: NUC-template-learns-from-projects
+# Each field is a '## ' heading of the issue template. The code block of the skill's section on
+# cost carries the same headings, no more and no fewer.
+form="$ROOT/.github/ISSUE_TEMPLATE/template-finding.md"
+skill="$ROOT/.agents/skills/design-revision/SKILL.md"
+if [[ -f "$form" ]] && grep -q '^## ' "$form"; then pass
+else fail "the issue template .github/ISSUE_TEMPLATE/template-finding.md is missing or has no field"; fi
+if grep -qE '^## [0-9]+\. What the work cost and what slowed it$' "$skill"; then pass
+else fail "the design-revision skill has no section on what the work cost and what slowed it"; fi
+form_fields="$(grep '^## ' "$form" 2>/dev/null)"
+skill_fields="$(awk '/^## [0-9]+\. What the work cost and what slowed it$/ { s = 1; next }
+                     s && /^## [0-9]+\. / { exit }
+                     s && /^```/ { b = !b; next }
+                     s && b && /^## / { print }' "$skill")"
+while IFS= read -r field; do
+  [[ -n "$field" ]] || continue
+  if grep -qxF -- "$field" <<< "$skill_fields"; then pass
+  else fail "the design-revision skill does not carry the field of the issue template: $field"; fi
+done <<< "$form_fields"
+while IFS= read -r field; do
+  [[ -n "$field" ]] || continue
+  if grep -qxF -- "$field" <<< "$form_fields"; then pass
+  else fail "the design-revision skill carries a field the issue template lacks: $field"; fi
+done <<< "$skill_fields"
 
 # --- summary ---------------------------------------------------------------------------------
 

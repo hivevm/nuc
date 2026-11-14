@@ -133,9 +133,36 @@
 #      TODO. Step 3: the '<Project Name>' title of the specification, the overview, the glossary, and the
 #      conventions, a criterion of the specification still reading '…' or '<Quality', and the
 #      scaffold's '<Part>', '<Term>', and '<Convention>' entries. Step 5: a 'TODO' as the Build,
-#      Test, Lint, or Run command of the README, its Overview sentence, and its Usage TODO. A
-#      placeholder that survives the setup describes the template, not the project. A file that
-#      does not exist has nothing to check.
+#      Test, Lint, or Run command of the README, its Overview sentence, and its Usage TODO. The
+#      close: the issue template .github/ISSUE_TEMPLATE/template-finding.md, whose findings go to
+#      the template's repository (NUC-template-learns-from-projects §6). A placeholder that
+#      survives the setup describes the template, not the project. A file that does not exist has
+#      nothing to check.
+#   docs/opens-no-issue
+#      No file of the template opens an issue on its own: only a human sends a finding
+#      (NUC-template-learns-from-projects §4). While TEMPLATE-SETUP.md exists, the repository is
+#      the template, and the rule reads every text file under scripts/, .githooks/, .github/, and
+#      .agents/ but the fixture tables under scripts/fixtures/, which nothing runs. After the
+#      setup the files are the project's, and the rule reads none. A line whose first non-space
+#      character is '#' is a comment and is not read; a trailing '# comment' on a command line is
+#      read with it. A line that ends in a backslash goes on in the next one. A line fails in five
+#      plain forms, each its reason:
+#        cli      'gh issue create', or its alias 'gh issue new';
+#        api      'gh api' on a path that ends in 'repos/…/issues', with '-X POST', '--method
+#                 POST', or a field, '-f', '-F', '--field', '--raw-field', or '--input', and with
+#                 no '-X GET', '--method GET', or '--request GET';
+#        graphql  the mutation 'createIssue(', anywhere on the line;
+#        http     curl or wget on that path with a POST or with data: '-X POST', '--request
+#                 POST', '-d', '--data…', '--json', '--post-data', or '--post-file';
+#        script   the call 'issues.create(', as actions/github-script makes it, or a step
+#                 'uses:' an action whose name holds 'create-issue' or 'create-an-issue'.
+#      Prose in Markdown is read too: a skill's sentence is an instruction to an agent, which is
+#      what clause 4 guards. A skill names the human's act, such as 'the human sends the finding
+#      as an issue', not the command. Reading issues passes, as does a link to an issues page.
+#      The rule reads text: it misses a command built from variables, a shell alias, a list of
+#      arguments such as Python's '["gh", "issue", "create"]', a client in another language, and
+#      a mutation whose name and parenthesis stand on two lines. The review holds the rest, as the
+#      Enforcement of that ADR says.
 #   docs/template-release
 #      Template release named: README.md carries a '**Template release:**' line naming a
 #      'vX.Y.Z' tag or 'unreleased' (NUC-releases-are-semver-tags §4). Tags do not travel with
@@ -1296,6 +1323,8 @@ check_template_identity() {  # docs/template-identity
   placeholder docs/GLOSSARY.md '^- \*\*<Term>\*\*' "the scaffold's entry is still listed; write the first term, or delete the entry" term
   placeholder docs/CONVENTIONS.md '^- \*\*<Convention>\*\*' "the scaffold's entry is still listed; write the first convention, or delete the entry" convention
   placeholder README.md '^- \*\*(Build|Test|Lint|Run):\*\* TODO' "a Build, Test, Lint, or Run command is still TODO; name the command the toolchain ADR chose" command
+  [[ -f "$ROOT/.github/ISSUE_TEMPLATE/template-finding.md" ]] \
+    && add_error ".github/ISSUE_TEMPLATE/template-finding.md: the template's form for findings about itself is still here; delete it, since a finding goes to the template's repository (NUC-template-learns-from-projects §6) [docs/template-identity:finding]"
   local role n f
   for role in "${ADR_ROLES[@]}"; do
     n=0
@@ -1306,6 +1335,48 @@ check_template_identity() {  # docs/template-identity
     ((n == 0)) && add_error "docs/adr/: no accepted ADR fills the role $role — one carries '- **Role:** $role' (NUC-base-is-fixed §3) [docs/template-identity:unfilled]"
     ((n > 1)) && add_error "docs/adr/: $n accepted ADRs fill the role $role — exactly one does (NUC-base-is-fixed §3) [docs/template-identity:several]"
   done
+}
+
+check_opens_no_issue() {  # docs/opens-no-issue
+  [[ -f "$ROOT/TEMPLATE-SETUP.md" ]] || return 0
+  local f files=() file line reason
+  for f in "${TEXT_FILES[@]}"; do
+    case "${f#"$ROOT"/}" in
+      scripts/fixtures/*) ;;
+      scripts/* | .githooks/* | .github/* | .agents/*) files+=("$f") ;;
+    esac
+  done
+  ((${#files[@]})) || return 0
+  # One awk pass: a command is a line and the lines its trailing backslashes join to it, named by
+  # its first line; the first form it matches is its reason.
+  while IFS=$'\t' read -r file line reason; do
+    add_error "${file#"$ROOT"/}:$line: opens an issue on its own ($reason) — only a human sends a finding, and no file of the template sends anything (NUC-template-learns-from-projects §4) [docs/opens-no-issue:$reason]"
+  done < <(awk '
+    function word(w) { return "(^|[^[:alnum:]_-])" w "([^[:alnum:]_-]|$)" }
+    function form(c) {
+      if (c ~ word("gh[[:space:]]+issue[[:space:]]+(create|new)")) return "cli"
+      if (c ~ word("gh[[:space:]]+api") && c ~ path && c !~ get && (c ~ post || c ~ field)) return "api"
+      if (c ~ /(^|[^[:alnum:]_])createIssue[[:space:]]*[(]/) return "graphql"
+      if (c ~ word("(curl|wget)") && c ~ path && (c ~ post || c ~ data)) return "http"
+      if (c ~ /(^|[^[:alnum:]_])issues\.create[[:space:]]*[(]/ || c ~ /uses:[[:space:]]*[^[:space:]]*create-(an-)?issue/) return "script"
+      return ""
+    }
+    BEGIN {
+      path = "repos/[^[:space:]]*/issues([[:space:]\"\047`]|$)"
+      get = "(-X|--method|--request)[[:space:]=]*GET"
+      post = "(-X|--method|--request)[[:space:]=]*POST"
+      field = "[[:space:]](-f|-F|--field|--raw-field|--input)([[:space:]=]|$)"
+      data = "[[:space:]](-d|--data[a-z-]*|--json|--post-data|--post-file)([[:space:]=]|$)"
+    }
+    FNR == 1 { cmd = "" }
+    {
+      if (cmd == "") { if ($0 ~ /^[[:space:]]*#/) next; at = FNR }
+      if (/\\$/) { cmd = cmd substr($0, 1, length($0) - 1) " "; next }
+      c = cmd $0; cmd = ""
+      r = form(c)
+      if (r != "") printf "%s\t%s\t%s\n", FILENAME, at, r
+    }
+  ' "${files[@]}")
 }
 
 # LINK_SPACE_RE — a space inside the text of a link; docs/prose-width reads a link as one word.
@@ -1430,6 +1501,7 @@ check_project_layout
 check_skill_pointers
 check_base_blobs
 check_template_identity
+check_opens_no_issue
 check_template_release
 check_prose_width
 

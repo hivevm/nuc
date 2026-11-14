@@ -13,8 +13,9 @@ The template decides what is measured and where it goes; nuc-tools reads the har
 sends what reaches the template. The template ships no toolchain and binds no harness, and only
 the harness knows the tokens, so their reader lives outside it.
 
-**Landed for v0.10.0** (the human chose parts 1 to 3 for that minor on 2026-11-12, and the
-commits red alone on 2026-11-13):
+**Landed for v0.10.0** (the human chose parts 1 to 3 for that minor on 2026-11-12, the commits
+red alone on 2026-11-13, and parts 4 and 5 once the human accepted
+[NUC-template-learns-from-projects](../../adr/NUC-template-learns-from-projects.md) on 2026-11-14):
 `scripts/check-all.sh` names the time of each check, the slowest, and its own; the pull request
 template carries `Measures: tokens <n> | checks <n> s | review rounds <n>`; and
 `scripts/sensor-work-measures.sh`, run on a human's instruction, reports per merged pull request
@@ -22,23 +23,18 @@ the hours from the branch's first commit to its merge and the rounds of review, 
 from the Measures line; more than one round is a review again after the fixes of its findings.
 The `Reviewed at:` line counts none, since the review moves that one line after each round. A
 GitHub merge commit carries no description, so git alone holds no round.
-The commits red alone landed for v0.10.0 as the `--red` of that sensor: each commit of the ten
-newest merges on which that commit's own `scripts/check-all.sh` failed, run in a temporary
-worktree, a full run of the checks per commit, so only when asked. After v0.10.0 the design
-revision of 2026-11-13 split them into `scripts/sensor-red-commits.sh`, which needs no `gh`.
-
-**Still open in the template:**
-
-4. **The design revision reads them.** The `design-revision` skill gains a section on what the
-   work cost and what slowed it, from the measures and the sensors; it yields tickets of the project
-   and findings about the template, kept apart.
-5. **Findings go back to the template.** A finding about the template is written in the form of
-   an issue template of hivevm/nuc. The human decides whether to send it: sending publishes it.
-   Nothing reports back on its own. The human brings the issues sent into the template's own
-   design revision, which lists them as candidates; the human decides which becomes a ticket.
-   This is a process decision of the base: `NUC-template-learns-from-projects` is proposed on the
-   branch `docs/nuc-template-learns-from-projects`, held back from v0.10.0 on 2026-11-13 until
-   the human accepts it.
+`scripts/sensor-red-commits.sh`, run on a human's instruction and without `gh`, names each
+commit of the ten newest merges on which that commit's own `scripts/check-all.sh` failed, run in
+a temporary worktree: a full run of the checks per commit, so only when asked.
+Step 6 of the `design-revision` skill reads what the work cost and what slowed it, from the
+Measures lines, the two sensors, and the times of `scripts/check-all.sh`. It keeps findings about
+the template apart from the project's tickets, as drafts under `.scratch/`. A draft has the fields
+of the issue template `.github/ISSUE_TEMPLATE/template-finding.md`. The skill lists the drafts for
+the human, who alone sends one. In the template's own repository it lists the open findings as
+candidates. The close of the setup deletes the issue template, and `docs/template-identity` fails
+a project that still carries it. Case 5 of `scripts/test-template-setup.sh` holds the skill to
+the fields of the form. The rule `docs/opens-no-issue` of
+`scripts/check-docs.sh` holds that no file of the template opens an issue.
 
 **In nuc-tools, filed there as a ticket of its own:**
 
@@ -57,9 +53,9 @@ revision of 2026-11-13 split them into `scripts/sensor-red-commits.sh`, which ne
 
 ## Acceptance criteria
 
-- [ ] Given the `design-revision` skill, when it is read, then it has the section on cost and
+- [x] Given the `design-revision` skill, when it is read, then it has the section on cost and
       time and writes findings about the template apart from the project's tickets.
-- [ ] Given the ADR on findings for the template, when the human has accepted it, then hivevm/nuc
+- [x] Given the ADR on findings for the template, when the human has accepted it, then hivevm/nuc
       has the issue template it names, the `design-revision` skill carries its fields, the setup
       deletes it from a derived project and `docs/template-identity` checks that, and no file of
       the template sends anything on its own.
@@ -70,17 +66,13 @@ revision of 2026-11-13 split them into `scripts/sensor-red-commits.sh`, which ne
 
 ## Read first
 
-- Touches: `.agents/skills/design-revision/`, an issue template under `.github/ISSUE_TEMPLATE/`,
-  the proposed `NUC-` ADR and `docs/adr/NUC.blobs`, `TEMPLATE-SETUP.md` and `close_setup` of
-  `scripts/test-template-setup.sh`, the rule `docs/template-identity` of `scripts/check-docs.sh`,
-  `CONTRIBUTING.md`; outside the template, nuc-tools and the human's harness settings
+- Touches: `CONTRIBUTING.md`; outside the template, nuc-tools and the human's harness settings
 - The measures of the v0.9.0 release notes, and ticket 18 for the times per platform
 
 ## Blocked by
 
-- None (can start immediately); the parts 4 and 5 wait for the ADR's acceptance
+- None (can start immediately)
 
 ## Mode
 
-with the human: the ADR is the human's to accept, the telemetry runs on the human's machine, and
-the reader's place is nuc-tools.
+with the human: the telemetry runs on the human's machine, and the reader's place is nuc-tools.

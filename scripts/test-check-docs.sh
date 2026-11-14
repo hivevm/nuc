@@ -207,7 +207,7 @@ expect fail "a reference in words in a JSON file" "$d" "[docs/section-refs:unmat
 TABLE="$ROOT/scripts/fixtures/check-docs-record.txt"
 
 # Verifies: NUC-adrs-are-named-by-category NUC-base-is-fixed NUC-checks-are-bash
-# Verifies: NUC-releases-are-semver-tags
+# Verifies: NUC-releases-are-semver-tags NUC-template-learns-from-projects
 # adr_file <id> — the file of an identifier; status_of <status> — the status line it reads.
 adr_file() { echo "$1.md"; }
 status_of() {
