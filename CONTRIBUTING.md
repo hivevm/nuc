@@ -148,6 +148,28 @@ each ticket by its branch in a git worktree of its own and starts a fresh sessio
 non-interactive command of whichever agent the project's harness ADR names, and the session works
 the ticket through the `work-tickets` skill.
 
+### Measuring a session
+
+Claude Code exports tokens and cost per session, model, and call through OpenTelemetry, as one
+harness's example. A contributor turns it on in the `env` of the user settings
+`~/.claude/settings.json`, which no commit carries:
+
+```json
+"CLAUDE_CODE_ENABLE_TELEMETRY": "1",
+"OTEL_METRICS_EXPORTER": "otlp",
+"OTEL_LOGS_EXPORTER": "otlp",
+"OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+"OTEL_EXPORTER_OTLP_ENDPOINT": "http://172.17.0.1:4318"
+```
+
+The collector runs on the host, outside the container, which starts no container of its own
+([NUC-container-hides-host-daemon](docs/adr/NUC-container-hides-host-daemon.md)).
+`172.17.0.1` is the host on the default bridge of Docker on Linux; Docker Desktop names it
+`host.docker.internal`. The collector listens on that interface. The event
+`claude_code.api_request` carries the tokens of each call. The tokens of a hand-off's `Measures:`
+line come from there, or from `nuc measure` of
+[hivevm/nuc-tools#81](https://github.com/hivevm/nuc-tools/issues/81).
+
 ## Git hooks
 
 Git does not version its hooks, so the repository keeps them under [`.githooks/`](.githooks/).
