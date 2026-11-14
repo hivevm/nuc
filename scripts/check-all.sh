@@ -197,6 +197,10 @@ run "Repository settings sensor self-test" scripts/test-sensor-repo-settings.sh
 # (NUC-checks-are-bash §7); its self-test runs here.
 # On instruction: scripts/sensor-work-measures.sh
 run "Work measures sensor self-test" scripts/test-sensor-work-measures.sh
+# The release notes sensor reads the pull requests on GitHub and runs on a human's instruction
+# (NUC-checks-are-bash §7); its self-test runs here.
+# On instruction: scripts/sensor-release-notes.sh
+run "Release notes sensor self-test" scripts/test-sensor-release-notes.sh
 # The red commits sensor runs the checks of every commit it reads and runs on a human's
 # instruction for its cost; its self-test runs here.
 # On instruction: scripts/sensor-red-commits.sh

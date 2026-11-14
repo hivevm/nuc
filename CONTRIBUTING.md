@@ -57,7 +57,8 @@ docs/plan/            # open work: feature specs and their tickets, deleted as t
 scripts/check-all.sh  # runs the checks, sensors, and self-tests, as the hooks and CI do
 scripts/check-*.sh    # checks: each fails on what breaks a rule
 scripts/sensor-*.sh   # sensors: report for the reviewer; sensor-repo-settings.sh,
-                      # sensor-work-measures.sh, and sensor-red-commits.sh run by hand
+                      # sensor-work-measures.sh, sensor-release-notes.sh, and
+                      # sensor-red-commits.sh run by hand
 scripts/test-*.sh     # self-tests of the checks, the sensors, the hooks, the setup, and the scripts
                       # run by hand
 scripts/lib/          # what the scripts share: the bash floor (bash.sh), the ADR header (adr.sh),
@@ -222,6 +223,33 @@ instruction ([NUC-main-only-via-pr §2](docs/adr/NUC-main-only-via-pr.md)).
    on it, [`scripts/drop-merged-branch.sh`](scripts/drop-merged-branch.sh) refuses a branch
    `origin/main` lacks, takes up the remote's `main`, and deletes the local branch; then the
    `git push origin --delete feat/<topic>` it names.
+
+## Cutting a release
+
+A human cuts a release
+([NUC-releases-are-semver-tags §2](docs/adr/NUC-releases-are-semver-tags.md)). Its notes say what
+changed and what a derived project does to take it up. Every hand-off says the latter under
+Doubts, in the field "A derived project acts on".
+
+1. Open a pull request into `main` that moves the `Template release` line of the README to
+   `vX.Y.Z`. The maintainer picks the version by
+   [NUC-releases-are-semver-tags §3](docs/adr/NUC-releases-are-semver-tags.md).
+2. Once it has merged, run
+   [`scripts/sensor-release-notes.sh`](scripts/sensor-release-notes.sh) on `main`, after
+   `git fetch --tags origin`. It lists that field for each merge since the last tag `v*`, from
+   the pull request's description or the merge message. `--since <tag>` names another tag. The
+   field of a `feat/` branch's pull request and those of its tickets may overlap; both print
+   unless their words are the same.
+3. Write the notes from what changed and from that list. Where the release merges, splits, or
+   removes a `NUC-` ADR, the notes carry the map from each old identifier and clause to its new
+   home ([NUC-releases-are-semver-tags §7](docs/adr/NUC-releases-are-semver-tags.md)).
+4. Tag the merge commit of the pull request of step 1 with those notes as its annotation:
+   `git tag -a vX.Y.Z -F .scratch/<notes>.md <merge>`, then `git push origin vX.Y.Z`.
+5. Build the GitHub release from that tag, with the same notes.
+
+The sensor reads GitHub through `gh` and runs on a human's instruction
+([NUC-checks-are-bash §7](docs/adr/NUC-checks-are-bash.md)). A derived project that ships
+releases of its own may run the sensor for their notes.
 
 ## Repository settings
 

@@ -9,6 +9,8 @@
 # does not carry: the 'review rounds <n>' of its Measures line (.github/PULL_REQUEST_TEMPLATE.md).
 # Its 'Reviewed at:' line counts none, since the review moves that one line after each round.
 # More than one round means a review ran again after the fixes of its findings.
+# The subject of a merge and the gh call that reads its description are those of
+# scripts/sensor-release-notes.sh, its twin.
 #
 # The commits of a branch that were red alone are named by scripts/sensor-red-commits.sh, which
 # needs no gh.

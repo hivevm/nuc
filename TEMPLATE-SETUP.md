@@ -181,8 +181,11 @@ in ADRs; on what may and may not be edited, see
 and [NUC-base-is-fixed §1](docs/adr/NUC-base-is-fixed.md). Leave the **Dev Container**, **Coding
 Agents**, and **Repository settings** sections of `CONTRIBUTING.md` and the **Template** section of
 the README as-is; they describe the scaffold. A project without a Dev Container changes the first
-two as [A small project](#a-small-project) says. The Template section names the release this project
-carries and is the one link to the template that stays. The **Project Layout** block of
+two as [A small project](#a-small-project) says. The Template section is the one link that names
+the release this project carries. Leave the **Cutting a release**
+section of `CONTRIBUTING.md` as-is too, with its sensor. It describes the template's releases. A
+project that ships releases of its own may run the sensor for their notes, and one that ships none
+leaves it unused. The **Project Layout** block of
 `CONTRIBUTING.md` inventories the top level, so a part you remove goes out of it, this file
 included, and a part you add goes in, such as the source tree and the toolchain's files of step 6;
 the rule `docs/project-layout` of [`scripts/check-docs.sh`](scripts/check-docs.sh) fails on one it
