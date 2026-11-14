@@ -27,12 +27,23 @@
 # limits as for sed apply: comment lines are not read, the rule reads text, and a pipe on the line
 # before is not seen, nor is pipefail set in a file the script sources.
 #
-# Two rules start the scripts they hold, from an empty directory of their own and, for a script
-# the root rule holds, with --root on it, and carry rule keys; their cases are the table
-# scripts/fixtures/check-shell.txt. A script is held only by a line of its own that asks for it,
-# so a project's script without one is never started. One whose floor does not stop it, and that
-# the root rule does not hold, such as a self-test, runs in full.
+# Three rules carry rule keys; their cases are the table scripts/fixtures/check-shell.txt.
+# The rules shell/bash-floor and shell/root start the scripts they hold, from an empty directory of
+# their own and, for a script the root rule holds, with --root on it. A script is held only by a
+# line of its own that asks for it, so a project's script without one is never started. One whose
+# floor does not stop it, and that the root rule does not hold, such as a self-test, runs in full.
 #
+#   shell/mode
+#      A tracked script scripts/*.sh, or a skill's .agents/skills/<name>/*.sh, has the mode 100755
+#      in the index (NUC-checks-are-bash §9), '[shell/mode:exec]'. Each is run, and AGENTS.md calls
+#      some directly, which a file without the executable bit refuses. The rule reads the mode with
+#      git ls-files -s, so it holds on a file system that keeps no mode, as on Windows. A file below
+#      scripts/ or below a skill's directory is not held: a library under scripts/lib/ is sourced,
+#      not run, and stays 100644, and a fixture under scripts/fixtures/ is data. A file git does not
+#      track has no mode in the index and is not held until it is added.
+#      A symbolic link, mode 120000, is not held: git keeps no executable bit for it. A file in
+#      conflict is not held: it has no entry at stage 0, and its mode is open until it is resolved.
+#      A finding names the command that sets the bit, the path quoted for the shell.
 #   shell/bash-floor
 #      A script scripts/*.sh, or a skill's .agents/skills/<name>/*.sh, with a line that sources
 #      lib/bash.sh or lib/selftest.sh stops below bash 4.4 with exit 2, its file name, and both
@@ -126,6 +137,26 @@ for f in "${scripts[@]}"; do
     failed=1
   done < <(grep -nE "$QUIET_PIPE" "$f" | grep -vE '^[0-9]+:[[:space:]]*#')
 done
+
+# The rule shell/mode reads the mode of each tracked script it holds from the index, which git
+# keeps on a file system without one, too. The list above has shown that git reads the root.
+while IFS= read -r -d '' entry; do
+  meta="${entry%%$'\t'*}" rel="${entry#*$'\t'}"
+  mode="${meta%% *}" stage="${meta##* }"
+  [[ "$stage" == 0 ]] || continue
+  if [[ "$rel" == scripts/* ]]; then
+    [[ "${rel#scripts/}" != */* ]] || continue
+  else
+    [[ "${rel#.agents/skills/*/}" != */* ]] || continue
+  fi
+  [[ "$mode" == 100755 || "$mode" == 120000 ]] && continue
+  printf -v quoted '%q' "$rel"
+  echo "$rel: is tracked with mode $mode, not 100755 (NUC-checks-are-bash §9)," \
+    "so a direct call is refused —" \
+    "a script is run, and git keeps its executable bit: git update-index --chmod=+x -- $quoted" \
+    "[shell/mode:exec]"
+  failed=1
+done < <(git -C "$ROOT" ls-files -s -z -- 'scripts/*.sh' '.agents/skills/*/*.sh')
 
 # The rules shell/bash-floor and shell/root start the scripts they hold from a directory of their
 # own, and a script the root rule holds with --root on that empty directory: a script that does

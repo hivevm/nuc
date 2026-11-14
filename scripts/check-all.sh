@@ -202,7 +202,7 @@ run "Work measures sensor self-test" scripts/test-sensor-work-measures.sh
 # On instruction: scripts/sensor-release-notes.sh
 run "Release notes sensor self-test" scripts/test-sensor-release-notes.sh
 # The red commits sensor runs the checks of every commit it reads and runs on a human's
-# instruction for its cost; its self-test runs here.
+# instruction for its cost (NUC-checks-are-bash §7); its self-test runs here.
 # On instruction: scripts/sensor-red-commits.sh
 run "Red commits sensor self-test" scripts/test-sensor-red-commits.sh
 run "Check runner self-test" scripts/test-check-all.sh

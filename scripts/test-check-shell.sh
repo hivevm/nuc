@@ -11,9 +11,10 @@
 # '||', and a POSIX sh script without pipefail pass; the forms that read the input whole report the
 # match of a producer that writes on after it, where the pipe reads none. Where ShellCheck is not
 # on PATH the lint skips ShellCheck, and so does this test with the cases that need it. The rules
-# shell/root and shell/bash-floor run the cases of scripts/fixtures/check-shell.txt, which says its
-# format; inline beside them, the root.sh a script reads refuses a --root given twice or standing
-# as the value of an option, and a script the rules hold is started only when a line asks for it.
+# shell/root, shell/bash-floor, and shell/mode run the cases of scripts/fixtures/check-shell.txt,
+# which says its format; inline beside them, the root.sh a script reads refuses a --root given
+# twice or standing as the value of an option, and a script the rules hold is started only when a
+# line asks for it.
 #
 # Verifies: NUC-checks-are-bash
 # Inputs: scripts/check-shell.sh scripts/lib/ scripts/fixtures/check-shell.txt scripts/check-devcontainer.sh scripts/check-docs.sh scripts/sensor-action-refs.sh scripts/sensor-binding-adrs.sh scripts/sensor-review-binding.sh
@@ -242,7 +243,19 @@ out="$(bash "$CHECK" --root "$d" 2>&1)"
 check "a held script whose floor does not stop it, started by the rule, marks no file of its own tree" \
   test ! -e "$d/ran" -a -n "$(grep -F "[shell/bash-floor:silent]" <<< "$out")"
 
-# --- the rules shell/root and shell/bash-floor, read from the fixture table -----------------
+# The command a finding of shell/mode names fixes the mode, though the path holds a space.
+d="$(repo mode-command)"
+mkdir -p "$d/scripts"
+printf '#!/usr/bin/env bash\necho build\n' > "$d/scripts/test-my build.sh"
+git -C "$d" add -- "scripts/test-my build.sh"
+git -C "$d" update-index --chmod=-x -- "scripts/test-my build.sh"
+out="$(bash "$CHECK" --root "$d" 2>&1)"
+cmd="$(grep -F "[shell/mode:exec]" <<< "$out")"; cmd="${cmd##*: git }"; cmd="git ${cmd% \[*}"
+(cd "$d" && eval "$cmd") > /dev/null 2>&1
+check "the command a shell/mode finding names sets the mode of a path with a space" \
+  test "$(git -C "$d" ls-files -s -- "scripts/test-my build.sh" | cut -c1-6)" = 100755
+
+# --- the rules shell/root, shell/bash-floor, and shell/mode, read from the fixture table -----
 
 TABLE="$ROOT/scripts/fixtures/check-shell.txt"
 
@@ -318,6 +331,18 @@ while IFS= read -r line; do
     case "$op" in
       script) kind "$path" "$rest" > "$d/$path" ;;
       write) printf '%s\n' "$rest" > "$d/$path" ;;
+      mode)
+        git -C "$d" add -- "$path"
+        case "$rest" in
+          100755) git -C "$d" update-index --chmod=+x -- "$path" ;;
+          100644) git -C "$d" update-index --chmod=-x -- "$path" ;;
+          *) echo "fixture table: unknown mode '$rest'" >&2; exit 2 ;;
+        esac ;;
+      link) ln -s "$rest" "$d/$path" && git -C "$d" add -- "$path" ;;
+      conflict)
+        blob="$(git -C "$d" hash-object -w -- "$path")"
+        printf '100644 %s %s\t%s\n' "$blob" 1 "$path" "$blob" 2 "$path" "$blob" 3 "$path" \
+          | git -C "$d" update-index --index-info ;;
       *) echo "fixture table: unknown step '$op'" >&2; exit 2 ;;
     esac
   done <<< "${tree//; /$'\n'}"

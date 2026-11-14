@@ -1114,8 +1114,8 @@ check_check_lists() {  # docs/check-lists
   done
 
   # Every script under scripts/ runs in the two lists, unless the local runner names it on a line
-  # '# On instruction: scripts/<name>.sh', as for a sensor that reads GitHub
-  # (NUC-checks-are-bash §7). A script in neither list is a check nobody runs.
+  # '# On instruction: scripts/<name>.sh', as for the scripts of NUC-checks-are-bash §7.
+  # A script in neither list is a check nobody runs.
   local on_instruction=() name
   while IFS= read -r name; do on_instruction+=("$name"); done \
     < <(sed -n 's/^#[[:space:]]*On instruction:[[:space:]]*\(scripts\/[A-Za-z0-9._-]*\.sh\).*/\1/p' "$all")

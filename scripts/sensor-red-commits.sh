@@ -9,9 +9,8 @@
 # whose worktree could not be made, is counted as not run. It reports and never fails.
 #
 # It needs only git and the commits. It runs on a human's instruction, not in scripts/check-all.sh
-# or checks.yml, since it costs a full run of the checks per commit; NUC-checks-are-bash §7, on the
-# sensors that read GitHub, does not cover it. scripts/test-sensor-red-commits.sh runs it on
-# fixture repositories, with a stub check-all.sh.
+# or checks.yml, since it costs a full run of the checks per commit (NUC-checks-are-bash §7).
+# scripts/test-sensor-red-commits.sh runs it on fixture repositories, with a stub check-all.sh.
 #
 # Each commit's checks run with the tools of this machine and the sensor's environment, and with
 # no timeout: an old check-all.sh that hangs blocks the run until a human stops it. After a stop,

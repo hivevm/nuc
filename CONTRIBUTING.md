@@ -89,7 +89,9 @@ A script `scripts/*.sh` of the project, other than its self-tests, takes its roo
 template's do ([NUC-checks-are-bash §9](docs/adr/NUC-checks-are-bash.md)): it reads its own
 repository, or another one only as `--root <dir>`, through `enter_root` of `scripts/lib/root.sh`,
 and `rest_args` refuses an argument it does not read. The rule `shell/root` of
-`scripts/check-shell.sh` fails on one that does not.
+`scripts/check-shell.sh` fails on one that does not. The rule `shell/mode` fails on a tracked
+script `scripts/*.sh` or `.agents/skills/<name>/*.sh` whose mode in the index is not 100755
+([NUC-checks-are-bash §9](docs/adr/NUC-checks-are-bash.md)).
 
 ## Dev Container
 
