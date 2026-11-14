@@ -52,10 +52,10 @@ revision as issues in one form, sent by a human.
    - Another session that meets a finding about the template must record it as a backlog entry
      ([NUC-large-work-is-planned §6](NUC-large-work-is-planned.md)).
    - The next revision may draft a finding from such an entry.
-   - The revision marks the entry as drafted, and a later revision drafts no second finding from
-     it.
-   - The entry stays until the human has sent the draft or dropped it. The human then deletes the
-     entry, or closes its issue where the backlog lives in the host's issues.
+   - The revision must mark the entry as drafted. A later revision must not draft a second finding
+     from it.
+   - The entry must stay until the human has sent the draft or dropped it. The human must then
+     delete the entry, or close its issue where the backlog lives in the host's issues.
 2. **Form.** A finding must follow the fields of the issue template `template-finding.md` of
    `hivevm/nuc`. The `design-revision` skill must carry the same fields, since the setup deletes
    the file from a derived project.
@@ -162,6 +162,8 @@ reason:
 
 - whether a finding came from a design revision: a draft under `.scratch/` leaves no trace a
   check reads (clauses 1 and 3);
+- whether an entry a draft came from was marked and kept: the tree shows neither the source of
+  a draft nor the human's decision (clause 1);
 - whether a draft carries nothing of the project: what is the project's is a judgement, not a
   pattern (clause 2);
 - whether a file sends anything the rule `docs/opens-no-issue` does not match: the rule finds
