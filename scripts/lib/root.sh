@@ -7,28 +7,43 @@
 #     # shellcheck source-path=SCRIPTDIR source=lib/root.sh
 #     source "$(dirname "${BASH_SOURCE[0]}")/lib/root.sh"
 #     usage="scripts/<name>.sh [--root <dir>] [--own-option] [--own-valued <value>]"
-#     VALUE_OPTIONS="--own-valued"
 #     enter_root "${BASH_SOURCE[0]}" "$usage" "$@"
 #     set -- "${ARGS[@]}"
 #     ... the script's own options, each shifted off ...
 #     rest_args "${BASH_SOURCE[0]}" "$usage" <positional arguments it reads> "$@"
+#
+# The usage string is the one place that says which of a script's options take a value: each
+# written '--<name> <value>' in it, the value in angle brackets, does. The rule shell/root of
+# scripts/check-shell.sh fails on an option whose branch in the script reads a value, '$2', that
+# the usage does not write so.
+
+# usage_valued <usage> — sets USAGE_VALUED to the options the usage writes with a value,
+# '--<name> <value>', but --root, each with a space before and after it. A positional argument
+# after a flag is written outside the flag's brackets, '[--check] <file>', or it reads as the
+# flag's value.
+usage_valued() {
+  local rest="$1"
+  USAGE_VALUED=" "
+  while [[ "$rest" =~ (--[a-z][a-z0-9-]*)\ \<[^\>]+\>(.*) ]]; do
+    [[ "${BASH_REMATCH[1]}" == --root ]] || USAGE_VALUED+="${BASH_REMATCH[1]} "
+    rest="${BASH_REMATCH[2]}"
+  done
+}
 
 # enter_root <script> <usage> [args...] — change to the repository the script reads: the one
 # it lives in, as the checks find theirs, or the one '--root <dir>' names, wherever it stands but
-# as the value of the script's own option,
-# as a self-test does with its fixtures. Sets ROOT to that directory, absolute, and ARGS to
-# the arguments other than '--root' and its value. Exits 2 with the script's file name when
-# '--root' has no value, is given twice, or names no directory: a script that read another
-# tree than the one asked for would pass on a tree it never read. A script that needs a git
-# repository tests that itself.
-# Before the call, a script whose own options take a value names them in VALUE_OPTIONS,
-# separated by spaces, such as VALUE_OPTIONS="--path". enter_root exits 2 on a '--root' that
-# stands where such an option takes its value: read as the root, it would leave the option
-# without its value and the directory after it as an argument the script might ignore.
+# as the value of the script's own option, as a self-test does with its fixtures. Sets ROOT to
+# that directory, absolute, and ARGS to the arguments other than '--root' and its value. Exits 2
+# with the script's file name when '--root' has no value, is given twice, or names no directory:
+# a script that read another tree than the one asked for would pass on a tree it never read. A
+# script that needs a git repository tests that itself. It also exits 2 on a '--root' that stands
+# where an option the usage writes with a value takes it: read as the root, it would leave the
+# option without its value and the directory after it as an argument the script might ignore.
 # shellcheck disable=SC2034 # ROOT and ARGS are the caller's
 enter_root() {
-  local script="$1" usage="$2" name="${1##*/}" root="" given=0 valued=" ${VALUE_OPTIONS:-} "
+  local script="$1" usage="$2" name="${1##*/}" root="" given=0 valued
   shift 2
+  usage_valued "$usage"; valued="$USAGE_VALUED"
   ARGS=()
   while (($#)); do
     if [[ -n "$1" && "$1" != --root && "$valued" == *" $1 "* && "${2:-}" == --root ]]; then
@@ -67,7 +82,3 @@ rest_args() {
     fi
   done
 }
-
-# A script names its own options that take a value after it sources this file; one set in the
-# environment is not read, so that it adds no refusal the script did not ask for.
-VALUE_OPTIONS=""

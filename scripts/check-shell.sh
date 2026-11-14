@@ -27,9 +27,36 @@
 # limits as for sed apply: comment lines are not read, the rule reads text, and a pipe on the line
 # before is not seen, nor is pipefail set in a file the script sources.
 #
+# Two rules start the scripts they hold, from an empty directory of their own and, for a script
+# the root rule holds, with --root on it, and carry rule keys; their cases are the table
+# scripts/fixtures/check-shell.txt. A script is held only by a line of its own that asks for it,
+# so a project's script without one is never started. One whose floor does not stop it, and that
+# the root rule does not hold, such as a self-test, runs in full.
+#
+#   shell/bash-floor
+#      A script scripts/*.sh, or a skill's .agents/skills/<name>/*.sh, with a line that sources
+#      lib/bash.sh or lib/selftest.sh stops below bash 4.4 with exit 2, its file name, and both
+#      versions (NUC-checks-are-bash §1), as BASH_GUARD_VERSION=3.2 makes the floor believe.
+#   shell/root
+#      A script scripts/*.sh but the self-tests and check-all.sh calls enter_root of
+#      scripts/lib/root.sh on a line of its own, and exits 2 with its file name on --verbose and
+#      on a --root that is no directory (NUC-checks-are-bash §9). A finding names the call and the
+#      Project Layout of CONTRIBUTING.md, where a project reads the rule. A script that declares
+#      a positional argument and changes into it passes: the rule runs the script, and reads no
+#      cd in its text.
+#      An option whose branch in the script reads a value after it, '$2', stands in the usage
+#      string as '--<name> <value>', the one place enter_root reads which options take a value,
+#      '[shell/root:valued]'. The branch is a case label '--<name>)', quoted or with alternatives
+#      after it, or a test '== "--<name>"', and the value is read on its line or the four after it,
+#      before ';;', a shift alone, 'set -- "${@:2}"', or a 'fi', 'done', or 'esac'; an option
+#      shifted alone is a flag. One read as
+#      'shift; x="$1"' is not seen. The usage is read from the script's first line 'usage="', with
+#      usage_valued of scripts/lib/root.sh, as enter_root reads it.
+#
 # Usage:
 #     scripts/check-shell.sh [--root <dir>]        (or: bash scripts/check-shell.sh)
-# The root defaults to this repository; scripts/test-check-shell.sh passes fixtures.
+# The root defaults to this repository; scripts/test-check-shell.sh passes fixtures. The rules
+# shell/bash-floor and shell/root start the scripts of the root they read.
 # Exit code 0 when all scripts pass (ShellCheck skipped when unavailable outside CI), 1 otherwise,
 # 2 on a root that is no directory.
 
@@ -98,6 +125,80 @@ for f in "${scripts[@]}"; do
     echo "    $text"
     failed=1
   done < <(grep -nE "$QUIET_PIPE" "$f" | grep -vE '^[0-9]+:[[:space:]]*#')
+done
+
+# The rules shell/bash-floor and shell/root start the scripts they hold from a directory of their
+# own, and a script the root rule holds with --root on that empty directory: a script that does
+# not stop where it should reads no tree past its enter_root line, not even its own, and
+# check-shell.sh started by itself does not start itself again. What a script runs before its
+# enter_root line runs as it is.
+away="$(mktemp -d)" || { echo "Shell lint: no temporary directory." >&2; exit 1; }
+trap 'rm -rf "$away"' EXIT
+ROOT_RULE="a script under scripts/ reads its own repository, or another one only as --root <dir>,"
+ROOT_RULE+=" through its own line 'enter_root \"\${BASH_SOURCE[0]}\" \"\$usage\" \"\$@\"', then"
+ROOT_RULE+=" rest_args, of scripts/lib/root.sh (CONTRIBUTING.md, Project Layout;"
+ROOT_RULE+=" NUC-checks-are-bash §9)"
+# Each option a script's own code reads with a value, as the header says of the rule shell/root.
+# shellcheck disable=SC2016  # the dollar signs are awk's
+VALUE_READS='
+BEGIN {
+  value = "\\$\\{?2([^0-9]|$)"
+  alone = "(^|[;{[:space:]])shift[[:space:]]*(;|}|$)|set -- \"?\\$\\{@:2\\}\"?"
+  ends = ";;|(^|[;{[:space:]])(fi|done|esac)[[:space:]]*(;|}|$)"
+}
+/^[[:space:]]*#/ { next }
+n > 0 { if ($0 ~ value) { print opt; n = 0 } else if ($0 ~ alone || $0 ~ ends) n = 0; else n-- }
+match($0, /--[a-z][a-z0-9-]*"?[[:space:]]*(\|[^)]*)?\)|== "?--[a-z][a-z0-9-]*"?/) {
+  opt = substr($0, RSTART, RLENGTH); sub(/^== "?/, "", opt); sub(/[" ]*(\|[^)]*)?\)?$/, "", opt); sub(/"$/, "", opt)
+  if (opt == "--root") next
+  rest = substr($0, RSTART + RLENGTH)
+  if (rest ~ alone) next
+  if (rest ~ value) print opt
+  else if (rest !~ ends) n = 4
+}'
+for f in "${scripts[@]}"; do
+  rel="${f#"$ROOT"/}" name="${f##*/}" own=0
+  [[ "$rel" == scripts/* && "${rel#scripts/}" != */* ]] && own=1
+  ((own)) || [[ "$rel" == .agents/skills/*/* && "${rel#.agents/skills/*/}" != */* ]] || continue
+  held=""
+  [[ "$own" == 1 && "$name" != test-*.sh && "$name" != check-all.sh ]] && held=1
+  if grep -qE '^source .*lib/(bash|selftest)\.sh"' "$f"; then
+    out="$(cd "$away" && BASH_GUARD_VERSION=3.2 bash "$f" ${held:+--root "$away"} 2>&1)"; rc=$?
+    if ((rc != 2)) || [[ "$out" != "$name: the checks need bash 4.4 or later"*"this is bash 3.2"* ]]; then
+      echo "$rel: sources the bash floor and does not stop below bash 4.4 with its name (exit $rc)" \
+        "— scripts/lib/bash.sh, sourced as its first act, stops it (NUC-checks-are-bash §1)" \
+        "[shell/bash-floor:silent]"
+      failed=1
+    fi
+  fi
+  [[ -n "$held" ]] || continue
+  if ! grep -qE '^enter_root "\$\{BASH_SOURCE\[0\]\}" ' "$f"; then
+    echo "$rel: calls no enter_root on a line of its own — $ROOT_RULE [shell/root:unrooted]"
+    failed=1
+    continue
+  fi
+  # The options its code reads a value after are those its usage writes '--<name> <value>'.
+  usage_valued "$(grep -m1 -E '^usage="' "$f")"; valued="$USAGE_VALUED"
+  while IFS= read -r opt; do
+    [[ "$valued" == *" $opt "* ]] && continue
+    echo "$rel: reads a value after '$opt', which its usage does not write as '$opt <value>' —" \
+      "enter_root reads the options that take a value from the usage (scripts/lib/root.sh)" \
+      "[shell/root:valued]"
+    failed=1
+  done < <(awk "$VALUE_READS" "$f" | sort -u)
+  out="$(cd "$away" && bash "$f" --verbose --root "$away" 2>&1)"; rc=$?
+  if ((rc != 2)) || [[ "$out" != "$name: unknown argument '--verbose'"* ]]; then
+    echo "$rel: does not refuse --verbose with exit 2 and its name (exit $rc) — $ROOT_RULE" \
+      "[shell/root:verbose]"
+    failed=1
+    continue
+  fi
+  out="$(cd "$away" && bash "$f" --root "$away/no-such-root" 2>&1)"; rc=$?
+  if ((rc != 2)) || [[ "$out" != "$name: '$away/no-such-root' is not a directory"* ]]; then
+    echo "$rel: does not refuse a --root that is no directory with exit 2 (exit $rc) — $ROOT_RULE" \
+      "[shell/root:missing]"
+    failed=1
+  fi
 done
 
 if ((failed)); then

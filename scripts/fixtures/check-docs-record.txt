@@ -20,9 +20,9 @@
 # '!<key> @ <a> @ <b>' is not broken by a line that names <b> before <a>.
 #
 # The tree is a list of steps separated by '; ', or '-' for none, applied in order to a git
-# repository, with no commit and without TEMPLATE-SETUP.md, that passes every check, its setup
-# done. Every file is staged before the check runs. Its files, where 'exactly' gives the whole
-# content, each '\n' a line break:
+# repository on the branch main, with no commit and without TEMPLATE-SETUP.md, that passes every
+# check, its setup done. Every file is staged before the check runs. Its files, where 'exactly'
+# gives the whole content, each '\n' a line break:
 #
 #   AGENTS.md                     exactly '# Agent Guide\n\n## 1. Principles\n\nBe simple.\n\n
 #                                 ## 2. Rules\n\nFollow them.\n'
@@ -59,6 +59,8 @@
 #                               <status>\n- **Applies to:** everything\n\n## Decision\n\nWe will.\n'
 #   row <table> <id> <status>   an index row alone, in 'binding' or 'archive'
 #   status <id> <status>        the status line of the file alone
+#   applies <id> <text>         the Applies to field of the file and the cell of its row, both
+#                               reading the text
 #   field <id> <name> <text>    a header field '- **<name>:** <text>' before Applies to, such as Role
 #   supersedes <id> <ids>       a Supersedes field before Applies to, linking each id of the
 #                               comma-separated list as [<id>](<id>.md); an id after '+' stands on
@@ -86,6 +88,7 @@
 #   delete <id>                 the file and its row deleted and committed
 #   branch <name>               a new branch, checked out
 #   back                        the branch checked out before
+#   rename <name>               the branch checked out renamed
 #   merge <name>                the branch merged by a merge commit
 #   skill <text>                the SKILL.md of the fixture's skill 'review' replaced by the text,
 #                               each '\n' in it a line break
@@ -132,6 +135,13 @@ docs/adr-refs | pass | - | a slug of one word is no citation | text README.md AP
 docs/adr-refs | pass | - | a slug of one word in a shell script is no citation | text scripts/lib/note.sh # An API:first design.
 docs/adr-refs | pass | - | a chain longer than an identifier is no citation, not one cut short | text README.md NUC:adrs-record-decisions-and-a-b.
 docs/adr-refs | pass | - | a hyphenated word of no category is no citation | text README.md UTF:8 and SHA:256 and CVE:2025-30066.
+docs/adr-refs | fail | docs/adr-refs:unlisted @ SEC:x-rule.md @ docs/no-such-key | an accepted ADR that names a rule key the header of check-docs.sh lacks | adr SEC:x-rule accepted; applies SEC:x-rule the rule `docs/no-such-key` of `scripts/check-docs.sh`
+docs/adr-refs | fail | docs/adr-refs:unlisted @ SEC:x-rule.md @ docs/no-such-key | a proposed ADR that names a missing key among keys that exist | adr SEC:x-rule proposed; applies SEC:x-rule the rules `docs/links`, `docs/no-such-key`, and `docs/adr-refs` of `scripts/check-docs.sh`
+docs/adr-refs | pass | - | an ADR that names rule keys of the header | adr SEC:x-rule accepted; applies SEC:x-rule the rules `docs/links` and `docs/adr-refs` of `scripts/check-docs.sh`
+docs/adr-refs | pass | - | an ADR that names the old key an item of the header carries | adr SEC:x-rule accepted; applies SEC:x-rule the rule `docs/adr-numbering` of `scripts/check-docs.sh`
+docs/adr-refs | pass | - | a rule key of another file is not held against the header | adr SEC:x-rule accepted; applies SEC:x-rule the rule `build/no-such-key` of `scripts/check-build.sh`
+docs/adr-refs | pass | - | a rejected ADR that names a missing rule key | adr SEC:x-rule rejected; applies SEC:x-rule the rule `docs/no-such-key` of `scripts/check-docs.sh`
+docs/adr-refs | pass | - | a superseded ADR that names a missing rule key | adr SEC:decision-1 superseded:SEC:decision-2; adr SEC:decision-2 accepted; supersedes SEC:decision-2 SEC:decision-1; applies SEC:decision-1 the rule `docs/no-such-key` of `scripts/check-docs.sh`
 docs/adr-link-targets | fail | docs/adr-link-targets:other @ README.md @ [SEC:x-rule](docs/adr/SEC:decision-1.md) @ SEC:x-rule @ SEC:decision-1.md | a link that cites one ADR and points at another | adr SEC:decision-1 accepted; adr SEC:x-rule proposed; text README.md See [SEC:x-rule](docs/adr/SEC:decision-1.md).
 docs/adr-link-targets | pass | - | a link that cites an ADR and points at its file | adr SEC:x-rule proposed; text README.md See [SEC:x-rule §2](docs/adr/SEC:x-rule.md#decision).
 docs/adr-link-targets | pass | - | a link that cites an ADR and points outside docs/adr/ is no claim | adr SEC:x-rule proposed; text docs/notes/threat-model.md # Threat model; text README.md See [SEC:x-rule](docs/notes/threat-model.md).
@@ -262,6 +272,14 @@ docs/template-release | fail | docs/template-release:line @ README.md @ NUC-rele
 docs/template-release | fail | docs/template-release:version @ README.md | a version that is not a vX.Y.Z tag | release 1.4
 docs/template-release | fail | docs/template-release:version @ README.md | a pre-release suffix on the tag | release v1.4.0-rc1
 docs/template-release | fail | docs/template-release:version @ README.md | a word that is not 'unreleased' | release latest
+docs/template-release | fail | docs/template-release:proposed @ NUC:x-rule.md @ v0.1.0 @ v0.2.0 @ NUC-releases-are-semver-tags @ §8 | a change that moves the release line while a NUC- ADR is proposed | release v0.1.0; file NUC:x-rule proposed; blobs; commit; branch work; release v0.2.0
+docs/template-release | fail | docs/template-release:proposed @ NUC:x-rule.md @ unreleased @ v0.1.0 | the first release cut while a NUC- ADR is proposed | file NUC:x-rule proposed; blobs; commit; branch work; release v0.1.0
+docs/template-release | pass | - | a proposed NUC- ADR in a change that leaves the release line as it was | release v0.1.0; file NUC:x-rule proposed; blobs; commit; branch work; text docs/notes.md A note.
+docs/template-release | pass | - | a change that moves the release line while every NUC- ADR is accepted | release v0.1.0; file NUC:x-rule accepted; blobs; commit; branch work; release v0.2.0
+docs/template-release | pass | - | a change that moves the release line while a project ADR is proposed | release v0.1.0; adr SEC:x-rule proposed; commit; branch work; release v0.2.0
+docs/template-release | pass | - | no commit and so no merge base: the line is read alone | release v0.2.0; file NUC:x-rule proposed; blobs
+docs/template-release | pass | - | commits on a branch other than main and so no merge base: the line is read alone | release v0.1.0; file NUC:x-rule proposed; blobs; commit; rename other; release v0.2.0
+docs/template-release | fail | docs/template-release:proposed @ NUC:x-rule.md @ none @ v0.1.0 | a base without the release line counts as none | edit README.md - **Template release:** =>; file NUC:x-rule proposed; blobs; commit; branch work; text README.md - **Template release:** v0.1.0
 docs/prose-width | fail | docs/prose-width:wide @ README.md:6 @ 101 | a prose line over 100 columns | text README.md <prose 101>
 docs/prose-width | pass | - | a prose line of exactly 100 columns | text README.md <prose 100>
 docs/prose-width | pass | - | an em dash counts as one column | text README.md <prose 48> — <prose 49>

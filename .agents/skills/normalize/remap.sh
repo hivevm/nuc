@@ -39,6 +39,11 @@
 # nothing, prints each reference the map would move as 'file:line: OLD -> NEW', lists the
 # references it would leave, and exits 1 when one would move. --check may stand before or after
 # the map; any other option, or a second map, exits 1 before anything runs.
+# Exit 1 is both a refusal and, with --check, a move, and with --check a move hides a reference
+# that would be left. What the script prints tells them apart: a move prints its line on stdout;
+# a refusal prints nothing on stdout, only its reason on stderr, most often a line starting
+# 'remap: '; a reference left follows the line 'remap: references left to rewrite by hand:'
+# on stderr, also when exit 1 reports a move.
 set -uo pipefail
 
 # shellcheck source-path=SCRIPTDIR source=../../../scripts/lib/bash.sh

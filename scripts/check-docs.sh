@@ -6,7 +6,11 @@
 # docs/adr/README.md. Each check is named by its rule key, which every finding it reports ends
 # in, '[<key>:<reason>]', and which its function carries, 'check_<name>() {  # <key>'. This list
 # is the one place that maps a key to its check; ADRs name the checks by it, and the binding ADRs
-# sensor routes a change by it. scripts/test-check-docs.sh fails on a key the script prints that
+# sensor routes a change by it. An item may carry the keys its check had before,
+# '#   <key> (was: <old>, …)': an ADR that names an old key still names the check, for the rule
+# docs/adr-refs and for the sensor. A key moves so: the script first, its item carrying the old
+# key, then the ADRs that name it, each commit green. The old key stays, since a derived
+# project's ADR may name it. scripts/test-check-docs.sh fails on a key the script prints that
 # the list lacks, and on a check that prints a key not its own. One key is no check's: docs/files,
 # when the repository lists no text file and nothing else is checked.
 #
@@ -21,7 +25,7 @@
 #      accepted or proposed one above it: the first table is what a session reads, and a
 #      row in the wrong one is either a dead decision read as binding or a binding one
 #      never read (docs/adr/README.md).
-#   docs/adr-identifiers
+#   docs/adr-identifiers (was: docs/adr-numbering)
 #      ADR identifier integrity: every identifier has the form of NUC-adrs-are-named-by-category
 #      clause 1, its category is fixed or in the category list of the index (clause 2), and the
 #      file's heading starts with '# <identifier>:'. No ADR deleted on the first-parent line of
@@ -57,6 +61,9 @@
 #      topic, never by an identifier that does not exist yet (NUC-adrs-are-named-by-category §6).
 #      A reference is a word of its own: a one-word slug, such as API-first, or a longer chain is
 #      none. An identifier in a Markdown code span is no citation (clause 6) and is not read.
+#      Every rule key that the Applies to of an ADR in force names of scripts/check-docs.sh,
+#      'the rule `<key>` of `scripts/check-docs.sh`', is an item of this header or an old key
+#      one carries: a key that names no check binds the ADR to no check, and no check fails.
 #   docs/adr-link-targets
 #      ADR link agreement: a Markdown link whose text cites an ADR points at that ADR's own
 #      file — the identifier and the file it links to must name the same decision
@@ -135,6 +142,10 @@
 #      GitHub's template mechanism, so the line is the one thing that tells a derived project
 #      which release of the template it carries; a release moves it, and a project that takes a
 #      release up moves it (§5).
+#      A change that moves the version on the line against its merge base with origin/main, else
+#      main, cuts a release or takes one up, and then each 🟡 proposed 'NUC-' ADR fails (clause 8): a
+#      derived project can neither accept nor reject one. A base without the line counts as none.
+#      Without a merge base the line is read alone.
 #   docs/prose-width
 #      Prose width: a line of Markdown prose is at most 100 columns, so a diff shows the sentence
 #      that changed. Fenced code, front matter, table rows, headings, and ADR header fields are
@@ -171,10 +182,16 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/bash.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/lib/adr.sh"
 # shellcheck source-path=SCRIPTDIR source=lib/check.sh
 source "$(dirname "${BASH_SOURCE[0]}")/lib/check.sh"
+# shellcheck source-path=SCRIPTDIR source=lib/git.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/git.sh"
 
 # shellcheck source-path=SCRIPTDIR source=lib/root.sh
 source "$(dirname "${BASH_SOURCE[0]}")/lib/root.sh"
 usage="scripts/check-docs.sh [--root <dir>]"
+# The keys of the items of this header and the old keys they carry, read before enter_root
+# changes the directory a relative path of this script starts from.
+RULE_KEYS=" $(sed -nE '/^set /q; s/^#   ([a-z]+\/[a-z0-9-]+)( \(was: ([^)]+)\))?$/\1 \3/p' \
+  "${BASH_SOURCE[0]}" | tr ',\n' '  ') "
 enter_root "${BASH_SOURCE[0]}" "$usage" "$@"
 rest_args "${BASH_SOURCE[0]}" "$usage" 0 "${ARGS[@]}"
 ADR_DIR="$ROOT/docs/adr"
@@ -932,6 +949,19 @@ check_adr_refs() {  # docs/adr-refs
         || add_error "${f#"$ROOT"/}:$lineno: reference '$match' matches no ADR file in docs/adr/ [docs/adr-refs:unmatched]"
     done
   done < <(grep -Hn --null -E "$ADR_REF_RE" "${files[@]}")
+  # A rule key an ADR in force names of this script is a key of its header (see the header).
+  local path keys key
+  for f in "${ADR_LIST[@]}"; do
+    [[ "${ADR_APPLIES["$f"]-}" == *"the rule"* ]] || continue
+    is_inactive_adr "$f" && continue
+    while IFS=$'\t' read -r path keys; do
+      [[ "$path" == scripts/check-docs.sh ]] || continue
+      for key in $keys; do
+        [[ "$RULE_KEYS" == *" $key "* ]] \
+          || add_error "${f#"$ROOT"/}: Applies to names the rule '$key' of scripts/check-docs.sh, which its header does not list [docs/adr-refs:unlisted]"
+      done
+    done < <(adr_rule_paths "${ADR_APPLIES["$f"]}")
+  done
 }
 
 check_adr_link_targets() {  # docs/adr-link-targets
@@ -1339,25 +1369,49 @@ check_prose_width() {  # docs/prose-width
 # only a space, a punctuation mark, or the end of the line may follow: a pre-release suffix,
 # build metadata, and a fourth number are not a tag NUC-releases-are-semver-tags §1 cuts,
 # and SemVer allows no leading zero.
+# release_of <text> — sets RELEASE to what the first Template release line of the text names,
+# 'vX.Y.Z' or 'unreleased'; to nothing when the text has no such line, and to '-' when its line
+# names neither.
+RELEASE=""
+release_of() {
+  local line num='(0|[1-9][0-9]*)' re
+  # shellcheck disable=SC2016  # the backticks are Markdown to match, not a command substitution
+  re='^[[`]?(v'"$num"'\.'"$num"'\.'"$num"'|unreleased)($|[][:space:],;:)`]|\.([[:space:]]|$))'
+  RELEASE=""
+  line="$(grep -m1 -E '^[[:space:]]*([-*] )?\*\*Template release:\*\*' <<< "$1")" || return 0
+  line="${line#*\*\*Template release:\*\*}" line="${line#"${line%%[![:space:]]*}"}"
+  if [[ "$line" =~ $re ]]; then RELEASE="${BASH_REMATCH[1]}"; else RELEASE=-; fi
+}
+
 check_template_release() {  # docs/template-release
   local readme="$ROOT/README.md"
   if [[ ! -f "$readme" ]]; then
     add_error "README.md: not found — the Template section names the release this repository carries (NUC-releases-are-semver-tags §4) [docs/template-release:absent]"
     return
   fi
-  local line value
-  line="$(grep -m1 -E '^[[:space:]]*([-*] )?\*\*Template release:\*\*' "$readme")"
-  if [[ -z "$line" ]]; then
+  release_of "$(< "$readme")"
+  if [[ -z "$RELEASE" ]]; then
     add_error "README.md: no '**Template release:**' line — the Template section names the release of the template this repository carries, or 'unreleased' (NUC-releases-are-semver-tags §4) [docs/template-release:line]"
     return
   fi
-  value="${line#*\*\*Template release:\*\*}"
-  value="${value#"${value%%[![:space:]]*}"}"
-  local num='(0|[1-9][0-9]*)'
-  # shellcheck disable=SC2016  # the backticks are Markdown to match, not a command substitution
-  local re='^[[`]?(v'"$num"'\.'"$num"'\.'"$num"'|unreleased)($|[][:space:],;:)`]|\.([[:space:]]|$))'
-  [[ "$value" =~ $re ]] \
-    || add_error "README.md: the Template release line names neither a 'vX.Y.Z' tag nor 'unreleased' — a release moves it to the tag it cuts (NUC-releases-are-semver-tags §1, §4) [docs/template-release:version]"
+  if [[ "$RELEASE" == - ]]; then
+    add_error "README.md: the Template release line names neither a 'vX.Y.Z' tag nor 'unreleased' — a release moves it to the tag it cuts (NUC-releases-are-semver-tags §1, §4) [docs/template-release:version]"
+    return
+  fi
+  # A change that moves the version against the merge base with main cuts a release, or takes
+  # one up: it carries no proposed NUC- ADR (NUC-releases-are-semver-tags §8). A base without
+  # the line, or with one that names no version, counts as none. Without a merge base the line
+  # is read alone.
+  local now="$RELEASE" base was f
+  base="$(main_merge_base HEAD 2>/dev/null)" || return 0
+  release_of "$(git show "$base:README.md" 2>/dev/null)"
+  [[ "$RELEASE" == "$now" ]] && return 0
+  was="$RELEASE"
+  [[ -n "$was" && "$was" != - ]] || was=none
+  for f in "${ADR_LIST[@]}"; do
+    [[ "${f##*/}" == NUC-* && "${ADR_STATUS["$f"]-}" == *🟡* ]] || continue
+    add_error "${f#"$ROOT"/}: proposed, and the change moves the Template release line from $was to $now — a release carries only accepted NUC- ADRs (NUC-releases-are-semver-tags §8) [docs/template-release:proposed]"
+  done
 }
 
 collect_text_files

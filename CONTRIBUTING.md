@@ -56,16 +56,15 @@ docs/adr/             # Architecture Decision Records (+ template): the template
 docs/plan/            # open work: feature specs and their tickets, deleted as they land
 scripts/check-all.sh  # runs the checks, sensors, and self-tests, as the hooks and CI do
 scripts/check-*.sh    # checks: each fails on what breaks a rule
-scripts/sensor-*.sh   # sensors: report for the reviewer; sensor-repo-settings.sh and
-                      # sensor-work-measures.sh run by hand
+scripts/sensor-*.sh   # sensors: report for the reviewer; sensor-repo-settings.sh,
+                      # sensor-work-measures.sh, and sensor-red-commits.sh run by hand
 scripts/test-*.sh     # self-tests of the checks, the sensors, the hooks, the setup, and the scripts
                       # run by hand
 scripts/lib/          # what the scripts share: the bash floor (bash.sh), the ADR header (adr.sh),
                       # the findings of a check (check.sh), git (git.sh), the root a script
-                      # reads (root.sh): every scripts/*.sh but the self-tests and
-                      # check-all.sh takes it, as test-check-all.sh checks; the plain
-                      # rules (rules.sh), the self-tests
-                      # (selftest.sh), the ticket path (ticket.sh)
+                      # reads (root.sh): every scripts/*.sh but the self-tests and check-all.sh
+                      # takes it, as check-shell.sh checks; the plain rules (rules.sh), the
+                      # self-tests (selftest.sh), the ticket path (ticket.sh)
 scripts/fixtures/     # the cases of a check as a table, which its self-test reads
 scripts/*.sh          # run by hand, steps 7 and 8 of the integration branches: ready-for-main.sh,
                       # drop-merged-branch.sh
@@ -84,6 +83,12 @@ scripts/*.sh          # run by hand, steps 7 and 8 of the integration branches: 
 .claude/skills/       # pointers (one symlink per skill) for Claude Code to read .agents/skills/
 .claude/settings.json # Claude Code permissions: deny reading .env files (see SECURITY.md)
 ```
+
+A script `scripts/*.sh` of the project, other than its self-tests, takes its root as the
+template's do ([NUC-checks-are-bash §9](docs/adr/NUC-checks-are-bash.md)): it reads its own
+repository, or another one only as `--root <dir>`, through `enter_root` of `scripts/lib/root.sh`,
+and `rest_args` refuses an argument it does not read. The rule `shell/root` of
+`scripts/check-shell.sh` fails on one that does not.
 
 ## Dev Container
 

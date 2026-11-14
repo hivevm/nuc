@@ -11,12 +11,13 @@
 # changed path. A file named with rules of its checks, 'the rule `<key>` of `<file>`' or 'the rules
 # `<a>`, `<b>`, and `<c>` of `<file>`', binds only where a line of a hunk, or the line on either
 # side, lies in the function of such a rule's check, from 'check_<name>() {  # <key>' to its
-# closing brace; a rule key is no path. A line outside the checks, such as the header
-# or a shared helper, binds every ADR that names the file, as a named path does. The rest is prose
-# no script reads, so the list is the ADRs a session reads at the least: the index is still read
-# by its prose. Otherwise a path stands for the whole file, also where the ADR governs a part of
-# it. It reports and never fails, so that the implementing session and the reviewer of AGENTS.md
-# section 5 start from the same list.
+# closing brace; a rule key is no path. An old key that the item of a rule carries in the header
+# of the file, '#   <key> (was: <old>, …)', names that rule's check as well. A line outside the
+# checks, such as the header or a shared helper, binds every ADR that names the file, as a named
+# path does. The rest is prose no script reads, so the list is the ADRs a session reads at the
+# least: the index is still read by its prose. Otherwise a path stands for the whole file, also
+# where the ADR governs a part of it. It reports and never fails, so that the implementing
+# session and the reviewer of AGENTS.md section 5 start from the same list.
 #
 # Pure bash + git. Usage:
 #     scripts/sensor-binding-adrs.sh [--root <dir>] [--sections] {[--path <path>]... | [base [head]]}
@@ -51,8 +52,6 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/git.sh"
 # shellcheck source-path=SCRIPTDIR source=lib/root.sh
 source "$(dirname "${BASH_SOURCE[0]}")/lib/root.sh"
 usage="scripts/sensor-binding-adrs.sh [--root <dir>] [--sections] {[--path <path>]... | [base [head]]}"
-# shellcheck disable=SC2034 # read by enter_root
-VALUE_OPTIONS="--path"
 enter_root "${BASH_SOURCE[0]}" "$usage" "$@"
 set -- "${ARGS[@]}"
 
@@ -194,10 +193,14 @@ else
   fi
 fi
 
-# held — of each line of a file, the rule key of the check whose function holds it, or an empty
-# line outside the checks (see the header).
+# held — of each line of a file, the rule key of the check whose function holds it and the old
+# keys its item carries in the header, the lines before the first 'set ':
+# '#   <key> (was: <old>, …)'. A line outside the checks gives an empty line (see the header).
 held() {
-  awk '/^check_[a-z_]+\(\) \{  # [a-z]+\/[a-z0-9-]+$/ { n = $NF } { print n } /^}/ { n = "" }
+  awk '/^set / { h = 1 }
+    !h && /^#   [a-z]+\/[a-z0-9-]+ \(was: [^)]+\)$/ { o = $0; sub(/^#   [^ ]+ \(was: /, "", o)
+      sub(/\)$/, "", o); gsub(/,/, "", o); old[$2] = " " o }
+    /^check_[a-z_]+\(\) \{  # [a-z]+\/[a-z0-9-]+$/ { n = $NF } { print n old[n] } /^}/ { n = "" }
     END { print "" }'
 }
 
@@ -224,16 +227,8 @@ while IFS= read -r file; do
   [[ "$status" == *"🟢"* || "$status" == *"🟡"* ]] || continue
   applies="$(adr_field_line - 'Applies to' <<< "$text")"
   paths=() keys=()
-  # A token is one path in backticks, with the rules of its checks before it where they are named.
-  # shellcheck disable=SC2016  # the backticks are Markdown to match, not a command substitution
-  while IFS= read -r token; do
-    p="${token%\`}" && p="${p##*\`}" && rules="" pre=""
-    [[ "$token" == "the rule"* ]] && pre="${token% of \`*}"
-    while [[ "$pre" =~ \`([^\`]+)\`(.*) ]]; do
-      rules+="${rules:+ }${BASH_REMATCH[1]}" && pre="${BASH_REMATCH[2]}"
-    done
-    [[ "$p" =~ ^[^[:space:]]+$ ]] && paths+=("${p%/}") && keys+=("$rules")
-  done < <(grep -oE '(the rules? `[^`]+`((,|, and| and) `[^`]+`)* of )?`[^`]+`' <<< "$applies")
+  while IFS=$'\t' read -r p rules; do paths+=("$p") && keys+=("$rules"); done \
+    < <(adr_rule_paths "$applies")
   ((${#paths[@]})) || continue
   dirs=()
   for p in "${paths[@]}"; do dirs+=("$(module_dir "$p")"); done
