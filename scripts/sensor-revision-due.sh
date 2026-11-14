@@ -42,7 +42,7 @@ if [[ ! -f "$ROOT/$OVERVIEW" ]]; then
 fi
 line="$(grep -m1 -F '**Last design revision:**' "$ROOT/$OVERVIEW")"
 if [[ -z "$line" ]]; then
-  echo "Design revision sensor: $OVERVIEW has no '**Last design revision:**' line — add one: '**Last design revision:** none yet, due after 20 changes.' (NUC-design-is-revised §4)" >&2
+  echo "Design revision sensor: $OVERVIEW has no '**Last design revision:**' line — add one: '**Last design revision:** none yet, due after 50 changes.' (NUC-design-is-revised §4)" >&2
   exit 1
 fi
 if ! [[ "$line" =~ $LINE_RE ]]; then

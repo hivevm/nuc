@@ -48,7 +48,9 @@ For each module touched, look for what a single change cannot see and a check do
   entry in the catalogue of `propose-adr` describes.
 
 One candidate at a time, each with the ADR or convention it offends, or the name of the smell
-where none does.
+where none does, and with its evidence: a review finding, a commit that was red alone, a rework,
+or a cost of step 6. A candidate without evidence goes into the hand-off, not into a ticket
+([NUC-design-is-revised §3](../../../docs/adr/NUC-design-is-revised.md)).
 
 ## 3. Check the overview against the tree
 
@@ -176,17 +178,23 @@ declined.
 
 The conventions and the overview are corrected inline, as their documents ask. Everything else,
 except the drafts of step 6, which stay under `.scratch/`, is filed before the revision ends
-rather than implemented here: a ticket per candidate the survey found, a ticket per rule to drop,
-a ticket per check to write, a `proposed` ADR through `propose-adr` where a finding is a
-decision, a consolidating one included, and a drafted specification change as a ticket whose
-*Mode* is "with the human". The tickets go into
+rather than implemented here: a ticket per candidate the survey found with its evidence, a ticket
+per rule to drop, a ticket per check to write, a `proposed` ADR through `propose-adr` where a
+finding is a decision, a consolidating one included, and a drafted specification change as a
+ticket whose *Mode* is "with the human". The tickets go into
 `docs/plan/revision-<YYYY-MM-DD>/`, in the shape of the `plan-feature` skill's ticket template,
 without a spec; a second revision on one day numbers on in the same directory. List the backlog
 entries that touch the modules in scope, from
 [`scripts/sensor-backlog.sh`](../../../scripts/sensor-backlog.sh) or the host's issues, as
 candidates for the human
 ([NUC-design-is-revised §3](../../../docs/adr/NUC-design-is-revised.md)); a ticket made from one
-deletes the entry in the same commit. Where the
+deletes the entry in the same commit. The hand-off proposes to the human the deletion of each
+stale entry ([NUC-design-is-revised §6](../../../docs/adr/NUC-design-is-revised.md)): one
+added (`git log --diff-filter=A --format=%as -- docs/backlog/<entry>`, or the date the host
+shows for an issue) before two dates of the `Last design revision` line
+(`git log -L '/Last design revision/,+1:docs/ARCHITECTURE.md'`), with no ticket made from it.
+A date with an ordinal counts on its own; while the line has read fewer than two dates, no entry
+is stale. Where the
 revision took the count, move the `Last design revision` line of
 [`docs/ARCHITECTURE.md`](../../../docs/ARCHITECTURE.md) to today's date; where it reads today's
 date already, add this revision's ordinal of the day after it, `(2)` for the second. Then delete
