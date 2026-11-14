@@ -41,6 +41,8 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/bash.sh"
 # shellcheck source-path=SCRIPTDIR source=lib/root.sh
 source "$(dirname "${BASH_SOURCE[0]}")/lib/root.sh"
 usage="scripts/sensor-action-refs.sh [--root <dir>] [--require major-tag|sha]"
+# shellcheck disable=SC2034 # read by enter_root
+VALUE_OPTIONS="--require"
 enter_root "${BASH_SOURCE[0]}" "$usage" "$@"
 set -- "${ARGS[@]}"
 

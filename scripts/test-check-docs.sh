@@ -312,7 +312,7 @@ done < "$TABLE"
 ((n > 0)) || { echo "FAIL: no case read from $TABLE" >&2; failed=$((failed + 1)); }
 
 # A git that cannot read the history, as one before 2.31 rejects --diff-merges, fails the rule
-# docs/adr-numbering.
+# docs/adr-identifiers.
 d="$(repo old-git)"
 g "$d" add -A && g "$d" commit -q -m base
 mkdir -p "$work/old-git-bin"
@@ -322,11 +322,11 @@ exec %q "$@"
 ' \
   "$(command -v git)" > "$work/old-git-bin/git"
 chmod +x "$work/old-git-bin/git"
-PATH="$work/old-git-bin:$PATH" expect fail "docs/adr-numbering: a git too old to read the history" "$d" \
-  "[docs/adr-numbering:history] @ --diff-merges=first-parent"
+PATH="$work/old-git-bin:$PATH" expect fail "docs/adr-identifiers: a git too old to read the history" "$d" \
+  "[docs/adr-identifiers:history] @ --diff-merges=first-parent"
 
 # A git that warns on stderr and succeeds: the warning, here the name of an ADR in the tree, is no
-# deleted ADR of the rule docs/adr-numbering.
+# deleted ADR of the rule docs/adr-identifiers.
 d="$(repo warn-git)"
 g "$d" add -A && g "$d" commit -q -m base
 mkdir -p "$work/warn-git-bin"
@@ -335,7 +335,7 @@ printf '#!/usr/bin/env bash
 exec %q "$@"
 ' "$(adr_id 1)" "$(command -v git)" > "$work/warn-git-bin/git"
 chmod +x "$work/warn-git-bin/git"
-PATH="$work/warn-git-bin:$PATH" expect pass "docs/adr-numbering: a warning of git on stderr is no deleted ADR" "$d"
+PATH="$work/warn-git-bin:$PATH" expect pass "docs/adr-identifiers: a warning of git on stderr is no deleted ADR" "$d"
 
 # --- the rule keys: one place names each check ----------------------------------------------
 
