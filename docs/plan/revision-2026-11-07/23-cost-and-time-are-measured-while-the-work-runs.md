@@ -2,37 +2,39 @@
 
 ## What to build
 
-Nothing measures during the work where a session spends its tokens or how long each check takes.
-The v0.9.0 work, read afterwards from its transcripts, spent about 700 million tokens read from
-the prompt cache over 4,400 calls of the model, 60 % of them in subagents. The cost grew with the
-length of the context times the number of calls, not with single tool outputs: the main session
-averaged 370,000 tokens of context a call before its compaction, and one subagent of 198 calls
-read 63 million. `scripts/check-all.sh` prints no time per check, and under Git Bash on Windows
-one self-test took five minutes (ticket 18). What a derived project learns about the template
-reaches it only by hand, through a take-up.
+Nothing measures during the work where a session spends its tokens. The v0.9.0 work, read
+afterwards from its transcripts, spent about 700 million tokens read from the prompt cache over
+4,400 calls of the model, 60 % of them in subagents. The cost grew with the length of the context
+times the number of calls, not with single tool outputs: the main session averaged 370,000 tokens
+of context a call before its compaction, and one subagent of 198 calls read 63 million. What a
+derived project learns about the template reaches it only by hand, through a take-up.
 
 The template decides what is measured and where it goes; nuc-tools reads the harness; the human
 sends what reaches the template. The template ships no toolchain and binds no harness, and only
 the harness knows the tokens, so their reader lives outside it.
 
-**In the template:**
-
-1. **Time per check.** `scripts/check-all.sh` records the time of each check and sensor and names
-   the slowest; the CI jobs keep the times, so a slow check or a slow platform shows up.
-2. **Measures in the pull request.** The pull request template gains a `Measures:` line in a
-   fixed form: tokens, time of the checks, rounds of review. A project without a reader fills it
-   by hand or leaves it empty.
-3. **What git already holds.** A sensor reports, without a harness, the time from a ticket's claim
-   to its merge, the rounds of review from the `Reviewed at:` lines, a review again after a
-   must-fix or should-fix, and commits that were red alone. It reports and never fails.
-4. **The design revision reads them.** The `design-revision` skill gains a section on what the
-   work cost and what slowed it, from the measures and the sensor; it yields tickets of the project
-   and findings about the template, kept apart.
-5. **Findings go back to the template.** A finding about the template is written in the form of
-   an issue template of hivevm/nuc. The human decides whether to send it: sending publishes it.
-   Nothing reports back on its own. The template's own design revision reads the issues sent and
-   cuts tickets for the next release. This is a process decision and needs an ADR of the base, such
-   as `NUC-template-learns-from-projects`, proposed before the work and accepted by the human.
+**Landed for v0.10.0** (the human chose parts 1 to 3 for that minor on 2026-11-12, the commits
+red alone on 2026-11-13, and parts 4 and 5 once the human accepted
+[NUC-template-learns-from-projects](../../adr/NUC-template-learns-from-projects.md) on 2026-11-14):
+`scripts/check-all.sh` names the time of each check, the slowest, and its own; the pull request
+template carries `Measures: tokens <n> | checks <n> s | review rounds <n>`; and
+`scripts/sensor-work-measures.sh`, run on a human's instruction, reports per merged pull request
+the hours from the branch's first commit to its merge and the rounds of review, read through gh
+from the Measures line; more than one round is a review again after the fixes of its findings.
+The `Reviewed at:` line counts none, since the review moves that one line after each round. A
+GitHub merge commit carries no description, so git alone holds no round.
+`scripts/sensor-red-commits.sh`, run on a human's instruction and without `gh`, names each
+commit of the ten newest merges on which that commit's own `scripts/check-all.sh` failed, run in
+a temporary worktree: a full run of the checks per commit, so only when asked.
+Step 6 of the `design-revision` skill reads what the work cost and what slowed it, from the
+Measures lines, the two sensors, and the times of `scripts/check-all.sh`. It keeps findings about
+the template apart from the project's tickets, as drafts under `.scratch/`. A draft has the fields
+of the issue template `.github/ISSUE_TEMPLATE/template-finding.md`. The skill lists the drafts for
+the human, who alone sends one. In the template's own repository it lists the open findings as
+candidates. The close of the setup deletes the issue template, and `docs/template-identity` fails
+a project that still carries it. Case 5 of `scripts/test-template-setup.sh` holds the skill to
+the fields of the form. The rule `docs/opens-no-issue` of
+`scripts/check-docs.sh` holds that no file of the template opens an issue.
 
 **In nuc-tools, filed there as a ticket of its own:**
 
@@ -51,16 +53,12 @@ the harness knows the tokens, so their reader lives outside it.
 
 ## Acceptance criteria
 
-- [ ] Given a run of `scripts/check-all.sh`, when it ends, then it names the time of each check,
-      a green run still costs one line a check, and a case of its self-test decides the times.
-- [ ] Given the pull request template, when it is read, then it holds the `Measures:` line in
-      the form the nuc-tools reader prints.
-- [ ] Given a branch with a claimed ticket, two reviews, and a merge, when the git sensor runs,
-      then it reports the time from claim to merge and two rounds; its self-test decides each.
-- [ ] Given the `design-revision` skill, when it is read, then it has the section on cost and
+- [x] Given the `design-revision` skill, when it is read, then it has the section on cost and
       time and writes findings about the template apart from the project's tickets.
-- [ ] Given the ADR on findings for the template, when the human has accepted it, then hivevm/nuc
-      has the issue template it names, and no file of the template sends anything on its own.
+- [x] Given the ADR on findings for the template, when the human has accepted it, then hivevm/nuc
+      has the issue template it names, the `design-revision` skill carries its fields, the setup
+      deletes it from a derived project and `docs/template-identity` checks that, and no file of
+      the template sends anything on its own.
 - [ ] Given nuc-tools, when this ticket lands, then its ticket for the reader exists and names the
       `Measures:` form.
 - [ ] Given the telemetry turned on, when a session runs, then the collector shows its tokens per
@@ -68,18 +66,13 @@ the harness knows the tokens, so their reader lives outside it.
 
 ## Read first
 
-- Touches: `scripts/check-all.sh`, `scripts/test-check-all.sh`, `.github/workflows/checks.yml`,
-  `.github/PULL_REQUEST_TEMPLATE.md`, a new sensor and its self-test,
-  `.agents/skills/design-revision/`, an issue template under `.github/ISSUE_TEMPLATE/`, a new
-  `NUC-` ADR and `docs/adr/NUC.blobs`, `CONTRIBUTING.md`; outside the template, nuc-tools and
-  the human's harness settings
+- Touches: `CONTRIBUTING.md`; outside the template, nuc-tools and the human's harness settings
 - The measures of the v0.9.0 release notes, and ticket 18 for the times per platform
 
 ## Blocked by
 
-- None (can start immediately); the parts 4 and 5 wait for the ADR's acceptance
+- None (can start immediately)
 
 ## Mode
 
-with the human: the ADR is the human's to accept, the telemetry runs on the human's machine, and
-the reader's place is nuc-tools.
+with the human: the telemetry runs on the human's machine, and the reader's place is nuc-tools.

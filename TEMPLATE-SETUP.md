@@ -6,6 +6,10 @@ close the setup with `scripts/test-template-setup.sh --close`, and run
 for it: the notes of [`README.md`](README.md), the layout row of
 [`CONTRIBUTING.md`](CONTRIBUTING.md), the
 [`setup-project`](.agents/skills/setup-project/SKILL.md) skill, and the setup's own self-test.
+It also deletes the issue template
+[`template-finding.md`](.github/ISSUE_TEMPLATE/template-finding.md): a finding about the template
+goes to the template's repository, not to the project's
+([NUC-template-learns-from-projects §6](docs/adr/NUC-template-learns-from-projects.md)).
 Documents that mention the setup in passing, such as the ADRs, keep their sentence.
 Its function `close_setup` in [`scripts/test-template-setup.sh`](scripts/test-template-setup.sh)
 lists them. The close also removes the template's own open work, so the project starts with an
@@ -36,8 +40,9 @@ The steps still open follow.
      of `.devcontainer/devcontainer.json`, rewrite the README's intro sentence, which explains
      the template's name, and delete its **Why NUC** section, which presents the template. Keep
      `NUC maintainer` in the `Deciders` lines of the ADRs: it names who decided. Leave the `NUC-`
-     files of [`docs/adr/`](docs/adr/) and [`AGENTS.md`](AGENTS.md) as they are: check 12 of
-     [`scripts/check-docs.sh`](scripts/check-docs.sh) holds them against their blob list.
+     files of [`docs/adr/`](docs/adr/) and [`AGENTS.md`](AGENTS.md) as they are: the rule
+     `docs/base-blobs` of [`scripts/check-docs.sh`](scripts/check-docs.sh) holds them against
+     their blob list.
    - **Repository.** The badges of checks, release, and license in [`README.md`](README.md)
      point at the template's repository, `hivevm/nuc`. Repoint them to this project's
      `owner/name` (`git remote get-url origin` says it where a remote exists), or delete a badge
@@ -49,8 +54,8 @@ The steps still open follow.
      [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md).
    - **License.** MIT ships in [`LICENSE`](LICENSE) and in the **License** section of the README.
      For another license, replace the text of both.
-   Check 13 of [`scripts/check-docs.sh`](scripts/check-docs.sh) fails on any of these placeholders
-   still present once this file is gone.
+   The rule `docs/template-identity` of [`scripts/check-docs.sh`](scripts/check-docs.sh) fails
+   on any of these placeholders still present once this file is gone.
 
    Then work through [**Repository settings**](CONTRIBUTING.md#repository-settings), before the
    setup's pull request is opened. They are the rules only the GitHub repository can enforce. Until
@@ -77,9 +82,9 @@ The steps still open follow.
    everything else rests on it. The goals, the quality goals, and the threats are what the
    founding decisions of step 4 are weighed against, so they come before them. The `<Part>`,
    `<Term>`, and `<Convention>` entries of the other three show the form of an entry: replace
-   each with a real one, or delete it while there is nothing to say. Check 13 fails on a
-   `<Project Name>` title, a placeholder criterion, or a scaffold entry still present once this
-   file is gone.
+   each with a real one, or delete it while there is nothing to say. The rule
+   `docs/template-identity` fails on a `<Project Name>` title, a placeholder criterion, or a
+   scaffold entry still present once this file is gone.
 4. Take the **founding decisions**: the few that every later session works inside and that are
    expensive to discover by accident. Each brings its **guides**, which steer an agent before it
    acts, and its **sensors**, which check what it did. Committing to them early narrows what an
@@ -103,7 +108,7 @@ The steps still open follow.
      language, its build, test, and lint commands, and its sensors in three kinds.
 
      These two carry the header field `Role:`, `harness` or `toolchain`. Once this file is gone,
-     check 13 fails unless each role has exactly one accepted ADR.
+     the rule `docs/template-identity` fails unless each role has exactly one accepted ADR.
    - **The shape of the code,** from the catalogue's group of that name, with the rule a
      structural test decides, or no prescribed shape, as the template ships. A decision about
      the shape is the one entropy erodes first.
@@ -133,17 +138,26 @@ The steps still open follow.
 
    After that, following the technology means superseding the one ADR that chose it.
 5. Fill in the **Overview**, **Build, Test & Run**, and **Usage** sections of
-   [`README.md`](README.md). Check 13 fails on the scaffold's Overview sentence, the Usage
-   `TODO`, and a Build, Test, Lint, or Run command still `TODO` once this file is gone; write
-   "none" where there is nothing to run.
+   [`README.md`](README.md). The rule `docs/template-identity` fails on the scaffold's Overview
+   sentence, the Usage `TODO`, and a Build, Test, Lint, or Run command still `TODO` once this
+   file is gone; write "none" where there is nothing to run.
 6. Add the toolchain of step 4 to the environment (the base image ships none). The build, test,
    and lint commands of the README run through **one script under [`scripts/`](scripts/)**, say
-   `check-build.sh`. [`scripts/check-all.sh`](scripts/check-all.sh) invokes it with a `run` line,
+   `check-build.sh`. Like every `scripts/*.sh` but the self-tests and `check-all.sh`, it reads
+   another root only as `--root <dir>`
+   ([NUC-checks-are-bash §9](docs/adr/NUC-checks-are-bash.md)): a line of its own at the start of
+   the script calls
+   `enter_root "${BASH_SOURCE[0]}" "$usage" "$@"` of [`scripts/lib/root.sh`](scripts/lib/root.sh),
+   and `rest_args` refuses an argument it does not read, `--verbose` included, before anything
+   that needs the toolchain runs. The rule `shell/root` of
+   [`scripts/check-shell.sh`](scripts/check-shell.sh)
+   fails on a script that does not. [`scripts/check-all.sh`](scripts/check-all.sh) invokes it
+   with a `run` line,
    beside the other checks at once, so it must write nowhere they read, and a job of
    [`checks.yml`](.github/workflows/checks.yml) runs it after setting up the toolchain, the job
    named among the required checks of `CONTRIBUTING.md` and added to those of the ruleset on `main`.
    That is what makes the pre-push hook and CI refuse a red change
-   ([`AGENTS.md` §5](AGENTS.md#5-quality-bar--definition-of-done)). Check 9 of
+   ([`AGENTS.md` §5](AGENTS.md#5-quality-bar--definition-of-done)). The rule `docs/check-lists` of
    [`scripts/check-docs.sh`](scripts/check-docs.sh) fails on a job whose commands are written
    inline instead, and while the three lists disagree. What is too slow to gate a push, such as
    a nightly suite or a long benchmark, is a workflow of its own on a schedule, not a job here.
@@ -167,11 +181,15 @@ in ADRs; on what may and may not be edited, see
 and [NUC-base-is-fixed §1](docs/adr/NUC-base-is-fixed.md). Leave the **Dev Container**, **Coding
 Agents**, and **Repository settings** sections of `CONTRIBUTING.md` and the **Template** section of
 the README as-is; they describe the scaffold. A project without a Dev Container changes the first
-two as [A small project](#a-small-project) says. The Template section names the release this project
-carries and is the one link to the template that stays. The **Project Layout** block of
+two as [A small project](#a-small-project) says. The Template section is the one link that names
+the release this project carries. Leave the **Cutting a release**
+section of `CONTRIBUTING.md` as-is too, with its sensor. It describes the template's releases. A
+project that ships releases of its own may run the sensor for their notes, and one that ships none
+leaves it unused. The **Project Layout** block of
 `CONTRIBUTING.md` inventories the top level, so a part you remove goes out of it, this file
 included, and a part you add goes in, such as the source tree and the toolchain's files of step 6;
-check 10 of [`scripts/check-docs.sh`](scripts/check-docs.sh) fails on one it does not name.
+the rule `docs/project-layout` of [`scripts/check-docs.sh`](scripts/check-docs.sh) fails on one it
+does not name.
 
 ## A small project
 
