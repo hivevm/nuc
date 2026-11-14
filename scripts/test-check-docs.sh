@@ -11,11 +11,11 @@
 # scripts/fixtures/check-docs-record.txt, which says its format, so that a port of the check is
 # held to them. Every fixture has its setup done.
 #
-# Four cases stay here, since no row of the table can hold them: a reference in words to a section
-# AGENTS.md lacks, twice, which check 4 would read in the table itself, and a git on PATH that
-# cannot read the history or warns on stderr, twice. Section references and ADR
-# identifiers inside these fixtures are assembled, never written literally, so that check-docs.sh
-# does not read this script's own fixtures as references into this repository.
+# Four cases stay here, since no row of the table can hold them: a reference in words to a
+# section AGENTS.md lacks, twice, which the rule docs/section-refs would read in the table itself,
+# and a git on PATH that cannot read the history or warns on stderr, twice. Section references
+# and ADR identifiers inside these fixtures are assembled, never written literally, so that
+# check-docs.sh does not read this script's own fixtures as references into this repository.
 #
 # Inputs: scripts/check-docs.sh scripts/lib/ scripts/fixtures/
 #
@@ -35,7 +35,8 @@ sed_in() {
 }
 
 # layout <dir> <path...> — name each path in the Project Layout block of the fixture's
-# CONTRIBUTING.md, for a case that adds a top-level file for another reason (check 10).
+# CONTRIBUTING.md, for a case that adds a top-level file for another reason (the rule
+# docs/project-layout).
 layout() {
   local dir="$1"; shift
   ADD="$(printf '%s\n' "$@")" awk '
@@ -175,7 +176,7 @@ expect() {
   local want="$1" name="$2" dir="$3" needle="${4:-}"
   local out rc
   git -C "${dir:?}" add -A
-  out="$(bash "$CHECK" "$dir" 2>&1)"; rc=$?
+  out="$(bash "$CHECK" --root "$dir" 2>&1)"; rc=$?
   if output_holds "$out" "$needle" && [[ ( "$want" == "pass" && $rc -eq 0 ) || ( "$want" == "fail" && $rc -ne 0 ) ]]; then
     passed=$((passed + 1))
     return
@@ -185,7 +186,7 @@ expect() {
   while IFS= read -r l; do printf '    %s\n' "$l"; done <<< "$out" >&2
 }
 
-# --- cases: the words form of a section reference (check 4) ------------------------------------
+# --- cases: the words form of a section reference (docs/section-refs) -------------------------
 
 # The words form is read in every text file but Markdown, the fixture table among them, so a case
 # that names a section AGENTS.md lacks stays here, where the reference is assembled.
@@ -290,10 +291,10 @@ g() { local dir="$1"; shift; fixture "$dir"; git -C "$dir" -c user.name=t -c use
 
 n=0
 while IFS= read -r line; do
-  [[ "$line" =~ ^([0-9]+|all)\ \| ]] || continue
+  [[ "$line" =~ ^(docs/[a-z0-9-]+|all)\ \| ]] || continue
   n=$((n + 1))
   line="$(table_hyphens "$line")"
-  IFS=$'\x1f' read -r check want needle name tree <<< "${line// | /$'\x1f'}"
+  IFS=$'\x1f' read -r rule want needle name tree <<< "${line// | /$'\x1f'}"
   tree="${tree//$'\x1f'/ | }"
   [[ "$tree" != - ]] || tree=""
   DELETED=""
@@ -305,12 +306,13 @@ while IFS= read -r line; do
   while IFS= read -r s; do [[ -z "$s" ]] || step "$d" "$s"; done <<< "${tree//; /$'\n'}"
   needle="${needle//<deleted>/$DELETED}"
   git -C "${d:?}" add -A
-  out="$(bash "$CHECK" "$d" 2>&1)"
-  table_case "check $check: $name" "$want" "$needle" "$?" "$out"
+  out="$(bash "$CHECK" --root "$d" 2>&1)"
+  table_case "$rule: $name" "$want" "$needle" "$?" "$out"
 done < "$TABLE"
 ((n > 0)) || { echo "FAIL: no case read from $TABLE" >&2; failed=$((failed + 1)); }
 
-# A git that cannot read the history, as one before 2.31 rejects --diff-merges, fails check 2.
+# A git that cannot read the history, as one before 2.31 rejects --diff-merges, fails the rule
+# docs/adr-numbering.
 d="$(repo old-git)"
 g "$d" add -A && g "$d" commit -q -m base
 mkdir -p "$work/old-git-bin"
@@ -320,11 +322,11 @@ exec %q "$@"
 ' \
   "$(command -v git)" > "$work/old-git-bin/git"
 chmod +x "$work/old-git-bin/git"
-PATH="$work/old-git-bin:$PATH" expect fail "check 2: a git too old to read the history" "$d" \
+PATH="$work/old-git-bin:$PATH" expect fail "docs/adr-numbering: a git too old to read the history" "$d" \
   "[docs/adr-numbering:history] @ --diff-merges=first-parent"
 
 # A git that warns on stderr and succeeds: the warning, here the name of an ADR in the tree, is no
-# deleted ADR of check 2.
+# deleted ADR of the rule docs/adr-numbering.
 d="$(repo warn-git)"
 g "$d" add -A && g "$d" commit -q -m base
 mkdir -p "$work/warn-git-bin"
@@ -333,7 +335,50 @@ printf '#!/usr/bin/env bash
 exec %q "$@"
 ' "$(adr_id 1)" "$(command -v git)" > "$work/warn-git-bin/git"
 chmod +x "$work/warn-git-bin/git"
-PATH="$work/warn-git-bin:$PATH" expect pass "check 2: a warning of git on stderr is no deleted ADR" "$d"
+PATH="$work/warn-git-bin:$PATH" expect pass "docs/adr-numbering: a warning of git on stderr is no deleted ADR" "$d"
+
+# --- the rule keys: one place names each check ----------------------------------------------
+
+# The header of check-docs.sh lists each check by its rule key, one item a line of its own,
+# and is the one place that maps a key to its check (see that header). The keys the functions
+# carry are the items, one each, and every key the script prints is an item or named in the
+# header's prose, as docs/files is.
+header_items() { sed -nE '/^set /q; s/^#   ([a-z]+\/[a-z0-9-]+)$/\1/p' "$1"; }
+function_keys() { sed -nE 's/^check_[a-z_]+\(\) \{  # ([a-z]+\/[a-z0-9-]+)$/\1/p' "$1" | sort; }
+# shellcheck disable=SC2317,SC2329 # run by check
+fails() { ! "$@" 2> /dev/null; }
+# keys_listed <script> — every key the script prints in '[<key>:' stands in its header.
+# shellcheck disable=SC2317,SC2329 # run by check
+keys_listed() {
+  local header key
+  header="$(sed '/^set /q' "$1")"
+  while IFS= read -r key; do
+    [[ "$header" =~ (^|[^a-z/-])"$key"([^a-z0-9-]|$) ]] || { echo "  unlisted key: $key" >&2; return 1; }
+  done < <(grep -oE '\[[a-z]+/[a-z0-9-]+:' "$1" | sed -E 's/^\[//; s/:$//' | sort -u)
+}
+# own_keys <script> — each check prints only the key its function carries, so that a key leads
+# to the check that reports it.
+# shellcheck disable=SC2317,SC2329 # run by check
+own_keys() {
+  local stray
+  stray="$(awk '/^check_[a-z_]+\(\) \{  # / { key = $NF; next } /^}/ { key = "" }
+    key != "" { s = $0; while (match(s, /\[[a-z]+\/[a-z0-9-]+:/)) {
+      k = substr(s, RSTART + 1, RLENGTH - 2); if (k != key) print key " prints " k
+      s = substr(s, RSTART + RLENGTH) } }' "$1")"
+  [[ -z "$stray" ]] || { echo "  $stray" >&2; return 1; }
+}
+check "every check of check-docs.sh carries a rule key" test "$(grep -cE '^check_.*\{$' "$CHECK")" = 0
+check "the keys of the checks are the items of the header, one each" \
+  test "$(function_keys "$CHECK")" = "$(header_items "$CHECK" | sort)"
+check "no key of the header is listed twice" \
+  test "$(header_items "$CHECK" | sort | uniq -d)" = ""
+check "every key check-docs.sh prints stands in its header" keys_listed "$CHECK"
+sed 's/^check_prose_width() {.*/&\n  add_error "x [docs\/unlisted-rule:new]"/' "$CHECK" > "$work/unlisted.sh"
+check "a key the script prints and its header lacks fails" \
+  fails keys_listed "$work/unlisted.sh"
+check "each check of check-docs.sh prints only its own key" own_keys "$CHECK"
+sed 's/^check_prose_width() {.*/&\n  add_error "x [docs\/links:new]"/' "$CHECK" > "$work/stray.sh"
+check "a check that prints the key of another fails" fails own_keys "$work/stray.sh"
 
 # --- summary -------------------------------------------------------------------------------
 
