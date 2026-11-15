@@ -3,9 +3,14 @@
 ## What to build
 
 An agent following a skill reads, at every rule-like sentence, the clause that carries it. The
-skills change as the inventory of ticket 04 decided. A sentence with a clause cites it. A
-sentence the human restated as a step reads as a step. A sentence whose rule moved into a new
-clause cites that clause.
+skills and their reference files change as the inventory below decided. A sentence with a clause
+cites it. A sentence the human restated as a step reads as a step. A sentence whose rule moved
+into a new clause cites that clause.
+
+## Inventory
+
+Ticket 04 writes the inventory here: each sentence with its file and step, its clause or "none",
+and the human's verdict on each "none".
 
 ## Acceptance criteria
 
@@ -15,12 +20,15 @@ clause cites that clause.
   order changes beyond what the inventory decided.
 - [ ] Given the change, when it is inspected, then it changes no ADR. The ADR text landed in
   ticket 04.
-- [ ] Given the change, when `scripts/check-all.sh` runs, then it passes.
+- [ ] Given the change, when `scripts/check-all.sh` runs, then it passes. The plain rules sensor
+  reports no long sentence on the lines the change adds to the skills.
+- [ ] Given the hand-off, when the human reads it, then it names the deviation from
+  NUC-large-work-is-planned §4, and under *A derived project acts on* the skills that changed.
 
 ## Read first
 
-- Touches: `.agents/skills/*/SKILL.md`
-- The inventory in ticket 04's hand-off, and the clauses it names.
+- Touches: `.agents/skills/`
+- The inventory above, and the clauses it names.
 - NUC-procedures-are-skills §3.
 
 ## Blocked by
