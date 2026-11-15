@@ -20,8 +20,8 @@
 #      check-docs.sh, check-traceability.sh, and check-devcontainer.sh pass. It runs while the
 #      path is open, before a project has begun it.
 #   4. --close, run by a copy's own script: it refuses on a copy that carries the template's title
-#      (the template's own README, or that title put back where step 1 removed it), and after step 1,
-#      also once the setup file was deleted by hand, removes what close_setup lists and keeps a
+#      (the template's own README, or that title put back where step 1 removed it), and after step
+#      1, also once the setup file was deleted by hand, removes what close_setup lists and keeps a
 #      NOTE block of the project's own. Of the files under docs/plan/ and docs/backlog/ it removes
 #      the template's and keeps a ticket the project wrote, after a 'Use this template' commit
 #      and in an adoption, and names each file it removed and kept. It refuses a copy no commit
