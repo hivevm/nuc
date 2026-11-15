@@ -7,8 +7,8 @@ under a key of its own, as a hint. First, the Enforcement of NUC-documents-are-f
 in place, so that it says the sensor also reads the skills for long sentences and fails nothing
 on them. The human reviews that commit of ADRs in the session. Then the sensor reads the skills,
 for long sentences on added lines only. `--require` does not fail on it, in the template or in a
-derived project. What the sensor reads and reports for the rules stays as it is. Worked before 04
-and 05, it reports the long sentences those tickets add.
+derived project. What the sensor reads and reports for the rules stays as it is. Tickets 04
+and 05 wait for it, so that it reports the long sentences they add.
 
 ## Acceptance criteria
 

@@ -7,7 +7,8 @@ rule. It covers a duty, a prohibition, or an imperative that binds beyond the pr
 order. Each sentence is paired with the clause of an ADR or the section of the rule file that
 carries it, or "none". The human decides each "none": a new clause, or a restatement as a step.
 A new clause is proposed in a commit of ADRs only, with the rule file and the blob list where a
-line of the rule file is due. The inventory is written into ticket 05, which applies it.
+line of the rule file is due. The inventory is written into ticket 05's What to build, which
+applies it.
 
 ## Acceptance criteria
 
@@ -22,8 +23,8 @@ line of the rule file is due. The inventory is written into ticket 05, which app
 - [ ] Given each "none" the human decides as a rule, when the proposal lands, then it is a commit
   of ADRs only, plus the rule file and `docs/adr/NUC.blobs` where the rule file changes. The plain
   rules sensor reports nothing on its added lines.
-- [ ] Given ticket 05's file, when it is read, then it holds the inventory with the human's
-  verdict on each "none".
+- [ ] Given ticket 05's file, when it is read, then its What to build holds the
+  inventory with the human's verdict on each "none".
 - [ ] Given the hand-off, when the human reads it, then it names the commit of ADRs to review, the
   deviation from NUC-large-work-is-planned §4, and under *A derived project acts on* each clause
   added to a `NUC-` ADR or the rule file.
@@ -40,6 +41,7 @@ line of the rule file is due. The inventory is written into ticket 05, which app
 
 - docs/plan/skills-carry-only-steps/01-a-release-is-taken-up-through-its-own-skill.md
 - docs/plan/skills-carry-only-steps/02-the-backlog-sensor-names-the-stale-entries.md
+- docs/plan/skills-carry-only-steps/03-a-long-sentence-in-a-skill-is-reported.md
 
 ## Mode
 

@@ -129,8 +129,9 @@ The template's own specification is a scaffold with no goals filled in, so this 
 - **Closing the plan.** After the last ticket, the design revision runs on `feat/v0.12.0` and
   deletes this spec. Each ticket it files is worked on `feat/v0.12.0` before the pull request
   into `main`, or the human drops it. The rebuild by topic, step 7 of the Integration branches,
-  drops the commits that only add or delete plan files, so no plan file reaches `main` or its
-  history.
+  drops the commits that only add, fill, or delete plan files, so no plan file reaches
+  `main` or its history. A ticket's branch therefore deletes its ticket file, and ticket 04 fills
+  ticket 05, each in a commit of its own.
 
 ## Testing decisions
 

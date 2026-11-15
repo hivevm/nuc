@@ -7,15 +7,13 @@ skills and their reference files change as the inventory below decided. A senten
 cites it. A sentence the human restated as a step reads as a step. A sentence whose rule moved
 into a new clause cites that clause.
 
-## Inventory
-
-Ticket 04 writes the inventory here: each sentence with its file and step, its clause or "none",
-and the human's verdict on each "none".
+Ticket 04 writes the inventory below this paragraph, as a list: each sentence with its file and
+step, its clause or "none", and the human's verdict on each "none".
 
 ## Acceptance criteria
 
-- [ ] Given each entry of the inventory, when the skills are read, then the sentence cites its
-  clause, or reads as a step, as the human decided.
+- [ ] Given each entry of the inventory in What to build, when the skills are read, then the
+  sentence cites its clause, or reads as a step, as the human decided.
 - [ ] Given the skills before and after, when they are compared, then no step, condition, or
   order changes beyond what the inventory decided.
 - [ ] Given the change, when it is inspected, then it changes no ADR. The ADR text landed in
@@ -28,11 +26,12 @@ and the human's verdict on each "none".
 ## Read first
 
 - Touches: `.agents/skills/`
-- The inventory above, and the clauses it names.
+- The inventory in What to build, and the clauses it names.
 - NUC-procedures-are-skills §3.
 
 ## Blocked by
 
+- docs/plan/skills-carry-only-steps/03-a-long-sentence-in-a-skill-is-reported.md
 - docs/plan/skills-carry-only-steps/04-each-rule-of-a-skill-has-its-clause.md
 
 ## Mode
