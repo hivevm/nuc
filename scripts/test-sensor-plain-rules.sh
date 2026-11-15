@@ -17,8 +17,8 @@
 # outside the rules, the working tree with an untracked ADR, and a base that does not resolve. The
 # cases of '--require' stand in the fixture table scripts/fixtures/plain-rules.txt: what fails in a
 # project ADR and is reported in a NUC- ADR and in AGENTS.md, the qualifiers of an _Avoid:_ item, an
-# item a line break splits, a renamed ADR, and a take-up on comb's glossary. Two cases read the
-# glossary reader's rows directly.
+# item a line break splits, a renamed ADR, an ADR identifier read as one token, and a take-up on
+# comb's glossary. Two cases read the glossary reader's rows directly.
 #
 # Inputs: scripts/sensor-plain-rules.sh scripts/lib/ scripts/fixtures/plain-rules.txt
 #
@@ -355,6 +355,10 @@ step() {
     glossary)
       glossary "$dir" "$(awk -F ' [|] ' -v n="$rest" '$1 == "= " n { print $2 }' "$TABLE")" ;;
     base) git_in "$dir" branch -f main HEAD ;;
+    category)
+      printf '# ADRs\n\n## Categories\n\n- **%s** — K.\n' "$rest" > "$dir/docs/adr/README.md"
+      git_in "$dir" add docs/adr/README.md
+      git_in "$dir" commit -q -m category ;;
     rename)
       from="${rest%% *}"; to="${rest#* }"
       git_in "$dir" mv "docs/adr/$from.md" "docs/adr/$to.md"
