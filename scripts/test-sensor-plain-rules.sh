@@ -325,8 +325,8 @@ chmod +x "$work/take/awk"
 out="$(PATH="$work/take:$PATH" bash "$SENSOR" --root "$r" main 2>&1)"; rc=$?
 check "a glossary reader that fails: exit 2, saying so" test "$rc" -eq 2 -a "${out/could not read docs\/GLOSSARY.md/}" != "$out"
 
-# A listing that breaks: a git on PATH that fails on '--name-status', which only rule_stream asks for
-# when it lists the files a change touches, and hands every other command to the real git.
+# A listing that breaks: a git on PATH that fails on '--name-status', which only rule_stream asks
+# for when it lists the files a change touches, and hands every other command to the real git.
 unlisted="$work/broken-git"
 mkdir -p "$unlisted"
 # shellcheck disable=SC2016 # the script is written as it runs, its variables unexpanded

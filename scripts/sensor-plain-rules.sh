@@ -56,7 +56,8 @@ rest_args "${BASH_SOURCE[0]}" "$usage" 2 "$@"
 MAX_WORDS=25
 resolve_change "Plain rules sensor" "${1:-}" "${2:-}" || exit 0
 base="$CHANGE_BASE" head="$CHANGE_HEAD"
-# at — the head a file is read at, empty for the working tree, as rule_stream and change_file take it.
+# at — the head a file is read at, empty for the working tree, as rule_stream and change_file take
+# it.
 at="$( ((CHANGE_WORKTREE)) || echo "$head")"
 range="$(git rev-parse --short "$base")..$(git rev-parse --short "$head")"
 [[ -n "$at" ]] || range="${range%..*}..working tree"
@@ -129,7 +130,8 @@ out="$(AVOID="$avoid" awk -F '\t' -v max="$MAX_WORDS" -v refs="$ref_pattern" '
       }
       return out s
     }
-    # squash <text> — the text in lower case without the white space at its ends, one space at either end.
+    # squash <text> — the text in lower case without the white space at its ends, one space at
+    # either end.
     function squash(t) { t = tolower(t); sub(/^[[:space:]]+/, "", t); sub(/[[:space:]]+$/, "", t); return " " t " " }
     # found <text> <word> <break> — whether the word stands whole in the text; with a break, only
     # where it spans that position. FOUND is where it stands.
@@ -148,7 +150,8 @@ out="$(AVOID="$avoid" awk -F '\t' -v max="$MAX_WORDS" -v refs="$ref_pattern" '
       told[nr, i] = 1
       print fails file ":" nr ": \"" word[i] "\" is listed under _Avoid:_ in docs/GLOSSARY.md — write \"" term[i] "\" [rules/avoided-term:listed]"
     }
-    # A finding that fails with --require is marked "!": in a project ADR, not in a NUC- ADR or AGENTS.md.
+    # A finding that fails with --require is marked "!": in a project ADR, not in a NUC- ADR or
+    # AGENTS.md.
     $1 == "F" { flush(); file = $2; prev = ""; split("", told); fails = (file ~ /^docs\/adr\/[^\/]+$/ && file !~ /^docs\/adr\/NUC-/) ? "!" : ""; next }
     $1 == "P" { flush(); prev = ""; next }
     {
@@ -166,7 +169,8 @@ out="$(AVOID="$avoid" awk -F '\t' -v max="$MAX_WORDS" -v refs="$ref_pattern" '
       }
       w = split(text, words, /[[:space:]]+/)
       for (i = 1; i <= w; i++) {
-        # A token without a letter or a digit, such as what a link leaves, ends a sentence by a stop.
+        # A token without a letter or a digit, such as what a link leaves, ends a sentence by a
+        # stop.
         if (words[i] !~ /[A-Za-z0-9]/) { if (count && words[i] ~ /[.!?]/) flush(); continue }
         if (!count) start = nr
         count++; if (!(nr in seen) || $3 == 1) seen[nr] = $3
