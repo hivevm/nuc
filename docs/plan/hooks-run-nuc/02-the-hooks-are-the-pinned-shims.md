@@ -2,7 +2,7 @@
 
 ## What to build
 
-The tracer. `.githooks/` holds the shims of `nuc-tools` v0.3.0 or later, a blob list pins them,
+The tracer. `.githooks/` holds the shims of `nuc-tools` v0.2.1 or later, a blob list pins them,
 and a check with its self-test fails where a hook differs. The template ships `nuc.toml` with
 `minimum` and every `hook/` rule. The Dev Container installs `nuc` by its Feature, locked; each CI
 job that runs a hook installs it by `hivevm/nuc-tools@v0`. `scripts/test-git-hooks.sh` asserts each
@@ -26,13 +26,12 @@ and how to install it.
   `nuc.toml`, `.devcontainer/devcontainer.json`, `.devcontainer/devcontainer-lock.json`,
   `.github/workflows/checks.yml`, `scripts/test-git-hooks.sh`, `scripts/check-all.sh`,
   `CONTRIBUTING.md`
-- The ADR of ticket 01; `shims/` of `nuc-tools` v0.3.0 and its README; `nuc-tools`'
+- The ADR of ticket 01; `shims/` of `nuc-tools` v0.2.1 and its README; `nuc-tools`'
   `tests/tables.blobs` as the pattern of a pin
 
 ## Blocked by
 
 - docs/plan/hooks-run-nuc/01-propose-the-adr-of-the-switch.md
-- the release v0.3.0 of hivevm/nuc-tools, whose shims end every refusal in a key
 
 ## Mode
 
