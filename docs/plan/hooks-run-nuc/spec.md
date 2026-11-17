@@ -63,7 +63,7 @@ project that takes up the release installs `nuc` first and gets every later fix 
 
 - **The hooks.** `.githooks/{pre-commit,pre-merge-commit,pre-push,reference-transaction,
   merge-adr-index}` are the files of `shims/` of a release of `nuc-tools` that ends every refusal of
-  a shim in a key, v0.2.1 or later.
+  a hook in a key, those of `nuc.toml` included, v0.2.2 or later.
 - **The pin.** A blob list beside the hooks names each shim's blob and the `nuc` release it comes
   from. A check fails where a hook's blob differs, as the check of the copied fixture tables does in
   `nuc-tools`.
@@ -99,5 +99,5 @@ project that takes up the release installs `nuc` first and gets every later fix 
   hooks' refusals), NUC-container-hides-host-daemon (clause 3, the lock; clause 6, the hooks path),
   NUC-releases-are-semver-tags (clause 3, the minor), NUC-procedures-are-skills.
 - New, proposed in ticket 01: the `NUC-` ADR of the switch.
-- Depended on `hivevm/nuc-tools`, both landed: the change there that ends every refusal of a shim
-  in a key (hivevm/nuc-tools#102), and the release v0.2.1 that carries it.
+- Depends on `hivevm/nuc-tools`: the shims' keys landed in v0.2.1 (hivevm/nuc-tools#102); the
+  keys of the refusals of `nuc.toml` and the release v0.2.2 that carries them are open.
