@@ -212,7 +212,8 @@ says what to do instead.
 A change reaches `main` through a pull request. Several branches may integrate first on a
 `feat/` branch, each rebased onto it, and it stays the human's to rework until its pull request
 into `main` merges ([NUC-main-only-via-pr §5](docs/adr/NUC-main-only-via-pr.md)). A `feat/`
-branch carries no merge commit. Each step waits for a human's instruction
+branch carries no merge commit. A plan lands on `main` before a `feat/` branch gathers its
+tickets, as the `plan-feature` skill says. Each step waits for a human's instruction
 ([NUC-main-only-via-pr §2](docs/adr/NUC-main-only-via-pr.md)).
 
 1. Start it at the remote's `main`: `git fetch origin`, then
