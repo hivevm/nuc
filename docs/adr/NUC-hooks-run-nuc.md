@@ -1,6 +1,6 @@
 # NUC-hooks-run-nuc: The git hooks are the reference shims of `nuc`, pinned by their blobs, and refuse without the `nuc` that `nuc.toml` names
 
-- **Status:** 🟡 proposed
+- **Status:** 🟢 accepted
 - **Date:** 2026-11-17
 - **Deciders:** NUC maintainer
 - **Applies to:** the git hooks under `.githooks/` and the blob list beside them, `nuc.toml`, the installation of `nuc` in `.devcontainer/` and in the jobs of `.github/workflows/` that run a hook, and `scripts/test-git-hooks.sh`

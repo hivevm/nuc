@@ -2,7 +2,7 @@
 
 ## What to build
 
-The tracer, to start once `nuc-tools` v0.2.2 is published. `.githooks/` holds the shims of
+The tracer; `nuc-tools` v0.2.2 is published. `.githooks/` holds the shims of
 `nuc-tools` v0.2.2 or later, a blob list pins them, and a check with its self-test fails where a
 hook differs, or where `nuc.toml` names a lower `minimum` or lacks a `hook/` rule. The template
 ships `nuc.toml` with `minimum` and every `hook/` rule. The Dev Container installs `nuc` by its
@@ -32,7 +32,7 @@ and latitude hand the hooks to it.
   `.github/workflows/checks.yml`, `scripts/test-git-hooks.sh`, `scripts/check-all.sh`,
   `scripts/check-devcontainer.sh`, `CONTRIBUTING.md`, `docs/adr/NUC-checks-are-bash.md`,
   `docs/adr/NUC.blobs`
-- The ADR of ticket 01; `shims/` of `nuc-tools` v0.2.2 and its README; `nuc-tools`'
+- NUC-hooks-run-nuc; `shims/` of `nuc-tools` v0.2.2 and its README; `nuc-tools`'
   `tests/tables.blobs` as the pattern of a pin
 
 ## Blocked by
