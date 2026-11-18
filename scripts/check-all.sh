@@ -207,6 +207,8 @@ run "Release notes sensor self-test" scripts/test-sensor-release-notes.sh
 run "Red commits sensor self-test" scripts/test-sensor-red-commits.sh
 run "Check runner self-test" scripts/test-check-all.sh
 run "Git hooks self-test" scripts/test-git-hooks.sh
+run "Hooks pin self-test" scripts/test-check-hooks.sh
+run "Hooks pin" scripts/check-hooks.sh
 run "Shell lint self-test" scripts/test-check-shell.sh
 run "Shell lint" scripts/check-shell.sh
 

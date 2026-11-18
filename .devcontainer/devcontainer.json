@@ -52,7 +52,11 @@
     // GitHub CLI (`gh`) — used by the coding agent for GitHub operations and as the git
     // credential helper. A push and every gh action wait for a human instruction
     // (NUC-main-only-via-pr §2).
-    "ghcr.io/devcontainers/features/github-cli:1": {}
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    // nuc — the binary the git hooks under .githooks/ hand their work to; a hook without it
+    // refuses (NUC-hooks-run-nuc §4, §5). The Feature verifies the binary against the checksums
+    // of its release.
+    "ghcr.io/hivevm/features/nuc:0": {}
   },
 
   "customizations": {
