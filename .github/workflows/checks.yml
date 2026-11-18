@@ -1,8 +1,11 @@
 name: Checks
 
-# Enforces the repository's rules as CI. Pure bash + coreutils — nothing is installed
+# Enforces the repository's rules as CI. Pure bash + coreutils — nothing is installed but nuc
 # (ShellCheck, used by the shell job, ships preinstalled on the GitHub-hosted runner
-# image). scripts/check-all.sh is the local equivalent; the rule docs/check-lists of
+# image). The git hooks hand their work to nuc, so each job that runs a hook, through the
+# self-test of the hooks or one that runs it again, installs nuc first by the Action of
+# hivevm/nuc-tools, which verifies it against the checksums of its release (NUC-hooks-run-nuc §4).
+# scripts/check-all.sh is the local equivalent; the rule docs/check-lists of
 # scripts/check-docs.sh holds its list, the jobs of this workflow, and the required checks
 # named in CONTRIBUTING.md together. Each job runs a check after its own self-test, and each
 # script's header says what it checks and which ADR it holds.
@@ -16,7 +19,7 @@ name: Checks
 #
 # A build, test, and lint job is absent until the project has a toolchain. The catalogue entry
 # Toolchain of the propose-adr skill says how the job is added; it is the one job of this workflow
-# that installs something, with a timeout that fits the real build and 'submodules: recursive' on
+# that installs a toolchain, with a timeout that fits the real build and 'submodules: recursive' on
 # the checkout where the project uses submodules.
 #
 # Every job is bounded by a timeout — a hung step would otherwise occupy a runner until the
@@ -65,6 +68,10 @@ jobs:
           persist-credentials: false
           submodules: recursive
           fetch-depth: 0
+      - name: Install nuc, which the git hooks hand their work to
+        uses: hivevm/nuc-tools@v0
+        with:
+          args: --version
       # The check's own tests run first: a check that is wrong passes nothing worth trusting.
       - name: Self-test the documentation checks
         run: bash scripts/test-check-docs.sh
@@ -174,10 +181,18 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+      - name: Install nuc, which the git hooks hand their work to
+        uses: hivevm/nuc-tools@v0
+        with:
+          args: --version
       - name: Self-test the check runner
         run: bash scripts/test-check-all.sh
       - name: Self-test the git hooks
         run: bash scripts/test-git-hooks.sh
+      - name: Self-test the pin check of the git hooks
+        run: bash scripts/test-check-hooks.sh
+      - name: Check that the git hooks are the pinned shims and nuc.toml runs their rules
+        run: bash scripts/check-hooks.sh
       - name: Self-test the shell lint
         run: bash scripts/test-check-shell.sh
       - name: Lint shell scripts with ShellCheck

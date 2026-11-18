@@ -4,6 +4,11 @@
       "version": "1.1.0",
       "resolved": "ghcr.io/devcontainers/features/github-cli@sha256:d22f50b70ed75339b4eed1ba9ecde3a1791f90e88d37936517e3bace0bbad671",
       "integrity": "sha256:d22f50b70ed75339b4eed1ba9ecde3a1791f90e88d37936517e3bace0bbad671"
+    },
+    "ghcr.io/hivevm/features/nuc:0": {
+      "version": "0.2.2",
+      "resolved": "ghcr.io/hivevm/features/nuc@sha256:4fbb25d14cb7f616c698e8f78394290cab9bea7cb3fe031a5bf513fa27539fff",
+      "integrity": "sha256:4fbb25d14cb7f616c698e8f78394290cab9bea7cb3fe031a5bf513fa27539fff"
     }
   }
 }

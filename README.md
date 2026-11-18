@@ -63,8 +63,10 @@ goals live in [`docs/SPECIFICATION.md`](docs/SPECIFICATION.md), the vocabulary i
   [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
   extension, or any DevContainer-compatible IDE
 - Docker / Podman (rootless) available on the host
-- Outside the Dev Container: bash 4.4 or later for the checks, 3.2 for the git hooks
-  ([NUC-checks-are-bash §1](docs/adr/NUC-checks-are-bash.md)); macOS ships 3.2
+- Outside the Dev Container: bash 4.4 or later for the checks
+  ([NUC-checks-are-bash §1](docs/adr/NUC-checks-are-bash.md)), which macOS does not ship, and
+  [`nuc`](https://github.com/hivevm/nuc-tools/releases) for the git hooks
+  ([NUC-hooks-run-nuc](docs/adr/NUC-hooks-run-nuc.md))
 
 ## Getting Started
 
