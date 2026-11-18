@@ -194,9 +194,10 @@ The hooks are the reference shims of `nuc`, the binary of
 [`scripts/check-hooks.sh`](scripts/check-hooks.sh) fails on a hook that differs from its blob.
 A hook needs `nuc` on the `PATH`, no older than the `minimum` of [`nuc.toml`](nuc.toml), whose
 `rules` turn on every `hook/` rule; a project removes none of them. The Dev Container installs
-`nuc` by its Feature, and CI by the Action of `hivevm/nuc-tools`. Outside the Dev Container,
-install it from the [releases](https://github.com/hivevm/nuc-tools/releases) before the first
-commit. Without it, or with one too old, every hook refuses in a key, such as
+`nuc` by its Feature, and CI by the Action of `hivevm/nuc-tools`; a project that pins actions by
+commit SHA installs it by the installer of a release instead, as the ADR's latitude says. Outside
+the Dev Container, install it from the [releases](https://github.com/hivevm/nuc-tools/releases)
+before the first commit. Without it, or with one too old, every hook refuses in a key, such as
 `[shim/pre-commit:missing]` or `[config/toml:old]`, and falls back to nothing. A newer release
 replaces the hooks and the blob list from its `shims/` in one change, and the `minimum` with them.
 
