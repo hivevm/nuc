@@ -10,7 +10,7 @@ Container may lack.
 `nuc`, the binary of `hivevm/nuc-tools`, ports every hook of the template from v0.5.0 to v0.11.0:
 `nuc hook <name>` decides as the bash hook of the release a tree carries, and a POSIX sh shim hands
 each hook to it. Its hook scenarios agree with the bash hooks on every template tree its corpus
-pins. Its release v0.2.1 is published, and the Feature `ghcr.io/hivevm/features/nuc` installs it.
+pins. Its release v0.2.2 is published, and the Feature `ghcr.io/hivevm/features/nuc` installs it.
 
 A derived project cannot switch alone. `nuc-tools` tried: the template's own self-test of the hooks
 holds their wording, the normalize skill's self-test expects the hooks' citations to follow a map,
@@ -63,7 +63,7 @@ project that takes up the release installs `nuc` first and gets every later fix 
 
 - **The hooks.** `.githooks/{pre-commit,pre-merge-commit,pre-push,reference-transaction,
   merge-adr-index}` are the files of `shims/` of a release of `nuc-tools` that ends every refusal of
-  a shim in a key, v0.2.1 or later.
+  a hook in a key, those of `nuc.toml` included, v0.2.2 or later.
 - **The pin.** A blob list beside the hooks names each shim's blob and the `nuc` release it comes
   from. A check fails where a hook's blob differs, as the check of the copied fixture tables does in
   `nuc-tools`.
@@ -98,6 +98,7 @@ project that takes up the release installs `nuc` first and gets every later fix 
 - Bind this work: NUC-checks-are-bash (clauses 1, 2, 3, 6, 8), NUC-main-only-via-pr (clause 6, the
   hooks' refusals), NUC-container-hides-host-daemon (clause 3, the lock; clause 6, the hooks path),
   NUC-releases-are-semver-tags (clause 3, the minor), NUC-procedures-are-skills.
-- New, proposed in ticket 01: the `NUC-` ADR of the switch.
-- Depended on `hivevm/nuc-tools`, both landed: the change there that ends every refusal of a shim
-  in a key (hivevm/nuc-tools#102), and the release v0.2.1 that carries it.
+- New, accepted in ticket 01: NUC-hooks-run-nuc, the `NUC-` ADR of the switch.
+- Depends on `hivevm/nuc-tools`: the shims' keys landed in v0.2.1 (hivevm/nuc-tools#102), the
+  keys of the refusals of `nuc.toml` in v0.2.2 (hivevm/nuc-tools#105), and the Feature installs
+  v0.2.2.
