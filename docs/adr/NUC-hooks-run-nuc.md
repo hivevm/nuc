@@ -3,7 +3,7 @@
 - **Status:** 🟢 accepted
 - **Date:** 2026-11-17
 - **Deciders:** NUC maintainer
-- **Applies to:** the git hooks under `.githooks/` and the blob list beside them, `nuc.toml`, the installation of `nuc` in `.devcontainer/` and in the jobs of `.github/workflows/` that run a hook, and `scripts/test-git-hooks.sh`
+- **Applies to:** the git hooks under `.githooks/` and the blob list beside them, `nuc.toml`, the installation of `nuc` in `.devcontainer/` and in the jobs of `.github/workflows/` that run a hook, `scripts/check-hooks.sh` and `scripts/lib/pin.sh`, the rule of `scripts/check-devcontainer.sh` on the nuc Feature, and the self-tests `scripts/test-git-hooks.sh` and `scripts/test-check-hooks.sh`
 
 ## Context
 
@@ -54,7 +54,8 @@ each hook refuse where `nuc` is missing or older than `nuc.toml` names.
 4. **Installation.** The Dev Container installs `nuc` by the Feature `ghcr.io/hivevm/features/nuc`,
    referenced and locked as
    [NUC-container-hides-host-daemon §3](NUC-container-hides-host-daemon.md) says. Each job of CI
-   that runs a hook installs `nuc` by the Action of `hivevm/nuc-tools` before it.
+   that runs a hook installs `nuc` before it, from a release, verified against the checksums of
+   that release.
 5. **Refusal.** A hook without `nuc`, with a `nuc` older than the minimum, or with an answer of
    `nuc` it does not know, must refuse and end its message in its key. No hook falls back to bash.
 6. **Self-test.** `scripts/test-git-hooks.sh` must assert each refusal by its exit code and its key,
@@ -77,9 +78,13 @@ A project may choose:
 - further rules in `nuc.toml`. A rule that replaces a script of the template needs an ADR that
   narrows [NUC-checks-are-bash §1](NUC-checks-are-bash.md), under its clause 8;
 - how a contributor outside the Dev Container installs `nuc`, which needs no ADR;
-- how its workflows reference the Action of `nuc-tools`, from the entry
+- how CI installs `nuc` under clause 4. The template's workflow uses the Action of `nuc-tools`
+  by its major tag, which installs the release that tag names and verifies it. A project chooses
+  how its workflows reference actions from the entry
   [Action references](../../.agents/skills/propose-adr/concepts/action-references.md) of the
-  catalogue.
+  catalogue. A project that pins actions by commit SHA installs `nuc` by the installer of a
+  release instead, with its checksums committed: a tool that moves the pin of the Action moves it
+  to the source commit of a release, which carries no checksums and installs nothing.
 
 ## Alternatives considered
 
@@ -122,6 +127,9 @@ A project may choose:
 - Negative: every project's local gate depends on a release of `nuc-tools`. The checksums of the
   release and the lock of the Feature bound what reaches it.
 - Negative: a change to the shims themselves still reaches a project only by a template release.
+- Negative: the shims cite clauses of `NUC-` ADRs, and those citations follow a release of
+  `nuc-tools`, not a normalization: the checks and the map script skip the pinned files. A
+  release that moves such a clause leaves the citation stale until the next shims.
 - Follow-ups: the correction in place of clause 3 of NUC-checks-are-bash, its scope, and its
   latitude, which lands with the switch of the hooks; the checks behind `nuc check`; an update of
   `nuc` by itself.
