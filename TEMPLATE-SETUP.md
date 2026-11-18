@@ -211,8 +211,10 @@ README. What can go, and how:
   - the `remote.extensionKind` entry of [`.vscode/settings.json`](.vscode/settings.json) and the
     lock comment of [`.gitignore`](.gitignore);
   - in `CONTRIBUTING.md`, the Dev Container section and the `.devcontainer/` row of the Project
-    Layout, with the first paragraph of Git hooks, the first paragraph of Coding Agents, and the
-    Dev Container in the workflow rewritten for the host; in the README, Prerequisites and
+    Layout, with the first two paragraphs of Git hooks, the first paragraph of Coding Agents, and
+    the Dev Container in the workflow rewritten for the host. The git hooks still need `nuc`
+    ([NUC-hooks-run-nuc](docs/adr/NUC-hooks-run-nuc.md)), which every contributor then installs
+    from a release; in the README, Prerequisites and
     Getting Started; and the first bullet of Agent execution in [`SECURITY.md`](SECURITY.md).
 
   The link and layout checks fail on a file or a link left behind;
