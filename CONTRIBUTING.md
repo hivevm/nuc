@@ -103,8 +103,10 @@ The environment is defined entirely in
 base image and layers Dev Container Features and VS Code extensions on top; no Dockerfile or
 Compose file is required. Customise the environment by adding Features, switching the base image,
 or adding extensions. Features are pinned by major tag and resolved in the committed
-`devcontainer-lock.json`. Extensions are listed by identifier only, because a published extension
-version cannot be repointed and a version suffix is VS Code-specific.
+`devcontainer-lock.json`, which Dependabot moves by a pull request when a Feature publishes a new
+release ([`.github/dependabot.yml`](.github/dependabot.yml)). Extensions are listed by identifier
+only, because a published extension version cannot be repointed and a version suffix is VS
+Code-specific.
 
 ### Host container management
 
