@@ -1,9 +1,19 @@
 # Keeps the GitHub Actions under .github/workflows/ current: within a major, the version tag
 # picks up new releases by itself; Dependabot raises a pull request when an action publishes a
 # new major.
+#
+# Keeps the Features of the Dev Container current as well: a Feature is referenced by its major
+# tag and built from the digest .devcontainer/devcontainer-lock.json resolves
+# (NUC-container-hides-host-daemon §3), so a new release reaches the container only when the lock
+# moves. Dependabot raises a pull request that moves the lock, the nuc Feature's included, which
+# the git hooks hand their work to (NUC-hooks-run-nuc §4).
 version: 2
 updates:
   - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+  - package-ecosystem: devcontainers
     directory: /
     schedule:
       interval: monthly
