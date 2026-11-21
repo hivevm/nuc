@@ -109,14 +109,17 @@ moves the citations to the successor:
    within its comment or its paragraph, never into the line that follows it. Keep each marker on
    one line: the traceability check reads no marker split over two lines. Leave every other line
    as it was.
-4. **The comparison.** Compare each changed file with the base before the commit. Its count of
-   `Verifies:` markers must stay the same. This loop prints each file where it moved:
+4. **The comparison.** Compare each changed file with the base before the commit. This loop
+   prints each file whose marker lines name fewer identifiers than at the base:
 
    ```bash
-   git diff --name-only | while read -r f; do
-     [ "$(git show HEAD:"$f" | grep -c Verifies:)" = "$(grep -c Verifies: "$f")" ] || echo "$f"
+   ids() { grep Verifies: | grep -oE '[A-Z]{2,5}-[a-z0-9]+(-[a-z0-9]+)+|[GQ]-[0-9]+' | wc -l; }
+   git diff HEAD --name-only | while read -r f; do
+     [ "$(git show HEAD:"$f" | ids)" -le "$(ids < "$f")" ] || echo "$f"
    done
    ```
 
-   Its count of words, `wc -w`, may fall only by the identifiers the script dropped. Check each
-   file that differs by hand before the commit.
+   A file it prints lost an identifier from a marker. Either the script dropped it beside its
+   successor, or a split moved it off the marker's line, where the traceability check no longer
+   reads it. Check each such file by hand before the commit. Its count of words, `wc -w`, may fall
+   only by the identifiers the script dropped.
