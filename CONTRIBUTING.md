@@ -171,9 +171,13 @@ The collector runs on the host, outside the container, which starts no container
 ([NUC-container-hides-host-daemon](docs/adr/NUC-container-hides-host-daemon.md)).
 `172.17.0.1` is the host on the default bridge of Docker on Linux; Docker Desktop names it
 `host.docker.internal`. The collector listens on that interface. The event
-`claude_code.api_request` carries the tokens of each call. The tokens of a hand-off's `Measures:`
-line come from there, or from `nuc measure` of
-[hivevm/nuc-tools#81](https://github.com/hivevm/nuc-tools/issues/81).
+`claude_code.api_request` carries the tokens of each call.
+
+The tokens of a hand-off's `Measures:` line come from there, or from `nuc measure`, run on the
+branch of the hand-off ([its documentation](https://github.com/hivevm/nuc-tools#commands)). It
+reads the transcripts of Claude Code that the working tree's sessions left, and prints
+`tokens <n>`. The steps that write a hand-off name it: `work-tickets` for a ticket and for a
+`feat/` branch, and `review` for the rounds of a review.
 
 ## Git hooks
 
@@ -304,7 +308,9 @@ Doubts, in the field "A derived project acts on".
    description. `--since <tag>` names another tag.
 3. Write the notes from what changed and from that list. Where the release merges, splits, or
    removes a `NUC-` ADR, the notes carry the map from each old identifier and clause to its new
-   home ([NUC-releases-are-semver-tags §7](docs/adr/NUC-releases-are-semver-tags.md)).
+   home ([NUC-releases-are-semver-tags §7](docs/adr/NUC-releases-are-semver-tags.md)). Where the
+   release changes the form of a row of a table under [`scripts/fixtures/`](scripts/fixtures/),
+   the notes give the new form: a project's own rows in the old form stop the table's self-test.
 4. Tag the merge commit of the pull request of step 1 with those notes as its annotation:
    `git tag -a vX.Y.Z -F .scratch/<notes>.md <merge>`, then `git push origin vX.Y.Z`.
 5. Build the GitHub release from that tag, with the same notes.
