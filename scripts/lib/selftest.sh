@@ -53,6 +53,18 @@ fixture() {
 # or a digit is a hyphen.
 table_hyphens() { sed -E 's/(^|[^A-Za-z0-9_])([A-Z]{2,5}):([A-Za-z0-9])/\1\2-\3/g' <<< "$1"; }
 
+# table_row <line> <row pattern> [<other pattern>] — whether a line of $TABLE is a row the reader
+# runs: 0 for a row, 1 for a blank line, a comment, or a line of the other pattern, which the
+# reader reads elsewhere. Any other line exits 2 and names it. A project's own row whose first
+# field a release changed would otherwise stop running unseen.
+table_row() {
+  [[ "$1" =~ $2 ]] && return 0
+  [[ "$1" =~ ^[[:space:]]*(#|$) ]] && return 1
+  [[ -n "${3:-}" && "$1" =~ $3 ]] && return 1
+  echo "fixture table${TABLE:+ ${TABLE#"$ROOT/"}}: a line that is no row, blank, or comment: $1" >&2
+  exit 2
+}
+
 # table_holds <output> <field> — whether the output meets the expected field of a case of a table:
 #
 #   -                         anything

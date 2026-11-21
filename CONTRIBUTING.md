@@ -308,7 +308,9 @@ Doubts, in the field "A derived project acts on".
    description. `--since <tag>` names another tag.
 3. Write the notes from what changed and from that list. Where the release merges, splits, or
    removes a `NUC-` ADR, the notes carry the map from each old identifier and clause to its new
-   home ([NUC-releases-are-semver-tags §7](docs/adr/NUC-releases-are-semver-tags.md)).
+   home ([NUC-releases-are-semver-tags §7](docs/adr/NUC-releases-are-semver-tags.md)). Where the
+   release changes the form of a row of a table under [`scripts/fixtures/`](scripts/fixtures/),
+   the notes give the new form: a project's own rows in the old form stop the table's self-test.
 4. Tag the merge commit of the pull request of step 1 with those notes as its annotation:
    `git tag -a vX.Y.Z -F .scratch/<notes>.md <merge>`, then `git push origin vX.Y.Z`.
 5. Build the GitHub release from that tag, with the same notes.
