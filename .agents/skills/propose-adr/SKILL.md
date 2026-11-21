@@ -78,6 +78,10 @@ nobody chose is an alternative in the record.
 
 ## 4. Submit
 
+Run [`scripts/sensor-plain-rules.sh`](../../../scripts/sensor-plain-rules.sh) by itself and split
+each long sentence it names in the ADR. `--require` passes a long sentence, and after the
+acceptance only a superseding ADR shortens it. Do the same after each revision of the ADR.
+
 Commit on a branch and hand the ADR to the human as
 [NUC-decisions-are-proposed-then-accepted §3](../../../docs/adr/NUC-decisions-are-proposed-then-accepted.md)
 asks. What follows is
