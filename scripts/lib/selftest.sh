@@ -5,8 +5,9 @@
 #
 # The checks a self-test exercises build fixture repositories under $work. Git hands a hook, a
 # linked worktree, and 'git -c' variables that bind every git command to one repository;
-# inherited, a fixture's commands would act on this one and could push from it. They are unset
-# here, so a self-test run from anywhere is as safe as one run by hand (see .githooks/pre-push).
+# inherited, a fixture's commands would act on this one and could push from it. The bash floor
+# this library sources first unsets them, so a self-test run from anywhere is as safe as one run
+# by hand (see .githooks/pre-push).
 #
 # Usage, from scripts/test-<name>.sh:
 #     # shellcheck source-path=SCRIPTDIR source=lib/selftest.sh
@@ -19,9 +20,6 @@ source "$(dirname "${BASH_SOURCE[0]}")/bash.sh"
 
 # shellcheck disable=SC2034 # ROOT is the sourcing self-test's
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-
-# shellcheck disable=SC2046 # one variable name per word
-unset $(git rev-parse --local-env-vars)
 
 # A fixture repository has no .gitattributes of its own. Git for Windows sets core.autocrlf=true,
 # which checks a fixture's files out with CRLF and prints a warning naming each file; a check
