@@ -21,3 +21,12 @@ if ((bash_guard_major < 4 || (bash_guard_major == 4 && bash_guard_minor < 4))); 
   exit 2
 fi
 unset bash_guard_found bash_guard_major bash_guard_minor
+
+# A script started from a git hook in a linked worktree inherits GIT_DIR and the other variables
+# that bind git to a repository; a 'git -C <dir>' in it would act on the hook's repository, not on
+# the directory it names. Every script that sources this floor starts without them, so git finds
+# the repository from the directory again. scripts/test-git-hooks.sh holds it.
+if command -v git >/dev/null 2>&1; then
+  # shellcheck disable=SC2046 # one variable name per word
+  unset $(git rev-parse --local-env-vars)
+fi
