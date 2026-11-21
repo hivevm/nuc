@@ -144,16 +144,19 @@ own ADRs stay as they are; no inherited ADR is merged into its record. Work on a
    ([NUC-releases-are-semver-tags §7](../../../docs/adr/NUC-releases-are-semver-tags.md)).
    A project on a release before `v0.9.0` still has numbered ADRs. It first takes up a `v0.9`
    release with the copy of this skill that release ships, which migrates the record once.
-2. **The base.** Replace the `NUC-` files under `docs/adr/`, `AGENTS.md`, and the blob list
+2. **The base.** Fetch the new tag into a namespace of its own, never into `refs/tags/`:
+   `git fetch --no-tags <template> refs/tags/<tag>:refs/template/<tag>`. A template tag under
+   `refs/tags/` collides with the project's own release of the same name. It also travels with
+   `git push --tags`, and a command that resolves a tag by name then reads the template's commit.
+   Replace the `NUC-` files under `docs/adr/`, `AGENTS.md`, and the blob list
    ([NUC-base-is-fixed §2](../../../docs/adr/NUC-base-is-fixed.md)) with those
    at the new tag, for example by
-   `git checkout <tag> -- 'docs/adr/NUC-*' AGENTS.md docs/adr/NUC.blobs` from a remote that
-   carries the template's tags. Delete a `NUC-` file the new tag no longer has. Change none of
-   them beyond the copy; a project narrows a rule in an ADR of its own
-   ([NUC-base-is-fixed §1](../../../docs/adr/NUC-base-is-fixed.md)).
-3. **The other files.** Take up each other file the notes name. Where the project changed the file
-   too, merge the two in the way the project chose. The git hooks and the repository settings
-   follow as [section 1](#1-entry-point-and-inputs) says.
+   `git checkout refs/template/<tag> -- 'docs/adr/NUC-*' AGENTS.md docs/adr/NUC.blobs`. Delete a
+   `NUC-` file the new tag no longer has. Change none of them beyond the copy; a project narrows a
+   rule in an ADR of its own ([NUC-base-is-fixed §1](../../../docs/adr/NUC-base-is-fixed.md)).
+3. **The other files.** Take up each other file the notes name from `refs/template/<tag>`. Where
+   the project changed the file too, merge the two in the way the project chose. The git hooks and
+   the repository settings follow as [section 1](#1-entry-point-and-inputs) says.
 4. **The release line.** Move the `Template release` line to the new tag in the same change
    ([NUC-releases-are-semver-tags §5](../../../docs/adr/NUC-releases-are-semver-tags.md)).
 5. **The checks.** Run [`scripts/check-all.sh`](../../../scripts/check-all.sh) and fix the
