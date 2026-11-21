@@ -108,6 +108,8 @@ human has agreed the cut.
    successor, or to `-` where it has none, and a split names each successor. A successor that is
    itself mapped is refused, so a map has no chain. Check it with `remap.sh --check`, apply it
    with `remap.sh`, and rewrite by hand what it lists as left; `--check` then reports nothing.
+   Split a line the move pushed past the width and compare the counts as steps 3 and 4 of
+   [`propose-adr` section 5](../propose-adr/SKILL.md#5-the-acceptance-of-a-superseding-adr) say.
    Under `--check`, exit 1 means a move or a refusal:
    - A move prints its line on stdout.
    - A refusal prints nothing on stdout and its reason on stderr.
@@ -164,6 +166,8 @@ own ADRs stay as they are; no inherited ADR is merged into its record. Work on a
    list the citations with `git grep -nwE '<old identifiers>'` and move each as the map says, in
    accepted ADRs too
    ([NUC-decisions-are-proposed-then-accepted §6](../../../docs/adr/NUC-decisions-are-proposed-then-accepted.md)).
+   Split a line the move pushed past the width and compare the counts as steps 3 and 4 of
+   [`propose-adr` section 5](../propose-adr/SKILL.md#5-the-acceptance-of-a-superseding-adr) say.
    The commit that moves them carries the map under a line that reads `ADR map:` alone, as in
    [section 6](#6-review-and-hand-off).
    Where the cited clause changed its meaning, hand the ADR to the human for a supersession instead.

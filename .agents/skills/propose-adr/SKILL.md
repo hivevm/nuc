@@ -86,3 +86,37 @@ Commit on a branch and hand the ADR to the human as
 [NUC-decisions-are-proposed-then-accepted §3](../../../docs/adr/NUC-decisions-are-proposed-then-accepted.md)
 asks. What follows is
 [NUC-decisions-are-proposed-then-accepted §4](../../../docs/adr/NUC-decisions-are-proposed-then-accepted.md).
+
+## 5. The acceptance of a superseding ADR
+
+When the human accepts an ADR whose `Supersedes:` field names others, each old ADR flips to
+superseded in the same change
+([NUC-adrs-are-named-by-category §4](../../../docs/adr/NUC-adrs-are-named-by-category.md)). From
+then on, each `Verifies:` marker that cites an old ADR fails
+([NUC-decisions-cite-tests §6](../../../docs/adr/NUC-decisions-cite-tests.md)). So the same change
+moves the citations to the successor:
+
+1. **The map.** Write a map under `.scratch/` from the `Supersedes:` fields, in the form the
+   header of the map script [`remap.sh`](../normalize/remap.sh) gives. Each old ADR gets a line
+   `<old> <successor>`. A cited clause that the successor carries under another number gets a
+   line `<old>§n <successor>§m` of its own.
+2. **The move.** Check the map with `.agents/skills/normalize/remap.sh --check <map>`, then apply
+   it without `--check`. Rewrite by hand what it lists as left. The script drops an old identifier
+   from a marker that already names the successor. It reads no file under `docs/adr/`, and an
+   accepted ADR keeps its citations
+   ([NUC-decisions-are-proposed-then-accepted §6](../../../docs/adr/NUC-decisions-are-proposed-then-accepted.md)).
+3. **The width.** A longer successor may push a line past the width. Split such a line only
+   within its comment or its paragraph, never into the line that follows it. Keep each marker on
+   one line: the traceability check reads no marker split over two lines. Leave every other line
+   as it was.
+4. **The comparison.** Compare each changed file with the base before the commit. Its count of
+   `Verifies:` markers must stay the same. This loop prints each file where it moved:
+
+   ```bash
+   git diff --name-only | while read -r f; do
+     [ "$(git show HEAD:"$f" | grep -c Verifies:)" = "$(grep -c Verifies: "$f")" ] || echo "$f"
+   done
+   ```
+
+   Its count of words, `wc -w`, may fall only by the identifiers the script dropped. Check each
+   file that differs by hand before the commit.
