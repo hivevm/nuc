@@ -317,14 +317,18 @@ out="$(locked "$work/lock-free" "$d")"; rc=$?
 check "a run takes a free lock and passes" test "$rc" -eq 0
 check "and hands its checks its own process id as the holder" grep -qE "HOLDER [0-9]+" <<< "$out"
 check "and removes the lock when it ends" test ! -e "$work/lock-free"
-sleep 2 & holder=$!
-mkdir "$work/lock-held" && echo "$holder" > "$work/lock-held/pid"
+# The holder releases its lock as a run does when it ends: it removes the directory.
+mkdir "$work/lock-held"
+(sleep 2; rm -rf "$work/lock-held") & holder=$!
+echo "$holder" > "$work/lock-held/pid"
 start=$SECONDS
 out="$(locked "$work/lock-held" "$d")"; rc=$?
 check "a run waits while a live run holds the lock, and then passes" \
   test "$rc" -eq 0 -a $((SECONDS - start)) -ge 1
 check "and says that it waits, naming the run and the lock" \
   grep -qF "waits for run $holder to end, which holds the lock $work/lock-held" <<< "$out"
+check "and takes the lock its holder released, not over it" \
+  test -z "$(grep -F 'takes over' <<< "$out")" -a ! -e "$work/lock-held"
 wait "$holder"
 true & ended=$!
 wait "$ended"
