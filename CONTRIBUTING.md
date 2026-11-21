@@ -171,9 +171,13 @@ The collector runs on the host, outside the container, which starts no container
 ([NUC-container-hides-host-daemon](docs/adr/NUC-container-hides-host-daemon.md)).
 `172.17.0.1` is the host on the default bridge of Docker on Linux; Docker Desktop names it
 `host.docker.internal`. The collector listens on that interface. The event
-`claude_code.api_request` carries the tokens of each call. The tokens of a hand-off's `Measures:`
-line come from there, or from `nuc measure` of
-[hivevm/nuc-tools#81](https://github.com/hivevm/nuc-tools/issues/81).
+`claude_code.api_request` carries the tokens of each call.
+
+The tokens of a hand-off's `Measures:` line come from there, or from `nuc measure`, run on the
+branch of the hand-off ([its documentation](https://github.com/hivevm/nuc-tools#commands)). It
+reads the transcripts of Claude Code that the working tree's sessions left, and prints
+`tokens <n>`. The steps that write a hand-off name it: `work-tickets` for a ticket and for a
+`feat/` branch, and `review` for the rounds of a review.
 
 ## Git hooks
 

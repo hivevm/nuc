@@ -107,6 +107,15 @@ The rest of this skill holds as written.
    the pull request's description; on a `feat/` branch, the description of that branch's pull
    request gathers it. A ticket whose spec has no ticket file left hands that spec to
    [`design-revision`](../design-revision/SKILL.md).
+   - Before the hand-off goes out, `nuc measure` fills the tokens of its `Measures:` line, where
+     the harness is one it reads
+     ([Measuring a session](../../../CONTRIBUTING.md#measuring-a-session)).
+   - For a ticket, the session runs it on the ticket's branch in the worktree. Where the review
+     ran in another directory, it runs `nuc measure --transcripts <dir>` for that one too and adds
+     the two figures.
+   - For the pull request of a `feat/` branch, the session adds the tokens of the hand-offs the
+     branch gathered to those `nuc measure` reports for the `feat/` branch itself.
+   - A value nothing measured stands as `-`.
 3. Before it removes a finished worktree, the dispatching session copies the ticket's hand-off
    draft from the worktree's `.scratch/` to `.scratch/<spec>-<NN>-<slug>.md` of the main checkout.
    There the pull request of a `feat/` branch gathers it

@@ -148,3 +148,7 @@ The fixes come after that commit.
 [`scripts/sensor-review-binding.sh`](../../../scripts/sensor-review-binding.sh) lists them for
 the human who decides the merge, unless a second review sees them first and the line moves.
 After a rework, the pull request's description carries that line.
+
+The `Measures:` line of the hand-off counts this review among its review rounds. Its tokens
+include the reviewer's session: the implementer runs `nuc measure` after the last round, where the
+harness is one it reads ([Measuring a session](../../../CONTRIBUTING.md#measuring-a-session)).
