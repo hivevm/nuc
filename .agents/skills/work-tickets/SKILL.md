@@ -97,6 +97,11 @@ The rest of this skill holds as written.
 4. Done when [`scripts/check-all.sh`](../../../scripts/check-all.sh) is green. The change
    deletes the ticket file in the same branch, and the hand-off draft under `.scratch/` says
    which ticket it lands and carries the *Doubts*.
+   - The session runs a check from its worktree's root, by the check's absolute path in that
+     worktree, and never behind `&`. A `cd <worktree> & <check>` runs the check in the directory
+     the session started in, which may be the main checkout.
+   - One run of `check-all.sh` holds a lock per user and machine, and a second run waits for it.
+     A session that sees it wait leaves it waiting, rather than starting the checks one by one.
 
 ## 3. Review, merge, and the next wave
 
